@@ -33,7 +33,7 @@ async function testSQLiteFallback() {
   console.log('📊 PHASE 2: Testing Memory Manager Integration');
   
   try {
-    const memoryManager = new SQLiteMemoryManager(':memory:');
+    const memoryManager = await SQLiteMemoryManager.create(':memory:');
     
     // Wait for async initialization
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -68,7 +68,7 @@ async function testSQLiteFallback() {
   console.log('📊 PHASE 3: Performance Benchmark');
   
   try {
-    const memoryManager = new SQLiteMemoryManager(':memory:');
+    const memoryManager = await SQLiteMemoryManager.create(':memory:');
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const startTime = Date.now();

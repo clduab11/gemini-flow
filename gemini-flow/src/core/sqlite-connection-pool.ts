@@ -230,8 +230,8 @@ export class SQLiteConnectionPool extends EventEmitter {
         
         // Test the connection
         const testStmt = database.prepare('SELECT 1 as test');
-        const result = testStmt.get();
-        if (!result || result.test !== 1) {
+        const result = await testStmt.get();
+        if (!result || (result as any).test !== 1) {
           throw new Error('Connection test failed');
         }
         
@@ -387,7 +387,7 @@ export class SQLiteConnectionPool extends EventEmitter {
       activeConnections: activeCount,
       idleConnections: this.connections.size - activeCount,
       waitingRequests: this.waitQueue.length,
-      implementation: this.implementation || 'unknown',
+      implementation: this.implementation || 'unknown' as SQLiteImplementation,
       avgWaitTime,
       connectionErrors: this.connectionErrors
     };

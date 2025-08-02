@@ -365,6 +365,22 @@ export class PerformanceBenchmark {
   private createMockModelConfigs(): Map<string, any> {
     const models = new Map();
     
+    // Updated Gemini 2.5 models
+    models.set('gemini-2.5-flash', {
+      latencyTarget: 600,
+      costPerToken: 0.0000006,
+      tier: 'pro',
+      capabilities: ['code', 'general', 'reasoning']
+    });
+
+    models.set('gemini-2.5-pro', {
+      latencyTarget: 1000,
+      costPerToken: 0.0000012,
+      tier: 'enterprise',
+      capabilities: ['code', 'reasoning', 'analysis', 'long-context']
+    });
+
+    // Legacy and current models
     models.set('gemini-2.0-flash', {
       latencyTarget: 800,
       costPerToken: 0.000001,
@@ -377,6 +393,15 @@ export class PerformanceBenchmark {
       costPerToken: 0.000002,
       tier: 'pro', 
       capabilities: ['code', 'reasoning', 'analysis']
+    });
+
+    // Deep Think - Ultra tier (Coming Soon)
+    models.set('gemini-2.5-deep-think', {
+      latencyTarget: 5000, // Higher latency for deep reasoning
+      costPerToken: 0.000005,
+      tier: 'enterprise', // Actually Ultra tier
+      capabilities: ['code', 'multi-agent', 'deep-reasoning', 'complex-problem-solving'],
+      comingSoon: true
     });
 
     models.set('gemini-pro-vertex', {

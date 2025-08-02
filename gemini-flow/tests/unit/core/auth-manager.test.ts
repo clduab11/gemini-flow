@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { AuthManager } from '../../../src/core/auth-manager';
-import { GoogleAuth } from 'google-auth-library';
+import { AuthManager } from '../../../src/core/auth-manager.js';
+import type { GoogleAuth } from 'google-auth-library';
 
 // Mock google-auth-library
 jest.mock('google-auth-library', () => ({

@@ -154,15 +154,17 @@ export class StatsCommand extends Command {
 
     // Model usage simulation
     metrics.models.usage = {
-      'gemini-1.5-pro': 45,
-      'gemini-1.5-flash': 78,
-      'gemini-1.0-pro': 27
+      'gemini-2.5-pro': 45,
+      'gemini-2.5-flash': 78,
+      'gemini-2.0-flash': 27,
+      'gemini-2.5-deep-think': 3 // Limited usage - Ultra tier only
     };
 
     metrics.models.performance = {
-      'gemini-1.5-pro': { avgLatency: 95.2, successRate: 0.98 },
-      'gemini-1.5-flash': { avgLatency: 45.8, successRate: 0.99 },
-      'gemini-1.0-pro': { avgLatency: 120.5, successRate: 0.96 }
+      'gemini-2.5-pro': { avgLatency: 95.2, successRate: 0.98 },
+      'gemini-2.5-flash': { avgLatency: 45.8, successRate: 0.99 },
+      'gemini-2.0-flash': { avgLatency: 120.5, successRate: 0.96 },
+      'gemini-2.5-deep-think': { avgLatency: 4800, successRate: 0.99 } // Higher latency for deep reasoning
     };
 
     return metrics;
@@ -197,8 +199,9 @@ export class StatsCommand extends Command {
       { command: 'execute', usage: 10 * periodMultiplier, percentage: 10 }
     ];
 
+    const analyticsTyped = analytics as any;
     if (options.teamCompare) {
-      analytics.teamMetrics = {
+      analyticsTyped.teamMetrics = {
         avgProductivity: 85.2,
         codeQuality: 92.1,
         collaborationScore: 78.5
@@ -260,8 +263,9 @@ export class StatsCommand extends Command {
       analysis.recommendations.push('Review cache configuration');
     }
 
+    const analysisTyped = analysis as any;
     if (options.benchmarkCompare) {
-      analysis.benchmark = {
+      analysisTyped.benchmark = {
         vsIndustry: 'Above average',
         vsLastPeriod: '+12.5% improvement',
         ranking: 'Top 25%'
@@ -290,7 +294,7 @@ export class StatsCommand extends Command {
       'gemini-1.0-pro': { cost: 42.75, percentage: 11, requests: 270 }
     };
 
-    analysis.totalCost = Object.values(analysis.byModel).reduce((sum: number, model: any) => sum + model.cost, 0);
+    (analysis as any).totalCost = Object.values(analysis.byModel).reduce((sum: number, model: any) => sum + (model.cost || 0), 0);
 
     if (options.breakdownByTier) {
       analysis.byTier = {

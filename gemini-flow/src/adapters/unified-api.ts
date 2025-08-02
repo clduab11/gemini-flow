@@ -828,7 +828,10 @@ export class UnifiedAPI extends EventEmitter {
     // Simplified cost estimation - would be enhanced with real pricing
     const baseCosts: Record<string, number> = {
       'gemini-2.0-flash': 0.000001,
+      'gemini-2.5-flash': 0.0000006,
       'gemini-2.0-flash-thinking': 0.000002,
+      'gemini-2.5-pro': 0.0000012,
+      'gemini-2.5-deep-think': 0.000005, // Coming Soon - Ultra tier only
       'deepmind-2.5': 0.000005,
       'jules-workflow': 0.000003
     };

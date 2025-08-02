@@ -8,9 +8,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { ModelOrchestrator } from '../../core/model-orchestrator.js';
+import { ModelOrchestrator, RoutingContext } from '../../core/model-orchestrator.js';
 import { Logger } from '../../utils/logger.js';
 import { EventEmitter } from 'events';
+import { asUserTier } from '../../types/index.js';
 
 interface QueryOptions {
   depth?: 'shallow' | 'medium' | 'deep';
@@ -165,17 +166,17 @@ class QueryMiniSwarm extends EventEmitter {
       // Use Gemini Flash (free tier) for general knowledge
       const context = {
         task: `Analyze and provide insights about: ${query}`,
-        userTier: 'free', // Force free tier for cost optimization
+        userTier: asUserTier('free'), // Force free tier for cost optimization
         priority: 'medium',
         latencyRequirement: 3000,
         capabilities: ['text', 'reasoning']
       };
 
-      this.logger.debug('Gemini analyst processing', { query, model: 'gemini-2.0-flash' });
+      this.logger.debug('Gemini analyst processing', { query, model: 'gemini-2.5-flash' });
 
       const response = await this.orchestrator.orchestrate(
         `Provide comprehensive analysis about: ${query}. Include key facts, important considerations, and practical insights.`,
-        context
+        context as RoutingContext
       );
 
       return {
@@ -251,12 +252,12 @@ class QueryMiniSwarm extends EventEmitter {
 
       const context = {
         task: 'synthesis',
-        userTier: 'free',
+        userTier: asUserTier('free'),
         priority: 'high',
         latencyRequirement: 2000
       };
 
-      const synthesis = await this.orchestrator.orchestrate(synthesisPrompt, context);
+      const synthesis = await this.orchestrator.orchestrate(synthesisPrompt, context as RoutingContext);
 
       // Parse synthesis result
       const content = synthesis.content;

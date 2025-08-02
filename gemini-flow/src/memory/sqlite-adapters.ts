@@ -17,9 +17,9 @@ export interface DatabaseAdapter {
 }
 
 export interface PreparedStatement {
-  run(...params: any[]): { changes: number; lastInsertRowid?: number };
-  get(...params: any[]): any;
-  all(...params: any[]): any[];
+  run(...params: any[]): { changes: number; lastInsertRowid?: number | bigint } | Promise<{ changes: number; lastInsertRowid?: number | bigint }>;
+  get(...params: any[]): any | Promise<any>;
+  all(...params: any[]): any[] | Promise<any[]>;
 }
 
 /**
@@ -58,7 +58,15 @@ export class BetterSQLite3Adapter implements DatabaseAdapter {
     const stmt = this.db.prepare(sql);
     
     return {
-      run: (...params: any[]) => stmt.run(...params),
+      run: (...params: any[]) => {
+        const result = stmt.run(...params);
+        return {
+          changes: result.changes,
+          lastInsertRowid: typeof result.lastInsertRowid === 'bigint' 
+            ? Number(result.lastInsertRowid) 
+            : result.lastInsertRowid
+        };
+      },
       get: (...params: any[]) => stmt.get(...params),
       all: (...params: any[]) => stmt.all(...params)
     };
@@ -126,15 +134,18 @@ export class SQLite3Adapter implements DatabaseAdapter {
     if (!this._isOpen) throw new Error('Database not initialized');
     
     return {
-      run: (...params: any[]) => {
+      run: (...params: any[]): Promise<{ changes: number; lastInsertRowid?: number }> => {
         return new Promise((resolve, reject) => {
           this.db.run(sql, params, function(err: any) {
             if (err) reject(err);
-            else resolve({ changes: this.changes, lastInsertRowid: this.lastID });
+            else resolve({ 
+              changes: this.changes, 
+              lastInsertRowid: typeof this.lastID === 'bigint' ? Number(this.lastID) : this.lastID 
+            });
           });
         });
       },
-      get: (...params: any[]) => {
+      get: (...params: any[]): Promise<any> => {
         return new Promise((resolve, reject) => {
           this.db.get(sql, params, (err: any, row: any) => {
             if (err) reject(err);
@@ -142,7 +153,7 @@ export class SQLite3Adapter implements DatabaseAdapter {
           });
         });
       },
-      all: (...params: any[]) => {
+      all: (...params: any[]): Promise<any[]> => {
         return new Promise((resolve, reject) => {
           this.db.all(sql, params, (err: any, rows: any[]) => {
             if (err) reject(err);
@@ -238,6 +249,7 @@ export class SQLJSAdapter implements DatabaseAdapter {
       run: (...params: any[]) => {
         const stmt = this.db.prepare(sql);
         stmt.run(params);
+        stmt.free();
         return { changes: this.db.getRowsModified(), lastInsertRowid: undefined };
       },
       get: (...params: any[]) => {

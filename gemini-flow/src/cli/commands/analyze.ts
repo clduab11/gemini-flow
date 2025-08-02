@@ -327,7 +327,7 @@ export class AnalyzeCommand extends Command {
         }
       } catch (gitError) {
         logger.warn('Git analysis failed - repository may not be a git repo', gitError);
-        stats = { ...stats, error: 'Not a git repository or git not available' };
+        Object.assign(stats, { error: 'Not a git repository or git not available' });
       }
 
       return stats;

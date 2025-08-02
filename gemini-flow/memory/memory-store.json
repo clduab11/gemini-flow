@@ -1,0 +1,22 @@
+{
+  "default": [
+    {
+      "key": "migration/plan/comprehensive",
+      "value": "{\n  \"migration_targets\": {\n    \"gemini-1.5-pro\": \"gemini-2.5-pro\",\n    \"gemini-1.5-flash\": \"gemini-2.5-flash\", \n    \"gemini-1.0-pro\": \"gemini-2.0-flash\"\n  },\n  \"priority_levels\": {\n    \"critical\": [\"vertex-ai-connector.ts\", \"cost-report.ts\", \"model-router.ts\"],\n    \"high\": [\"model-orchestrator.ts\", \"adapters/*.ts\", \"stats.ts\"],\n    \"medium\": [\"documentation/*.md\", \"config examples\"],\n    \"low\": [\"test files\", \"analytics files\"]\n  },\n  \"deep_think_files\": [\n    \"src/core/vertex-ai-connector.ts\",\n    \"src/cli/commands/cost-report.ts\", \n    \"src/core/model-router.ts\",\n    \"src/cli/commands/stats.ts\"\n  ],\n  \"total_files_affected\": 47,\n  \"completion_status\": \"analysis_complete\"\n}",
+      "namespace": "default",
+      "timestamp": 1754111222071
+    },
+    {
+      "key": "migration/execution/plan",
+      "value": "{\n  \"phase_1_critical\": {\n    \"files\": [\n      \"src/core/vertex-ai-connector.ts\",\n      \"src/cli/commands/cost-report.ts\", \n      \"src/core/model-router.ts\"\n    ],\n    \"changes\": {\n      \"vertex-ai-connector.ts\": {\n        \"lines\": [146, 157, 168, 446-448, 626],\n        \"type\": \"model_definitions_and_pricing\",\n        \"complexity\": \"high\",\n        \"requires_deep_think\": true,\n        \"fallback_chains\": true\n      },\n      \"cost-report.ts\": {\n        \"lines\": [152-166, 220-240],\n        \"type\": \"cost_calculations\", \n        \"complexity\": \"high\",\n        \"requires_deep_think\": true,\n        \"formula_updates\": true\n      },\n      \"model-router.ts\": {\n        \"lines\": [116, 126, 136, 522-524, 1127-1129],\n        \"type\": \"routing_preferences\",\n        \"complexity\": \"medium\",\n        \"requires_deep_think\": false,\n        \"preference_arrays\": true\n      }\n    },\n    \"estimated_duration\": \"4-6 hours\"\n  },\n  \"phase_2_high\": {\n    \"files\": [\n      \"src/core/model-orchestrator.ts\",\n      \"src/cli/commands/stats.ts\",\n      \"src/adapters/unified-api.ts\"\n    ],\n    \"estimated_duration\": \"2-3 hours\"\n  },\n  \"phase_3_medium\": {\n    \"files\": [\n      \"README.md\",\n      \"docs/GOOGLE-TIER-ARCHITECTURE.md\",\n      \"docs/MIGRATION-GUIDE.md\",\n      \"docs/NPM_USAGE_GUIDE.md\",\n      \"docs/CLI_REFERENCE.md\"\n    ],\n    \"estimated_duration\": \"1-2 hours\"\n  },\n  \"phase_4_low\": {\n    \"files\": [\n      \"tests/unit/adapters/vertex-ai-connector.test.ts\",\n      \"tests/unit/core/auth-manager.test.ts\",\n      \"tests/integration/*.test.js\"\n    ],\n    \"estimated_duration\": \"2-4 hours\"\n  }\n}",
+      "namespace": "default",
+      "timestamp": 1754111349780
+    },
+    {
+      "key": "migration/validation/checklist",
+      "value": "{\n  \"pre_migration\": [\n    \"Backup current model configurations\",\n    \"Document current pricing formulas\", \n    \"Record fallback chain behaviors\",\n    \"Create test environment snapshot\"\n  ],\n  \"during_migration\": [\n    \"Verify pricing calculations remain accurate\",\n    \"Test fallback chains work correctly\",\n    \"Validate model routing decisions\",\n    \"Check cost report generation\"\n  ],\n  \"post_migration\": [\n    \"Run full test suite\",\n    \"Validate cost calculations against known data\",\n    \"Test model routing with all user tiers\",\n    \"Verify documentation accuracy\",\n    \"Performance benchmark comparison\"\n  ],\n  \"rollback_plan\": [\n    \"Git revert strategy prepared\",\n    \"Model configuration backup locations\",\n    \"Database migration rollback scripts\",\n    \"Performance monitoring alerts\"\n  ]\n}",
+      "namespace": "default",
+      "timestamp": 1754111473249
+    }
+  ]
+}

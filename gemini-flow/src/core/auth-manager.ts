@@ -90,11 +90,13 @@ export class AuthenticationManager extends EventEmitter {
     try {
       // OAuth2 client for user authentication
       if (this.config.clientId && this.config.clientSecret) {
+        // Use type assertion to handle version incompatibility between googleapis and google-auth-library
+        // The googleapis package includes an older version that conflicts with the standalone google-auth-library
         this.oauth2Client = new google.auth.OAuth2(
           this.config.clientId,
           this.config.clientSecret,
           this.config.redirectUri || 'http://localhost:3000/callback'
-        );
+        ) as unknown as OAuth2Client;
       }
 
       // Service account authentication for server-to-server
@@ -148,7 +150,11 @@ export class AuthenticationManager extends EventEmitter {
       this.oauth2Client.setCredentials(tokens);
 
       // Get user information
-      const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client! });
+      // Use type assertion to handle oauth2 version parameter type mismatch
+      const oauth2 = google.oauth2({ 
+        version: 'v2', 
+        auth: this.oauth2Client! 
+      } as any);
       const userInfo = await oauth2.userinfo.get();
 
       // Detect comprehensive user tier
@@ -592,12 +598,16 @@ export class AuthenticationManager extends EventEmitter {
       
       try {
         // This would require admin privileges to work fully
-        const domainInfo = await admin.domains.get({ domain });
+        // Fix domains.get API parameter - use customer instead of domain
+        const domainInfo = await admin.domains.get({ 
+          customer: 'my_customer',
+          domainName: domain 
+        } as any);
         
         if (domainInfo.data) {
           // Check for enterprise features
-          const isEnterprise = domainInfo.data.verified && 
-                              domainInfo.data.domainName === domain;
+          const isEnterprise = (domainInfo.data as any).verified && 
+                              (domainInfo.data as any).domainName === domain;
           
           return {
             isWorkspace: true,
@@ -945,6 +955,46 @@ export class AuthenticationManager extends EventEmitter {
       this.logger.error('User revocation failed', { userId, error });
       throw error;
     }
+  }
+
+  /**
+   * Get current user context for security operations
+   */
+  async getCurrentUserContext(): Promise<{ userId: string; tier: string; permissions: string[] } | null> {
+    try {
+      // This would typically get from current session/token
+      // For now, return null - should be implemented based on session management
+      return null;
+    } catch (error) {
+      this.logger.error('Get current user context failed', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get current user ID from active session
+   */
+  async getCurrentUserId(): Promise<string | null> {
+    try {
+      // This would typically extract from JWT token or session
+      // For now, return null - should be implemented based on session management
+      return null;
+    } catch (error) {
+      this.logger.error('Get current user ID failed', error);
+      return null;
+    }
+  }
+
+  /**
+   * Determine user tier (alias for detectUserTier for backwards compatibility)
+   */
+  async determineUserTier(email?: string, tokens?: any): Promise<{
+    tier: 'free' | 'pro' | 'enterprise' | 'ultra';
+    method: string;
+    confidence: number;
+    features: string[];
+  }> {
+    return this.detectUserTier(email, tokens);
   }
 
   /**

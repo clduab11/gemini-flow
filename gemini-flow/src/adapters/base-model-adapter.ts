@@ -16,6 +16,9 @@ export interface ModelCapabilities {
   functionCalling: boolean;
   longContext: boolean;
   reasoning: boolean;
+  multiAgent: boolean;
+  complexProblemSolving: boolean;
+  chainOfThought: boolean;
   maxTokens: number;
   supportedLanguages: string[];
   inputTypes: string[];

@@ -354,4 +354,5 @@ if (require.main === module) {
   benchmark.runAllBenchmarks().catch(console.error);
 }
 
-export { RoutingBenchmark, BenchmarkResult };
+export { RoutingBenchmark };
+export type { BenchmarkResult };

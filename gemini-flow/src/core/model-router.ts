@@ -113,7 +113,7 @@ export class ModelRouter extends EventEmitter {
       id: 'critical-tasks',
       name: 'Critical Task Routing',
       condition: (ctx) => ctx.priority === 'critical',
-      modelPreference: ['gemini-2.0-flash-thinking', 'gemini-pro-vertex', 'gemini-2.0-flash'],
+      modelPreference: ['gemini-2.5-deep-think', 'gemini-2.5-pro', 'gemini-pro-vertex', 'gemini-2.0-flash-thinking'],
       weight: 10,
       active: true
     });
@@ -123,7 +123,7 @@ export class ModelRouter extends EventEmitter {
       id: 'enterprise-tier',
       name: 'Enterprise Tier Routing',
       condition: (ctx) => ctx.userTier === 'enterprise',
-      modelPreference: ['gemini-2.5-deepmind', 'gemini-pro-vertex', 'gemini-2.0-flash-thinking'],
+      modelPreference: ['gemini-2.5-deep-think', 'gemini-2.5-pro', 'gemini-pro-vertex', 'gemini-2.0-flash-thinking'],
       weight: 8,
       active: true
     });
@@ -133,7 +133,7 @@ export class ModelRouter extends EventEmitter {
       id: 'low-latency',
       name: 'Low Latency Routing',
       condition: (ctx) => ctx.latencyRequirement < 1000,
-      modelPreference: ['gemini-2.0-flash', 'gemini-2.0-flash-thinking'],
+      modelPreference: ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-thinking'],
       weight: 7,
       active: true
     });
@@ -144,7 +144,7 @@ export class ModelRouter extends EventEmitter {
       name: 'Code Task Routing',
       condition: (ctx) => ctx.task.toLowerCase().includes('code') || 
                            ctx.capabilities?.includes('code'),
-      modelPreference: ['gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
+      modelPreference: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
       weight: 6,
       active: true
     });
@@ -154,7 +154,7 @@ export class ModelRouter extends EventEmitter {
       id: 'large-context',
       name: 'Large Context Routing',
       condition: (ctx) => (ctx.tokenBudget || 0) > 100000,
-      modelPreference: ['gemini-2.5-deepmind', 'gemini-pro-vertex'],
+      modelPreference: ['gemini-2.5-deep-think', 'gemini-2.5-pro', 'gemini-pro-vertex'],
       weight: 5,
       active: true
     });
@@ -164,8 +164,20 @@ export class ModelRouter extends EventEmitter {
       id: 'free-tier',
       name: 'Free Tier Routing',
       condition: (ctx) => ctx.userTier === 'free',
-      modelPreference: ['gemini-2.0-flash'],
+      modelPreference: ['gemini-2.0-flash', 'gemini-2.5-flash'],
       weight: 3,
+      active: true
+    });
+
+    // Rule 7: Deep reasoning tasks get specialized models
+    this.addRule({
+      id: 'deep-reasoning',
+      name: 'Deep Reasoning Routing',
+      condition: (ctx) => ctx.task.toLowerCase().includes('complex') ||
+                           ctx.task.toLowerCase().includes('analyze') ||
+                           ctx.capabilities?.includes('deep-reasoning'),
+      modelPreference: ['gemini-2.5-deep-think', 'gemini-2.5-pro'],
+      weight: 9,
       active: true
     });
 
@@ -519,9 +531,9 @@ export class ModelRouter extends EventEmitter {
    */
   private getFallbackModel(userTier: string, availableModels: Map<string, ModelConfig>): string {
     const fallbacks = {
-      enterprise: ['gemini-pro-vertex', 'gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
-      pro: ['gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
-      free: ['gemini-2.0-flash']
+      enterprise: ['gemini-2.5-pro', 'gemini-pro-vertex', 'gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
+      pro: ['gemini-2.5-flash', 'gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
+      free: ['gemini-2.0-flash', 'gemini-2.5-flash']
     };
 
     const tierFallbacks = fallbacks[userTier as keyof typeof fallbacks] || fallbacks.free;
@@ -1124,9 +1136,9 @@ export class ModelRouter extends EventEmitter {
 
   private getEmergencyFallback(userTier: string, availableModels: Map<string, ModelConfig>): string {
     const emergencyOrder = {
-      enterprise: ['gemini-pro-vertex', 'gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
-      pro: ['gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
-      free: ['gemini-2.0-flash']
+      enterprise: ['gemini-2.5-pro', 'gemini-pro-vertex', 'gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
+      pro: ['gemini-2.5-flash', 'gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
+      free: ['gemini-2.0-flash', 'gemini-2.5-flash']
     };
     
     const tierFallbacks = emergencyOrder[userTier as keyof typeof emergencyOrder] || emergencyOrder.free;
@@ -1274,30 +1286,4 @@ export class ModelRouter extends EventEmitter {
     return Array.from(this.performance.values());
   }
 
-  /**
-   * Get fallback model based on user tier (legacy method)
-   */
-  private getFallbackModel(userTier: string, availableModels: Map<string, ModelConfig>): string {
-    const fallbacks = {
-      enterprise: ['gemini-pro-vertex', 'gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
-      pro: ['gemini-2.0-flash-thinking', 'gemini-2.0-flash'],
-      free: ['gemini-2.0-flash']
-    };
-
-    const tierFallbacks = fallbacks[userTier as keyof typeof fallbacks] || fallbacks.free;
-    
-    for (const model of tierFallbacks) {
-      if (availableModels.has(model)) {
-        return model;
-      }
-    }
-
-    // Last resort - return first available model
-    const firstAvailable = Array.from(availableModels.keys())[0];
-    if (!firstAvailable) {
-      throw new Error('No models available');
-    }
-    
-    return firstAvailable;
-  }
 }

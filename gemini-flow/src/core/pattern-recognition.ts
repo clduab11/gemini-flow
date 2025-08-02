@@ -530,8 +530,8 @@ export class PatternRecognitionEngine {
     return {
       variables: this.detectNamingStyle(variableMatches.map(m => m.split(/\s+/)[1])),
       functions: this.detectNamingStyle(functionMatches.map(m => m.split(/\s+/)[1])),
-      classes: this.detectNamingStyle(classMatches.map(m => m.split(/\s+/)[1])),
-      constants: 'UPPER_CASE' // Default assumption
+      classes: this.detectNamingStyle(classMatches.map(m => m.split(/\s+/)[1])) as 'PascalCase' | 'snake_case',
+      constants: 'UPPER_CASE' as const // Default assumption
     };
   }
 

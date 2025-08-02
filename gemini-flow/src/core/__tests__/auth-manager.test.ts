@@ -4,9 +4,9 @@
  * Comprehensive tests for tier detection system
  */
 
-import { AuthenticationManager, UserProfile, AuthConfig } from '../auth-manager';
-import { CacheManager } from '../cache-manager';
-import { Logger } from '../../utils/logger';
+import { AuthenticationManager, type UserProfile, type AuthConfig } from '../auth-manager.js';
+import type { CacheManager } from '../cache-manager.js';
+import type { Logger } from '../../utils/logger.js';
 
 // Mock dependencies
 jest.mock('../cache-manager');

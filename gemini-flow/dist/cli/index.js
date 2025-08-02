@@ -30,6 +30,7 @@ import { ModelOrchestrator } from '../core/model-orchestrator.js';
 import { AuthenticationManager } from '../core/auth-manager.js';
 import { PerformanceMonitor } from '../core/performance-monitor.js';
 import { PerformanceBenchmark } from '../utils/performance-benchmark.js';
+import { asUserTier } from '../types/index.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -133,8 +134,8 @@ program
 // Add all command modules
 const configManager = new ConfigManager();
 program.addCommand(new InitCommand(configManager));
-program.addCommand(new SwarmCommand());
-program.addCommand(new AgentCommand());
+program.addCommand(new SwarmCommand(configManager));
+program.addCommand(new AgentCommand(configManager));
 program.addCommand(new TaskCommand());
 program.addCommand(new SparcCommand(configManager));
 program.addCommand(new HiveMindCommand());
@@ -142,9 +143,9 @@ program.addCommand(new QueryCommand());
 program.addCommand(new MemoryCommand());
 program.addCommand(new HooksCommand());
 program.addCommand(new AnalyzeCommand());
-program.addCommand(new LearnCommand(configManager));
-program.addCommand(new GenerateCommand(configManager));
-program.addCommand(new ExecuteCommand(configManager));
+program.addCommand(new LearnCommand());
+program.addCommand(new GenerateCommand());
+program.addCommand(new ExecuteCommand());
 program.addCommand(new StatsCommand());
 program.addCommand(new CostReportCommand());
 program.addCommand(new SecurityFlagsCommand());
@@ -429,7 +430,7 @@ async function runModelBenchmark(options) {
         for (let j = 0; j < options.concurrent && (i + j) < options.requests; j++) {
             const context = {
                 task: `Benchmark request ${i + j}`,
-                userTier: 'pro',
+                userTier: asUserTier('pro'),
                 priority: 'medium',
                 latencyRequirement: 1000
             };

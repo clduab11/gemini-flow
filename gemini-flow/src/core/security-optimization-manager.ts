@@ -593,7 +593,7 @@ export class SecurityOptimizationManager extends EventEmitter {
       }
 
       // Role-based access control
-      const userRoles = userContext.roles || ['guest'];
+      const userRoles = (userContext as any).roles || ['guest'];
       const hasRequiredRole = this.securityPolicy.accessControl.roles.some(role => 
         userRoles.includes(role)
       );

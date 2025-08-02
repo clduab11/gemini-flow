@@ -289,7 +289,7 @@ export class CodeGenerationEngine {
       files: parsed.files,
       metadata: {
         ...this.buildMetadata(parsed.files, ['ai_generated'], response.modelUsed),
-        confidence: response.confidence || 0.8
+        confidence: (response as any).confidence || 0.8
       },
       suggestions: parsed.suggestions || [],
       dependencies: parsed.dependencies || []

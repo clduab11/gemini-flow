@@ -13,13 +13,13 @@ export interface SQLiteRow {
 
 export interface SQLiteResult {
   changes?: number;
-  lastInsertRowid?: number;
+  lastInsertRowid?: number | bigint;
 }
 
 export interface SQLiteStatement {
-  run(...params: any[]): SQLiteResult;
-  get(...params: any[]): SQLiteRow | undefined;
-  all(...params: any[]): SQLiteRow[];
+  run(...params: any[]): SQLiteResult | Promise<SQLiteResult>;
+  get(...params: any[]): SQLiteRow | undefined | Promise<SQLiteRow | undefined>;
+  all(...params: any[]): SQLiteRow[] | Promise<SQLiteRow[]>;
 }
 
 export interface SQLiteDatabase {
@@ -130,7 +130,15 @@ async function createBetterSQLite3Database(dbPath: string): Promise<SQLiteDataba
     prepare(sql: string): SQLiteStatement {
       const stmt = db.prepare(sql);
       return {
-        run: (...params: any[]) => stmt.run(...params),
+        run: (...params: any[]) => {
+          const result = stmt.run(...params);
+          return {
+            changes: result.changes,
+            lastInsertRowid: typeof result.lastInsertRowid === 'bigint' 
+              ? Number(result.lastInsertRowid) 
+              : result.lastInsertRowid
+          };
+        },
         get: (...params: any[]) => stmt.get(...params),
         all: (...params: any[]) => stmt.all(...params)
       };

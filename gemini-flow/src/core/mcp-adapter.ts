@@ -7,6 +7,7 @@
 
 import { GoogleGenerativeAI, GenerativeModel, GenerationConfig } from '@google/generative-ai';
 import { MCPRequest, MCPResponse, MCPTool } from '../types/mcp.js';
+import { MCPTools, MCPToolName, MCPToolParameters, MCPToolReturnType } from '../types/mcp-tools.js';
 import { Logger } from '../utils/logger.js';
 import { CacheManager } from './cache-manager.js';
 import { ContextOptimizer } from './context-optimizer.js';
@@ -26,7 +27,7 @@ export class MCPToGeminiAdapter {
     contextTokens: 0
   };
 
-  constructor(apiKey: string, modelName: string = 'gemini-2.0-flash') {
+  constructor(apiKey: string, modelName: string = 'gemini-2.5-flash') {
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ model: modelName });
     this.cache = new CacheManager();
@@ -70,7 +71,6 @@ export class MCPToGeminiAdapter {
       // Create chat session with function calling
       const chat = this.model.startChat({
         generationConfig,
-        tools: functions.length > 0 ? [{ functionDeclarations: functions }] : undefined,
         history: this.transformHistory(request.history)
       });
 
@@ -87,11 +87,11 @@ export class MCPToGeminiAdapter {
       // Update metrics
       const latency = Date.now() - startTime;
       this.metrics.totalLatency += latency;
-      this.metrics.contextTokens += response.usageMetadata?.totalTokenCount || 0;
+      this.metrics.contextTokens += (response as any).usageMetadata?.totalTokenCount || 0;
       
       this.logger.info('Request processed', {
         latency,
-        tokens: response.usageMetadata?.totalTokenCount,
+        tokens: (response as any).usageMetadata?.totalTokenCount,
         cached: false
       });
 
@@ -150,9 +150,9 @@ export class MCPToGeminiAdapter {
         arguments: fc.args
       })),
       usage: {
-        promptTokens: geminiResponse.usageMetadata?.promptTokenCount || 0,
-        completionTokens: geminiResponse.usageMetadata?.candidatesTokenCount || 0,
-        totalTokens: geminiResponse.usageMetadata?.totalTokenCount || 0
+        promptTokens: (geminiResponse as any).usageMetadata?.promptTokenCount || 0,
+        completionTokens: (geminiResponse as any).usageMetadata?.candidatesTokenCount || 0,
+        totalTokens: (geminiResponse as any).usageMetadata?.totalTokenCount || 0
       },
       metadata: {
         finishReason: geminiResponse.candidates?.[0]?.finishReason,
@@ -196,5 +196,80 @@ export class MCPToGeminiAdapter {
       avgLatency: this.metrics.totalLatency / this.metrics.requestCount,
       avgTokensPerRequest: this.metrics.contextTokens / this.metrics.requestCount
     };
+  }
+
+  /**
+   * Type-safe MCP tool caller
+   */
+  async callMCPTool<T extends MCPToolName>(
+    toolName: T,
+    params: MCPToolParameters<T>
+  ): Promise<MCPToolReturnType<T>> {
+    const toolRequest: MCPRequest = {
+      prompt: `Execute MCP tool: ${toolName}`,
+      tools: [{
+        name: toolName,
+        description: `Execute ${toolName} with provided parameters`,
+        parameters: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      }],
+      temperature: 0.1, // Low temperature for tool execution
+      maxTokens: 4096
+    };
+
+    try {
+      const response = await this.processRequest(toolRequest);
+      
+      // Parse the function call result
+      const functionCall = response.functionCalls?.[0];
+      if (functionCall && functionCall.name === toolName) {
+        return {
+          success: true,
+          data: functionCall.arguments,
+          timestamp: Date.now()
+        } as MCPToolReturnType<T>;
+      } else {
+        return {
+          success: false,
+          error: 'Tool execution failed or no function call returned',
+          timestamp: Date.now()
+        } as MCPToolReturnType<T>;
+      }
+    } catch (error: any) {
+      this.logger.error(`MCP tool ${toolName} execution failed:`, error);
+      return {
+        success: false,
+        error: error.message,
+        timestamp: Date.now()
+      } as MCPToolReturnType<T>;
+    }
+  }
+
+  /**
+   * Check if a tool name is a valid MCP tool
+   */
+  isMCPTool(toolName: string): toolName is MCPToolName {
+    return toolName.startsWith('mcp__');
+  }
+
+  /**
+   * Get available MCP tools
+   */
+  getAvailableMCPTools(): MCPToolName[] {
+    // This would typically be populated from the actual MCP server capabilities
+    // For now, return a subset of commonly used tools
+    return [
+      'mcp__claude-flow__swarm_init',
+      'mcp__claude-flow__agent_spawn',
+      'mcp__claude-flow__task_orchestrate',
+      'mcp__claude-flow__memory_usage',
+      'mcp__claude-flow__neural_status',
+      'mcp__ruv-swarm__swarm_init',
+      'mcp__ruv-swarm__agent_spawn',
+      'mcp__ruv-swarm__task_orchestrate'
+    ] as MCPToolName[];
   }
 }

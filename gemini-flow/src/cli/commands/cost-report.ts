@@ -149,26 +149,34 @@ export class CostReportCommand extends Command {
       currency: 'USD',
       
       modelCosts: {
-        'gemini-1.5-pro': {
-          cost: 245.50 * periodMultiplier,
+        'gemini-2.5-pro': {
+          cost: 295.20 * periodMultiplier,
           requests: Math.floor(450 * periodMultiplier),
           tokens: Math.floor(125000 * periodMultiplier),
-          avgCostPerRequest: 0.545,
-          avgCostPerToken: 0.00196
+          avgCostPerRequest: 0.656,
+          avgCostPerToken: 0.00236
         },
-        'gemini-1.5-flash': {
-          cost: 89.25 * periodMultiplier,
+        'gemini-2.5-flash': {
+          cost: 76.50 * periodMultiplier,
           requests: Math.floor(780 * periodMultiplier),
           tokens: Math.floor(95000 * periodMultiplier),
-          avgCostPerRequest: 0.114,
-          avgCostPerToken: 0.00094
+          avgCostPerRequest: 0.098,
+          avgCostPerToken: 0.00081
         },
-        'gemini-1.0-pro': {
-          cost: 49.75 * periodMultiplier,
+        'gemini-2.0-flash': {
+          cost: 42.80 * periodMultiplier,
           requests: Math.floor(270 * periodMultiplier),
           tokens: Math.floor(45000 * periodMultiplier),
-          avgCostPerRequest: 0.184,
-          avgCostPerToken: 0.00111
+          avgCostPerRequest: 0.159,
+          avgCostPerToken: 0.00095
+        },
+        'gemini-2.5-deep-think': {
+          cost: 125.00 * periodMultiplier, // Premium pricing
+          requests: Math.floor(25 * periodMultiplier), // Lower volume
+          tokens: Math.floor(25000 * periodMultiplier),
+          avgCostPerRequest: 5.00,
+          avgCostPerToken: 0.0050,
+          note: 'Coming Soon - Ultra tier only'
         }
       },
 
@@ -217,20 +225,25 @@ export class CostReportCommand extends Command {
       lowUsageHours: ['22:00-06:00'],
       
       modelEfficiency: {
-        'gemini-1.5-pro': {
-          efficiency: 'Medium',
-          reason: 'High accuracy but expensive for simple tasks',
-          recommendation: 'Use for complex analysis only'
-        },
-        'gemini-1.5-flash': {
+        'gemini-2.5-pro': {
           efficiency: 'High',
-          reason: 'Best cost-performance ratio',
-          recommendation: 'Ideal for routine tasks'
+          reason: 'Enhanced capabilities with improved cost efficiency',
+          recommendation: 'Ideal for complex analysis and reasoning tasks'
         },
-        'gemini-1.0-pro': {
-          efficiency: 'Low',
-          reason: 'Lower performance for similar cost',
-          recommendation: 'Consider migrating to 1.5 models'
+        'gemini-2.5-flash': {
+          efficiency: 'Very High',
+          reason: 'Excellent cost-performance ratio with fast responses',
+          recommendation: 'Perfect for routine and medium complexity tasks'
+        },
+        'gemini-2.0-flash': {
+          efficiency: 'Medium',
+          reason: 'Good baseline performance',
+          recommendation: 'Consider upgrading to 2.5 models for better efficiency'
+        },
+        'gemini-2.5-deep-think': {
+          efficiency: 'Specialized',
+          reason: 'Premium model for complex problem-solving (Coming Soon)',
+          recommendation: 'Reserve for most challenging multi-step reasoning tasks'
         }
       },
 
@@ -337,7 +350,7 @@ export class CostReportCommand extends Command {
         {
           category: 'Model Selection',
           priority: 'High',
-          description: 'Migrate simple queries from Gemini 1.5 Pro to Gemini 1.5 Flash',
+          description: 'Optimize model routing: use Gemini 2.5 Flash for routine tasks and 2.5 Pro for complex analysis',
           potentialSavings: costData.totalCost * 0.15,
           implementation: 'Configure intelligent routing based on query complexity',
           timeframe: '1-2 weeks',
@@ -374,7 +387,7 @@ export class CostReportCommand extends Command {
 
       quickWins: [
         'Enable response caching',
-        'Migrate Gemini 1.0 Pro users to 1.5 Flash',
+        'Migrate users to Gemini 2.5 models for better efficiency',
         'Implement query optimization',
         'Set up cost monitoring alerts'
       ],
@@ -396,7 +409,7 @@ export class CostReportCommand extends Command {
 
     const forecastPeriods = parseInt(options.forecast.replace('d', '')) / 30;
 
-    const forecast = {
+    const forecast: any = {
       basedOn: costData.period,
       forecastPeriod: options.forecast,
       currentMonthlyRate: currentMonthlyRate,
@@ -407,7 +420,8 @@ export class CostReportCommand extends Command {
         conservative: {},
         realistic: {},
         aggressive: {}
-      }
+      },
+      budgetAnalysis: null
     };
 
     // Generate monthly projections
@@ -475,7 +489,7 @@ export class CostReportCommand extends Command {
       .reduce((sum: number, value: number) => sum + value, 0);
 
     roi.calculation.netBenefit = roi.calculation.totalBenefits - roi.calculation.totalCosts;
-    roi.calculation.roiPercentage = ((roi.calculation.netBenefit / roi.calculation.totalCosts) * 100).toFixed(1);
+    roi.calculation.roiPercentage = parseFloat(((roi.calculation.netBenefit / roi.calculation.totalCosts) * 100).toFixed(1));
 
     return roi;
   }

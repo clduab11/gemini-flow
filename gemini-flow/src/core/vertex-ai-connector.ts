@@ -5,7 +5,7 @@
  * Supports enterprise features, custom models, and batch processing
  */
 
-import { VertexAI } from '@google-cloud/aiplatform';
+import { VertexAI } from '@google-cloud/vertexai';
 import { GoogleAuth } from 'google-auth-library';
 import { Logger } from '../utils/logger.js';
 import { PerformanceMonitor } from './performance-monitor.js';
@@ -143,36 +143,47 @@ export class VertexAIConnector extends EventEmitter {
       // Predefined Gemini models on Vertex AI
       const geminiModels: VertexModelConfig[] = [
         {
-          name: 'gemini-1.5-pro',
-          displayName: 'Gemini 1.5 Pro',
+          name: 'gemini-2.5-pro',
+          displayName: 'Gemini 2.5 Pro',
           publisher: 'google',
-          version: '001',
-          capabilities: ['text', 'code', 'multimodal', 'long-context'],
+          version: '002',
+          capabilities: ['text', 'code', 'multimodal', 'long-context', 'advanced-reasoning'],
+          inputTokenLimit: 2000000,
+          outputTokenLimit: 8192,
+          supportsBatch: true,
+          supportsStreaming: true
+        },
+        {
+          name: 'gemini-2.5-flash',
+          displayName: 'Gemini 2.5 Flash',
+          publisher: 'google',
+          version: '002',
+          capabilities: ['text', 'code', 'multimodal', 'fast', 'reasoning'],
           inputTokenLimit: 1000000,
           outputTokenLimit: 8192,
           supportsBatch: true,
           supportsStreaming: true
         },
         {
-          name: 'gemini-1.5-flash',
-          displayName: 'Gemini 1.5 Flash',
+          name: 'gemini-2.0-flash',
+          displayName: 'Gemini 2.0 Flash',
           publisher: 'google',
           version: '001',
-          capabilities: ['text', 'code', 'multimodal', 'fast'],
+          capabilities: ['text', 'code', 'reasoning', 'multimodal'],
           inputTokenLimit: 1000000,
           outputTokenLimit: 8192,
           supportsBatch: true,
           supportsStreaming: true
         },
         {
-          name: 'gemini-1.0-pro',
-          displayName: 'Gemini 1.0 Pro',
+          name: 'gemini-2.5-deep-think',
+          displayName: 'Gemini 2.5 Deep Think (Preview)',
           publisher: 'google',
-          version: '001',
-          capabilities: ['text', 'code', 'reasoning'],
-          inputTokenLimit: 32768,
-          outputTokenLimit: 2048,
-          supportsBatch: true,
+          version: 'preview',
+          capabilities: ['text', 'code', 'multi-agent', 'deep-reasoning', 'complex-problem-solving'],
+          inputTokenLimit: 2000000,
+          outputTokenLimit: 65536,
+          supportsBatch: false,
           supportsStreaming: false
         }
       ];
@@ -443,9 +454,14 @@ export class VertexAIConnector extends EventEmitter {
   private calculateCost(tokens: number, model: string): number {
     // Vertex AI pricing (approximate, as of 2024)
     const pricing = {
-      'gemini-1.5-pro': 0.000001, // $1 per 1M tokens
-      'gemini-1.5-flash': 0.0000005, // $0.5 per 1M tokens
-      'gemini-1.0-pro': 0.0000008 // $0.8 per 1M tokens
+      'gemini-2.5-pro': 0.0000012, // $1.2 per 1M tokens (enhanced capabilities)
+      'gemini-2.5-flash': 0.0000006, // $0.6 per 1M tokens (improved performance)
+      'gemini-2.0-flash': 0.0000008, // $0.8 per 1M tokens
+      'gemini-2.5-deep-think': 0.0000050, // $5 per 1M tokens (Coming Soon - Ultra tier only)
+      // Legacy models (deprecated)
+      'gemini-1.5-pro': 0.000001,
+      'gemini-1.5-flash': 0.0000005,
+      'gemini-1.0-pro': 0.0000008
     };
 
     const pricePerToken = pricing[model as keyof typeof pricing] || 0.000001;
@@ -623,7 +639,7 @@ export class VertexAIConnector extends EventEmitter {
     try {
       // Simple test request
       const response = await this.predict({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
         instances: ['Hello, Vertex AI!'],
         parameters: { maxOutputTokens: 10 }
       });

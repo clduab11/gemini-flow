@@ -255,7 +255,7 @@ export class SecurityUtils {
     return {
       encrypt: (text: string): string => {
         const iv = crypto.randomBytes(16);
-        const cipher = crypto.createCipher(algorithm, encryptionKey);
+        const cipher = crypto.createCipheriv('aes-256-gcm', Buffer.from(encryptionKey).subarray(0, 32), iv);
         cipher.setAAD(Buffer.from('gemini-flow', 'utf8'));
         
         let encrypted = cipher.update(text, 'utf8', 'hex');
@@ -272,7 +272,7 @@ export class SecurityUtils {
         const iv = Buffer.from(ivHex, 'hex');
         const authTag = Buffer.from(authTagHex, 'hex');
         
-        const decipher = crypto.createDecipher(algorithm, encryptionKey);
+        const decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(encryptionKey).subarray(0, 32), iv);
         decipher.setAAD(Buffer.from('gemini-flow', 'utf8'));
         decipher.setAuthTag(authTag);
         

@@ -440,4 +440,23 @@ export class PerformanceMonitor extends EventEmitter {
     
     return csv;
   }
+
+  /**
+   * Shutdown performance monitor and cleanup resources
+   */
+  shutdown(): void {
+    this.logger.info('Shutting down PerformanceMonitor', {
+      metricsCount: this.metrics.size,
+      totalDataPoints: Array.from(this.metrics.values()).reduce((sum, history) => sum + history.length, 0)
+    });
+
+    // Clear intervals and listeners
+    this.removeAllListeners();
+    
+    // Clear metrics data
+    this.metrics.clear();
+    this.alertThresholds.clear();
+    
+    this.logger.info('PerformanceMonitor shutdown completed');
+  }
 }

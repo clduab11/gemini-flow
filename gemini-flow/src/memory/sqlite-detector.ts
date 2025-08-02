@@ -113,7 +113,7 @@ export class SQLiteDetector {
       const result = db.prepare('SELECT * FROM test WHERE name = ?').get('test');
       db.close();
       
-      if (result && result.name === 'test') {
+      if (result && (result as any).name === 'test') {
         return { available: true, initTime: Date.now() - startTime };
       }
     } catch (error) {
@@ -156,7 +156,7 @@ export class SQLiteDetector {
               db.get('SELECT * FROM test WHERE name = ?', ['test'], (err, row) => {
                 db.close();
                 
-                if (err || !row || row.name !== 'test') {
+                if (err || !row || (row as any).name !== 'test') {
                   resolve({ available: false, initTime: 0 });
                 } else {
                   resolve({ available: true, initTime: Date.now() - startTime });

@@ -8,10 +8,15 @@
 
 // Enable source map support for better debugging (optional, skip if not available)
 try {
-  await import('source-map-support/register.js');
+  const sourceMapSupport = await import('source-map-support/register.js');
 } catch (e) {
   // Source map support not available, continue without it
 }
 
 // Import and run the CLI
-import '../dist/cli/index.js';
+import('../dist/cli/index.js').catch(error => {
+  console.error('Failed to load CLI:', error.message);
+  console.error('Working directory:', process.cwd());
+  console.error('__dirname equivalent:', import.meta.url);
+  process.exit(1);
+});

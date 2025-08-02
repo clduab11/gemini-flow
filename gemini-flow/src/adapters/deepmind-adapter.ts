@@ -117,6 +117,9 @@ export class DeepMindAdapter extends BaseModelAdapter {
           multimodal: true,
           longContext: true,
           reasoning: true, // Advanced reasoning with chain-of-thought
+          multiAgent: true,
+          complexProblemSolving: true,
+          chainOfThought: true,
           maxTokens: 2000000, // 2M token context window
         };
 
@@ -127,6 +130,9 @@ export class DeepMindAdapter extends BaseModelAdapter {
           multimodal: true,
           longContext: true,
           reasoning: true, // Ultra-advanced reasoning
+          multiAgent: true,
+          complexProblemSolving: true,
+          chainOfThought: true,
           maxTokens: 4000000, // 4M token context window
         };
 
@@ -137,6 +143,9 @@ export class DeepMindAdapter extends BaseModelAdapter {
           multimodal: true,
           longContext: true,
           reasoning: true, // Professional-grade reasoning
+          multiAgent: true,
+          complexProblemSolving: true,
+          chainOfThought: true,
           maxTokens: 1000000, // 1M token context window
         };
 

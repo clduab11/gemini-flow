@@ -17,7 +17,7 @@ import {
 } from './base-model-adapter.js';
 
 export interface GeminiAdapterConfig extends AdapterConfig {
-  model: 'gemini-2.0-flash' | 'gemini-2.0-flash-thinking' | 'gemini-pro' | 'gemini-pro-vision';
+  model: 'gemini-2.0-flash' | 'gemini-2.0-flash-thinking' | 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-2.5-deep-think' | 'gemini-pro' | 'gemini-pro-vision';
   safetySettings?: any[];
   generationConfig?: {
     temperature?: number;
@@ -98,6 +98,24 @@ export class GeminiAdapter extends BaseModelAdapter {
           multimodal: true,
           longContext: false,
           reasoning: true,
+          multiAgent: false,
+          complexProblemSolving: false,
+          chainOfThought: false,
+          maxTokens: 1000000,
+          inputTypes: ['text', 'image', 'audio', 'video'],
+          outputTypes: ['text', 'audio']
+        };
+
+      case 'gemini-2.5-flash':
+        return {
+          ...baseCapabilities,
+          codeGeneration: true,
+          multimodal: true,
+          longContext: false,
+          reasoning: true, // Enhanced reasoning
+          multiAgent: true,
+          complexProblemSolving: true,
+          chainOfThought: true,
           maxTokens: 1000000,
           inputTypes: ['text', 'image', 'audio', 'video'],
           outputTypes: ['text', 'audio']
@@ -110,9 +128,43 @@ export class GeminiAdapter extends BaseModelAdapter {
           multimodal: true,
           longContext: false,
           reasoning: true, // Advanced reasoning
+          multiAgent: true,
+          complexProblemSolving: true,
+          chainOfThought: true,
           maxTokens: 1000000,
           inputTypes: ['text', 'image', 'audio', 'video'],
           outputTypes: ['text', 'audio']
+        };
+
+      case 'gemini-2.5-pro':
+        return {
+          ...baseCapabilities,
+          codeGeneration: true,
+          multimodal: true,
+          longContext: true,
+          reasoning: true, // Advanced reasoning
+          multiAgent: true,
+          complexProblemSolving: true,
+          chainOfThought: true,
+          maxTokens: 2000000,
+          inputTypes: ['text', 'image', 'audio', 'video'],
+          outputTypes: ['text', 'audio']
+        };
+
+      case 'gemini-2.5-deep-think':
+        return {
+          ...baseCapabilities,
+          codeGeneration: true,
+          multimodal: true,
+          longContext: true,
+          reasoning: true, // Deep reasoning capabilities
+          maxTokens: 2000000,
+          inputTypes: ['text', 'image', 'audio', 'video'],
+          outputTypes: ['text', 'audio'],
+          // Special capabilities for Deep Think
+          multiAgent: true,
+          complexProblemSolving: true,
+          chainOfThought: true
         };
 
       case 'gemini-pro':
@@ -122,6 +174,9 @@ export class GeminiAdapter extends BaseModelAdapter {
           multimodal: false,
           longContext: true,
           reasoning: true,
+          multiAgent: false,
+          complexProblemSolving: false,
+          chainOfThought: false,
           maxTokens: 1000000,
           inputTypes: ['text'],
           outputTypes: ['text']
@@ -134,6 +189,9 @@ export class GeminiAdapter extends BaseModelAdapter {
           multimodal: true,
           longContext: true,
           reasoning: true,
+          multiAgent: false,
+          complexProblemSolving: false,
+          chainOfThought: false,
           maxTokens: 1000000,
           inputTypes: ['text', 'image'],
           outputTypes: ['text']
@@ -480,8 +538,14 @@ export class GeminiAdapter extends BaseModelAdapter {
     switch (this.modelName) {
       case 'gemini-2.0-flash':
         return 0.000001; // $0.001 per 1K tokens
+      case 'gemini-2.5-flash':
+        return 0.0000006; // $0.0006 per 1K tokens (improved efficiency)
       case 'gemini-2.0-flash-thinking':
         return 0.000002; // $0.002 per 1K tokens
+      case 'gemini-2.5-pro':
+        return 0.0000012; // $0.0012 per 1K tokens
+      case 'gemini-2.5-deep-think':
+        return 0.000005; // $0.005 per 1K tokens (Premium - Coming Soon)
       case 'gemini-pro':
         return 0.000003; // $0.003 per 1K tokens
       case 'gemini-pro-vision':

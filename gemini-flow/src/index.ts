@@ -9,16 +9,19 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { SwarmCommand } from './commands/swarm.js';
-import { AgentCommand } from './commands/agent.js';
-import { TaskCommand } from './commands/task.js';
-import { SparcCommand } from './commands/sparc.js';
-import { ConfigCommand } from './commands/config.js';
-import { WorkspaceCommand } from './commands/workspace.js';
+import { AgentCommand } from './cli/commands/agent.js';
+import { TaskCommand } from './cli/commands/task.js';
+import { SparcCommand } from './cli/commands/sparc.js';
+import { ConfigCommand } from './cli/commands/config.js';
+import { WorkspaceCommand } from './cli/commands/workspace.js';
 import { ModelOrchestrator } from './core/model-orchestrator.js';
 import { AuthenticationManager } from './core/auth-manager.js';
 import { PerformanceMonitor } from './core/performance-monitor.js';
 import { Logger } from './utils/logger.js';
-import { version } from '../package.json' assert { type: 'json' };
+import { ConfigManager } from './cli/config/config-manager.js';
+import { asUserTier } from './types/index.js';
+import packageJson from '../package.json' with { type: 'json' };
+const { version } = packageJson;
 
 const program = new Command();
 const logger = new Logger('GeminiFlow');
@@ -27,6 +30,7 @@ const logger = new Logger('GeminiFlow');
 let globalOrchestrator: ModelOrchestrator;
 let globalAuth: AuthenticationManager;
 let globalPerformance: PerformanceMonitor;
+let globalConfigManager: ConfigManager;
 
 // ASCII art banner with orchestration info
 const banner = chalk.cyan(`
@@ -123,13 +127,16 @@ program
   .version(version)
   .addHelpText('before', banner);
 
+// Initialize ConfigManager for commands
+const configManager = new ConfigManager();
+
 // Add command modules
 program.addCommand(new SwarmCommand());
-program.addCommand(new AgentCommand());
+program.addCommand(new AgentCommand(configManager));
 program.addCommand(new TaskCommand());
-program.addCommand(new SparcCommand());
-program.addCommand(new ConfigCommand());
-program.addCommand(new WorkspaceCommand());
+program.addCommand(new SparcCommand(configManager));
+program.addCommand(new ConfigCommand(configManager));
+program.addCommand(new WorkspaceCommand(configManager));
 
 // Global options with orchestration features
 program
@@ -159,8 +166,8 @@ program
 
       const context = {
         task: prompt,
-        userTier: options.tier || 'free',
-        priority: options.priority || 'medium',
+        userTier: asUserTier(options.tier || 'free'),
+        priority: (options.priority || 'medium') as 'low' | 'medium' | 'high' | 'critical',
         latencyRequirement: options.latency || 2000,
         capabilities: options.capabilities?.split(','),
         previousModel: options.model
@@ -238,8 +245,8 @@ program
         for (let j = 0; j < options.concurrent && (i + j) < options.requests; j++) {
           const context = {
             task: `Benchmark request ${i + j}`,
-            userTier: 'pro',
-            priority: 'medium',
+            userTier: asUserTier('pro'),
+            priority: 'medium' as const,
             latencyRequirement: 1000
           };
 

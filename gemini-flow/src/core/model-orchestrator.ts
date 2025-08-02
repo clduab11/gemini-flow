@@ -75,7 +75,7 @@ export class ModelOrchestrator extends EventEmitter {
     super();
     this.logger = new Logger('ModelOrchestrator');
     this.performance = new PerformanceMonitor();
-    this.cache = new CacheManager(config?.cacheSize || 1000);
+    this.cache = new CacheManager({ maxMemorySize: config?.cacheSize || 1000 });
     this.auth = new AuthenticationManager();
     this.router = new ModelRouter();
     
@@ -97,6 +97,16 @@ export class ModelOrchestrator extends EventEmitter {
       maxTokens: 1000000
     });
 
+    // Gemini 2.5 Flash - Enhanced performance and efficiency
+    this.addModel({
+      name: 'gemini-2.5-flash',
+      tier: 'pro',
+      capabilities: ['text', 'code', 'reasoning', 'multimodal', 'fast'],
+      latencyTarget: 600,
+      costPerToken: 0.0000006,
+      maxTokens: 1000000
+    });
+
     // Gemini 2.0 Flash Thinking - Advanced reasoning
     this.addModel({
       name: 'gemini-2.0-flash-thinking',
@@ -107,13 +117,23 @@ export class ModelOrchestrator extends EventEmitter {
       maxTokens: 1000000
     });
 
-    // DeepMind Gemini 2.5 (when available)
+    // Gemini 2.5 Pro - Enhanced capabilities
     this.addModel({
-      name: 'gemini-2.5-deepmind',
+      name: 'gemini-2.5-pro',
       tier: 'enterprise',
       capabilities: ['text', 'code', 'advanced-reasoning', 'multimodal', 'long-context'],
-      latencyTarget: 1500,
-      costPerToken: 0.000005,
+      latencyTarget: 1000,
+      costPerToken: 0.0000012,
+      maxTokens: 2000000
+    });
+
+    // Gemini 2.5 Deep Think - Ultra tier only (Coming Soon)
+    this.addModel({
+      name: 'gemini-2.5-deep-think',
+      tier: 'enterprise', // Note: Actually Ultra tier, but using enterprise as closest
+      capabilities: ['text', 'code', 'multi-agent', 'deep-reasoning', 'complex-problem-solving'],
+      latencyTarget: 5000, // Longer for deep reasoning
+      costPerToken: 0.000005, // Premium pricing
       maxTokens: 2000000
     });
 
@@ -193,14 +213,17 @@ export class ModelOrchestrator extends EventEmitter {
     const startTime = performance.now();
     this.metrics.totalRequests++;
 
-    try {
-      // 1. Authenticate and determine user tier
-      const userTier = await this.auth.determineUserTier();
-      context.userTier = userTier;
+    // 1. Authenticate and determine user tier
+    const userTier = await this.auth.determineUserTier();
+    const contextWithTier = { 
+      ...context, 
+      userTier: ((userTier as any).tier || userTier) as 'free' | 'pro' | 'enterprise' 
+    };
 
+    try {
       // 2. Route to optimal model with smart routing engine
       const routingStart = performance.now();
-      const routingDecision = await this.router.selectOptimalModel(context, this.models);
+      const routingDecision = await this.router.selectOptimalModel(contextWithTier, this.models);
       const routingTime = performance.now() - routingStart;
       
       this.metrics.routingTime += routingTime;
@@ -217,7 +240,7 @@ export class ModelOrchestrator extends EventEmitter {
       const selectedModel = routingDecision.modelName;
 
       // 3. Check cache first
-      const cacheKey = this.generateCacheKey(prompt, selectedModel, context);
+      const cacheKey = this.generateCacheKey(prompt, selectedModel, contextWithTier);
       const cachedResponse = await this.cache.get(cacheKey);
       
       if (cachedResponse) {
@@ -226,7 +249,7 @@ export class ModelOrchestrator extends EventEmitter {
       }
 
       // 4. Execute request with selected model
-      const response = await this.executeWithModel(selectedModel, prompt, context);
+      const response = await this.executeWithModel(selectedModel, prompt, contextWithTier);
       
       // 5. Cache successful responses
       if (response && !response.content.includes('error')) {
@@ -252,7 +275,7 @@ export class ModelOrchestrator extends EventEmitter {
         model: selectedModel,
         latency: totalLatency,
         routingTime,
-        userTier,
+        userTier: contextWithTier.userTier,
         cached: false,
         routingDecision
       });
@@ -260,13 +283,13 @@ export class ModelOrchestrator extends EventEmitter {
       return response;
 
     } catch (error) {
-      this.logger.error('Orchestration failed', { error, context });
+      this.logger.error('Orchestration failed', { error, context: contextWithTier });
       
       // Attempt failover
-      if (context.retryCount < 2) {
-        context.retryCount = (context.retryCount || 0) + 1;
+      if (contextWithTier.retryCount < 2) {
+        const retryContext = { ...contextWithTier, retryCount: (contextWithTier.retryCount || 0) + 1 };
         this.metrics.failovers++;
-        return this.orchestrate(prompt, context);
+        return this.orchestrate(prompt, retryContext);
       }
       
       throw error;
@@ -451,6 +474,12 @@ export class ModelOrchestrator extends EventEmitter {
     
     for (const [modelName] of this.models) {
       try {
+        // Skip Deep Think for health checks (Coming Soon)
+        if (modelName === 'gemini-2.5-deep-think') {
+          health[modelName] = false; // Coming Soon - API not yet available
+          continue;
+        }
+        
         await this.executeWithModel(modelName, 'Health check', {
           task: 'health_check',
           userTier: 'free',
@@ -465,5 +494,35 @@ export class ModelOrchestrator extends EventEmitter {
     }
     
     return health;
+  }
+
+  /**
+   * Shutdown orchestrator and cleanup resources
+   */
+  shutdown(): void {
+    this.logger.info('Shutting down ModelOrchestrator', {
+      totalRequests: this.metrics.totalRequests,
+      modelsCount: this.models.size
+    });
+
+    // Clear intervals and listeners
+    this.removeAllListeners();
+    
+    // Clear caches and connections
+    this.cache?.clear?.();
+    this.models.clear();
+    this.clients.clear();
+    
+    // Reset metrics
+    this.metrics = {
+      totalRequests: 0,
+      routingTime: 0,
+      modelSwitches: 0,
+      cacheHits: 0,
+      failovers: 0,
+      tierUpgrades: 0
+    };
+
+    this.logger.info('ModelOrchestrator shutdown completed');
   }
 }

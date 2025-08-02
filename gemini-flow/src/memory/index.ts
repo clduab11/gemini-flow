@@ -5,12 +5,15 @@
  * cross-platform compatibility
  */
 
-export { SQLiteMemoryManager, MemoryEntry } from './sqlite-manager.js';
+export { SQLiteMemoryManager } from './sqlite-manager.js';
+export type { MemoryEntry } from './sqlite-manager.js';
 export { 
-  SQLiteDatabase, 
-  SQLiteImplementation, 
-  SQLiteDetectionResult,
   detectSQLiteImplementations,
   createSQLiteDatabase 
+} from './sqlite-adapter.js';
+export type { 
+  SQLiteDatabase, 
+  SQLiteImplementation, 
+  SQLiteDetectionResult
 } from './sqlite-adapter.js';
 export { runFallbackTests, testSingleImplementation } from './sqlite-fallback-test.js';

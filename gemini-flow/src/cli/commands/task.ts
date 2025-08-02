@@ -82,8 +82,8 @@ export class TaskCommand extends Command {
       console.log(chalk.gray('  Priority:'), options.priority || 'medium');
       console.log(chalk.gray('  Agents:'), options.agents || 3);
       
-      if (options.dependsOn) {
-        console.log(chalk.gray('  Dependencies:'), options.dependsOn);
+      if ((options as any).dependsOn) {
+        console.log(chalk.gray('  Dependencies:'), (options as any).dependsOn);
       }
 
       console.log(chalk.yellow('\nTo orchestrate this task, run:'));

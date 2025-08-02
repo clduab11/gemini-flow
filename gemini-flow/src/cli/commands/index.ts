@@ -14,3 +14,5 @@ export { QueryCommand } from './query.js';
 export { MemoryCommand } from './memory.js';
 export { HooksCommand } from './hooks.js';
 export { SecurityFlagsCommand } from './security-flags.js';
+export { ConfigCommand } from './config.js';
+export { WorkspaceCommand } from './workspace.js';
