@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { AdapterManager } from '../../../src/adapters/adapter-manager';
 import { BaseModelAdapter } from '../../../src/adapters/base-model-adapter';
 import type { ModelRequest, ModelResponse } from '../../../src/adapters/base-model-adapter';
@@ -409,13 +409,15 @@ describe('AdapterManager', () => {
       const powerfulAdapter = new MockAdapter({ modelName: 'powerful-model' });
       
       // Mock capabilities
+      const originalFastCaps = fastAdapter.getModelCapabilities();
       fastAdapter.getModelCapabilities = () => ({
-        ...fastAdapter.getModelCapabilities(),
+        ...originalFastCaps,
         maxTokens: 2048
       });
       
+      const originalPowerfulCaps = powerfulAdapter.getModelCapabilities();
       powerfulAdapter.getModelCapabilities = () => ({
-        ...powerfulAdapter.getModelCapabilities(),
+        ...originalPowerfulCaps,
         maxTokens: 100000,
         reasoning: true
       });
@@ -461,13 +463,15 @@ describe('AdapterManager', () => {
       const textOnlyAdapter = new MockAdapter({ modelName: 'text-only' });
       const multimodalAdapter = new MockAdapter({ modelName: 'multimodal' });
       
+      const originalTextCaps = textOnlyAdapter.getModelCapabilities();
       textOnlyAdapter.getModelCapabilities = () => ({
-        ...textOnlyAdapter.getModelCapabilities(),
+        ...originalTextCaps,
         multimodal: false
       });
       
+      const originalMultiCaps = multimodalAdapter.getModelCapabilities();
       multimodalAdapter.getModelCapabilities = () => ({
-        ...multimodalAdapter.getModelCapabilities(),
+        ...originalMultiCaps,
         multimodal: true
       });
       
