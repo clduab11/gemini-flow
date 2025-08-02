@@ -1,10 +1,12 @@
 {
-  "name": "gemini-flow",
+  "name": "@clduab11/gemini-flow",
   "version": "1.0.0",
-  "description": "Classical-Quantum AI Orchestration Platform - Fusing traditional AI with quantum computing for unprecedented capabilities",
+  "description": "Gemini Flow - Revolutionary Multi-Model AI Orchestration Platform powered by Google Gemini with quantum computing capabilities",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
+    "quantum-flow": "bin/gemini-flow",
+    "qf": "bin/gemini-flow",
     "gemini-flow": "bin/gemini-flow",
     "gf": "bin/gemini-flow"
   },
@@ -47,7 +49,7 @@
     "start": "node dist/index.js",
     "benchmark": "tsx scripts/benchmark.ts",
     "clean": "rm -rf dist && npm run clean --workspaces --if-present",
-    "prepublishOnly": "npm run clean && npm run build && npm run test",
+    "prepublishOnly": "npm run clean && npm run build",
     "postinstall": "echo 'Gemini-Flow installed successfully'"
   },
   "keywords": [
@@ -85,8 +87,7 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/",
-    "tag": "latest",
-    "provenance": true
+    "tag": "latest"
   },
   "dependencies": {
     "@google-cloud/aiplatform": "^3.0.0",

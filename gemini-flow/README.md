@@ -2,7 +2,7 @@
 
 > **World-class AI orchestration platform** powered by Google Gemini with autonomous swarm intelligence and **28.3x performance gains**
 
-[![npm version](https://img.shields.io/npm/v/gemini-flow.svg)](https://www.npmjs.com/package/gemini-flow)
+[![npm version](https://img.shields.io/npm/v/@clduab11/gemini-flow.svg)](https://www.npmjs.com/package/@clduab11/gemini-flow)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Performance](https://img.shields.io/badge/Performance-28.3x%20faster-brightgreen)](https://github.com/gemini-flow/gemini-flow)
 [![Production Ready](https://img.shields.io/badge/Production-Ready-blue)](https://github.com/gemini-flow/gemini-flow)
@@ -42,7 +42,7 @@
 
 ```bash
 # 🚀 Install globally (recommended)
-npm install -g gemini-flow
+npm install -g @clduab11/gemini-flow
 
 # 💫 Or use npx for instant access
 npx gemini-flow init --interactive
@@ -379,7 +379,7 @@ npm run test:security      # Security validation suite
 ### 👨‍💻 **For Developers**
 ```bash
 # Get productive in 60 seconds
-npm install -g gemini-flow
+npm install -g @clduab11/gemini-flow
 gemini-flow init --dev
 gemini-flow sparc tdd "implement user authentication"
 ```
