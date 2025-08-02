@@ -3,9 +3,26 @@
 > **World-class AI orchestration platform** powered by Google Gemini with autonomous swarm intelligence and **28.3x performance gains**
 
 [![npm version](https://img.shields.io/npm/v/@clduab11/gemini-flow.svg)](https://www.npmjs.com/package/@clduab11/gemini-flow)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Performance](https://img.shields.io/badge/Performance-28.3x%20faster-brightgreen)](https://github.com/gemini-flow/gemini-flow)
-[![Production Ready](https://img.shields.io/badge/Production-Ready-blue)](https://github.com/gemini-flow/gemini-flow)
+[![Performance](https://img.shields.io/badge/Performance-28.3x%20faster-brightgreen)](https://github.com/clduab11/gemini-flow)
+[![Production Ready](https://img.shields.io/badge/Production-Ready-blue)](https://github.com/clduab11/gemini-flow)
+
+## 📦 Published on NPM
+
+**🚀 LIVE & READY TO USE**: This package is officially published on NPM as [`@clduab11/gemini-flow`](https://www.npmjs.com/package/@clduab11/gemini-flow)
+
+### **📥 Quick Installation**
+
+```bash
+# 🚀 Install globally (recommended)
+npm install -g @clduab11/gemini-flow
+
+# 💫 Or use npx for instant access
+npx @clduab11/gemini-flow init --interactive
+```
+
+> **🎯 Professional Tip**: This package is production-ready and actively maintained on NPM. Perfect for enterprise environments and professional portfolios.
 
 ## 🏆 Performance Achievements
 
@@ -45,7 +62,7 @@
 npm install -g @clduab11/gemini-flow
 
 # 💫 Or use npx for instant access
-npx gemini-flow init --interactive
+npx @clduab11/gemini-flow init --interactive
 ```
 
 > **Requirements**: Node.js 18+ | Google AI API Key | 5 minutes to excellence
@@ -424,8 +441,8 @@ gemini-flow sparc run learning "explain distributed systems concepts"
 - 📖 **[Complete Documentation](https://docs.gemini-flow.dev)**
 - 🎥 **[Video Tutorials](https://youtube.com/c/geminiflow)**  
 - 📚 **[API Reference](https://api-docs.gemini-flow.dev)**
-- 🏗️ **[Architecture Guide](https://github.com/gemini-flow/gemini-flow/docs)**
-- 💡 **[Best Practices](https://github.com/gemini-flow/gemini-flow/wiki)**
+- 🏗️ **[Architecture Guide](https://github.com/clduab11/gemini-flow/docs)**
+- 💡 **[Best Practices](https://github.com/clduab11/gemini-flow/wiki)**
 
 ## 🤝 Contributing & Support
 
@@ -438,8 +455,8 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for:
 **Get Help:**
 - 📧 **Email**: support@gemini-flow.dev
 - 💬 **Discord**: [Gemini-Flow Community](https://discord.gg/gemini-flow)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/gemini-flow/gemini-flow/issues)
-- 📋 **Roadmap**: [Public Roadmap](https://github.com/gemini-flow/gemini-flow/projects)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/clduab11/gemini-flow/issues)
+- 📋 **Roadmap**: [Public Roadmap](https://github.com/clduab11/gemini-flow/projects)
 
 ## 📄 License & Legal
 
@@ -460,7 +477,7 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for 
 
 **🌟 Gemini-Flow: Where Google AI meets Enterprise Intelligence 🌟**
 
-[![Star on GitHub](https://img.shields.io/badge/⭐-Star%20on%20GitHub-yellow?style=for-the-badge)](https://github.com/gemini-flow/gemini-flow)
+[![Star on GitHub](https://img.shields.io/badge/⭐-Star%20on%20GitHub-yellow?style=for-the-badge)](https://github.com/clduab11/gemini-flow)
 [![Follow on Twitter](https://img.shields.io/badge/🐦-Follow%20on%20Twitter-blue?style=for-the-badge)](https://twitter.com/geminiflow)
 [![Join Discord](https://img.shields.io/badge/💬-Join%20Discord-purple?style=for-the-badge)](https://discord.gg/gemini-flow)
 
