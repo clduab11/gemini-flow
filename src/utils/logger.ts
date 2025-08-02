@@ -69,6 +69,11 @@ export class Logger {
   }
 
   private log(level: string, message: string, ...args: any[]): void {
+    // Skip logging in test environment to avoid console noise
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+    
     if (this.winston) {
       this.winston[level](message, ...args);
     } else {

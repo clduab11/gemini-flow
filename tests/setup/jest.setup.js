@@ -58,7 +58,7 @@ global.console = {
   log: jest.fn(),
   info: jest.fn(),
   warn: jest.fn(),
-  error: originalConsole.error // Keep errors visible
+  error: jest.fn() // Suppress error logs during tests
 };
 
 // Test environment variables
