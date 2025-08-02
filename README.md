@@ -1,4 +1,4 @@
-# 🌟 Gemini-Flow: Enterprise AI Orchestration Platform
+# 🌟 Gemini-Flow: Enterprise AI Orchestration Platform (UNDER CONSTRUCTION & IN PROGRESS)
 
 > **World-class AI orchestration platform** powered by Google Gemini with autonomous swarm intelligence and **28.3x performance gains**
 
@@ -423,20 +423,7 @@ gemini-flow init --tutorial
 gemini-flow sparc run learning "explain distributed systems concepts"
 ```
 
-## 🎉 Community & Recognition
-
-### 🌟 **Join the Movement**
-- **Contributors**: 50+ developers worldwide
-- **Used by**: Startups to Fortune 500 companies  
-- **Community**: Join our [Discord](https://discord.gg/gemini-flow) for support
-- **Twitter**: Follow [@GeminiFlow](https://twitter.com/geminiflow) for updates
-
-### 🏆 **Recognition**
-- **Featured**: Google Developer Showcase
-- **Awards**: "Best AI Tool 2024" - DevTool Awards
-- **Press**: TechCrunch, VentureBeat coverage
-
-## 🔗 Resources & Documentation
+## 🔗 Resources & Documentation [UNDER CONSTRUCTION]
 
 - 📖 **[Complete Documentation](https://docs.gemini-flow.dev)**
 - 🎥 **[Video Tutorials](https://youtube.com/c/geminiflow)**  
@@ -453,22 +440,21 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for:
 - Documentation standards
 
 **Get Help:**
-- 📧 **Email**: support@gemini-flow.dev
-- 💬 **Discord**: [Gemini-Flow Community](https://discord.gg/gemini-flow)
+- 📧 **Email**: info@parallax-ai.app
 - 🐛 **Issues**: [GitHub Issues](https://github.com/clduab11/gemini-flow/issues)
 - 📋 **Roadmap**: [Public Roadmap](https://github.com/clduab11/gemini-flow/projects)
 
 ## 📄 License & Legal
 
-This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for details.
+This project is copyrighted by Parallax Analytics and licensed under the **MIT License** - see [LICENSE](LICENSE) for details.
 
-**Commercial Support**: Enterprise licenses and support available at [gemini-flow.dev/enterprise](https://gemini-flow.dev/enterprise)
+**Commercial Support**: COMING SOON!!! Future enterprise licenses and support available at [gemini-flow.dev/enterprise](https://gemini-flow.dev/enterprise)
 
 ## 🙏 Acknowledgments
 
 - **Google Gemini Team**: For revolutionary AI models and API access
 - **Open Source Community**: For invaluable libraries and inspiration  
-- **Contributors**: Every bug report, feature request, and code contribution
+- **Future Contributors**: Every bug report, feature request, and code contribution
 - **Early Adopters**: For feedback that shaped this platform
 
 ## 🌟 Inspiration & Special Recognition
@@ -515,9 +501,7 @@ Thank you, Reuven, for laying the groundwork that made Gemini-Flow possible. You
 **🌟 Gemini-Flow: Where Google AI meets Enterprise Intelligence 🌟**
 
 [![Star on GitHub](https://img.shields.io/badge/⭐-Star%20on%20GitHub-yellow?style=for-the-badge)](https://github.com/clduab11/gemini-flow)
-[![Follow on Twitter](https://img.shields.io/badge/🐦-Follow%20on%20Twitter-blue?style=for-the-badge)](https://twitter.com/geminiflow)
-[![Join Discord](https://img.shields.io/badge/💬-Join%20Discord-purple?style=for-the-badge)](https://discord.gg/gemini-flow)
 
-*Built with ❤️ by the Gemini-Flow team and community*
+*Built with ❤️ by Parallax Analytics*
 
 </div>
