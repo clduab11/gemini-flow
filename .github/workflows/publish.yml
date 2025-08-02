@@ -24,27 +24,22 @@ jobs:
         node-version: '20'
         registry-url: 'https://registry.npmjs.org'
         cache: 'npm'
-        cache-dependency-path: gemini-flow/package-lock.json
+        cache-dependency-path: package-lock.json
     
     - name: Install dependencies
-      working-directory: ./gemini-flow
       run: npm ci
     
     - name: Run tests
-      working-directory: ./gemini-flow
       run: npm test
     
     - name: Build project
-      working-directory: ./gemini-flow
       run: npm run build
     
     - name: Update version if manual trigger
       if: github.event_name == 'workflow_dispatch'
-      working-directory: ./gemini-flow
       run: npm version ${{ github.event.inputs.version }} --no-git-tag-version
     
     - name: Publish to NPM
-      working-directory: ./gemini-flow
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

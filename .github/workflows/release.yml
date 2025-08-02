@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - gemini-flow/package.json
+      - package.json
 
 jobs:
   check-version:
@@ -23,8 +23,8 @@ jobs:
     - name: Check if version changed
       id: version-check
       run: |
-        CURRENT_VERSION=$(jq -r '.version' gemini-flow/package.json)
-        PREVIOUS_VERSION=$(git show HEAD~1:gemini-flow/package.json | jq -r '.version')
+        CURRENT_VERSION=$(jq -r '.version' package.json)
+        PREVIOUS_VERSION=$(git show HEAD~1:package.json | jq -r '.version')
         
         if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
           echo "changed=true" >> $GITHUB_OUTPUT
@@ -54,18 +54,15 @@ jobs:
         node-version: '20'
         registry-url: 'https://registry.npmjs.org'
         cache: 'npm'
-        cache-dependency-path: gemini-flow/package-lock.json
+        cache-dependency-path: package-lock.json
     
     - name: Install dependencies
-      working-directory: ./gemini-flow
       run: npm ci
     
     - name: Run tests
-      working-directory: ./gemini-flow
       run: npm test
     
     - name: Build project
-      working-directory: ./gemini-flow
       run: npm run build
     
     - name: Generate changelog
@@ -104,7 +101,6 @@ jobs:
         prerelease: false
     
     - name: Publish to NPM
-      working-directory: ./gemini-flow
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
