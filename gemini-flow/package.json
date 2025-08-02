@@ -1,7 +1,7 @@
 {
   "name": "gemini-flow",
   "version": "1.0.0",
-  "description": "AI orchestration platform powered by Google Gemini with 64 specialized agents",
+  "description": "Classical-Quantum AI Orchestration Platform - Fusing traditional AI with quantum computing for unprecedented capabilities",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
@@ -52,6 +52,16 @@
     "postinstall": "echo 'Gemini-Flow installed successfully'"
   },
   "keywords": [
+    "quantum-computing",
+    "qiskit",
+    "pennylane",
+    "multi-paradigm",
+    "quantum-ai",
+    "classical-quantum-hybrid",
+    "quantum-machine-learning",
+    "quantum-optimization",
+    "variational-quantum-eigensolver",
+    "quantum-supremacy",
     "gemini",
     "ai",
     "orchestration",
