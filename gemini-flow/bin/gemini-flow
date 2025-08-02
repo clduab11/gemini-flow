@@ -6,8 +6,12 @@
  * Production-ready entry point for npm package
  */
 
-// Enable source map support for better debugging
-import 'source-map-support/register';
+// Enable source map support for better debugging (optional, skip if not available)
+try {
+  await import('source-map-support/register.js');
+} catch (e) {
+  // Source map support not available, continue without it
+}
 
 // Import and run the CLI
 import '../dist/cli/index.js';

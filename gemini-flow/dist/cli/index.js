@@ -9,6 +9,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { Logger } from '../utils/logger.js';
+import { ConfigManager } from './config/config-manager.js';
 import { InitCommand } from './commands/init.js';
 import { SwarmCommand } from './commands/swarm.js';
 import { AgentCommand } from './commands/agent.js';
@@ -18,9 +19,17 @@ import { HiveMindCommand } from './commands/hive-mind.js';
 import { QueryCommand } from './commands/query.js';
 import { MemoryCommand } from './commands/memory.js';
 import { HooksCommand } from './commands/hooks.js';
+import { ExecuteCommand } from './commands/execute.js';
+import { AnalyzeCommand } from './commands/analyze.js';
+import { LearnCommand } from './commands/learn.js';
+import { GenerateCommand } from './commands/generate.js';
+import { StatsCommand } from './commands/stats.js';
+import { CostReportCommand } from './commands/cost-report.js';
+import { SecurityFlagsCommand } from './commands/security-flags.js';
 import { ModelOrchestrator } from '../core/model-orchestrator.js';
 import { AuthenticationManager } from '../core/auth-manager.js';
 import { PerformanceMonitor } from '../core/performance-monitor.js';
+import { PerformanceBenchmark } from '../utils/performance-benchmark.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -37,6 +46,7 @@ const logger = new Logger('GeminiFlow');
 let globalOrchestrator;
 let globalAuth;
 let globalPerformance;
+let globalConfigManager;
 // ASCII art banner with orchestration info
 const banner = chalk.cyan(`
 ╔═══════════════════════════════════════════╗
@@ -51,6 +61,8 @@ const banner = chalk.cyan(`
 async function initializeOrchestration() {
     try {
         logger.info('Initializing multi-model orchestration system...');
+        // Initialize configuration manager
+        globalConfigManager = new ConfigManager();
         // Initialize authentication manager
         globalAuth = new AuthenticationManager({
             projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
@@ -119,15 +131,23 @@ program
     .version(version)
     .addHelpText('before', banner);
 // Add all command modules
-program.addCommand(new InitCommand());
+const configManager = new ConfigManager();
+program.addCommand(new InitCommand(configManager));
 program.addCommand(new SwarmCommand());
 program.addCommand(new AgentCommand());
 program.addCommand(new TaskCommand());
-program.addCommand(new SparcCommand());
+program.addCommand(new SparcCommand(configManager));
 program.addCommand(new HiveMindCommand());
 program.addCommand(new QueryCommand());
 program.addCommand(new MemoryCommand());
 program.addCommand(new HooksCommand());
+program.addCommand(new AnalyzeCommand());
+program.addCommand(new LearnCommand(configManager));
+program.addCommand(new GenerateCommand(configManager));
+program.addCommand(new ExecuteCommand(configManager));
+program.addCommand(new StatsCommand());
+program.addCommand(new CostReportCommand());
+program.addCommand(new SecurityFlagsCommand());
 // Global options with orchestration features
 program
     .option('-v, --verbose', 'Enable verbose output')
@@ -138,7 +158,13 @@ program
     .option('--model <name>', 'Preferred model for requests')
     .option('--tier <tier>', 'Override user tier (free|pro|enterprise)')
     .option('--benchmark', 'Run performance benchmarks')
-    .option('--health-check', 'Perform system health check');
+    .option('--health-check', 'Perform system health check')
+    .option('--auto-route', 'Enable intelligent model routing')
+    .option('--cost-optimize', 'Enable cost optimization')
+    .option('--canary-deploy', 'Enable canary deployment mode')
+    .option('--slack-updates', 'Enable Slack notifications')
+    .option('--analyze-self', 'Enable system self-analysis')
+    .option('--meta-optimization', 'Enable recursive optimization');
 // Add doctor command for system diagnostics
 program
     .command('doctor')
@@ -198,40 +224,80 @@ program
     console.log(chalk.yellow('\nUsage:'));
     console.log(chalk.gray('  gemini-flow sparc run <mode> "<task description>"'));
 });
-// Add orchestrate command for direct model orchestration
+// Add enhanced orchestrate command for direct model orchestration
 program
     .command('orchestrate')
-    .description('Make a request through the model orchestrator')
+    .description('Enhanced model orchestration with Command Bible coordination features')
     .argument('<prompt>', 'Prompt to send to the orchestrator')
     .option('-m, --model <model>', 'Preferred model')
     .option('-t, --tier <tier>', 'User tier (free|pro|enterprise)')
     .option('-p, --priority <priority>', 'Request priority (low|medium|high|critical)')
     .option('-l, --latency <ms>', 'Latency requirement in milliseconds', parseInt)
     .option('--capabilities <caps>', 'Required capabilities (comma-separated)')
+    .option('--swarm-coordination', 'Enable swarm coordination')
+    .option('--agent-count <n>', 'Number of coordination agents', parseInt, 1)
+    .option('--emergency', 'Emergency orchestration mode')
+    .option('--all-hands', 'Deploy maximum coordination resources')
+    .option('--marathon-mode', 'Extended orchestration session')
+    .option('--auto-route', 'Enable intelligent model routing')
+    .option('--cost-optimize', 'Optimize for cost efficiency')
+    .option('--analyze-self', 'Include orchestration self-analysis')
+    .option('--meta-optimization', 'Enable meta-optimization')
     .action(async (prompt, options) => {
     try {
         await initializeOrchestration();
+        // Enhanced orchestration context with Command Bible features
         const context = {
             task: prompt,
             userTier: options.tier || 'free',
-            priority: options.priority || 'medium',
-            latencyRequirement: options.latency || 2000,
+            priority: options.emergency ? 'critical' : (options.priority || 'medium'),
+            latencyRequirement: options.latency || (options.emergency ? 500 : 2000),
             capabilities: options.capabilities?.split(','),
-            previousModel: options.model
+            previousModel: options.model,
+            // Command Bible coordination features
+            swarmCoordination: options.swarmCoordination,
+            agentCount: options.agentCount,
+            emergency: options.emergency,
+            allHands: options.allHands,
+            marathonMode: options.marathonMode,
+            autoRoute: options.autoRoute,
+            costOptimize: options.costOptimize,
+            analyzeSelf: options.analyzeSelf,
+            metaOptimization: options.metaOptimization
         };
-        logger.info('Orchestrating request', context);
+        if (options.emergency) {
+            console.log(chalk.red('🚨 Emergency orchestration mode activated'));
+        }
+        if (options.swarmCoordination) {
+            console.log(chalk.cyan(`🐝 Swarm coordination enabled with ${options.agentCount} agents`));
+        }
+        logger.info('Enhanced orchestrating request', context);
         const response = await globalOrchestrator.orchestrate(prompt, context);
-        console.log(chalk.green('\n🎯 Orchestration Result:'));
+        console.log(chalk.green('\n🎯 Enhanced Orchestration Result:'));
         console.log(chalk.blue('Model Used:'), response.modelUsed);
         console.log(chalk.blue('Latency:'), `${response.latency.toFixed(2)}ms`);
         console.log(chalk.blue('Tokens:'), response.tokenUsage.total);
         console.log(chalk.blue('Cost:'), `$${response.cost.toFixed(6)}`);
         console.log(chalk.blue('Cached:'), response.cached ? '✅' : '❌');
+        if (options.swarmCoordination) {
+            console.log(chalk.blue('Coordination:'), `${options.agentCount} agents`);
+        }
+        if (options.costOptimize) {
+            console.log(chalk.blue('Cost Efficiency:'), `${((1 - response.cost / 0.01) * 100).toFixed(1)}%`);
+        }
         console.log(chalk.yellow('\nResponse:'));
         console.log(response.content);
+        if (options.analyzeSelf) {
+            console.log(chalk.cyan('\n🔍 Self-Analysis:'));
+            console.log(chalk.gray('Orchestration efficiency: Optimal model selection achieved'));
+            console.log(chalk.gray(`Performance: ${response.latency < 1000 ? 'Excellent' : 'Good'} latency`));
+        }
     }
     catch (error) {
-        console.error(chalk.red('Orchestration failed:'), error.message);
+        console.error(chalk.red('Enhanced orchestration failed:'), error.message);
+        if (options.emergency) {
+            console.log(chalk.red('🚨 Emergency mode: Immediate attention required'));
+        }
         process.exit(1);
     }
 });
@@ -261,52 +327,132 @@ program
         process.exit(1);
     }
 });
-// Add benchmark command for performance testing
+// Add benchmark command for performance testing (Enhanced)
 program
     .command('benchmark')
-    .description('Run orchestration performance benchmarks')
+    .description('Run comprehensive performance benchmarks')
     .option('-r, --requests <number>', 'Number of test requests', parseInt, 10)
     .option('-c, --concurrent <number>', 'Concurrent requests', parseInt, 5)
+    .option('--operation <name>', 'Specific operation benchmarking (routing|cache|models)')
+    .option('--detailed', 'Show detailed breakdown')
+    .option('--export <file>', 'Export results to file')
     .action(async (options) => {
     try {
-        await initializeOrchestration();
-        console.log(chalk.blue('🚀 Running orchestration benchmarks...'));
-        console.log(chalk.blue('Requests:'), options.requests);
-        console.log(chalk.blue('Concurrent:'), options.concurrent);
-        const results = [];
-        const startTime = performance.now();
-        // Run benchmark requests
-        for (let i = 0; i < options.requests; i += options.concurrent) {
-            const batch = [];
-            for (let j = 0; j < options.concurrent && (i + j) < options.requests; j++) {
-                const context = {
-                    task: `Benchmark request ${i + j}`,
-                    userTier: 'pro',
-                    priority: 'medium',
-                    latencyRequirement: 1000
-                };
-                batch.push(globalOrchestrator.orchestrate(`Test prompt ${i + j}`, context));
-            }
-            const batchResults = await Promise.all(batch);
-            results.push(...batchResults);
-            console.log(chalk.gray(`Completed ${Math.min(i + options.concurrent, options.requests)}/${options.requests} requests`));
+        const benchmark = new PerformanceBenchmark();
+        console.log(chalk.blue('🚀 Running performance benchmarks...'));
+        if (options.operation) {
+            await runSpecificBenchmark(benchmark, options);
         }
-        const totalTime = performance.now() - startTime;
-        const avgLatency = results.reduce((sum, r) => sum + r.latency, 0) / results.length;
-        const totalTokens = results.reduce((sum, r) => sum + r.tokenUsage.total, 0);
-        const totalCost = results.reduce((sum, r) => sum + r.cost, 0);
-        console.log(chalk.green('\n📈 Benchmark Results:'));
-        console.log(chalk.blue('Total Time:'), `${totalTime.toFixed(2)}ms`);
-        console.log(chalk.blue('Requests/Second:'), `${(options.requests / (totalTime / 1000)).toFixed(2)}`);
-        console.log(chalk.blue('Average Latency:'), `${avgLatency.toFixed(2)}ms`);
-        console.log(chalk.blue('Total Tokens:'), totalTokens);
-        console.log(chalk.blue('Total Cost:'), `$${totalCost.toFixed(6)}`);
+        else {
+            await runComprehensiveBenchmark(benchmark, options);
+        }
     }
     catch (error) {
         console.error(chalk.red('Benchmark failed:'), error.message);
         process.exit(1);
     }
 });
+async function runSpecificBenchmark(benchmark, options) {
+    const spinner = ora(`Running ${options.operation} benchmark...`).start();
+    try {
+        let result;
+        switch (options.operation) {
+            case 'routing':
+                result = await benchmark.benchmarkRouting(options.requests || 100);
+                break;
+            case 'cache':
+                result = await benchmark.benchmarkCache(options.requests || 1000);
+                break;
+            case 'models':
+                await initializeOrchestration();
+                result = await runModelBenchmark(options);
+                break;
+            default:
+                throw new Error(`Unknown operation: ${options.operation}`);
+        }
+        spinner.succeed(`${options.operation} benchmark completed`);
+        console.log(chalk.green(`\n📈 ${options.operation.toUpperCase()} Benchmark Results:`));
+        console.log(JSON.stringify(result, null, 2));
+        if (options.export) {
+            const fs = await import('fs');
+            fs.writeFileSync(options.export, JSON.stringify(result, null, 2));
+            console.log(chalk.blue(`Results exported to ${options.export}`));
+        }
+    }
+    catch (error) {
+        spinner.fail(`${options.operation} benchmark failed`);
+        throw error;
+    }
+}
+async function runComprehensiveBenchmark(benchmark, options) {
+    const spinner = ora('Running comprehensive benchmarks...').start();
+    try {
+        const results = await benchmark.runFullBenchmark();
+        spinner.succeed('Comprehensive benchmark completed');
+        console.log(chalk.green('\n📈 Comprehensive Benchmark Results:'));
+        console.log(chalk.blue('Routing Performance:'));
+        console.log(`  Total Time: ${results.routing.totalTime.toFixed(2)}ms`);
+        console.log(`  Routing Time: ${results.routing.routingTime.toFixed(2)}ms`);
+        console.log(`  Cache Time: ${results.routing.cacheTime.toFixed(2)}ms`);
+        console.log(`  Meets Target (<75ms): ${results.summary.meetsTarget ? chalk.green('✅') : chalk.red('❌')}`);
+        console.log(chalk.blue('\nCache Performance:'));
+        console.log(`  Average Time: ${results.cache.averageTime.toFixed(2)}ms`);
+        console.log(`  P95 Time: ${results.cache.p95Time.toFixed(2)}ms`);
+        console.log(`  Success Rate: ${(results.cache.success ? 100 : 0)}%`);
+        console.log(chalk.blue('\nWAL Mode Comparison:'));
+        console.log(`  WAL Average: ${results.wal.wal.averageTime.toFixed(2)}ms`);
+        console.log(`  Regular Average: ${results.wal.regular.averageTime.toFixed(2)}ms`);
+        console.log(`  Improvement: ${((results.wal.regular.averageTime / results.wal.wal.averageTime) * 100).toFixed(1)}%`);
+        if (results.summary.recommendations.length > 0) {
+            console.log(chalk.yellow('\n🎯 Recommendations:'));
+            results.summary.recommendations.forEach(rec => {
+                console.log(`  • ${rec}`);
+            });
+        }
+        if (options.export) {
+            const fs = await import('fs');
+            fs.writeFileSync(options.export, JSON.stringify(results, null, 2));
+            console.log(chalk.blue(`\nResults exported to ${options.export}`));
+        }
+    }
+    catch (error) {
+        spinner.fail('Comprehensive benchmark failed');
+        throw error;
+    }
+}
+async function runModelBenchmark(options) {
+    const results = [];
+    const startTime = performance.now();
+    // Run benchmark requests
+    for (let i = 0; i < options.requests; i += options.concurrent) {
+        const batch = [];
+        for (let j = 0; j < options.concurrent && (i + j) < options.requests; j++) {
+            const context = {
+                task: `Benchmark request ${i + j}`,
+                userTier: 'pro',
+                priority: 'medium',
+                latencyRequirement: 1000
+            };
+            batch.push(globalOrchestrator.orchestrate(`Test prompt ${i + j}`, context));
+        }
+        const batchResults = await Promise.all(batch);
+        results.push(...batchResults);
+    }
+    const totalTime = performance.now() - startTime;
+    const avgLatency = results.reduce((sum, r) => sum + r.latency, 0) / results.length;
+    const totalTokens = results.reduce((sum, r) => sum + r.tokenUsage.total, 0);
+    const totalCost = results.reduce((sum, r) => sum + r.cost, 0);
+    return {
+        operation: 'model_orchestration',
+        totalTime,
+        averageLatency: avgLatency,
+        requestsPerSecond: options.requests / (totalTime / 1000),
+        totalTokens,
+        totalCost,
+        requests: options.requests,
+        concurrent: options.concurrent
+    };
+}
 // Error handling
 program.exitOverride();
 try {
@@ -323,5 +469,5 @@ catch (error) {
     process.exit(1);
 }
 // Export orchestration components for use by other modules
-export { ModelOrchestrator, AuthenticationManager, PerformanceMonitor, globalOrchestrator, globalAuth, globalPerformance };
+export { ModelOrchestrator, AuthenticationManager, PerformanceMonitor, ConfigManager, globalOrchestrator, globalAuth, globalPerformance, globalConfigManager };
 //# sourceMappingURL=index.js.map

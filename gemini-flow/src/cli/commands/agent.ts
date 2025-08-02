@@ -31,6 +31,7 @@ export interface AgentInfo {
 
 export class AgentCommand extends Command {
   private logger: Logger;
+  private _configManager: ConfigManager;
 
   // 64+ specialized agent types available
   private readonly agentTypes: Record<string, { description: string; capabilities: string[] }> = {
