@@ -1,6 +1,6 @@
 {
   "name": "@clduab11/gemini-flow",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Gemini Flow - Revolutionary Multi-Model AI Orchestration Platform powered by Google Gemini with quantum computing capabilities",
   "type": "module",
   "main": "dist/index.js",
@@ -28,27 +28,17 @@
     "README.md",
     "LICENSE"
   ],
-  "workspaces": [
-    "packages/*",
-    "packages/agents/*",
-    "packages/core/*",
-    "packages/integrations/*"
-  ],
   "scripts": {
     "build": "tsc && npm run build:cli",
     "build:cli": "chmod +x bin/gemini-flow && chmod +x dist/cli/index.js",
-    "build:workspaces": "npm run build --workspaces --if-present",
     "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
-    "test:workspaces": "npm run test --workspaces --if-present",
     "lint": "eslint src/**/*.ts",
-    "lint:workspaces": "npm run lint --workspaces --if-present",
     "typecheck": "tsc --noEmit",
-    "typecheck:workspaces": "npm run typecheck --workspaces --if-present",
     "dev": "tsx watch src/index.ts",
     "cli:dev": "tsx src/cli/index.ts",
     "start": "node dist/index.js",
     "benchmark": "tsx scripts/benchmark.ts",
-    "clean": "rm -rf dist && npm run clean --workspaces --if-present",
+    "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
     "postinstall": "echo 'Gemini-Flow installed successfully'",
     "verify-api-key": "node scripts/verify-api-key.js",
