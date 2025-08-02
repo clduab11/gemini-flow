@@ -1,0 +1,27 @@
+{
+  "model": "gemini-pro",
+  "concurrency": 8,
+  "memory": {
+    "enabled": true,
+    "ttl": "24h",
+    "storage": "sqlite"
+  },
+  "batchtools": {
+    "enabled": true,
+    "maxOperations": 10,
+    "parallelExecution": true
+  },
+  "sparc": {
+    "enabled": true,
+    "modes": ["specification", "pseudocode", "architecture", "refinement", "completion"],
+    "tdd": {
+      "enabled": true,
+      "framework": "jest"
+    }
+  },
+  "performance": {
+    "monitoring": true,
+    "benchmarking": true,
+    "optimization": "auto"
+  }
+}

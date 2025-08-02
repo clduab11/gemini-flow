@@ -1,0 +1,74 @@
+{
+  "core": [
+    {
+      "type": "coder",
+      "description": "Implementation specialist",
+      "capabilities": ["coding", "debugging", "refactoring"],
+      "priority": "high"
+    },
+    {
+      "type": "reviewer",
+      "description": "Code quality assurance",
+      "capabilities": ["code-review", "quality-analysis", "standards"],
+      "priority": "high"
+    },
+    {
+      "type": "tester",
+      "description": "Test creation and validation",
+      "capabilities": ["unit-testing", "integration-testing", "tdd"],
+      "priority": "high"
+    },
+    {
+      "type": "planner",
+      "description": "Strategic planning",
+      "capabilities": ["architecture", "planning", "coordination"],
+      "priority": "medium"
+    },
+    {
+      "type": "researcher",
+      "description": "Information gathering",
+      "capabilities": ["research", "analysis", "documentation"],
+      "priority": "medium"
+    }
+  ],
+  "specialized": [
+    {
+      "type": "system-architect",
+      "description": "High-level design",
+      "capabilities": ["architecture", "system-design", "scalability"],
+      "priority": "high"
+    },
+    {
+      "type": "backend-dev",
+      "description": "API development",
+      "capabilities": ["api-design", "database", "microservices"],
+      "priority": "high"
+    },
+    {
+      "type": "performance-benchmarker",
+      "description": "Performance testing",
+      "capabilities": ["benchmarking", "optimization", "profiling"],
+      "priority": "medium"
+    },
+    {
+      "type": "code-analyzer",
+      "description": "Code quality analysis",
+      "capabilities": ["static-analysis", "complexity", "security"],
+      "priority": "medium"
+    }
+  ],
+  "coordination": [
+    {
+      "type": "task-orchestrator",
+      "description": "Workflow optimization",
+      "capabilities": ["orchestration", "coordination", "optimization"],
+      "priority": "high"
+    },
+    {
+      "type": "memory-coordinator",
+      "description": "Memory management",
+      "capabilities": ["memory", "state", "persistence"],
+      "priority": "medium"
+    }
+  ]
+}
