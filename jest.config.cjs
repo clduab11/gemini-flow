@@ -12,13 +12,7 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       useESM: true,
-      tsconfig: {
-        module: 'esnext',
-        target: 'es2020',
-        moduleResolution: 'node',
-        allowSyntheticDefaultImports: true,
-        esModuleInterop: true
-      }
+      tsconfig: './tests/tsconfig.json'
     }],
     '^.+\\.(js|jsx|mjs)$': ['babel-jest', {
       presets: [
@@ -57,9 +51,7 @@ module.exports = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/dist/',
-    '/coverage/',
-    'tests/security/security-optimization-manager.test.js', // Using require() - needs conversion
-    'tests/integration/auth-flow.test.js' // Using require() - needs conversion
+    '/coverage/'
   ],
   // Mock file extensions
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'mjs'],
