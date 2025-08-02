@@ -52,10 +52,10 @@ export class GoogleWorkspaceIntegration extends EventEmitter {
       config.clientId,
       config.clientSecret,
       config.redirectUri || 'http://localhost:3000/callback'
-    );
+    ) as any;
     
-    // Set scopes
-    this.auth.scopes = config.scopes || this.DEFAULT_SCOPES;
+    // Set scopes - OAuth2Client doesn't have scopes property directly
+    // Scopes are set during getAccessToken or setCredentials calls
   }
 
   /**
@@ -70,14 +70,15 @@ export class GoogleWorkspaceIntegration extends EventEmitter {
         const auth = new google.auth.GoogleAuth({
           scopes: this.DEFAULT_SCOPES
         });
-        this.auth = await auth.getClient() as OAuth2Client;
+        const client = await auth.getClient();
+        this.auth = client as any; // OAuth2Client compatibility
       }
       
-      // Initialize API clients
-      this.drive = google.drive({ version: 'v3', auth: this.auth });
-      this.docs = google.docs({ version: 'v1', auth: this.auth });
-      this.sheets = google.sheets({ version: 'v4', auth: this.auth });
-      this.slides = google.slides({ version: 'v1', auth: this.auth });
+      // Initialize API clients with auth
+      this.drive = google.drive({ version: 'v3', auth: this.auth as any });
+      this.docs = google.docs({ version: 'v1', auth: this.auth as any });
+      this.sheets = google.sheets({ version: 'v4', auth: this.auth as any });
+      this.slides = google.slides({ version: 'v1', auth: this.auth as any });
       
       this.logger.info('Google Workspace APIs initialized');
       this.emit('initialized');

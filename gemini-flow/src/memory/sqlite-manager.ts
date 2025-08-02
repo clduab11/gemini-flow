@@ -1,15 +1,25 @@
 /**
- * SQLite Memory Manager
+ * SQLite Memory Manager with Fallback Support
  * 
  * Implements 12 specialized tables for persistent memory coordination
- * across agent swarms with optimized performance
+ * across agent swarms with optimized performance and cross-platform compatibility
+ * 
+ * Fallback hierarchy:
+ * 1. better-sqlite3 (performance optimized)
+ * 2. sqlite3 (Node.js compatible)
+ * 3. sql.js (WASM cross-platform)
  */
 
-import Database from 'better-sqlite3';
 import { Logger } from '../utils/logger.js';
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs/promises';
+import { 
+  SQLiteDatabase, 
+  SQLiteImplementation, 
+  createSQLiteDatabase, 
+  detectSQLiteImplementations 
+} from './sqlite-adapter.js';
 
 export interface MemoryEntry {
   id?: number;
@@ -24,25 +34,62 @@ export interface MemoryEntry {
 }
 
 export class SQLiteMemoryManager extends EventEmitter {
-  private db: Database.Database;
+  private db: SQLiteDatabase;
   private logger: Logger;
   private cleanupInterval?: NodeJS.Timeout;
+  private implementation: SQLiteImplementation = 'sql.js';
   
-  constructor(dbPath: string = '.swarm/memory.db') {
+  private constructor(db: SQLiteDatabase, implementation: SQLiteImplementation) {
     super();
     this.logger = new Logger('SQLiteMemory');
+    this.db = db;
+    this.implementation = implementation;
     
-    // Ensure directory exists
-    const dir = path.dirname(dbPath);
-    fs.mkdir(dir, { recursive: true }).catch(() => {});
+    this.logger.info(`Using SQLite implementation: ${this.implementation}`);
     
-    // Initialize database
-    this.db = new Database(dbPath);
-    this.db.pragma('journal_mode = WAL');
-    this.db.pragma('synchronous = NORMAL');
+    // Configure database optimization
+    try {
+      this.db.pragma('journal_mode = WAL');
+      this.db.pragma('synchronous = NORMAL');
+      this.db.pragma('cache_size = 10000');
+      this.db.pragma('temp_store = memory');
+    } catch (error) {
+      // Some implementations may not support all pragmas
+      this.logger.warn('Some pragma optimizations not supported:', error);
+    }
     
     this.initializeTables();
     this.startCleanupTask();
+  }
+  
+  /**
+   * Create a new SQLiteMemoryManager instance with fallback support
+   */
+  static async create(dbPath: string = '.swarm/memory.db', preferredImpl?: SQLiteImplementation): Promise<SQLiteMemoryManager> {
+    const logger = new Logger('SQLiteMemory');
+    try {
+      // Ensure directory exists
+      const dir = path.dirname(dbPath);
+      await fs.mkdir(dir, { recursive: true }).catch(() => {});
+      
+      // Detect available implementations
+      const detection = await detectSQLiteImplementations();
+      logger.info('SQLite implementations detected:', {
+        available: detection.available,
+        recommended: detection.recommended,
+        errors: Object.keys(detection.errors)
+      });
+      
+      // Create database with fallback
+      const db = await createSQLiteDatabase(dbPath, preferredImpl);
+      const implementation = db.name as SQLiteImplementation;
+      
+      return new SQLiteMemoryManager(db, implementation);
+      
+    } catch (error) {
+      logger.error('Failed to initialize SQLite database:', error);
+      throw new Error(`SQLite initialization failed: ${error}`);
+    }
   }
 
   /**
@@ -262,139 +309,246 @@ export class SQLiteMemoryManager extends EventEmitter {
    * Store memory entry with TTL support
    */
   async store(entry: MemoryEntry): Promise<void> {
-    const stmt = this.db.prepare(`
-      INSERT INTO memory_store (key, value, namespace, metadata, ttl)
-      VALUES (@key, @value, @namespace, @metadata, @ttl)
-      ON CONFLICT(key, namespace) DO UPDATE SET
-        value = @value,
-        metadata = @metadata,
-        ttl = @ttl,
-        updated_at = strftime('%s', 'now'),
-        access_count = access_count + 1
-    `);
+    try {
+      // Handle different SQL syntax for UPSERT across implementations
+      let sql = '';
+      if (this.implementation === 'better-sqlite3') {
+        sql = `
+          INSERT INTO memory_store (key, value, namespace, metadata, ttl)
+          VALUES (@key, @value, @namespace, @metadata, @ttl)
+          ON CONFLICT(key, namespace) DO UPDATE SET
+            value = @value,
+            metadata = @metadata,
+            ttl = @ttl,
+            updated_at = strftime('%s', 'now'),
+            access_count = access_count + 1
+        `;
+      } else {
+        // Fallback for sqlite3 and sql.js
+        sql = `
+          INSERT OR REPLACE INTO memory_store (key, value, namespace, metadata, ttl, access_count)
+          VALUES (?, ?, ?, ?, ?, 
+            COALESCE((SELECT access_count + 1 FROM memory_store WHERE key = ? AND namespace = ?), 1)
+          )
+        `;
+      }
+      
+      const stmt = this.db.prepare(sql);
+      
+      if (this.implementation === 'better-sqlite3') {
+        stmt.run({
+          key: entry.key,
+          value: JSON.stringify(entry.value),
+          namespace: entry.namespace || 'default',
+          metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
+          ttl: entry.ttl ? Math.floor(Date.now() / 1000) + entry.ttl : null
+        });
+      } else {
+        await stmt.run(
+          entry.key,
+          JSON.stringify(entry.value),
+          entry.namespace || 'default',
+          entry.metadata ? JSON.stringify(entry.metadata) : null,
+          entry.ttl ? Math.floor(Date.now() / 1000) + entry.ttl : null,
+          entry.key,
+          entry.namespace || 'default'
+        );
+      }
 
-    stmt.run({
-      key: entry.key,
-      value: JSON.stringify(entry.value),
-      namespace: entry.namespace || 'default',
-      metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
-      ttl: entry.ttl ? Math.floor(Date.now() / 1000) + entry.ttl : null
-    });
-
-    this.emit('stored', entry);
+      this.emit('stored', entry);
+    } catch (error) {
+      this.logger.error('Failed to store memory entry:', error);
+      throw error;
+    }
   }
 
   /**
    * Retrieve memory entry
    */
   async retrieve(key: string, namespace: string = 'default'): Promise<any> {
-    const stmt = this.db.prepare(`
-      UPDATE memory_store 
-      SET access_count = access_count + 1
-      WHERE key = ? AND namespace = ?
-      AND (ttl IS NULL OR ttl > strftime('%s', 'now'))
-      RETURNING value, metadata
-    `);
+    try {
+      // Handle different SQL syntax across implementations
+      let sql = '';
+      if (this.implementation === 'better-sqlite3') {
+        sql = `
+          UPDATE memory_store 
+          SET access_count = access_count + 1
+          WHERE key = ? AND namespace = ?
+          AND (ttl IS NULL OR ttl > strftime('%s', 'now'))
+          RETURNING value, metadata
+        `;
+      } else {
+        // Fallback for sqlite3 and sql.js (no RETURNING clause)
+        sql = `
+          SELECT value, metadata FROM memory_store
+          WHERE key = ? AND namespace = ?
+          AND (ttl IS NULL OR ttl > strftime('%s', 'now'))
+        `;
+      }
+      
+      const stmt = this.db.prepare(sql);
+      let row: any;
+      
+      if (this.implementation === 'better-sqlite3') {
+        row = stmt.get(key, namespace);
+      } else {
+        row = await stmt.get(key, namespace);
+        
+        // Update access count separately for sqlite3/sql.js
+        if (row) {
+          const updateStmt = this.db.prepare(`
+            UPDATE memory_store SET access_count = access_count + 1
+            WHERE key = ? AND namespace = ?
+          `);
+          await updateStmt.run(key, namespace);
+        }
+      }
+      
+      if (!row) {
+        return null;
+      }
 
-    const row = stmt.get(key, namespace) as any;
-    
-    if (!row) {
-      return null;
+      this.emit('retrieved', { key, namespace });
+      
+      return {
+        value: JSON.parse(row.value),
+        metadata: row.metadata ? JSON.parse(row.metadata) : null
+      };
+    } catch (error) {
+      this.logger.error('Failed to retrieve memory entry:', error);
+      throw error;
     }
-
-    this.emit('retrieved', { key, namespace });
-    
-    return {
-      value: JSON.parse(row.value),
-      metadata: row.metadata ? JSON.parse(row.metadata) : null
-    };
   }
 
   /**
    * Search memory entries by pattern
    */
   async search(pattern: string, namespace?: string): Promise<MemoryEntry[]> {
-    let query = `
-      SELECT key, value, namespace, metadata, created_at, updated_at, access_count
-      FROM memory_store
-      WHERE key LIKE ?
-      AND (ttl IS NULL OR ttl > strftime('%s', 'now'))
-    `;
-    
-    const params: any[] = [`%${pattern}%`];
-    
-    if (namespace) {
-      query += ' AND namespace = ?';
-      params.push(namespace);
+    try {
+      let query = `
+        SELECT key, value, namespace, metadata, created_at, updated_at, access_count
+        FROM memory_store
+        WHERE key LIKE ?
+        AND (ttl IS NULL OR ttl > strftime('%s', 'now'))
+      `;
+      
+      const params: any[] = [`%${pattern}%`];
+      
+      if (namespace) {
+        query += ' AND namespace = ?';
+        params.push(namespace);
+      }
+      
+      query += ' ORDER BY access_count DESC, updated_at DESC LIMIT 100';
+      
+      const stmt = this.db.prepare(query);
+      const rows = await stmt.all(...params) as any[];
+      
+      return rows.map(row => ({
+        key: row.key,
+        value: JSON.parse(row.value),
+        namespace: row.namespace,
+        metadata: row.metadata ? JSON.parse(row.metadata) : null,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        access_count: row.access_count
+      }));
+    } catch (error) {
+      this.logger.error('Failed to search memory entries:', error);
+      throw error;
     }
-    
-    query += ' ORDER BY access_count DESC, updated_at DESC LIMIT 100';
-    
-    const stmt = this.db.prepare(query);
-    const rows = stmt.all(...params) as any[];
-    
-    return rows.map(row => ({
-      key: row.key,
-      value: JSON.parse(row.value),
-      namespace: row.namespace,
-      metadata: row.metadata ? JSON.parse(row.metadata) : null,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-      access_count: row.access_count
-    }));
   }
 
   /**
    * Record metric
    */
   async recordMetric(name: string, value: number, unit?: string, tags?: any) {
-    const stmt = this.db.prepare(`
-      INSERT INTO metrics (metric_name, metric_value, unit, tags)
-      VALUES (?, ?, ?, ?)
-    `);
-    
-    stmt.run(name, value, unit, tags ? JSON.stringify(tags) : null);
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO metrics (metric_name, metric_value, unit, tags)
+        VALUES (?, ?, ?, ?)
+      `);
+      
+      await stmt.run(name, value, unit, tags ? JSON.stringify(tags) : null);
+    } catch (error) {
+      this.logger.error('Failed to record metric:', error);
+      throw error;
+    }
   }
 
   /**
    * Get metrics summary
    */
   async getMetricsSummary(name: string, timeRange?: number): Promise<any> {
-    const since = timeRange ? Math.floor(Date.now() / 1000) - timeRange : 0;
-    
-    const stmt = this.db.prepare(`
-      SELECT 
-        COUNT(*) as count,
-        AVG(metric_value) as avg,
-        MIN(metric_value) as min,
-        MAX(metric_value) as max,
-        SUM(metric_value) as sum
-      FROM metrics
-      WHERE metric_name = ?
-      AND timestamp > ?
-    `);
-    
-    return stmt.get(name, since);
+    try {
+      const since = timeRange ? Math.floor(Date.now() / 1000) - timeRange : 0;
+      
+      const stmt = this.db.prepare(`
+        SELECT 
+          COUNT(*) as count,
+          AVG(metric_value) as avg,
+          MIN(metric_value) as min,
+          MAX(metric_value) as max,
+          SUM(metric_value) as sum
+        FROM metrics
+        WHERE metric_name = ?
+        AND timestamp > ?
+      `);
+      
+      return await stmt.get(name, since);
+    } catch (error) {
+      this.logger.error('Failed to get metrics summary:', error);
+      throw error;
+    }
   }
 
   /**
    * Cleanup expired entries
    */
   private startCleanupTask() {
-    this.cleanupInterval = setInterval(() => {
-      const stmt = this.db.prepare(`
-        DELETE FROM memory_store
-        WHERE ttl IS NOT NULL AND ttl < strftime('%s', 'now')
-      `);
-      
-      const result = stmt.run();
-      
-      if (result.changes > 0) {
-        this.logger.debug(`Cleaned up ${result.changes} expired entries`);
+    this.cleanupInterval = setInterval(async () => {
+      try {
+        const stmt = this.db.prepare(`
+          DELETE FROM memory_store
+          WHERE ttl IS NOT NULL AND ttl < strftime('%s', 'now')
+        `);
+        
+        const result = await stmt.run();
+        
+        if (result.changes && result.changes > 0) {
+          this.logger.debug(`Cleaned up ${result.changes} expired entries`);
+        }
+      } catch (error) {
+        this.logger.error('Cleanup task failed:', error);
       }
     }, 60000); // Run every minute
   }
 
+  /**
+   * Get current implementation info
+   */
+  async getImplementationInfo(): Promise<{ name: SQLiteImplementation; available: SQLiteImplementation[] }> {
+    const detection = await detectSQLiteImplementations();
+    return {
+      name: this.implementation,
+      available: detection.available
+    };
+  }
+  
+  /**
+   * Test database connection and functionality
+   */
+  async testConnection(): Promise<boolean> {
+    try {
+      const stmt = this.db.prepare('SELECT 1 as test');
+      const result = await stmt.get();
+      return result && result.test === 1;
+    } catch (error) {
+      this.logger.error('Database connection test failed:', error);
+      return false;
+    }
+  }
+  
   /**
    * Close database connection
    */
@@ -404,6 +558,6 @@ export class SQLiteMemoryManager extends EventEmitter {
     }
     
     this.db.close();
-    this.logger.info('SQLite database closed');
+    this.logger.info(`SQLite database closed (${this.implementation})`);
   }
 }

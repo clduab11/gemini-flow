@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+
+/**
+ * Gemini-Flow CLI Executable
+ * 
+ * Production-ready entry point for npm package
+ */
+
+// Enable source map support for better debugging
+import 'source-map-support/register';
+
+// Import and run the CLI
+import '../dist/cli/index.js';
