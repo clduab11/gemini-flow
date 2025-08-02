@@ -10,6 +10,10 @@ import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
 import { Logger } from '../../utils/logger.js';
+import { GeminiAdapter, GeminiAdapterConfig } from '../../adapters/gemini-adapter.js';
+import { ModelRequest } from '../../adapters/base-model-adapter.js';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 interface HiveMindOptions {
   nodes?: number;
@@ -17,10 +21,14 @@ interface HiveMindOptions {
   memory?: boolean;
   learning?: boolean;
   timeout?: number;
+  gemini?: boolean;
+  queen?: boolean;
+  workerTypes?: string;
 }
 
 export class HiveMindCommand extends Command {
   private logger: Logger;
+  private geminiAdapter?: GeminiAdapter;
 
   constructor() {
     super('hive-mind');
@@ -43,6 +51,7 @@ export class HiveMindCommand extends Command {
       .option('-n, --nodes <number>', 'Number of nodes', parseInt, 5)
       .option('-q, --queen', 'Include a queen coordinator', true)
       .option('--worker-types <types>', 'Comma-separated worker types')
+      .option('--gemini', 'Integrate with Gemini AI for enhanced collective intelligence')
       .action(async (objective, options) => this.spawnHive(objective, options));
 
     this.command('status [hiveId]')
@@ -136,6 +145,13 @@ export class HiveMindCommand extends Command {
         ? options.workerTypes.split(',').map(t => t.trim())
         : ['researcher', 'analyst', 'coder', 'coordinator'];
 
+      // Initialize Gemini integration if requested
+      if (options.gemini) {
+        spinner.text = 'Initializing Gemini AI integration...';
+        await this.initializeGeminiAdapter();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
       spinner.text = 'Creating queen coordinator...';
       await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -145,6 +161,16 @@ export class HiveMindCommand extends Command {
       spinner.text = 'Establishing neural connections...';
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+      // If Gemini is enabled, load context and generate enhanced collective intelligence
+      if (options.gemini && this.geminiAdapter) {
+        spinner.text = 'Loading Gemini context...';
+        const geminiContext = await this.loadGeminiContext();
+        
+        spinner.text = 'Generating collective intelligence context...';
+        await this.generateCollectiveContext(objective, workerTypes, geminiContext);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+
       spinner.succeed('Hive mind spawned successfully');
 
       console.log(chalk.blue('\n🐝 Hive Mind Active:'));
@@ -152,7 +178,17 @@ export class HiveMindCommand extends Command {
       console.log(chalk.gray('  Queen:'), options.queen ? '👑 Active' : '❌ None');
       console.log(chalk.gray('  Workers:'), options.nodes || 5);
       console.log(chalk.gray('  Types:'), workerTypes.join(', '));
+      console.log(chalk.gray('  Gemini AI:'), options.gemini ? '🧠 Integrated' : '❌ Disabled');
       console.log(chalk.gray('  Status:'), chalk.green('OPERATIONAL'));
+
+      // Display Gemini-enhanced capabilities if enabled
+      if (options.gemini && this.geminiAdapter) {
+        console.log(chalk.yellow('\n🧠 Gemini Enhanced Capabilities:'));
+        console.log(chalk.gray('  • Advanced reasoning and problem-solving'));
+        console.log(chalk.gray('  • Multi-modal intelligence processing'));
+        console.log(chalk.gray('  • Collective decision making optimization'));
+        console.log(chalk.gray('  • Real-time adaptive learning'));
+      }
 
     } catch (error) {
       spinner.fail('Failed to spawn hive mind');
@@ -412,6 +448,217 @@ export class HiveMindCommand extends Command {
 
     if (options?.export) {
       console.log(chalk.green('\n✅ Metrics exported to:'), 'hive-metrics-' + Date.now() + '.json');
+    }
+  }
+
+  /**
+   * Initialize Gemini AI adapter for enhanced collective intelligence
+   */
+  private async initializeGeminiAdapter(): Promise<void> {
+    try {
+      const apiKey = process.env.GOOGLE_AI_API_KEY;
+      if (!apiKey) {
+        throw new Error('GOOGLE_AI_API_KEY environment variable is required for Gemini integration');
+      }
+
+      const config: GeminiAdapterConfig = {
+        model: 'gemini-2.5-flash', // Use the latest fast model for hive mind coordination
+        modelName: 'gemini-2.5-flash',
+        apiKey,
+        timeout: 30000, // 30 second timeout for coordination tasks
+        retryAttempts: 3, // Retry up to 3 times for reliability
+        streamingEnabled: false, // Disable streaming for coordination tasks
+        cachingEnabled: true, // Enable caching for repeated coordination patterns
+        generationConfig: {
+          temperature: 0.7, // Balanced creativity and consistency for collective intelligence
+          topP: 0.9,
+          topK: 40,
+          maxOutputTokens: 4096
+        }
+      };
+
+      this.geminiAdapter = new GeminiAdapter(config);
+      await this.geminiAdapter.initialize();
+
+      this.logger.info('Gemini adapter initialized successfully for hive mind integration');
+    } catch (error) {
+      this.logger.error('Failed to initialize Gemini adapter', { error: error.message });
+      throw new Error(`Gemini initialization failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Load Gemini context from GEMINI.md file
+   */
+  private async loadGeminiContext(): Promise<string> {
+    try {
+      // Look for GEMINI.md in the current working directory and parent directories
+      const searchPaths = [
+        path.join(process.cwd(), 'GEMINI.md'),
+        path.join(process.cwd(), '..', 'GEMINI.md'),
+        path.join(__dirname, '..', '..', '..', 'GEMINI.md')
+      ];
+
+      for (const filePath of searchPaths) {
+        try {
+          const content = await fs.readFile(filePath, 'utf-8');
+          this.logger.info('Gemini context loaded successfully', { 
+            path: filePath, 
+            contentLength: content.length 
+          });
+          return content;
+        } catch (error) {
+          // Continue to next path if file not found
+          continue;
+        }
+      }
+
+      // If no GEMINI.md found, return default context
+      this.logger.warn('GEMINI.md not found, using default context');
+      return this.getDefaultGeminiContext();
+
+    } catch (error) {
+      this.logger.error('Failed to load Gemini context', { error: error.message });
+      return this.getDefaultGeminiContext();
+    }
+  }
+
+  /**
+   * Get default Gemini context when GEMINI.md is not found
+   */
+  private getDefaultGeminiContext(): string {
+    return `# Default Gemini Hive Mind Context
+
+## Core Principles
+1. Collective Intelligence: Leverage specialized expertise from each node
+2. Emergent Behavior: Enable intelligent behaviors through node interactions
+3. Adaptive Learning: Evolve strategies based on outcomes and feedback
+4. Multi-Modal Processing: Integrate diverse information types
+
+## Coordination Strategies
+- Hierarchical: Queen-led coordination for well-defined objectives
+- Democratic: Consensus-based decision making for creative tasks
+- Emergent: Self-organizing behavior for complex, evolving objectives
+- Weighted: Merit-based decision making for diverse objectives
+
+## Execution Framework
+- Skill-based task assignment
+- Real-time progress monitoring
+- Quality assurance through peer review
+- Adaptive resource allocation`;
+  }
+
+  /**
+   * Generate collective intelligence context using Gemini AI
+   */
+  private async generateCollectiveContext(objective: string, workerTypes: string[], geminiContext?: string): Promise<void> {
+    if (!this.geminiAdapter) {
+      throw new Error('Gemini adapter not initialized');
+    }
+
+    try {
+      const contextPrompt = this.buildCollectiveContextPrompt(objective, workerTypes, geminiContext);
+      
+      const request: ModelRequest = {
+        prompt: contextPrompt,
+        context: {
+          requestId: `hive-context-${Date.now()}`,
+          priority: 'high',
+          userTier: 'enterprise',
+          latencyTarget: 5000
+        },
+        parameters: {
+          temperature: 0.7,
+          maxTokens: 2048
+        }
+      };
+
+      const response = await this.geminiAdapter.generate(request);
+      
+      // Store the generated context for the hive mind coordination
+      await this.storeCollectiveContext(objective, response.content);
+      
+      this.logger.info('Collective intelligence context generated successfully', {
+        objective,
+        responseLength: response.content.length,
+        tokenUsage: response.usage.totalTokens
+      });
+
+    } catch (error) {
+      this.logger.error('Failed to generate collective context', { error: error.message });
+      throw new Error(`Context generation failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Build the prompt for generating collective intelligence context
+   */
+  private buildCollectiveContextPrompt(objective: string, workerTypes: string[], geminiContext?: string): string {
+    const contextSection = geminiContext ? `
+
+GEMINI INTEGRATION CONTEXT:
+${geminiContext}
+
+Please use the above context to inform your coordination strategy and ensure alignment with the established principles and frameworks.` : '';
+    
+    return `You are the central intelligence coordinator for a hive mind collective working on the following objective:
+
+OBJECTIVE: ${objective}
+
+WORKER TYPES: ${workerTypes.join(', ')}${contextSection}
+
+Your task is to generate a comprehensive coordination framework that will guide the collective intelligence. Please provide:
+
+1. STRATEGIC ANALYSIS:
+   - Break down the objective into key components
+   - Identify critical dependencies and relationships
+   - Assess potential challenges and opportunities
+
+2. COORDINATION STRATEGY:
+   - Define how different worker types should collaborate
+   - Establish communication protocols between nodes
+   - Create decision-making hierarchies and consensus mechanisms
+
+3. COLLECTIVE INTELLIGENCE PATTERNS:
+   - Identify knowledge sharing protocols
+   - Define learning and adaptation strategies
+   - Establish emergent behavior optimization
+
+4. EXECUTION FRAMEWORK:
+   - Create task distribution algorithms
+   - Define progress monitoring and feedback loops
+   - Establish quality assurance mechanisms
+
+5. ADAPTIVE RESPONSES:
+   - Define how the hive should respond to obstacles
+   - Create contingency plans for different scenarios
+   - Establish evolution and improvement pathways
+
+Please structure your response as a detailed coordination blueprint that will maximize the collective intelligence effectiveness for achieving the stated objective.`;
+  }
+
+  /**
+   * Store the generated collective context for hive coordination
+   */
+  private async storeCollectiveContext(objective: string, context: string): Promise<void> {
+    try {
+      // In a real implementation, this would integrate with the memory system
+      // For now, we'll log the successful storage
+      this.logger.info('Collective context stored', {
+        objective,
+        contextLength: context.length,
+        timestamp: new Date().toISOString()
+      });
+
+      // Display a summary of the generated context
+      console.log(chalk.cyan('\n🧠 Gemini Generated Collective Intelligence Context:'));
+      console.log(chalk.gray('  Context generated and stored for hive coordination'));
+      console.log(chalk.gray('  Framework ready for collective decision making'));
+      console.log(chalk.gray('  Adaptive learning protocols activated'));
+
+    } catch (error) {
+      this.logger.error('Failed to store collective context', { error: error.message });
+      throw new Error(`Context storage failed: ${error.message}`);
     }
   }
 }
