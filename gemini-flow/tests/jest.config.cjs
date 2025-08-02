@@ -123,7 +123,7 @@ module.exports = {
   // Global variables
   globals: {
     __TEST_ENV__: true,
-    __VERSION__: '2.0.0-alpha'
+    __VERSION__: '1.0.0'
   },
   
   // Clear mocks between tests

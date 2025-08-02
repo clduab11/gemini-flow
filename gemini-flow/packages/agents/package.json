@@ -1,6 +1,6 @@
 {
   "name": "@gemini-flow/agents",
-  "version": "2.0.0-alpha",
+  "version": "1.0.0",
   "description": "Specialized AI agents for Gemini-Flow",
   "main": "dist/index.js",
   "type": "module",
@@ -20,7 +20,7 @@
   "author": "Gemini-Flow Team",  
   "license": "MIT",
   "dependencies": {
-    "@gemini-flow/core": "^2.0.0-alpha"
+    "@gemini-flow/core": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

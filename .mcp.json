@@ -3,7 +3,7 @@
     "claude-flow": {
       "command": "npx",
       "args": [
-        "claude-flow@alpha",
+        "claude-flow@latest",
         "mcp",
         "start"
       ],
