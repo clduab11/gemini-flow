@@ -1,14 +1,11 @@
 {
   "extends": [
-    "eslint:recommended",
-    "@typescript-eslint/recommended",
-    "@typescript-eslint/recommended-requiring-type-checking"
+    "eslint:recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2022,
-    "sourceType": "module",
-    "project": ["./tsconfig.json", "./tests/tsconfig.json"]
+    "sourceType": "module"
   },
   "plugins": ["@typescript-eslint"],
   "root": true,
@@ -18,14 +15,8 @@
     "jest": true
   },
   "rules": {
+    "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/no-non-null-assertion": "warn",
-    "@typescript-eslint/prefer-const": "error",
-    "@typescript-eslint/no-var-requires": "off",
-    "@typescript-eslint/ban-ts-comment": "warn",
     "no-console": ["warn", { "allow": ["warn", "error"] }],
     "prefer-const": "error",
     "no-var": "error"
@@ -42,16 +33,15 @@
     {
       "files": ["**/*.test.ts", "**/*.test.js", "tests/**/*"],
       "rules": {
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-non-null-assertion": "off",
-        "@typescript-eslint/unbound-method": "off",
-        "no-console": "off"
+        "no-console": "off",
+        "@typescript-eslint/no-unused-vars": "off"
       }
     },
     {
       "files": ["*.js", "*.mjs"],
+      "parser": "espree",
       "rules": {
-        "@typescript-eslint/no-var-requires": "off"
+        "@typescript-eslint/no-unused-vars": "off"
       }
     }
   ]

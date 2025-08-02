@@ -3,9 +3,9 @@
  * Validates all authentication flows for production readiness
  */
 
-const { describe, test, expect, beforeAll, afterAll } = require('@jest/globals');
-const { GoogleAuth, GoogleTierManager } = require('../../src/auth/google-tier');
-const { TestServer } = require('../utils/test-server');
+import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
+import { GoogleAuth, GoogleTierManager } from '../../src/auth/google-tier.js';
+import { TestServer } from '../utils/test-server.js';
 
 describe('Google Tier Authentication Flow Integration', () => {
   let testServer;

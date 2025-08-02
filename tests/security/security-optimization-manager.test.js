@@ -6,11 +6,12 @@
  * --analyze-self, --meta-optimization
  */
 
-const { SecurityOptimizationManager } = require('../../dist/core/security-optimization-manager.js');
-const { ModelOrchestrator } = require('../../dist/core/model-orchestrator.js');
-const { PerformanceMonitor } = require('../../dist/core/performance-monitor.js');
-const { AuthenticationManager } = require('../../dist/core/auth-manager.js');
-const { ModelRouter } = require('../../dist/core/model-router.js');
+import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { SecurityOptimizationManager } from '../../dist/core/security-optimization-manager.js';
+import { ModelOrchestrator } from '../../dist/core/model-orchestrator.js';
+import { PerformanceMonitor } from '../../dist/core/performance-monitor.js';
+import { AuthenticationManager } from '../../dist/core/auth-manager.js';
+import { ModelRouter } from '../../dist/core/model-router.js';
 
 describe('SecurityOptimizationManager', () => {
   let securityManager;

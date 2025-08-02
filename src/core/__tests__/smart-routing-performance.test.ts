@@ -335,11 +335,13 @@ describe('Smart Routing Engine Performance Tests', () => {
       expect(performance.cacheHitRate).toBeGreaterThanOrEqual(0);
     });
 
-    test('should emit performance warnings for slow routing', (done) => {
-      router.on('routing_slow', (data) => {
-        expect(data.routingTime).toBeGreaterThan(data.target);
-        expect(data.target).toBe(75);
-        done();
+    test('should emit performance warnings for slow routing', async () => {
+      const warningPromise = new Promise((resolve) => {
+        router.on('routing_slow', (data) => {
+          expect(data.routingTime).toBeGreaterThan(data.target);
+          expect(data.target).toBe(75);
+          resolve(data);
+        });
       });
 
       // Simulate slow routing by creating a very complex context
@@ -350,8 +352,14 @@ describe('Smart Routing Engine Performance Tests', () => {
         latencyRequirement: 100
       };
 
-      router.selectOptimalModel(heavyContext, mockModels);
-    });
+      await router.selectOptimalModel(heavyContext, mockModels);
+      
+      // Wait for the warning or timeout after 5 seconds
+      await Promise.race([
+        warningPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('No warning emitted')), 5000))
+      ]);
+    }, 10000);
   });
 
   describe('Comprehensive Statistics', () => {

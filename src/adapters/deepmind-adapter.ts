@@ -287,7 +287,9 @@ export class DeepMindAdapter extends BaseModelAdapter {
 
     // Enhanced validation for DeepMind capabilities
     const maxTokens = this.capabilities.maxTokens;
-    if (request.prompt.length > maxTokens) {
+    // Rough estimate: 1 token = 4 characters for validation
+    const estimatedTokens = request.prompt.length / 4;
+    if (estimatedTokens > maxTokens) {
       throw this.createError(
         `Prompt too long. Max tokens: ${maxTokens}`,
         'PROMPT_TOO_LONG',

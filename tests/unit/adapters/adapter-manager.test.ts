@@ -87,23 +87,105 @@ describe('AdapterManager', () => {
   let manager: AdapterManager;
 
   beforeEach(() => {
-    manager = new AdapterManager();
+    const config = {
+      unifiedAPI: {
+        enableCaching: true,
+        cacheSize: 1000,
+        cacheTTL: 300000,
+        enablePerformanceOptimization: true,
+        performanceThresholds: {
+          latencyWarningMs: 1000,
+          latencyErrorMs: 5000,
+          errorRateWarning: 0.05,
+          errorRateError: 0.1
+        },
+        models: {
+          gemini: [],
+          deepmind: [],
+          jules: []
+        },
+        routing: {
+          strategy: 'balanced' as const,
+          latencyTarget: 75,
+          fallbackEnabled: true,
+          circuitBreakerThreshold: 0.1,
+          retryAttempts: 3,
+          retryDelay: 1000
+        },
+        caching: {
+          enabled: true,
+          ttl: 300000,
+          maxSize: 1000,
+          keyStrategy: 'prompt' as const
+        },
+        monitoring: {
+          metricsEnabled: true,
+          healthCheckInterval: 30000,
+          performanceThreshold: 1000
+        }
+      },
+      errorHandling: {
+        maxRetries: 3,
+        retryBackoff: 'exponential' as const,
+        retryDelay: 1000,
+        fallbackChain: ['mock-adapter'],
+        emergencyFallback: 'mock-adapter',
+        errorThreshold: 0.1
+      },
+      performanceOptimization: {
+        routingOptimization: true,
+        adaptiveTimeouts: true,
+        predictiveScaling: true,
+        costOptimization: true,
+        qualityMonitoring: true
+      },
+      monitoring: {
+        detailedLogging: true,
+        performanceTracking: true,
+        errorAnalytics: true,
+        usageAnalytics: true,
+        alerting: {
+          enabled: false,
+          thresholds: {
+            errorRate: 0.1,
+            latency: 5000,
+            availability: 0.95
+          },
+          webhooks: []
+        }
+      }
+    };
+    manager = new AdapterManager(config);
   });
 
   afterEach(() => {
     // Cleanup any event listeners
-    manager.removeAllListeners();
+    if (manager && manager.removeAllListeners) {
+      manager.removeAllListeners();
+    }
   });
 
   describe('adapter registration', () => {
     it('should register adapter successfully', () => {
-      const adapter = new MockAdapter({ modelName: 'mock-adapter' });
+      const adapter = new MockAdapter({ 
+        modelName: 'mock-adapter',
+        timeout: 30000,
+        retryAttempts: 3,
+        streamingEnabled: true,
+        cachingEnabled: true
+      });
       manager.registerAdapter('mock', adapter);
       expect(manager.hasAdapter('mock')).toBe(true);
     });
 
     it('should throw error when registering duplicate adapter', () => {
-      const adapter = new MockAdapter({ modelName: 'mock-adapter' });
+      const adapter = new MockAdapter({ 
+        modelName: 'mock-adapter',
+        timeout: 30000,
+        retryAttempts: 3,
+        streamingEnabled: true,
+        cachingEnabled: true
+      });
       manager.registerAdapter('mock', adapter);
       
       expect(() => manager.registerAdapter('mock', adapter))

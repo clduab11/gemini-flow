@@ -219,11 +219,13 @@ describe('Smart Routing Integration Tests', () => {
       expect(metrics.modelDistribution).toBeDefined();
     });
 
-    test('should warn on performance degradation', (done) => {
-      orchestrator.on('performance_warning', (data) => {
-        expect(data.metric).toBe('routing_time');
-        expect(data.value).toBeGreaterThan(data.threshold);
-        done();
+    test('should warn on performance degradation', async () => {
+      const warningPromise = new Promise((resolve) => {
+        orchestrator.on('performance_warning', (data) => {
+          expect(data.metric).toBe('routing_time');
+          expect(data.value).toBeGreaterThan(data.threshold);
+          resolve(data);
+        });
       });
 
       // Create a scenario likely to trigger performance warning

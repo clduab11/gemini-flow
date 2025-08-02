@@ -310,6 +310,20 @@ export abstract class BaseModelAdapter extends EventEmitter {
   }
 
   /**
+   * Create a default request context for testing and development
+   */
+  createContext(overrides?: Partial<RequestContext>): RequestContext {
+    const defaultContext: RequestContext = {
+      requestId: this.generateRequestId(),
+      priority: 'medium',
+      userTier: 'free',
+      latencyTarget: 10000
+    };
+
+    return { ...defaultContext, ...overrides };
+  }
+
+  /**
    * Calculate cost based on token usage
    */
   protected calculateCost(usage: { totalTokens: number }, costPerToken: number): number {

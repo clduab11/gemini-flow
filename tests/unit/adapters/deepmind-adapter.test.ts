@@ -118,7 +118,12 @@ describe('DeepMindAdapter', () => {
     it('should generate response successfully', async () => {
       const request: ModelRequest = {
         prompt: 'Test complex reasoning task',
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 5000
+        }
       };
 
       const response = await adapter.generate(request);
@@ -131,7 +136,12 @@ describe('DeepMindAdapter', () => {
     it('should cache complex reasoning results', async () => {
       const request: ModelRequest = {
         prompt: 'analyze this complex mathematical proof step by step',
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-cache-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 5000
+        }
       };
 
       // First call
@@ -148,7 +158,13 @@ describe('DeepMindAdapter', () => {
       const longPrompt = 'a'.repeat(100000); // 100k characters
       const request: ModelRequest = {
         prompt: longPrompt,
-        context: adapter.createContext({ sessionId: 'test-session' })
+        context: {
+          requestId: 'test-long-123',
+          sessionId: 'test-session',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 10000
+        }
       };
 
       await adapter.generate(request);
@@ -161,7 +177,12 @@ describe('DeepMindAdapter', () => {
       const request: ModelRequest = {
         prompt: 'Analyze and compare these algorithms step by step',
         parameters: { maxTokens: 5000 },
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-reasoning-123',
+          priority: 'high',
+          userTier: 'pro',
+          latencyTarget: 8000
+        }
       };
 
       await adapter.generate(request);
@@ -197,7 +218,13 @@ describe('DeepMindAdapter', () => {
     it('should stream content with reasoning steps', async () => {
       const request: ModelRequest = {
         prompt: 'Stream test with reasoning',
-        context: { ...adapter.createContext(), streaming: true }
+        context: {
+          requestId: 'test-stream-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 5000,
+          streaming: true
+        }
       };
 
       const chunks = [];
@@ -226,13 +253,18 @@ describe('DeepMindAdapter', () => {
 
       const request: ModelRequest = {
         prompt: 'Test error handling',
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-error-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 5000
+        }
       };
 
       await expect(adapter.generate(request)).rejects.toMatchObject({
         code: 'QUOTA_EXCEEDED',
         statusCode: 429,
-        isRetryable: true
+        retryable: true
       });
     });
 
@@ -243,7 +275,12 @@ describe('DeepMindAdapter', () => {
 
       const request: ModelRequest = {
         prompt: 'Test data residency',
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-residency-123',
+          priority: 'medium',
+          userTier: 'enterprise',
+          latencyTarget: 5000
+        }
       };
 
       await expect(adapter.generate(request)).rejects.toMatchObject({
@@ -265,7 +302,12 @@ describe('DeepMindAdapter', () => {
 
       const request: ModelRequest = {
         prompt: 'Test access control',
-        context: adapter.createContext({ userTier: 'free' })
+        context: {
+          requestId: 'test-access-123',
+          priority: 'medium',
+          userTier: 'free',
+          latencyTarget: 5000
+        }
       };
 
       await expect(restrictedAdapter.validateRequest(request)).rejects.toMatchObject({
@@ -283,17 +325,27 @@ describe('DeepMindAdapter', () => {
     it('should validate prompt requirements', async () => {
       const request: ModelRequest = {
         prompt: '',
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-validate-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 5000
+        }
       };
 
       await expect(adapter.validateRequest(request)).rejects.toThrow('Prompt is required');
     });
 
     it('should validate prompt length limits', async () => {
-      const tooLongPrompt = 'a'.repeat(3000000); // 3M chars > 2M token limit
+      const tooLongPrompt = 'a'.repeat(8000001); // > 2M tokens (8M chars / 4 chars per token)
       const request: ModelRequest = {
         prompt: tooLongPrompt,
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-length-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 5000
+        }
       };
 
       await expect(adapter.validateRequest(request)).rejects.toThrow('Prompt too long');
@@ -308,7 +360,12 @@ describe('DeepMindAdapter', () => {
     it('should calculate cost correctly for different models', async () => {
       const request: ModelRequest = {
         prompt: 'Calculate cost',
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-cost-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 5000
+        }
       };
 
       (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
@@ -334,14 +391,19 @@ describe('DeepMindAdapter', () => {
     it('should track performance metrics', async () => {
       const request: ModelRequest = {
         prompt: 'Performance test',
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-perf-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 5000
+        }
       };
 
       const logSpy = jest.spyOn(adapter.logger, 'info');
       await adapter.generate(request);
 
       expect(logSpy).toHaveBeenCalledWith(
-        expect.stringContaining('performance'),
+        'Performance metric',
         expect.objectContaining({
           operation: 'generate',
           success: true,
@@ -364,7 +426,12 @@ describe('DeepMindAdapter', () => {
           audio: ['base64-audio'],
           video: ['base64-video']
         },
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-multimodal-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 8000
+        }
       };
 
       await adapter.generate(request);
@@ -386,7 +453,12 @@ describe('DeepMindAdapter', () => {
     it('should apply default safety settings', async () => {
       const request: ModelRequest = {
         prompt: 'Test safety',
-        context: adapter.createContext()
+        context: {
+          requestId: 'test-safety-123',
+          priority: 'medium',
+          userTier: 'pro',
+          latencyTarget: 5000
+        }
       };
 
       await adapter.generate(request);
