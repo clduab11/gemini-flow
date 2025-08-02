@@ -1,6 +1,6 @@
 {
   "name": "@clduab11/gemini-flow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Gemini Flow - Revolutionary Multi-Model AI Orchestration Platform powered by Google Gemini with quantum computing capabilities",
   "type": "module",
   "main": "dist/index.js",
@@ -50,7 +50,9 @@
     "benchmark": "tsx scripts/benchmark.ts",
     "clean": "rm -rf dist && npm run clean --workspaces --if-present",
     "prepublishOnly": "npm run clean && npm run build",
-    "postinstall": "echo 'Gemini-Flow installed successfully'"
+    "postinstall": "echo 'Gemini-Flow installed successfully'",
+    "verify-api-key": "node scripts/verify-api-key.js",
+    "setup": "cp .env.example .env && echo 'Please edit .env with your API keys' && npm run verify-api-key"
   },
   "keywords": [
     "quantum-computing",
@@ -78,12 +80,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gemini-flow/gemini-flow.git"
+    "url": "git+https://github.com/clduab11/gemini-flow.git"
   },
   "bugs": {
-    "url": "https://github.com/gemini-flow/gemini-flow/issues"
+    "url": "https://github.com/clduab11/gemini-flow/issues"
   },
-  "homepage": "https://github.com/gemini-flow/gemini-flow#readme",
+  "homepage": "https://github.com/clduab11/gemini-flow#readme",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/",
@@ -129,7 +131,7 @@
     "node": ">=18.0.0"
   },
   "engines": {
-    "node": ">=18.0.0 <=22.0.0",
+    "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
   "optionalDependencies": {
