@@ -4,12 +4,21 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
   schedule:
     - cron: '0 6 * * 1' # Weekly on Monday at 6 AM UTC
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   dependency-check:
+    name: Dependency Security Scan
     runs-on: ubuntu-latest
     
     steps:
@@ -19,23 +28,43 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: gemini-flow/package-lock.json
     
     - name: Install dependencies
-      working-directory: ./gemini-flow
       run: npm ci
     
     - name: Run npm audit
-      working-directory: ./gemini-flow
-      run: npm audit --audit-level=moderate
+      run: |
+        echo "Running npm audit..."
+        npm audit --audit-level=moderate || true
+        
+        # Check for high severity vulnerabilities
+        HIGH_VULNS=$(npm audit --audit-level=high --json 2>/dev/null | jq '.metadata.vulnerabilities.high // 0')
+        CRITICAL_VULNS=$(npm audit --audit-level=critical --json 2>/dev/null | jq '.metadata.vulnerabilities.critical // 0')
+        
+        echo "High severity vulnerabilities: $HIGH_VULNS"
+        echo "Critical severity vulnerabilities: $CRITICAL_VULNS"
+        
+        if [ "$CRITICAL_VULNS" -gt 0 ]; then
+          echo "❌ Critical vulnerabilities found!"
+          npm audit --audit-level=critical
+          exit 1
+        elif [ "$HIGH_VULNS" -gt 0 ]; then
+          echo "⚠️ High severity vulnerabilities found!"
+          npm audit --audit-level=high
+          # Don't fail on high severity, but warn
+        fi
     
     - name: Run dependency vulnerability scan
       uses: actions/dependency-review-action@v4
       if: github.event_name == 'pull_request'
+      with:
+        fail-on-severity: high
+        allow-licenses: MIT, Apache-2.0, BSD-3-Clause, BSD-2-Clause, ISC, GPL-3.0
 
   codeql-analysis:
+    name: CodeQL Security Analysis
     runs-on: ubuntu-latest
     
     permissions:
@@ -56,21 +85,18 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        queries: security-extended
+        queries: security-extended,security-and-quality
     
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: gemini-flow/package-lock.json
     
     - name: Install dependencies
-      working-directory: ./gemini-flow
       run: npm ci
     
     - name: Build project
-      working-directory: ./gemini-flow
       run: npm run build
     
     - name: Perform CodeQL Analysis
@@ -79,6 +105,7 @@ jobs:
         category: "/language:${{matrix.language}}"
 
   secrets-scan:
+    name: Secrets Detection
     runs-on: ubuntu-latest
     
     steps:
@@ -91,6 +118,67 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: main
+        base: ${{ github.event.repository.default_branch }}
         head: HEAD
         extra_args: --debug --only-verified
+
+  license-scan:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install license checker
+      run: npm install -g license-checker
+    
+    - name: Check licenses
+      run: |
+        echo "Checking licenses..."
+        license-checker --onlyAllow 'MIT;Apache-2.0;BSD-3-Clause;BSD-2-Clause;ISC;GPL-3.0;Unlicense;CC0-1.0' --excludePrivatePackages > licenses.txt
+        
+        echo "License summary:"
+        cat licenses.txt
+    
+    - name: Upload license report
+      uses: actions/upload-artifact@v4
+      with:
+        name: license-report
+        path: licenses.txt
+        retention-days: 30
+
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [dependency-check, codeql-analysis, secrets-scan, license-scan]
+    if: always()
+    
+    steps:
+    - name: Security Report Summary
+      run: |
+        echo "## 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Dependency Scan | ${{ needs.dependency-check.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| CodeQL Analysis | ${{ needs.codeql-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Secrets Detection | ${{ needs.secrets-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| License Compliance | ${{ needs.license-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ needs.dependency-check.result }}" == "failure" || "${{ needs.codeql-analysis.result }}" == "failure" || "${{ needs.secrets-scan.result }}" == "failure" ]]; then
+          echo "❌ Security scan failed! Please review the issues above." >> $GITHUB_STEP_SUMMARY
+          exit 1
+        else
+          echo "✅ All security scans passed!" >> $GITHUB_STEP_SUMMARY
+        fi

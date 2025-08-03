@@ -1,0 +1,258 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '20'
+  CACHE_VERSION: 'v2'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Quick validation job for fast feedback
+  quick-check:
+    name: Quick Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type checking
+        run: npm run typecheck
+
+      - name: Lint code
+        run: npm run lint
+
+  test:
+    name: Test Suite
+    runs-on: ${{ matrix.os }}
+    needs: quick-check
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18, 20, 22]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    env:
+      NODE_OPTIONS: '--experimental-vm-modules'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ env.CACHE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-${{ env.CACHE_VERSION }}-
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type checking
+        run: npm run typecheck
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test -- --coverage --coverageReporters=json-summary --coverageReporters=lcov
+
+      - name: Build project
+        run: npm run build
+
+      - name: Test CLI binary
+        if: matrix.os == 'ubuntu-latest' && matrix.node-version == 20
+        run: |
+          npm pack
+          npm install -g *.tgz
+          gemini-flow --help || echo "CLI help command failed"
+          quantum-flow --version || echo "CLI version command failed"
+
+      - name: Upload coverage to Codecov
+        if: matrix.node-version == 20 && matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  build-artifacts:
+    name: Build Artifacts
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Create package
+        run: npm pack
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: '*.tgz'
+          retention-days: 30
+
+      - name: Upload dist directory
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: dist/
+          retention-days: 7
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Check for vulnerable dependencies
+        run: |
+          if npm audit --audit-level=high --json | jq '.vulnerabilities | length > 0'; then
+            echo "High severity vulnerabilities found!"
+            npm audit --audit-level=high
+            exit 1
+          fi
+
+  validate-package:
+    name: Validate Package
+    runs-on: ubuntu-latest
+    needs: build-artifacts
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+
+      - name: Test package installation
+        run: |
+          # Create temp directory for testing
+          mkdir -p /tmp/package-test
+          cd /tmp/package-test
+          
+          # Initialize a test project
+          npm init -y
+          
+          # Install the package from tarball
+          npm install $GITHUB_WORKSPACE/*.tgz
+          
+          # Test CLI commands
+          npx gemini-flow --help
+          npx quantum-flow --version
+
+      - name: Validate package.json
+        run: |
+          # Check required fields
+          node -e "
+            const pkg = require('./package.json');
+            const required = ['name', 'version', 'description', 'main', 'bin', 'files'];
+            required.forEach(field => {
+              if (!pkg[field]) throw new Error(\`Missing required field: \${field}\`);
+            });
+            console.log('Package.json validation passed');
+          "
+
+  performance-test:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run performance benchmarks
+        run: |
+          if [ -f "scripts/benchmark.ts" ]; then
+            npm run benchmark
+          else
+            echo "No benchmark script found, skipping performance tests"
+          fi
+
+      - name: Comment PR with performance results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // This would add performance results as a comment on the PR
+            // Implementation depends on benchmark output format
+            console.log('Performance test completed');

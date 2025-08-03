@@ -1,0 +1,24 @@
+{
+  "name": "gemini-flow-project",
+  "description": "AI-powered project using Gemini-Flow",
+  "version": "1.0.0",
+  "template": "basic",
+  "swarm": {
+    "defaultTopology": "hierarchical",
+    "maxAgents": 8
+  },
+  "google": {
+    "projectId": null,
+    "enabled": false
+  },
+  "agents": {
+    "autoSpawn": true,
+    "types": [
+      "coder",
+      "researcher",
+      "tester",
+      "reviewer",
+      "planner"
+    ]
+  }
+}

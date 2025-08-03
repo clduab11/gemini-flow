@@ -1,0 +1,89 @@
+version: 2
+updates:
+  # Enable version updates for npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    target-branch: "develop"
+    reviewers:
+      - "clduab11"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    ignore:
+      # Ignore major version updates for stable dependencies
+      - dependency-name: "@types/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # Group TypeScript related updates
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+          - "ts-*"
+      # Group testing related updates
+      testing:
+        patterns:
+          - "jest"
+          - "@types/jest"
+          - "ts-jest"
+          - "babel-jest"
+      # Group linting related updates
+      linting:
+        patterns:
+          - "eslint"
+          - "@typescript-eslint/*"
+      # Group build tools
+      build-tools:
+        patterns:
+          - "tsx"
+          - "@babel/*"
+          - "babel-*"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    target-branch: "develop"
+    reviewers:
+      - "clduab11"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "github-actions"
+      - "automated"
+    groups:
+      # Group Node.js setup actions
+      node-actions:
+        patterns:
+          - "actions/setup-node"
+          - "actions/checkout"
+          - "actions/cache"
+      # Group security actions
+      security-actions:
+        patterns:
+          - "github/codeql-action/*"
+          - "trufflesecurity/*"
+          - "actions/dependency-review-action"
+      # Group release actions
+      release-actions:
+        patterns:
+          - "actions/create-release"
+          - "codecov/codecov-action"

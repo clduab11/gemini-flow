@@ -2,10 +2,32 @@ name: Automated Release
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - package.json
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      skip_tests:
+        description: 'Skip tests (not recommended)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   check-version:
@@ -13,40 +35,76 @@ jobs:
     outputs:
       version-changed: ${{ steps.version-check.outputs.changed }}
       new-version: ${{ steps.version-check.outputs.version }}
+      should-release: ${{ steps.release-check.outputs.should-release }}
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 2
+        token: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Check if version changed
+    - name: Check if this is a release commit
+      id: release-check
+      run: |
+        # Skip release if commit message contains [skip-release] or [no-release]
+        if git log -1 --pretty=%B | grep -E '\[(skip-release|no-release)\]'; then
+          echo "should-release=false" >> $GITHUB_OUTPUT
+          echo "Release skipped due to commit message"
+        elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "should-release=true" >> $GITHUB_OUTPUT
+          echo "Manual release triggered"
+        else
+          echo "should-release=true" >> $GITHUB_OUTPUT
+          echo "Automatic release check passed"
+        fi
+    
+    - name: Check if version changed or manual release
       id: version-check
       run: |
-        CURRENT_VERSION=$(jq -r '.version' package.json)
-        PREVIOUS_VERSION=$(git show HEAD~1:package.json | jq -r '.version')
-        
-        if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          # For manual releases, calculate new version
+          CURRENT_VERSION=$(jq -r '.version' package.json)
+          RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+          
+          # Use npm version to calculate new version
+          npm version $RELEASE_TYPE --no-git-tag-version --dry-run > /tmp/new_version.txt
+          NEW_VERSION=$(cat /tmp/new_version.txt | sed 's/v//')
+          
           echo "changed=true" >> $GITHUB_OUTPUT
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "Version changed from $PREVIOUS_VERSION to $CURRENT_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Manual release: $CURRENT_VERSION -> $NEW_VERSION ($RELEASE_TYPE)"
         else
-          echo "changed=false" >> $GITHUB_OUTPUT
-          echo "No version change detected"
+          # For automatic releases, check if version changed
+          CURRENT_VERSION=$(jq -r '.version' package.json)
+          PREVIOUS_VERSION=$(git show HEAD~1:package.json | jq -r '.version' 2>/dev/null || echo "$CURRENT_VERSION")
+          
+          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+            echo "Version changed from $PREVIOUS_VERSION to $CURRENT_VERSION"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No version change detected"
+          fi
         fi
 
   create-release:
     needs: check-version
-    if: needs.check-version.outputs.version-changed == 'true'
+    if: needs.check-version.outputs.version-changed == 'true' && needs.check-version.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     
     permissions:
       contents: write
       packages: write
+      actions: read
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
     
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -56,11 +114,26 @@ jobs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
     
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+    
     - name: Install dependencies
       run: npm ci
     
+    - name: Update version for manual release
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        npm version ${{ github.event.inputs.release_type }} --no-git-tag-version
+        git add package.json package-lock.json
+        git commit -m "chore: bump version to v${{ needs.check-version.outputs.new-version }} [skip-release]"
+    
     - name: Run tests
+      if: github.event.inputs.skip_tests != 'true'
       run: npm test
+      env:
+        NODE_OPTIONS: '--experimental-vm-modules'
     
     - name: Build project
       run: npm run build
