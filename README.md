@@ -65,7 +65,7 @@ npm install -g @clduab11/gemini-flow
 npx @clduab11/gemini-flow init --interactive
 ```
 
-> **Requirements**: Node.js 18+ | Google AI API Key | 5 minutes to excellence
+> **Requirements**: Node.js 18+ | Valid Gemini API Key | 5 minutes to excellence
 
 ## 🚀 Killer Examples That'll Make You Star This Repo
 
