@@ -10,7 +10,7 @@ When using the `--gemini` flag, this document is loaded as context to enhance AI
 
 1. [System Overview](#system-overview)
 2. [Available Commands](#available-commands)
-3. [Agent Types (49 Available)](#agent-types)
+3. [Agent Types (66 Available)](#agent-types)
 4. [Memory Architecture](#memory-architecture)
 5. [Performance Specifications](#performance-specifications)
 6. [Configuration Guide](#configuration-guide)
@@ -23,7 +23,7 @@ When using the `--gemini` flag, this document is loaded as context to enhance AI
 
 Gemini-Flow is an enterprise-grade AI orchestration platform that leverages Google's Gemini models for advanced multi-agent coordination and swarm intelligence. The system provides:
 
-- **Multi-Agent Orchestration**: 49 specialized agent types across 16 categories
+- **Multi-Agent Orchestration**: 66 specialized agent types across 16 categories
 - **Hive-Mind Coordination**: Collective intelligence with consensus mechanisms
 - **Performance Optimization**: <100ms agent spawn, 396K ops/sec SQLite performance
 - **Memory Persistence**: Cross-session knowledge sharing with SQLite WAL
@@ -295,7 +295,7 @@ gemini-flow security <command> [options]
 
 ## 🤖 Agent Types
 
-### Complete Agent Registry (49 Types)
+### Complete Agent Registry (66 Types)
 
 ```typescript
 // Core Development Agents (5)
@@ -314,7 +314,7 @@ export const SWARM_AGENTS = {
   'adaptive-coordinator': 'Dynamic topology adaptation and optimization'
 };
 
-// Consensus Systems Agents (7)
+// Consensus Systems Agents (14)
 export const CONSENSUS_AGENTS = {
   'byzantine-coordinator': 'Byzantine fault-tolerant consensus with 99% reliability',
   'quorum-manager': 'Dynamic quorum size adjustment and verification',
@@ -322,10 +322,17 @@ export const CONSENSUS_AGENTS = {
   'gossip-coordinator': 'Gossip protocol for eventual consistency',
   'performance-benchmarker': 'System performance analysis and optimization',
   'raft-manager': 'Raft consensus with leader election',
-  'crdt-synchronizer': 'Conflict-free replicated data types management'
+  'crdt-synchronizer': 'Conflict-free replicated data types management',
+  'byzantine-fault-tolerant': 'Advanced Byzantine fault tolerance implementation',
+  'raft-consensus': 'Raft distributed consensus algorithm',
+  'gossip-protocol': 'Epidemic information dissemination protocol',
+  'crdt-manager': 'Conflict-free replicated data type coordination',
+  'paxos-coordinator': 'Paxos consensus algorithm implementation',
+  'blockchain-consensus': 'Blockchain-style consensus mechanisms',
+  'vector-clock-sync': 'Vector clock synchronization for causal ordering'
 };
 
-// GitHub Integration Agents (13)
+// GitHub Integration Agents (17)
 export const GITHUB_AGENTS = {
   'pr-manager': 'Pull request lifecycle management',
   'code-review-swarm': 'Distributed code review coordination',
@@ -339,17 +346,27 @@ export const GITHUB_AGENTS = {
   'release-manager': 'Semantic versioning and changelogs',
   'swarm-pr': 'PR-based swarm coordination',
   'swarm-issue': 'Issue-based task distribution',
-  'repo-architect': 'Repository structure optimization'
+  'repo-architect': 'Repository structure optimization',
+  'security-scanner': 'Automated security vulnerability scanning',
+  'documentation-sync': 'Documentation synchronization across repos',
+  'changelog-generator': 'Automated changelog generation',
+  'dependency-updater': 'Dependency update management and testing'
 };
 
-// Performance & Optimization Agents (6)
+// Performance & Optimization Agents (12)
 export const PERFORMANCE_AGENTS = {
   'perf-analyzer': 'Performance bottleneck detection',
   'task-orchestrator': 'Workflow orchestration and scheduling',
   'memory-coordinator': 'Memory optimization and garbage collection',
   'swarm-memory-manager': 'Distributed memory management',
   'collective-intelligence-coordinator': 'Swarm learning coordination',
-  'consensus-builder': 'Decision consensus optimization'
+  'consensus-builder': 'Decision consensus optimization',
+  'performance-monitor': 'Real-time performance monitoring and alerting',
+  'load-balancer': 'Dynamic load balancing across agents',
+  'cache-optimizer': 'Intelligent caching strategy optimization',
+  'query-optimizer': 'Database and search query optimization',
+  'resource-allocator': 'Optimal resource allocation and scheduling',
+  'bottleneck-analyzer': 'Advanced bottleneck detection and resolution'
 };
 
 // Development Support Agents (6)
@@ -383,14 +400,14 @@ export const INTELLIGENCE_AGENTS = {
 ### Agent Categories Summary
 - **Core Development**: 5 agents
 - **Swarm Coordination**: 3 agents
-- **Consensus Systems**: 7 agents
-- **GitHub Integration**: 13 agents
-- **Performance & Optimization**: 6 agents
+- **Consensus Systems**: 14 agents
+- **GitHub Integration**: 17 agents
+- **Performance & Optimization**: 12 agents
 - **Development Support**: 6 agents
 - **System Architecture**: 4 agents
 - **Intelligence & Analysis**: 5 agents
 
-**Total**: 49 specialized agent types
+**Total**: 66 specialized agent types
 
 ## 💾 Memory Architecture
 
