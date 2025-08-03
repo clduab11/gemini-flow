@@ -18,7 +18,7 @@ gemini-flow hive-mind spawn "objective" [options]
 - `--consensus <algo>` - Decision making: `majority` | `weighted` | `byzantine`
 - `--memory-size <mb>` - Shared brain size (default: 1024)
 - `--auto-scale` - Spawn agents as needed
-- `--gemini` - Enable Gemini Code Assist coordination
+- `--gemini` - **NEW v1.0.4**: Enable enhanced AI coordination with GEMINI.md context
 
 **🔥 Killer Combo #1: The Startup Special**
 ```bash
@@ -27,9 +27,20 @@ gemini-flow hive-mind spawn "Build MVP in 48 hours" \
   --queen-type adaptive \
   --consensus byzantine \
   --auto-scale \
-  --memory-size 4096
+  --memory-size 4096 \
+  --gemini
 ```
-*Why it works: Byzantine consensus prevents analysis paralysis, adaptive queen learns from rapid iterations*
+*Why it works: Byzantine consensus prevents analysis paralysis, adaptive queen learns from rapid iterations, Gemini integration provides 66 agent types awareness*
+
+**🚀 NEW: Enhanced with --gemini Flag**
+```bash
+# Standard spawn (basic functionality)
+gemini-flow hive-mind spawn "Build authentication system"
+
+# Enhanced spawn (full 66-agent awareness + GEMINI.md context)
+gemini-flow hive-mind spawn "Build authentication system" --gemini
+```
+*The --gemini flag automatically loads your project's GEMINI.md context file, enabling AI agents to understand your complete system architecture, available commands, and 66 specialized agent types.*
 
 ### 🚀 `swarm` - Quick Strike Force
 ```bash
@@ -41,6 +52,7 @@ gemini-flow swarm "task" [options]
 - `--parallel` - Unleash parallel execution
 - `--depth <level>` - `shallow` | `medium` | `deep`
 - `--monitor` - Real-time swarm dashboard
+- `--gemini` - **NEW v1.0.4**: Context-aware swarm coordination
 
 **🔥 Killer Combo #2: The Refactor Nuke**
 ```bash
@@ -48,9 +60,30 @@ gemini-flow swarm "Refactor legacy auth system" \
   --strategy refactor \
   --parallel \
   --context ./legacy \
-  --model gemini-1.5-pro
+  --model gemini-1.5-pro \
+  --gemini
 ```
-*Why it works: Parallel refactoring with full codebase context = 10x dev speed*
+*Why it works: Parallel refactoring with full codebase context + 66 agent types = 10x dev speed*
+
+**🎯 Enhanced Swarm Examples with --gemini**
+```bash
+# Context-aware development swarm
+gemini-flow swarm "Implement microservices architecture" \
+  --strategy development \
+  --parallel \
+  --gemini
+
+# Deep analysis with full system understanding
+gemini-flow swarm "Analyze performance bottlenecks" \
+  --strategy analysis \
+  --depth deep \
+  --gemini
+
+# Intelligent test strategy based on project context
+gemini-flow swarm "Create comprehensive test suite" \
+  --strategy test \
+  --gemini
+```
 
 ### 🔍 `query` - Your Research Army
 ```bash
@@ -63,16 +96,32 @@ gemini-flow query "question" [options]
 - Gemini Flash optimization for cost-effective queries
 - Parallel execution of research agents
 - Comprehensive result synthesis
+- `--gemini` - **NEW v1.0.4**: Project-context-aware research
 
 **🔥 Killer Combo #3: The Knowledge Vacuum**
 ```bash
 # Simple but powerful - spawns mini-swarm automatically
-gemini-flow query "Kubernetes multi-region failover strategies"
+gemini-flow query "Kubernetes multi-region failover strategies" --gemini
 
-# Or with explicit depth control
-gemini-flow query "Latest React 19 features" --depth deep --sources 10
+# Or with explicit depth control + project context
+gemini-flow query "Latest React 19 features for our architecture" \
+  --depth deep \
+  --sources 10 \
+  --gemini
 ```
-*Why it works: Automatic mini-swarm coordination + MCP web tools + Gemini Flash = comprehensive research*
+*Why it works: Automatic mini-swarm coordination + MCP web tools + Gemini Flash + project context = targeted research*
+
+**🧠 Context-Aware Research Examples**
+```bash
+# Research with full project understanding
+gemini-flow query "Best database for our microservices setup" --gemini
+
+# Architecture-specific recommendations
+gemini-flow query "Security best practices for our tech stack" --gemini
+
+# Performance optimization suggestions
+gemini-flow query "Scaling strategies for our current infrastructure" --gemini
+```
 
 ### 🏗️ `sparc` - Systematic Development Pipeline
 ```bash

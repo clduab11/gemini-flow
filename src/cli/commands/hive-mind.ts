@@ -145,8 +145,11 @@ export class HiveMindCommand extends Command {
         ? options.workerTypes.split(',').map(t => t.trim())
         : ['researcher', 'analyst', 'coder', 'coordinator'];
 
-      // Initialize Gemini integration if requested
-      if (options.gemini) {
+      // Check for global Gemini integration or local --gemini flag
+      const isGeminiEnabled = options.gemini || process.env.GEMINI_FLOW_CONTEXT_LOADED === 'true';
+
+      // Initialize Gemini integration if enabled globally or locally
+      if (isGeminiEnabled) {
         spinner.text = 'Initializing Gemini AI integration...';
         await this.initializeGeminiAdapter();
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -162,7 +165,7 @@ export class HiveMindCommand extends Command {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // If Gemini is enabled, load context and generate enhanced collective intelligence
-      if (options.gemini && this.geminiAdapter) {
+      if (isGeminiEnabled && this.geminiAdapter) {
         spinner.text = 'Loading Gemini context...';
         const geminiContext = await this.loadGeminiContext();
         
@@ -178,16 +181,23 @@ export class HiveMindCommand extends Command {
       console.log(chalk.gray('  Queen:'), options.queen ? '👑 Active' : '❌ None');
       console.log(chalk.gray('  Workers:'), options.nodes || 5);
       console.log(chalk.gray('  Types:'), workerTypes.join(', '));
-      console.log(chalk.gray('  Gemini AI:'), options.gemini ? '🧠 Integrated' : '❌ Disabled');
+      console.log(chalk.gray('  Gemini AI:'), isGeminiEnabled ? '🧠 Integrated' : '❌ Disabled');
+      if (isGeminiEnabled && process.env.GEMINI_FLOW_MODE === 'enhanced') {
+        console.log(chalk.gray('  Mode:'), chalk.cyan('Enhanced Global'));
+      }
       console.log(chalk.gray('  Status:'), chalk.green('OPERATIONAL'));
 
       // Display Gemini-enhanced capabilities if enabled
-      if (options.gemini && this.geminiAdapter) {
+      if (isGeminiEnabled && this.geminiAdapter) {
         console.log(chalk.yellow('\n🧠 Gemini Enhanced Capabilities:'));
         console.log(chalk.gray('  • Advanced reasoning and problem-solving'));
         console.log(chalk.gray('  • Multi-modal intelligence processing'));
         console.log(chalk.gray('  • Collective decision making optimization'));
         console.log(chalk.gray('  • Real-time adaptive learning'));
+        if (process.env.GEMINI_FLOW_MODE === 'enhanced') {
+          console.log(chalk.gray('  • Global context integration'));
+          console.log(chalk.gray('  • Cross-command state sharing'));
+        }
       }
 
     } catch (error) {

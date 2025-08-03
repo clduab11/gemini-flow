@@ -27,6 +27,8 @@ import { GenerateCommand } from './commands/generate.js';
 import { StatsCommand } from './commands/stats.js';
 import { CostReportCommand } from './commands/cost-report.js';
 import { SecurityFlagsCommand } from './commands/security-flags.js';
+import { GeminiCommand } from './commands/gemini.js';
+import { GeminiIntegrationService } from '../services/gemini-integration.js';
 import { ModelOrchestrator } from '../core/model-orchestrator.js';
 import { AuthenticationManager } from '../core/auth-manager.js';
 import { PerformanceMonitor } from '../core/performance-monitor.js';
@@ -53,6 +55,7 @@ let globalOrchestrator: ModelOrchestrator;
 let globalAuth: AuthenticationManager;
 let globalPerformance: PerformanceMonitor;
 let globalConfigManager: ConfigManager;
+let geminiIntegration: GeminiIntegrationService;
 
 // ASCII art banner with orchestration info
 const banner = chalk.cyan(`
@@ -72,6 +75,9 @@ async function initializeOrchestration(): Promise<void> {
 
     // Initialize configuration manager
     globalConfigManager = new ConfigManager();
+
+    // Initialize Gemini integration service
+    geminiIntegration = GeminiIntegrationService.getInstance();
 
     // Initialize authentication manager
     globalAuth = new AuthenticationManager({
@@ -170,6 +176,7 @@ program.addCommand(new ExecuteCommand());
 program.addCommand(new StatsCommand());
 program.addCommand(new CostReportCommand());
 program.addCommand(new SecurityFlagsCommand());
+program.addCommand(new GeminiCommand());
 
 // Global options with orchestration features
 program
@@ -187,7 +194,8 @@ program
   .option('--canary-deploy', 'Enable canary deployment mode')
   .option('--slack-updates', 'Enable Slack notifications')
   .option('--analyze-self', 'Enable system self-analysis')
-  .option('--meta-optimization', 'Enable recursive optimization');
+  .option('--meta-optimization', 'Enable recursive optimization')
+  .option('--gemini', 'Enable Gemini integration with context loading');
 
 // Add doctor command for system diagnostics
 program
@@ -527,10 +535,83 @@ async function runModelBenchmark(options: any) {
   };
 }
 
+/**
+ * Handle global Gemini integration
+ */
+async function handleGeminiIntegration(args: string[]): Promise<void> {
+  // Skip Gemini integration for help commands
+  if (args.includes('--help') || args.includes('-h') || args.includes('help')) {
+    return;
+  }
+
+  // Check if --gemini flag is present in args
+  const hasGeminiFlag = args.includes('--gemini');
+  
+  if (hasGeminiFlag) {
+    const spinner = ora('Initializing Gemini integration...').start();
+    
+    // Check if verbose mode is enabled
+    const isVerbose = args.includes('--verbose') || args.includes('-v');
+    
+    try {
+      // Ensure geminiIntegration is initialized
+      if (!geminiIntegration) {
+        geminiIntegration = GeminiIntegrationService.getInstance();
+      }
+      
+      // Initialize Gemini integration
+      const result = await geminiIntegration.initialize();
+      
+      // Explicitly set environment variables for global usage
+      process.env.GEMINI_FLOW_CONTEXT_LOADED = 'true';
+      process.env.GEMINI_FLOW_MODE = 'enhanced';
+      
+      // Set additional environment variables if not already set
+      if (!process.env.GEMINI_MODEL) {
+        process.env.GEMINI_MODEL = 'gemini-1.5-flash';
+      }
+      
+      spinner.succeed('Gemini integration activated');
+      
+      // Log integration status
+      if (isVerbose) {
+        console.log(chalk.cyan('\n🌟 Gemini Integration Status:'));
+        console.log(chalk.blue('  CLI Detected:'), result.detection.isInstalled ? chalk.green('✅') : chalk.yellow('⚠️  Not found'));
+        console.log(chalk.blue('  Context Loaded:'), result.context.loaded ? chalk.green('✅') : chalk.yellow('⚠️  Fallback'));
+        console.log(chalk.blue('  Context Source:'), result.context.source);
+        console.log(chalk.blue('  Environment:'), process.env.GEMINI_FLOW_CONTEXT_LOADED === 'true' ? chalk.green('✅') : chalk.red('❌'));
+        console.log(chalk.blue('  Mode:'), process.env.GEMINI_FLOW_MODE);
+        
+        if (result.detection.version) {
+          console.log(chalk.blue('  CLI Version:'), result.detection.version);
+        }
+      } else {
+        // Brief status for non-verbose mode
+        const cliStatus = result.detection.isInstalled ? '✅' : '⚠️';
+        const contextStatus = result.context.loaded ? '✅' : '⚠️';
+        const envStatus = process.env.GEMINI_FLOW_CONTEXT_LOADED === 'true' ? '✅' : '❌';
+        console.log(chalk.cyan(`🌟 Gemini integration: CLI ${cliStatus} Context ${contextStatus} Env ${envStatus}`));
+      }
+      
+    } catch (error) {
+      spinner.fail('Gemini integration failed');
+      
+      if (isVerbose) {
+        console.error(chalk.red('Integration Error:'), error instanceof Error ? error.message : error);
+      } else {
+        console.log(chalk.yellow('⚠️  Gemini integration failed, continuing without enhanced features'));
+      }
+    }
+  }
+}
+
 // Error handling
 program.exitOverride();
 
 try {
+  // Handle Gemini integration before parsing commands
+  await handleGeminiIntegration(process.argv);
+  
   await program.parseAsync(process.argv);
 } catch (error: any) {
   if (error.code === 'commander.helpDisplayed') {
@@ -552,8 +633,10 @@ export {
   AuthenticationManager,
   PerformanceMonitor,
   ConfigManager,
+  GeminiIntegrationService,
   globalOrchestrator,
   globalAuth,
   globalPerformance,
-  globalConfigManager
+  globalConfigManager,
+  geminiIntegration
 };

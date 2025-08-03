@@ -16,3 +16,4 @@ export { HooksCommand } from './hooks.js';
 export { SecurityFlagsCommand } from './security-flags.js';
 export { ConfigCommand } from './config.js';
 export { WorkspaceCommand } from './workspace.js';
+export { GeminiCommand } from './gemini.js';

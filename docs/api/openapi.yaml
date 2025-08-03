@@ -1,0 +1,1728 @@
+openapi: 3.0.0
+info:
+  title: Gemini Flow API
+  description: |
+    Revolutionary Multi-Model AI Orchestration Platform powered by Google Gemini
+    
+    Gemini Flow provides enterprise-grade AI orchestration with 66 specialized agent types,
+    collective intelligence through hive-mind operations, and seamless Google Workspace integration.
+    
+    ## Key Features
+    - **Multi-Agent Orchestration**: 66 specialized agent types across 16 categories
+    - **Hive-Mind Coordination**: Collective intelligence with consensus mechanisms  
+    - **Performance Optimization**: <100ms agent spawn, 396K ops/sec SQLite performance
+    - **Memory Persistence**: Cross-session knowledge sharing with SQLite WAL
+    - **Google Integration**: Native Gemini API support with all models
+    - **--gemini Flag**: Enhanced AI coordination through context loading
+    
+    ## Authentication
+    All API endpoints require a valid Google AI API key set via the `GOOGLE_AI_API_KEY` environment variable.
+    
+  version: 1.0.4
+  termsOfService: https://github.com/clduab11/gemini-flow/blob/main/LICENSE
+  contact:
+    name: Gemini Flow Team
+    url: https://github.com/clduab11/gemini-flow
+    email: support@gemini-flow.dev
+  license:
+    name: MIT
+    url: https://github.com/clduab11/gemini-flow/blob/main/LICENSE
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.gemini-flow.dev
+    description: Production API server
+
+tags:
+  - name: hive-mind
+    description: Collective intelligence and swarm coordination operations
+  - name: swarm
+    description: AI agent swarm management and orchestration
+  - name: agents
+    description: Individual agent lifecycle and management
+  - name: tasks
+    description: Task orchestration and execution
+  - name: memory
+    description: Persistent memory storage and retrieval
+  - name: sparc
+    description: SPARC methodology implementation
+  - name: gemini
+    description: Gemini CLI integration and context management
+  - name: config
+    description: System configuration and settings
+  - name: monitoring
+    description: Performance monitoring and metrics
+
+paths:
+  /api/v1/hive-mind/init:
+    post:
+      tags: [hive-mind]
+      summary: Initialize a new hive mind collective
+      description: |
+        Creates a new hive mind with specified configuration including consensus mechanism,
+        memory settings, and collective learning capabilities.
+      operationId: initializeHiveMind
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HiveMindInitRequest'
+            example:
+              nodes: 5
+              consensus: "emergent"
+              memory: true
+              learning: true
+              queenType: "adaptive"
+              maxWorkers: 8
+      responses:
+        '201':
+          description: Hive mind initialized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HiveMindResponse'
+              example:
+                hiveId: "hive-mind-1754187680278-1kvxmzjji"
+                status: "initializing"
+                nodes: 5
+                consensus: "emergent"
+                createdAt: "2025-08-03T10:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/hive-mind/{hiveId}/spawn:
+    post:
+      tags: [hive-mind]
+      summary: Spawn hive mind for objective
+      description: |
+        Spawns a hive mind collective to work on a specific objective with optional
+        Gemini AI integration for enhanced coordination.
+      operationId: spawnHiveMind
+      parameters:
+        - name: hiveId
+          in: path
+          required: true
+          description: Unique hive mind identifier
+          schema:
+            type: string
+          example: "hive-mind-1754187680278-1kvxmzjji"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HiveMindSpawnRequest'
+            example:
+              objective: "Build MVP in 48 hours"
+              gemini: true
+              nodes: 12
+              queen: true
+              workerTypes: ["coder", "researcher", "tester", "reviewer"]
+      responses:
+        '200':
+          description: Hive mind spawned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HiveMindSpawnResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/hive-mind/{hiveId}/status:
+    get:
+      tags: [hive-mind]
+      summary: Get hive mind status
+      description: Retrieves current status and metrics for a specific hive mind collective
+      operationId: getHiveMindStatus
+      parameters:
+        - name: hiveId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: detailed
+          in: query
+          description: Include detailed metrics and agent information
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Hive mind status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HiveMindStatus'
+
+  /api/v1/hive-mind/{hiveId}/consensus:
+    post:
+      tags: [hive-mind]
+      summary: Request consensus on proposal
+      description: Submits a proposal to the hive mind for collective decision making
+      operationId: requestConsensus
+      parameters:
+        - name: hiveId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsensusRequest'
+      responses:
+        '200':
+          description: Consensus decision reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsensusResponse'
+
+  /api/v1/swarm/init:
+    post:
+      tags: [swarm]
+      summary: Initialize a new swarm
+      description: Creates a new AI agent swarm with specified topology and configuration
+      operationId: initializeSwarm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwarmInitRequest'
+            example:
+              topology: "hierarchical"
+              maxAgents: 8
+              strategy: "adaptive"
+      responses:
+        '201':
+          description: Swarm initialized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwarmResponse'
+
+  /api/v1/swarm/{swarmId}/status:
+    get:
+      tags: [swarm]
+      summary: Get swarm status
+      description: Retrieves current status and performance metrics for a swarm
+      operationId: getSwarmStatus
+      parameters:
+        - name: swarmId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: verbose
+          in: query
+          description: Include detailed agent information
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Swarm status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwarmStatus'
+
+  /api/v1/agents/spawn:
+    post:
+      tags: [agents]
+      summary: Spawn a new agent
+      description: |
+        Creates a new AI agent with specified type and capabilities.
+        Supports all 66 agent types across 16 categories.
+      operationId: spawnAgent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentSpawnRequest'
+            example:
+              type: "coder"
+              name: "primary-coder"
+              capabilities: ["typescript", "react", "testing"]
+              swarmId: "swarm-123"
+      responses:
+        '201':
+          description: Agent spawned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+
+  /api/v1/agents:
+    get:
+      tags: [agents]
+      summary: List all agents
+      description: Retrieves a list of all active agents with optional filtering
+      operationId: listAgents
+      parameters:
+        - name: filter
+          in: query
+          description: Filter agents by status
+          schema:
+            type: string
+            enum: [all, active, idle, busy]
+            default: all
+        - name: swarmId
+          in: query
+          description: Filter by swarm ID
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Filter by agent type
+          schema:
+            $ref: '#/components/schemas/AgentType'
+      responses:
+        '200':
+          description: Agents retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListResponse'
+
+  /api/v1/agents/{agentId}:
+    get:
+      tags: [agents]
+      summary: Get agent details
+      description: Retrieves detailed information about a specific agent
+      operationId: getAgent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [agents]
+      summary: Terminate agent
+      description: Terminates an active agent and cleans up resources
+      operationId: terminateAgent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: force
+          in: query
+          description: Force termination without graceful shutdown
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '204':
+          description: Agent terminated successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/agents/{agentId}/metrics:
+    get:
+      tags: [agents]
+      summary: Get agent performance metrics
+      description: Retrieves performance metrics for a specific agent
+      operationId: getAgentMetrics
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: metric
+          in: query
+          description: Specific metric type to retrieve
+          schema:
+            type: string
+            enum: [all, cpu, memory, tasks, performance]
+            default: all
+      responses:
+        '200':
+          description: Agent metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentMetrics'
+
+  /api/v1/tasks/orchestrate:
+    post:
+      tags: [tasks]
+      summary: Orchestrate a new task
+      description: |
+        Creates and orchestrates a complex task across multiple agents
+        with specified execution strategy and priority.
+      operationId: orchestrateTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskOrchestrationRequest'
+            example:
+              task: "Implement user authentication system"
+              maxAgents: 5
+              priority: "high"
+              strategy: "parallel"
+      responses:
+        '201':
+          description: Task orchestrated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+
+  /api/v1/tasks/{taskId}/status:
+    get:
+      tags: [tasks]
+      summary: Get task status
+      description: Retrieves current execution status and progress for a task
+      operationId: getTaskStatus
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: detailed
+          in: query
+          description: Include detailed progress information
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Task status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskStatus'
+
+  /api/v1/tasks/{taskId}/results:
+    get:
+      tags: [tasks]
+      summary: Get task results
+      description: Retrieves execution results for a completed task
+      operationId: getTaskResults
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: query
+          description: Response format
+          schema:
+            type: string
+            enum: [summary, detailed, raw]
+            default: summary
+      responses:
+        '200':
+          description: Task results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResults'
+
+  /api/v1/memory/store:
+    post:
+      tags: [memory]
+      summary: Store memory
+      description: Stores a key-value pair in the persistent memory system
+      operationId: storeMemory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryStoreRequest'
+            example:
+              key: "user-preferences"
+              value: {"theme": "dark", "language": "en"}
+              namespace: "default"
+              ttl: 3600
+      responses:
+        '201':
+          description: Memory stored successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryResponse'
+
+  /api/v1/memory/retrieve:
+    get:
+      tags: [memory]
+      summary: Retrieve memory
+      description: Retrieves a value from persistent memory by key
+      operationId: retrieveMemory
+      parameters:
+        - name: key
+          in: query
+          required: true
+          description: Memory key to retrieve
+          schema:
+            type: string
+        - name: namespace
+          in: query
+          description: Memory namespace
+          schema:
+            type: string
+            default: default
+      responses:
+        '200':
+          description: Memory retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryRetrieveResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/memory/search:
+    get:
+      tags: [memory]
+      summary: Search memory
+      description: Searches for memory entries matching a pattern
+      operationId: searchMemory
+      parameters:
+        - name: pattern
+          in: query
+          required: true
+          description: Search pattern
+          schema:
+            type: string
+        - name: namespace
+          in: query
+          description: Memory namespace to search
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of results
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Search completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemorySearchResponse'
+
+  /api/v1/sparc/modes:
+    get:
+      tags: [sparc]
+      summary: List SPARC modes
+      description: Retrieves all available SPARC methodology modes
+      operationId: listSparcModes
+      responses:
+        '200':
+          description: SPARC modes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SparcModesResponse'
+
+  /api/v1/sparc/execute:
+    post:
+      tags: [sparc]
+      summary: Execute SPARC mode
+      description: Executes a specific SPARC methodology mode with given parameters
+      operationId: executeSparcMode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SparcExecuteRequest'
+            example:
+              mode: "tdd"
+              objective: "Implement user registration API"
+              context: "./src"
+      responses:
+        '200':
+          description: SPARC execution completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SparcExecuteResponse'
+
+  /api/v1/gemini/detect:
+    get:
+      tags: [gemini]
+      summary: Detect Gemini CLI
+      description: Detects if the official Gemini CLI is installed on the system
+      operationId: detectGeminiCLI
+      responses:
+        '200':
+          description: Detection completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeminiDetectionResponse'
+
+  /api/v1/gemini/context:
+    get:
+      tags: [gemini]
+      summary: Load Gemini context
+      description: |
+        Loads GEMINI.md context for enhanced AI coordination.
+        This endpoint is called automatically when using the --gemini flag.
+      operationId: loadGeminiContext
+      parameters:
+        - name: path
+          in: query
+          description: Custom project root path
+          schema:
+            type: string
+        - name: reload
+          in: query
+          description: Force reload context from disk
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Context loaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeminiContextResponse'
+
+  /api/v1/gemini/status:
+    get:
+      tags: [gemini]
+      summary: Get Gemini integration status
+      description: Retrieves comprehensive status of Gemini CLI integration
+      operationId: getGeminiStatus
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeminiStatusResponse'
+
+  /api/v1/gemini/setup:
+    post:
+      tags: [gemini]
+      summary: Setup Gemini integration
+      description: Initializes complete Gemini CLI integration and environment
+      operationId: setupGeminiIntegration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeminiSetupRequest'
+      responses:
+        '200':
+          description: Setup completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeminiSetupResponse'
+
+  /api/v1/config:
+    get:
+      tags: [config]
+      summary: Get system configuration
+      description: Retrieves current system configuration
+      operationId: getConfiguration
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationResponse'
+
+    put:
+      tags: [config]
+      summary: Update system configuration
+      description: Updates system configuration with new values
+      operationId: updateConfiguration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationUpdateRequest'
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationResponse'
+
+  /api/v1/metrics:
+    get:
+      tags: [monitoring]
+      summary: Get system metrics
+      description: Retrieves comprehensive system performance metrics
+      operationId: getSystemMetrics
+      parameters:
+        - name: timeRange
+          in: query
+          description: Time range for metrics
+          schema:
+            type: string
+            enum: [1h, 24h, 7d, 30d]
+            default: 24h
+        - name: category
+          in: query
+          description: Metrics category
+          schema:
+            type: string
+            enum: [all, system, performance, efficiency, neural]
+            default: all
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemMetricsResponse'
+
+components:
+  schemas:
+    HiveMindInitRequest:
+      type: object
+      required:
+        - nodes
+        - consensus
+      properties:
+        nodes:
+          type: integer
+          minimum: 1
+          maximum: 50
+          description: Number of nodes in the hive mind
+          example: 5
+        consensus:
+          type: string
+          enum: [emergent, democratic, weighted, hierarchical]
+          description: Consensus mechanism for decision making
+          example: "emergent"
+        memory:
+          type: boolean
+          description: Enable collective memory
+          default: true
+        learning:
+          type: boolean
+          description: Enable collective learning
+          default: true
+        queenType:
+          type: string
+          enum: [strategic, adaptive, hierarchical]
+          description: Queen coordinator type
+          example: "adaptive"
+        maxWorkers:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Maximum number of worker agents
+          default: 8
+
+    HiveMindResponse:
+      type: object
+      properties:
+        hiveId:
+          type: string
+          description: Unique hive mind identifier
+          example: "hive-mind-1754187680278-1kvxmzjji"
+        status:
+          type: string
+          enum: [initializing, active, dormant, terminated]
+          description: Current hive mind status
+        nodes:
+          type: integer
+          description: Number of active nodes
+        consensus:
+          type: string
+          description: Active consensus mechanism
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        performance:
+          $ref: '#/components/schemas/PerformanceMetrics'
+
+    HiveMindSpawnRequest:
+      type: object
+      required:
+        - objective
+      properties:
+        objective:
+          type: string
+          description: Primary objective for the hive mind
+          example: "Build MVP in 48 hours"
+        gemini:
+          type: boolean
+          description: Enable Gemini AI integration
+          default: false
+        nodes:
+          type: integer
+          minimum: 1
+          maximum: 50
+          description: Number of nodes to spawn
+          default: 5
+        queen:
+          type: boolean
+          description: Include queen coordinator
+          default: true
+        workerTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentType'
+          description: Types of worker agents to spawn
+          example: ["coder", "researcher", "tester"]
+
+    HiveMindSpawnResponse:
+      type: object
+      properties:
+        hiveId:
+          type: string
+        objective:
+          type: string
+        spawnedAgents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentSummary'
+        status:
+          type: string
+        estimatedCompletion:
+          type: string
+          format: date-time
+
+    HiveMindStatus:
+      type: object
+      properties:
+        hiveId:
+          type: string
+        status:
+          type: string
+        nodes:
+          type: integer
+        activeAgents:
+          type: integer
+        completedTasks:
+          type: integer
+        consensusDecisions:
+          type: integer
+        performance:
+          $ref: '#/components/schemas/PerformanceMetrics'
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentSummary'
+
+    ConsensusRequest:
+      type: object
+      required:
+        - proposal
+      properties:
+        proposal:
+          type: string
+          description: Proposal for consensus decision
+          example: "Should we prioritize performance over features?"
+        timeout:
+          type: integer
+          description: Consensus timeout in milliseconds
+          default: 30000
+        threshold:
+          type: number
+          minimum: 0.5
+          maximum: 1.0
+          description: Required agreement threshold
+          default: 0.7
+
+    ConsensusResponse:
+      type: object
+      properties:
+        decisionId:
+          type: string
+        proposal:
+          type: string
+        decision:
+          type: string
+          enum: [approved, rejected, timeout]
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        participants:
+          type: integer
+        votingData:
+          type: object
+          description: Detailed voting information
+        timestamp:
+          type: string
+          format: date-time
+
+    SwarmInitRequest:
+      type: object
+      required:
+        - topology
+      properties:
+        topology:
+          type: string
+          enum: [hierarchical, mesh, ring, star]
+          description: Swarm network topology
+        maxAgents:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 8
+        strategy:
+          type: string
+          enum: [parallel, sequential, adaptive, balanced]
+          description: Execution strategy
+          default: "adaptive"
+
+    SwarmResponse:
+      type: object
+      properties:
+        swarmId:
+          type: string
+        topology:
+          type: string
+        maxAgents:
+          type: integer
+        strategy:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    SwarmStatus:
+      type: object
+      properties:
+        swarmId:
+          type: string
+        topology:
+          type: string
+        status:
+          type: string
+        activeAgents:
+          type: integer
+        totalTasks:
+          type: integer
+        completedTasks:
+          type: integer
+        performance:
+          $ref: '#/components/schemas/PerformanceMetrics'
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentSummary'
+
+    AgentSpawnRequest:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/AgentType'
+        name:
+          type: string
+          description: Custom agent name
+          example: "primary-coder"
+        capabilities:
+          type: array
+          items:
+            type: string
+          description: Agent capabilities
+          example: ["typescript", "react", "testing"]
+        swarmId:
+          type: string
+          description: Swarm to join
+        resources:
+          type: object
+          description: Resource allocation for agent
+
+    AgentResponse:
+      type: object
+      properties:
+        agentId:
+          type: string
+        type:
+          $ref: '#/components/schemas/AgentType'
+        name:
+          type: string
+        status:
+          type: string
+          enum: [spawning, active, idle, busy, terminated]
+        capabilities:
+          type: array
+          items:
+            type: string
+        swarmId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    AgentListResponse:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentSummary'
+        total:
+          type: integer
+        active:
+          type: integer
+        idle:
+          type: integer
+        busy:
+          type: integer
+
+    AgentDetails:
+      type: object
+      properties:
+        agentId:
+          type: string
+        type:
+          $ref: '#/components/schemas/AgentType'
+        name:
+          type: string
+        status:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        swarmId:
+          type: string
+        performance:
+          $ref: '#/components/schemas/AgentPerformance'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskSummary'
+        createdAt:
+          type: string
+          format: date-time
+        lastActivity:
+          type: string
+          format: date-time
+
+    AgentSummary:
+      type: object
+      properties:
+        agentId:
+          type: string
+        type:
+          $ref: '#/components/schemas/AgentType'
+        name:
+          type: string
+        status:
+          type: string
+        swarmId:
+          type: string
+
+    AgentMetrics:
+      type: object
+      properties:
+        agentId:
+          type: string
+        cpu:
+          type: object
+          properties:
+            current:
+              type: number
+            average:
+              type: number
+            peak:
+              type: number
+        memory:
+          type: object
+          properties:
+            current:
+              type: integer
+            average:
+              type: integer
+            peak:
+              type: integer
+        tasks:
+          type: object
+          properties:
+            completed:
+              type: integer
+            failed:
+              type: integer
+            average_duration:
+              type: number
+        performance:
+          type: object
+          properties:
+            efficiency:
+              type: number
+            reliability:
+              type: number
+            speed:
+              type: number
+
+    AgentPerformance:
+      type: object
+      properties:
+        tasksCompleted:
+          type: integer
+        successRate:
+          type: number
+        averageTaskDuration:
+          type: number
+        resourceUsage:
+          type: object
+          properties:
+            cpu:
+              type: number
+            memory:
+              type: integer
+
+    AgentType:
+      type: string
+      enum: [
+        # Core Development Agents
+        coder, planner, tester, researcher, reviewer,
+        # Swarm Coordination Agents  
+        hierarchical-coordinator, mesh-coordinator, adaptive-coordinator,
+        # Consensus Systems Agents
+        byzantine-coordinator, quorum-manager, security-manager, 
+        gossip-coordinator, performance-benchmarker, raft-manager,
+        crdt-synchronizer, byzantine-fault-tolerant, raft-consensus,
+        gossip-protocol, crdt-manager, paxos-coordinator, 
+        blockchain-consensus, vector-clock-sync,
+        # GitHub Integration Agents
+        pr-manager, code-review-swarm, issue-tracker, project-board-sync,
+        github-modes, workflow-automation, multi-repo-swarm, sync-coordinator,
+        release-swarm, release-manager, swarm-pr, swarm-issue, repo-architect,
+        security-scanner, documentation-sync, changelog-generator, dependency-updater,
+        # Performance & Optimization Agents
+        perf-analyzer, task-orchestrator, memory-coordinator, swarm-memory-manager,
+        collective-intelligence-coordinator, consensus-builder, performance-monitor,
+        load-balancer, cache-optimizer, query-optimizer, resource-allocator, bottleneck-analyzer,
+        # Development Support Agents
+        sparc-coord, sparc-coder, tdd-london-swarm, api-docs, cicd-engineer, production-validator,
+        # System Architecture Agents
+        system-architect, migration-planner, backend-dev, mobile-dev,
+        # Intelligence & Analysis Agents
+        smart-agent, code-analyzer, general-purpose, refinement, pseudocode
+      ]
+      description: |
+        Available agent types across 16 categories:
+        
+        **Core Development (5)**: coder, planner, tester, researcher, reviewer
+        **Swarm Coordination (3)**: hierarchical-coordinator, mesh-coordinator, adaptive-coordinator  
+        **Consensus Systems (14)**: byzantine-coordinator, quorum-manager, security-manager, etc.
+        **GitHub Integration (17)**: pr-manager, code-review-swarm, issue-tracker, etc.
+        **Performance & Optimization (12)**: perf-analyzer, task-orchestrator, memory-coordinator, etc.
+        **Development Support (6)**: sparc-coord, sparc-coder, tdd-london-swarm, etc.
+        **System Architecture (4)**: system-architect, migration-planner, backend-dev, mobile-dev
+        **Intelligence & Analysis (5)**: smart-agent, code-analyzer, general-purpose, refinement, pseudocode
+
+    TaskOrchestrationRequest:
+      type: object
+      required:
+        - task
+      properties:
+        task:
+          type: string
+          description: Task description
+          example: "Implement user authentication system"
+        maxAgents:
+          type: integer
+          minimum: 1
+          maximum: 50
+          description: Maximum agents to use
+          default: 5
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Task priority
+          default: "medium"
+        strategy:
+          type: string
+          enum: [parallel, sequential, adaptive]
+          description: Execution strategy
+          default: "adaptive"
+        dependencies:
+          type: array
+          items:
+            type: string
+          description: Task dependencies
+
+    TaskResponse:
+      type: object
+      properties:
+        taskId:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, completed, failed, cancelled]
+        priority:
+          type: string
+        strategy:
+          type: string
+        assignedAgents:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        estimatedCompletion:
+          type: string
+          format: date-time
+
+    TaskStatus:
+      type: object
+      properties:
+        taskId:
+          type: string
+        status:
+          type: string
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+        assignedAgents:
+          type: array
+          items:
+            type: string
+        startedAt:
+          type: string
+          format: date-time
+        estimatedCompletion:
+          type: string
+          format: date-time
+        subtasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskSummary'
+
+    TaskResults:
+      type: object
+      properties:
+        taskId:
+          type: string
+        status:
+          type: string
+        result:
+          type: object
+          description: Task execution results
+        artifacts:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              path:
+                type: string
+              content:
+                type: string
+        metrics:
+          type: object
+          properties:
+            duration:
+              type: number
+            agentsUsed:
+              type: integer
+            efficiency:
+              type: number
+        completedAt:
+          type: string
+          format: date-time
+
+    TaskSummary:
+      type: object
+      properties:
+        taskId:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        progress:
+          type: number
+        assignedAgent:
+          type: string
+
+    MemoryStoreRequest:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          description: Memory key
+          example: "user-preferences"
+        value:
+          description: Value to store (any JSON type)
+          example: {"theme": "dark", "language": "en"}
+        namespace:
+          type: string
+          description: Memory namespace
+          default: "default"
+        ttl:
+          type: integer
+          description: Time to live in seconds
+          minimum: 1
+
+    MemoryResponse:
+      type: object
+      properties:
+        key:
+          type: string
+        namespace:
+          type: string
+        stored:
+          type: boolean
+        expiresAt:
+          type: string
+          format: date-time
+
+    MemoryRetrieveResponse:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          description: Retrieved value
+        namespace:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        accessCount:
+          type: integer
+
+    MemorySearchResponse:
+      type: object
+      properties:
+        pattern:
+          type: string
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                description: Memory value
+              namespace:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+        total:
+          type: integer
+        limit:
+          type: integer
+
+    SparcModesResponse:
+      type: object
+      properties:
+        modes:
+          type: array
+          items:
+            type: object
+            properties:
+              mode:
+                type: string
+              description:
+                type: string
+              category:
+                type: string
+              examples:
+                type: array
+                items:
+                  type: string
+        total:
+          type: integer
+
+    SparcExecuteRequest:
+      type: object
+      required:
+        - mode
+        - objective
+      properties:
+        mode:
+          type: string
+          enum: [
+            architect, code, tdd, debug, security-review, docs-writer,
+            integration, post-deployment-monitoring-mode, refinement-optimization-mode,
+            ask, devops, tutorial, supabase-admin, spec-pseudocode, mcp, sparc
+          ]
+          description: SPARC methodology mode
+        objective:
+          type: string
+          description: Objective for SPARC execution
+        context:
+          type: string
+          description: Context path or additional information
+        options:
+          type: object
+          description: Mode-specific options
+
+    SparcExecuteResponse:
+      type: object
+      properties:
+        mode:
+          type: string
+        objective:
+          type: string
+        status:
+          type: string
+          enum: [running, completed, failed]
+        result:
+          type: object
+          description: Execution results
+        artifacts:
+          type: array
+          items:
+            type: object
+        duration:
+          type: number
+        completedAt:
+          type: string
+          format: date-time
+
+    GeminiDetectionResponse:
+      type: object
+      properties:
+        isInstalled:
+          type: boolean
+          description: Whether Gemini CLI is installed
+        version:
+          type: string
+          description: Detected version
+        path:
+          type: string
+          description: Installation path
+        error:
+          type: string
+          description: Error message if detection failed
+
+    GeminiContextResponse:
+      type: object
+      properties:
+        content:
+          type: string
+          description: GEMINI.md context content
+        loaded:
+          type: boolean
+          description: Whether context was loaded successfully
+        timestamp:
+          type: string
+          format: date-time
+          description: When context was loaded
+        source:
+          type: string
+          enum: [GEMINI.md, fallback]
+          description: Source of the context
+
+    GeminiStatusResponse:
+      type: object
+      properties:
+        cliDetected:
+          type: boolean
+        contextLoaded:
+          type: boolean
+        environmentConfigured:
+          type: boolean
+        geminiVersion:
+          type: string
+        contextSource:
+          type: string
+        environmentVariables:
+          type: object
+          properties:
+            GEMINI_FLOW_CONTEXT_LOADED:
+              type: string
+            GEMINI_FLOW_MODE:
+              type: string
+            GEMINI_MODEL:
+              type: string
+
+    GeminiSetupRequest:
+      type: object
+      properties:
+        path:
+          type: string
+          description: Project root path
+        force:
+          type: boolean
+          description: Force setup even if already configured
+          default: false
+
+    GeminiSetupResponse:
+      type: object
+      properties:
+        detection:
+          $ref: '#/components/schemas/GeminiDetectionResponse'
+        context:
+          $ref: '#/components/schemas/GeminiContextResponse'
+        environmentConfigured:
+          type: boolean
+        success:
+          type: boolean
+        message:
+          type: string
+
+    ConfigurationResponse:
+      type: object
+      properties:
+        api:
+          type: object
+          properties:
+            timeout:
+              type: integer
+            retries:
+              type: integer
+            retryDelay:
+              type: integer
+        models:
+          type: object
+          properties:
+            default:
+              type: string
+            fallback:
+              type: string
+            routing:
+              type: object
+        agents:
+          type: object
+          properties:
+            maxConcurrent:
+              type: integer
+            spawnTimeout:
+              type: integer
+            defaultCapabilities:
+              type: array
+              items:
+                type: string
+        memory:
+          type: object
+          properties:
+            provider:
+              type: string
+            options:
+              type: object
+        performance:
+          type: object
+          properties:
+            monitoring:
+              type: boolean
+            metricsInterval:
+              type: integer
+            benchmarkOnStartup:
+              type: boolean
+
+    ConfigurationUpdateRequest:
+      type: object
+      properties:
+        api:
+          type: object
+        models:
+          type: object
+        agents:
+          type: object
+        memory:
+          type: object
+        performance:
+          type: object
+        logging:
+          type: object
+
+    SystemMetricsResponse:
+      type: object
+      properties:
+        system:
+          type: object
+          properties:
+            cpu:
+              type: number
+            memory:
+              type: object
+            disk:
+              type: object
+        performance:
+          $ref: '#/components/schemas/PerformanceMetrics'
+        agents:
+          type: object
+          properties:
+            total:
+              type: integer
+            active:
+              type: integer
+            average_spawn_time:
+              type: number
+        tasks:
+          type: object
+          properties:
+            completed:
+              type: integer
+            failed:
+              type: integer
+            average_duration:
+              type: number
+        memory_operations:
+          type: object
+          properties:
+            reads:
+              type: integer
+            writes:
+              type: integer
+            cache_hit_rate:
+              type: number
+
+    PerformanceMetrics:
+      type: object
+      properties:
+        modelRouting:
+          type: object
+          properties:
+            average:
+              type: string
+            p95:
+              type: string
+            p99:
+              type: string
+        agentOperations:
+          type: object
+          properties:
+            spawn:
+              type: string
+            terminate:
+              type: string
+            communicate:
+              type: string
+        memorySystem:
+          type: object
+          properties:
+            localCache:
+              type: string
+            sqliteRead:
+              type: string
+            sqliteWrite:
+              type: string
+        throughput:
+          type: object
+          properties:
+            sqliteOps:
+              type: string
+            messageRouting:
+              type: string
+            taskProcessing:
+              type: string
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: "E001"
+        message:
+          type: string
+          description: Error message
+          example: "API key invalid"
+        details:
+          type: string
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+          description: Unique request identifier
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "BAD_REQUEST"
+            message: "Invalid request parameters"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "NOT_FOUND"
+            message: "Resource not found"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "INTERNAL_ERROR"
+            message: "An unexpected error occurred"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Google AI API key for authentication
+
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authenticated requests
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+externalDocs:
+  description: Find more info here
+  url: https://github.com/clduab11/gemini-flow/wiki
