@@ -1,6 +1,6 @@
 {
   "name": "@clduab11/gemini-flow",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Gemini Flow - Revolutionary Multi-Model AI Orchestration Platform powered by Google Gemini with quantum computing capabilities",
   "type": "module",
   "main": "dist/index.js",
