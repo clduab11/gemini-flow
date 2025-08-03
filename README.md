@@ -215,14 +215,6 @@ Benchmarks:
   Quantum Simulation: 20 qubits (1M+ states)
 ```
 
-## 🌟 Why Developers Are Switching to Gemini-Flow
-
-> "We replaced our entire DevOps team with Gemini-Flow. Deployments that took 6 hours now take 6 minutes. Our AWS bill dropped 67%." - **Fortune 500 CTO**
-
-> "The quantum portfolio optimization paid for itself in 3 days. We're now managing $2.8B with better returns than our quant team." - **Hedge Fund Director**
-
-> "I built a complete SaaS product over the weekend using hive-mind. It's now doing $83K MRR." - **Solo Founder**
-
 ## ⚡ Get Started in 30 Seconds
 
 ```bash
@@ -279,9 +271,7 @@ This isn't just software—it's the beginning of a new era in human-AI collabora
 ## 🤝 Community & Support
 
 - 🌐 **Website**: [parallax-ai.app](https://parallax-ai.app) - See the future of AI orchestration
-- 📧 **Email**: hello@parallax-ai.app
-- 🐦 **Twitter**: [@ParallaxAI](https://twitter.com/parallaxai)
-- 💬 **Discord**: [Join our swarm](https://discord.gg/parallaxai)
+- 📧 **Email**: info@parallax-ai.app
 
 ## 🚀 What's Next?
 
