@@ -49,3 +49,18 @@ service-account-key.json
 
 # Package artifacts
 *.tgz
+
+# Temporary directories and test artifacts
+temp-test/
+deployment-test/
+*-test/
+test-temp/
+
+# Security and audit logs
+security-audit.log
+audit-*.log
+
+# Coverage and reports
+coverage/
+reports/temp/
+*.coverage
