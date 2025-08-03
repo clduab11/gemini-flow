@@ -264,7 +264,6 @@ This isn't just software—it's the beginning of a new era in human-AI collabora
 
 **Every star accelerates the quantum revolution**
 
-![GitHub Stars](https://img.shields.io/github/stars/clduab11/gemini-flow?style=social&label=Stars)
 ![Live Star Count](https://img.shields.io/github/stars/clduab11/gemini-flow.svg?style=for-the-badge&logo=github&label=STARS&color=gold)
 
 [![Star History Chart](https://api.star-history.com/svg?repos=clduab11/gemini-flow&type=Date)](https://star-history.com/#clduab11/gemini-flow&Date)
