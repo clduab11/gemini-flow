@@ -228,7 +228,7 @@ export class DeepMindAdapter extends BaseModelAdapter {
 
       let chunkIndex = 0;
       let accumulatedContent = '';
-      let reasoningSteps: string[] = [];
+      const reasoningSteps: string[] = [];
 
       for await (const chunk of stream) {
         if (chunk.text) {
@@ -390,7 +390,7 @@ export class DeepMindAdapter extends BaseModelAdapter {
     let code = 'UNKNOWN_ERROR';
     let statusCode = 500;
     let retryable = false;
-    let message = error.message || 'Unknown DeepMind error occurred';
+    const message = error.message || 'Unknown DeepMind error occurred';
 
     // Handle Vertex AI specific errors
     if (error.code) {
@@ -574,7 +574,7 @@ export class DeepMindAdapter extends BaseModelAdapter {
 
     // Implement context window management for long documents
     const sessionId = request.context?.sessionId || 'default';
-    let contextWindow = this.contextWindows.get(sessionId) || [];
+    const contextWindow = this.contextWindows.get(sessionId) || [];
     
     // Add current prompt to context window
     contextWindow.push(request.prompt);

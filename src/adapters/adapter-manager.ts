@@ -1023,13 +1023,6 @@ class PerformancePredictor {
     latencyPrediction += (maxTokens / 1000) * 100;
     
     return Math.min(latencyPrediction, 30000); // Cap at 30s
-    
-    let prediction = 500; // Base latency
-    prediction += promptLength * 0.1; // Text processing time
-    prediction += maxTokens * 0.2; // Generation time
-    if (hasMultimodal) prediction *= 1.5; // Multimodal overhead
-    
-    return Math.min(prediction, 30000); // Cap at 30s
   }
 
   trainModel(): void {
