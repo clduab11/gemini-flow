@@ -1,0 +1,1977 @@
+openapi: 3.0.0
+info:
+  title: Gemini Flow A2A (Agent-to-Agent) API
+  description: |
+    Comprehensive Agent-to-Agent Communication API for Gemini Flow
+    
+    This API provides Agent-to-Agent (A2A) communication capabilities for all 104 MCP tools,
+    enabling distributed AI agent coordination, task orchestration, and collaborative processing.
+    
+    ## Key Features
+    - **104 A2A-Enabled MCP Tools**: Full support for distributed execution
+    - **Multi-Agent Coordination**: Direct, broadcast, consensus, and pipeline coordination modes
+    - **Advanced Security**: Zero-trust architecture with end-to-end encryption
+    - **State Synchronization**: Distributed state management with conflict resolution
+    - **Resource Coordination**: Intelligent resource allocation and conflict resolution
+    - **Performance Optimization**: Sub-50ms message routing with batching and pooling
+    
+    ## Architecture Overview
+    The A2A system operates through a message bus architecture that supports:
+    - **Message Bus**: Centralized routing with distributed execution
+    - **Agent Registry**: Dynamic agent discovery and capability matching
+    - **State Manager**: Distributed state synchronization with consistency guarantees
+    - **Resource Manager**: Dynamic resource allocation and conflict resolution
+    - **Security Layer**: Zero-trust with certificate-based authentication
+    
+    ## Communication Patterns
+    1. **Direct (1-to-1)**: Single agent communication with acknowledgment
+    2. **Broadcast (1-to-Many)**: Fan-out to multiple agents with result aggregation
+    3. **Consensus (Many-to-Many)**: Distributed decision making with voting
+    4. **Pipeline (Sequential)**: Chained processing with state passthrough
+    
+    ## Tool Categories
+    - **Core Infrastructure (16 tools)**: Swarm management, agent lifecycle
+    - **Task Orchestration (12 tools)**: Task coordination, workflow management
+    - **Memory & State (14 tools)**: Distributed memory, state synchronization
+    - **Neural & AI (16 tools)**: Neural operations, model coordination
+    - **DAA Systems (15 tools)**: Decentralized autonomous agents
+    - **Performance & Analytics (12 tools)**: Monitoring, optimization
+    - **GitHub Integration (8 tools)**: Repository coordination, PR management
+    - **Workflow & Automation (6 tools)**: SPARC modes, automation
+    - **System Infrastructure (11 tools)**: System operations, diagnostics
+    
+  version: 2.0.0-a2a
+  termsOfService: https://github.com/clduab11/gemini-flow/blob/main/LICENSE
+  contact:
+    name: Gemini Flow A2A Team
+    url: https://github.com/clduab11/gemini-flow/wiki/A2A-Documentation
+    email: a2a-support@gemini-flow.dev
+  license:
+    name: MIT
+    url: https://github.com/clduab11/gemini-flow/blob/main/LICENSE
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.gemini-flow.dev
+    description: Production A2A API server
+  - url: https://a2a-sandbox.gemini-flow.dev
+    description: A2A sandbox environment
+
+tags:
+  - name: a2a-core
+    description: Core A2A infrastructure and message bus operations
+  - name: swarm-management
+    description: Swarm initialization, coordination, and lifecycle management
+  - name: agent-management
+    description: Agent spawning, discovery, and lifecycle operations
+  - name: task-orchestration
+    description: Distributed task execution and workflow coordination
+  - name: memory-state
+    description: Distributed memory management and state synchronization
+  - name: neural-ai
+    description: Neural network operations and AI model coordination
+  - name: daa-systems
+    description: Decentralized Autonomous Agent operations
+  - name: performance-analytics
+    description: Performance monitoring and system analytics
+  - name: github-integration
+    description: GitHub repository and workflow coordination
+  - name: workflow-automation
+    description: SPARC methodology and automation workflows
+  - name: system-infrastructure
+    description: System operations and infrastructure management
+  - name: security
+    description: A2A security, authentication, and authorization
+
+paths:
+  # A2A Core Infrastructure
+  /api/v2/a2a/message-bus/init:
+    post:
+      tags: [a2a-core]
+      summary: Initialize A2A message bus
+      description: |
+        Initializes the A2A message bus infrastructure with specified topology,
+        security settings, and performance parameters.
+      operationId: initializeA2AMessageBus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageBusInitRequest'
+            example:
+              topology: "mesh"
+              maxConnections: 1000
+              security:
+                encryption: "AES-256"
+                authentication: "certificate"
+                zeroTrust: true
+              performance:
+                batchingEnabled: true
+                maxBatchSize: 100
+                connectionPooling: true
+              resilience:
+                retryPolicy:
+                  maxRetries: 3
+                  backoffStrategy: "exponential"
+                failoverEnabled: true
+      responses:
+        '201':
+          description: Message bus initialized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageBusResponse'
+              example:
+                busId: "a2a-bus-1754187680278"
+                status: "active"
+                topology: "mesh"
+                connectedAgents: 0
+                performance:
+                  avgLatency: "12ms"
+                  throughput: "1500 msg/sec"
+                  errorRate: "0.01%"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v2/a2a/message-bus/{busId}/send:
+    post:
+      tags: [a2a-core]
+      summary: Send A2A message
+      description: |
+        Sends a message through the A2A message bus to target agents with
+        specified coordination mode and execution requirements.
+      operationId: sendA2AMessage
+      parameters:
+        - name: busId
+          in: path
+          required: true
+          description: Message bus identifier
+          schema:
+            type: string
+          example: "a2a-bus-1754187680278"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/A2AMessage'
+            example:
+              target:
+                type: "single"
+                agentId: "swarm-coordinator-001"
+              toolName: "mcp__claude-flow__agent_spawn"
+              parameters:
+                type: "coder"
+                capabilities: ["typescript", "react"]
+              coordination:
+                mode: "direct"
+                timeout: 5000
+                retries: 3
+              stateRequirements:
+                - type: "read"
+                  namespace: "agent-registry"
+                  keys: ["available-slots"]
+              resourceRequirements:
+                - type: "memory"
+                  amount: 512
+                  unit: "MB"
+                  priority: "medium"
+      responses:
+        '200':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/A2AResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # Swarm Management A2A Tools
+  /api/v2/a2a/swarm/init:
+    post:
+      tags: [swarm-management]
+      summary: Initialize swarm via A2A
+      description: |
+        Initializes a new swarm using A2A coordination across multiple agents.
+        Supports both Claude Flow and RUV Swarm implementations.
+      operationId: initializeSwarmA2A
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwarmInitA2ARequest'
+            example:
+              provider: "claude-flow"
+              topology: "hierarchical"
+              maxAgents: 8
+              strategy: "adaptive"
+              coordinationMode: "broadcast"
+              targetAgents:
+                type: "group"
+                role: "swarm-coordinator"
+              distributedConfig:
+                replication: 3
+                consistency: "strong"
+                partitioning: "capability-based"
+      responses:
+        '201':
+          description: Swarm initialized via A2A
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwarmA2AResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v2/a2a/swarm/{swarmId}/status:
+    get:
+      tags: [swarm-management]
+      summary: Get distributed swarm status
+      description: |
+        Retrieves swarm status by coordinating with multiple swarm managers
+        and aggregating their responses.
+      operationId: getSwarmStatusA2A
+      parameters:
+        - name: swarmId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: coordinationMode
+          in: query
+          description: How to coordinate status retrieval
+          schema:
+            type: string
+            enum: [broadcast, consensus, direct]
+            default: broadcast
+        - name: aggregation
+          in: query
+          description: How to aggregate responses
+          schema:
+            type: string
+            enum: [all, majority, first]
+            default: majority
+      responses:
+        '200':
+          description: Distributed swarm status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwarmStatusA2A'
+
+  # Agent Management A2A Tools
+  /api/v2/a2a/agents/spawn:
+    post:
+      tags: [agent-management]
+      summary: Spawn agent via A2A coordination
+      description: |
+        Spawns a new agent using A2A coordination to find the optimal
+        spawning location and configure distributed capabilities.
+      operationId: spawnAgentA2A
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentSpawnA2ARequest'
+            example:
+              type: "coder"
+              name: "distributed-coder-001"
+              capabilities: ["typescript", "react", "testing"]
+              placement:
+                strategy: "load-balanced"
+                constraints:
+                  - type: "resource"
+                    requirement: "cpu > 2.0GHz"
+                  - type: "location"
+                    requirement: "region=us-west"
+              coordination:
+                mode: "consensus"
+                participants: ["spawner-001", "spawner-002", "spawner-003"]
+                consensusType: "majority"
+      responses:
+        '201':
+          description: Agent spawned successfully via A2A
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentA2AResponse'
+
+  /api/v2/a2a/agents/list:
+    get:
+      tags: [agent-management]
+      summary: List agents across distributed system
+      description: |
+        Lists all agents by coordinating with multiple agent managers
+        and providing a unified view of the distributed agent system.
+      operationId: listAgentsA2A
+      parameters:
+        - name: filter
+          in: query
+          schema:
+            type: string
+            enum: [all, active, idle, busy]
+            default: all
+        - name: distributedQuery
+          in: query
+          description: Query across all agent managers
+          schema:
+            type: boolean
+            default: true
+        - name: consistencyLevel
+          in: query
+          description: Consistency level for distributed query
+          schema:
+            type: string
+            enum: [eventual, strong, causal]
+            default: eventual
+      responses:
+        '200':
+          description: Distributed agent list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListA2AResponse'
+
+  # Task Orchestration A2A Tools
+  /api/v2/a2a/tasks/orchestrate:
+    post:
+      tags: [task-orchestration]
+      summary: Orchestrate distributed task
+      description: |
+        Orchestrates a complex task across multiple agents using A2A coordination
+        with advanced scheduling, resource allocation, and failure recovery.
+      operationId: orchestrateTaskA2A
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskOrchestrationA2ARequest'
+            example:
+              task: "Implement microservices architecture"
+              strategy: "adaptive"
+              coordination:
+                mode: "pipeline"
+                stages:
+                  - name: "architecture-design"
+                    targetAgents:
+                      type: "group"
+                      role: "system-architect"
+                    toolName: "mcp__claude-flow__sparc_mode"
+                    parameters:
+                      mode: "architect"
+                  - name: "implementation"
+                    targetAgents:
+                      type: "multiple"
+                      agentIds: ["coder-001", "coder-002", "coder-003"]
+                    toolName: "mcp__claude-flow__parallel_execute"
+                  - name: "testing"
+                    targetAgents:
+                      type: "group" 
+                      role: "tester"
+                    toolName: "mcp__claude-flow__sparc_mode"
+                    parameters:
+                      mode: "tdd"
+              resourceAllocation:
+                - stage: "architecture-design"
+                  requirements:
+                    - type: "cpu"
+                      amount: 2
+                      unit: "cores"
+                - stage: "implementation" 
+                  requirements:
+                    - type: "memory"
+                      amount: 8
+                      unit: "GB"
+              failureRecovery:
+                strategy: "partial-retry"
+                maxRetries: 2
+                rollbackEnabled: true
+      responses:
+        '201':
+          description: Task orchestration started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskA2AResponse'
+
+  # Memory & State Management A2A Tools
+  /api/v2/a2a/memory/distributed-store:
+    post:
+      tags: [memory-state]
+      summary: Store data in distributed memory
+      description: |
+        Stores data in the distributed memory system with replication,
+        consistency guarantees, and conflict resolution.
+      operationId: storeDistributedMemory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistributedMemoryStoreRequest'
+            example:
+              key: "neural-model-weights"
+              value:
+                modelId: "transformer-001"
+                weights: "<binary-data>"
+                version: "1.2.3"
+              namespace: "neural-models"
+              replication:
+                factor: 3
+                strategy: "quorum"
+              consistency: "strong"
+              coordination:
+                mode: "consensus"
+                timeout: 10000
+      responses:
+        '201':
+          description: Data stored in distributed memory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistributedMemoryResponse'
+
+  # Neural & AI Operations A2A Tools
+  /api/v2/a2a/neural/distributed-training:
+    post:
+      tags: [neural-ai]
+      summary: Start distributed neural training
+      description: |
+        Initiates distributed neural network training across multiple agents
+        with parameter synchronization and gradient aggregation.
+      operationId: startDistributedTraining
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistributedTrainingRequest'
+            example:
+              modelType: "transformer"
+              trainingData: "s3://datasets/large-corpus"
+              coordination:
+                mode: "parameter-server"
+                synchronization: "async"
+              participants:
+                - agentId: "trainer-001"
+                  role: "worker"
+                  resources: ["gpu-01", "gpu-02"]
+                - agentId: "trainer-002"
+                  role: "worker"
+                  resources: ["gpu-03", "gpu-04"]
+                - agentId: "param-server-001"
+                  role: "parameter-server"
+              hyperparameters:
+                learningRate: 0.001
+                batchSize: 64
+                epochs: 100
+      responses:
+        '201':
+          description: Distributed training started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistributedTrainingResponse'
+
+  # DAA (Decentralized Autonomous Agents) A2A Tools
+  /api/v2/a2a/daa/consensus:
+    post:
+      tags: [daa-systems]
+      summary: Initiate DAA consensus
+      description: |
+        Initiates a consensus decision process among decentralized autonomous agents
+        using various consensus algorithms (Raft, PBFT, etc.).
+      operationId: initiateDAAConsensus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DAAConsensusRequest'
+            example:
+              proposal:
+                type: "resource-allocation"
+                details:
+                  resource: "high-performance-gpu-cluster"
+                  requestingAgent: "neural-trainer-001"
+                  duration: 3600000
+                  priority: "high"
+              algorithm: "raft"
+              participants:
+                - agentId: "daa-leader-001"
+                  role: "leader"
+                - agentId: "daa-follower-001" 
+                  role: "follower"
+                - agentId: "daa-follower-002"
+                  role: "follower"
+              timeout: 30000
+              threshold: 0.67
+      responses:
+        '200':
+          description: Consensus decision reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DAAConsensusResponse'
+
+components:
+  schemas:
+    # Core A2A Message Types
+    MessageBusInitRequest:
+      type: object
+      required:
+        - topology
+      properties:
+        topology:
+          type: string
+          enum: [mesh, hierarchical, ring, star]
+          description: Message bus network topology
+        maxConnections:
+          type: integer
+          minimum: 10
+          maximum: 10000
+          default: 1000
+          description: Maximum concurrent connections
+        security:
+          $ref: '#/components/schemas/SecurityConfig'
+        performance:
+          $ref: '#/components/schemas/PerformanceConfig'
+        resilience:
+          $ref: '#/components/schemas/ResilienceConfig'
+
+    MessageBusResponse:
+      type: object
+      properties:
+        busId:
+          type: string
+          description: Unique message bus identifier
+        status:
+          type: string
+          enum: [initializing, active, degraded, failed]
+        topology:
+          type: string
+        connectedAgents:
+          type: integer
+        performance:
+          $ref: '#/components/schemas/PerformanceMetrics'
+        createdAt:
+          type: string
+          format: date-time
+
+    A2AMessage:
+      type: object
+      required:
+        - target
+        - toolName
+        - coordination
+      properties:
+        id:
+          type: string
+          description: Unique message identifier
+          readOnly: true
+        correlationId:
+          type: string
+          description: For request-response correlation
+        conversationId:
+          type: string
+          description: For multi-message conversations
+        source:
+          $ref: '#/components/schemas/AgentIdentifier'
+        target:
+          $ref: '#/components/schemas/AgentTarget'
+        toolName:
+          $ref: '#/components/schemas/MCPToolName'
+        parameters:
+          type: object
+          description: Tool-specific parameters
+        execution:
+          $ref: '#/components/schemas/ExecutionContext'
+        coordination:
+          $ref: '#/components/schemas/CoordinationMode'
+        stateRequirements:
+          type: array
+          items:
+            $ref: '#/components/schemas/StateRequirement'
+        resourceRequirements:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceRequirement'
+        timestamp:
+          type: integer
+          description: Message creation timestamp
+          readOnly: true
+        ttl:
+          type: integer
+          description: Time to live in milliseconds
+          default: 300000
+        priority:
+          $ref: '#/components/schemas/MessagePriority'
+        retryPolicy:
+          $ref: '#/components/schemas/RetryPolicy'
+
+    A2AResponse:
+      type: object
+      properties:
+        messageId:
+          type: string
+        correlationId:
+          type: string
+        source:
+          $ref: '#/components/schemas/AgentIdentifier'
+        success:
+          type: boolean
+        result:
+          type: object
+          description: Tool execution result
+        error:
+          $ref: '#/components/schemas/A2AError'
+        timestamp:
+          type: integer
+        metadata:
+          $ref: '#/components/schemas/ResponseMetadata'
+        performance:
+          type: object
+          properties:
+            executionTime:
+              type: integer
+              description: Execution time in milliseconds
+            networkLatency:
+              type: integer
+              description: Network latency in milliseconds
+            resourceUsage:
+              type: object
+
+    # Agent Targeting System
+    AgentTarget:
+      oneOf:
+        - $ref: '#/components/schemas/SingleTarget'
+        - $ref: '#/components/schemas/MultipleTargets'
+        - $ref: '#/components/schemas/GroupTarget'
+        - $ref: '#/components/schemas/BroadcastTarget'
+        - $ref: '#/components/schemas/ConditionalTarget'
+      discriminator:
+        propertyName: type
+
+    SingleTarget:
+      type: object
+      required:
+        - type
+        - agentId
+      properties:
+        type:
+          type: string
+          enum: [single]
+        agentId:
+          type: string
+          description: Target agent identifier
+
+    MultipleTargets:
+      type: object
+      required:
+        - type
+        - agentIds
+      properties:
+        type:
+          type: string
+          enum: [multiple]
+        agentIds:
+          type: array
+          items:
+            type: string
+        coordinationMode:
+          type: string
+          enum: [parallel, sequential, race]
+          default: parallel
+
+    GroupTarget:
+      type: object
+      required:
+        - type
+        - role
+      properties:
+        type:
+          type: string
+          enum: [group]
+        role:
+          $ref: '#/components/schemas/AgentRole'
+        capabilities:
+          type: array
+          items:
+            type: string
+        maxAgents:
+          type: integer
+          minimum: 1
+        selectionStrategy:
+          type: string
+          enum: [random, load-balanced, capability-matched]
+          default: load-balanced
+
+    BroadcastTarget:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [broadcast]
+        filter:
+          $ref: '#/components/schemas/AgentFilter'
+        excludeSource:
+          type: boolean
+          default: true
+
+    ConditionalTarget:
+      type: object
+      required:
+        - type
+        - conditions
+      properties:
+        type:
+          type: string
+          enum: [conditional]
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentCondition'
+        fallback:
+          $ref: '#/components/schemas/AgentTarget'
+
+    # Coordination Modes
+    CoordinationMode:
+      oneOf:
+        - $ref: '#/components/schemas/DirectCoordination'
+        - $ref: '#/components/schemas/BroadcastCoordination'
+        - $ref: '#/components/schemas/ConsensusCoordination'
+        - $ref: '#/components/schemas/PipelineCoordination'
+      discriminator:
+        propertyName: mode
+
+    DirectCoordination:
+      type: object
+      required:
+        - mode
+      properties:
+        mode:
+          type: string
+          enum: [direct]
+        timeout:
+          type: integer
+          default: 5000
+        retries:
+          type: integer
+          default: 3
+        acknowledgment:
+          type: boolean
+          default: true
+
+    BroadcastCoordination:
+      type: object
+      required:
+        - mode
+      properties:
+        mode:
+          type: string
+          enum: [broadcast]
+        aggregation:
+          type: string
+          enum: [all, majority, first, any]
+          default: all
+        timeout:
+          type: integer
+          default: 10000
+        partialSuccess:
+          type: boolean
+          default: false
+
+    ConsensusCoordination:
+      type: object
+      required:
+        - mode
+      properties:
+        mode:
+          type: string
+          enum: [consensus]
+        consensusType:
+          type: string
+          enum: [unanimous, majority, weighted]
+          default: majority
+        votingTimeout:
+          type: integer
+          default: 15000
+        minimumParticipants:
+          type: integer
+          minimum: 1
+          default: 3
+
+    PipelineCoordination:
+      type: object
+      required:
+        - mode
+        - stages
+      properties:
+        mode:
+          type: string
+          enum: [pipeline]
+        stages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PipelineStage'
+        failureStrategy:
+          type: string
+          enum: [abort, skip, retry]
+          default: abort
+        statePassthrough:
+          type: boolean
+          default: true
+
+    PipelineStage:
+      type: object
+      required:
+        - agentTarget
+        - toolName
+      properties:
+        name:
+          type: string
+        agentTarget:
+          $ref: '#/components/schemas/AgentTarget'
+        toolName:
+          $ref: '#/components/schemas/MCPToolName'
+        inputTransform:
+          type: string
+          description: JavaScript function to transform input
+        outputTransform:
+          type: string
+          description: JavaScript function to transform output
+        timeout:
+          type: integer
+          default: 30000
+
+    # MCP Tool Names (All 104 A2A-Enabled Tools)
+    MCPToolName:
+      type: string
+      enum: [
+        # Core Infrastructure (16 tools)
+        "mcp__claude-flow__swarm_init",
+        "mcp__claude-flow__swarm_status", 
+        "mcp__claude-flow__swarm_monitor",
+        "mcp__claude-flow__swarm_scale",
+        "mcp__claude-flow__swarm_destroy",
+        "mcp__ruv-swarm__swarm_init",
+        "mcp__ruv-swarm__swarm_status",
+        "mcp__ruv-swarm__swarm_monitor",
+        "mcp__claude-flow__agent_spawn",
+        "mcp__claude-flow__agent_list",
+        "mcp__claude-flow__agent_metrics",
+        "mcp__ruv-swarm__agent_spawn",
+        "mcp__ruv-swarm__agent_list",
+        "mcp__ruv-swarm__agent_metrics",
+        "mcp__claude-flow__topology_optimize",
+        "mcp__claude-flow__coordination_sync",
+        
+        # Task Orchestration (12 tools)
+        "mcp__claude-flow__task_orchestrate",
+        "mcp__claude-flow__task_status",
+        "mcp__claude-flow__task_results",
+        "mcp__ruv-swarm__task_orchestrate",
+        "mcp__ruv-swarm__task_status",
+        "mcp__ruv-swarm__task_results",
+        "mcp__claude-flow__parallel_execute",
+        "mcp__claude-flow__batch_process",
+        "mcp__claude-flow__load_balance",
+        "mcp__claude-flow__workflow_create",
+        "mcp__claude-flow__workflow_execute",
+        "mcp__claude-flow__workflow_export",
+        
+        # Memory & State Management (14 tools)
+        "mcp__claude-flow__memory_usage",
+        "mcp__claude-flow__memory_search",
+        "mcp__claude-flow__memory_persist",
+        "mcp__claude-flow__memory_namespace",
+        "mcp__claude-flow__memory_backup",
+        "mcp__claude-flow__memory_restore",
+        "mcp__claude-flow__memory_compress",
+        "mcp__claude-flow__memory_sync",
+        "mcp__claude-flow__memory_analytics",
+        "mcp__ruv-swarm__memory_usage",
+        "mcp__claude-flow__state_snapshot",
+        "mcp__claude-flow__context_restore",
+        "mcp__claude-flow__cache_manage",
+        "mcp__claude-flow__config_manage",
+        
+        # Neural & AI Operations (16 tools)
+        "mcp__claude-flow__neural_status",
+        "mcp__claude-flow__neural_train",
+        "mcp__claude-flow__neural_patterns",
+        "mcp__claude-flow__neural_predict",
+        "mcp__claude-flow__neural_compress",
+        "mcp__claude-flow__neural_explain",
+        "mcp__ruv-swarm__neural_status",
+        "mcp__ruv-swarm__neural_train",
+        "mcp__ruv-swarm__neural_patterns",
+        "mcp__claude-flow__model_load",
+        "mcp__claude-flow__model_save",
+        "mcp__claude-flow__inference_run",
+        "mcp__claude-flow__pattern_recognize",
+        "mcp__claude-flow__cognitive_analyze",
+        "mcp__claude-flow__learning_adapt",
+        "mcp__claude-flow__ensemble_create",
+        "mcp__claude-flow__transfer_learn",
+        
+        # DAA Systems (15 tools)
+        "mcp__claude-flow__daa_agent_create",
+        "mcp__claude-flow__daa_capability_match",
+        "mcp__claude-flow__daa_resource_alloc",
+        "mcp__claude-flow__daa_lifecycle_manage",
+        "mcp__claude-flow__daa_communication",
+        "mcp__claude-flow__daa_consensus",
+        "mcp__claude-flow__daa_fault_tolerance",
+        "mcp__claude-flow__daa_optimization",
+        "mcp__ruv-swarm__daa_init",
+        "mcp__ruv-swarm__daa_agent_create",
+        "mcp__ruv-swarm__daa_agent_adapt",
+        "mcp__ruv-swarm__daa_workflow_create",
+        "mcp__ruv-swarm__daa_workflow_execute",
+        "mcp__ruv-swarm__daa_knowledge_share",
+        "mcp__ruv-swarm__daa_learning_status",
+        "mcp__ruv-swarm__daa_cognitive_pattern",
+        "mcp__ruv-swarm__daa_meta_learning",
+        "mcp__ruv-swarm__daa_performance_metrics",
+        
+        # Performance & Analytics (12 tools)
+        "mcp__claude-flow__performance_report",
+        "mcp__claude-flow__bottleneck_analyze",
+        "mcp__claude-flow__token_usage",
+        "mcp__claude-flow__benchmark_run",
+        "mcp__claude-flow__metrics_collect",
+        "mcp__claude-flow__trend_analysis",
+        "mcp__ruv-swarm__benchmark_run",
+        "mcp__claude-flow__cost_analysis",
+        "mcp__claude-flow__quality_assess",
+        "mcp__claude-flow__error_analysis",
+        "mcp__claude-flow__usage_stats",
+        "mcp__claude-flow__health_check",
+        
+        # GitHub Integration (8 tools)
+        "mcp__claude-flow__github_repo_analyze",
+        "mcp__claude-flow__github_metrics",
+        "mcp__claude-flow__github_pr_manage",
+        "mcp__claude-flow__github_code_review",
+        "mcp__claude-flow__github_issue_track",
+        "mcp__claude-flow__github_release_coord",
+        "mcp__claude-flow__github_workflow_auto",
+        "mcp__claude-flow__github_sync_coord",
+        
+        # Workflow & Automation (6 tools)
+        "mcp__claude-flow__automation_setup",
+        "mcp__claude-flow__pipeline_create",
+        "mcp__claude-flow__scheduler_manage",
+        "mcp__claude-flow__trigger_setup",
+        "mcp__claude-flow__workflow_template",
+        "mcp__claude-flow__sparc_mode",
+        
+        # System Infrastructure (11 tools)
+        "mcp__claude-flow__terminal_execute",
+        "mcp__claude-flow__features_detect",
+        "mcp__claude-flow__security_scan",
+        "mcp__claude-flow__backup_create",
+        "mcp__claude-flow__restore_system",
+        "mcp__claude-flow__log_analysis",
+        "mcp__claude-flow__diagnostic_run",
+        "mcp__claude-flow__wasm_optimize",
+        "mcp__ruv-swarm__features_detect"
+      ]
+      description: |
+        All 104 A2A-enabled MCP tools organized by category:
+        
+        **Core Infrastructure (16)**: Swarm and agent management
+        **Task Orchestration (12)**: Task coordination and workflows  
+        **Memory & State (14)**: Distributed memory and state management
+        **Neural & AI (16)**: Neural operations and AI coordination
+        **DAA Systems (15)**: Decentralized autonomous agents
+        **Performance & Analytics (12)**: Monitoring and optimization
+        **GitHub Integration (8)**: Repository and workflow coordination
+        **Workflow & Automation (6)**: SPARC modes and automation
+        **System Infrastructure (11)**: System operations and diagnostics
+
+    # State Management
+    StateRequirement:
+      type: object
+      required:
+        - type
+        - namespace
+        - keys
+      properties:
+        type:
+          type: string
+          enum: [read, write, exclusive, shared]
+        namespace:
+          type: string
+          description: State namespace
+        keys:
+          type: array
+          items:
+            type: string
+          description: State keys to access
+        consistency:
+          type: string
+          enum: [eventual, strong, causal]
+          default: eventual
+        timeout:
+          type: integer
+          default: 5000
+
+    # Resource Management
+    ResourceRequirement:
+      type: object
+      required:
+        - type
+        - amount
+        - unit
+      properties:
+        type:
+          type: string
+          enum: [cpu, memory, gpu, network, storage, custom]
+        amount:
+          type: number
+          minimum: 0
+        unit:
+          type: string
+          description: Resource unit (GB, cores, devices, etc.)
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+          default: medium
+        duration:
+          type: integer
+          description: Expected usage duration in milliseconds
+        exclusive:
+          type: boolean
+          default: false
+          description: Whether resource access should be exclusive
+
+    # Supporting Types
+    AgentIdentifier:
+      type: object
+      required:
+        - agentId
+      properties:
+        agentId:
+          type: string
+        agentType:
+          $ref: '#/components/schemas/AgentRole'
+        swarmId:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+
+    AgentRole:
+      type: string
+      enum: [
+        # Core roles
+        coordinator, researcher, coder, analyst, optimizer, tester, reviewer,
+        # Specialized roles
+        spawner, memory-manager, task-orchestrator, neural-trainer,
+        system-architect, performance-monitor, security-manager,
+        # DAA roles
+        daa-coordinator, consensus-manager, resource-allocator
+      ]
+
+    AgentFilter:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/AgentRole'
+        capabilities:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, idle, busy]
+        swarmId:
+          type: string
+        location:
+          type: object
+          properties:
+            region:
+              type: string
+            datacenter:
+              type: string
+
+    AgentCondition:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [capability, resource, status, location, custom]
+        operator:
+          type: string
+          enum: [equals, not_equals, contains, greater_than, less_than]
+        value:
+          description: Value to compare against
+        metadata:
+          type: object
+
+    ExecutionContext:
+      type: object
+      properties:
+        timeout:
+          type: integer
+          default: 30000
+        priority:
+          $ref: '#/components/schemas/MessagePriority'
+        environment:
+          type: object
+          description: Environment variables
+        resources:
+          type: object
+          description: Resource constraints
+
+    MessagePriority:
+      type: string
+      enum: [low, medium, high, critical]
+      default: medium
+
+    RetryPolicy:
+      type: object
+      properties:
+        maxRetries:
+          type: integer
+          default: 3
+        backoffStrategy:
+          type: string
+          enum: [linear, exponential, custom]
+          default: exponential
+        baseDelay:
+          type: integer
+          default: 1000
+        maxDelay:
+          type: integer
+          default: 30000
+        retryableErrors:
+          type: array
+          items:
+            type: string
+
+    A2AError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum: [
+            AGENT_NOT_FOUND,
+            TOOL_NOT_SUPPORTED,
+            INSUFFICIENT_RESOURCES,
+            STATE_CONFLICT,
+            TIMEOUT,
+            AUTHORIZATION_FAILED,
+            COORDINATION_FAILED,
+            NETWORK_ERROR,
+            CONSENSUS_FAILED
+          ]
+        message:
+          type: string
+        details:
+          type: object
+        recoverable:
+          type: boolean
+        suggestedAction:
+          type: string
+
+    ResponseMetadata:
+      type: object
+      properties:
+        agentVersion:
+          type: string
+        processingTime:
+          type: integer
+        resourcesUsed:
+          type: object
+        stateModifications:
+          type: array
+          items:
+            type: object
+
+    # Security Configuration
+    SecurityConfig:
+      type: object
+      properties:
+        encryption:
+          type: string
+          enum: [AES-256, RSA, ECDH]
+          default: AES-256
+        authentication:
+          type: string
+          enum: [certificate, token, signature]
+          default: certificate
+        zeroTrust:
+          type: boolean
+          default: true
+        keyRotation:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              default: true
+            interval:
+              type: integer
+              default: 86400000
+
+    # Performance Configuration
+    PerformanceConfig:
+      type: object
+      properties:
+        batchingEnabled:
+          type: boolean
+          default: true
+        maxBatchSize:
+          type: integer
+          default: 100
+        connectionPooling:
+          type: boolean
+          default: true
+        compression:
+          type: boolean
+          default: true
+        caching:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              default: true
+            ttl:
+              type: integer
+              default: 300000
+
+    # Resilience Configuration
+    ResilienceConfig:
+      type: object
+      properties:
+        retryPolicy:
+          $ref: '#/components/schemas/RetryPolicy'
+        failoverEnabled:
+          type: boolean
+          default: true
+        circuitBreaker:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              default: true
+            failureThreshold:
+              type: integer
+              default: 5
+            recoveryTimeout:
+              type: integer
+              default: 30000
+
+    PerformanceMetrics:
+      type: object
+      properties:
+        avgLatency:
+          type: string
+          description: Average message latency
+        throughput:
+          type: string
+          description: Messages per second
+        errorRate:
+          type: string
+          description: Error rate percentage
+        resourceUtilization:
+          type: object
+          properties:
+            cpu:
+              type: number
+            memory:
+              type: number
+            network:
+              type: number
+
+    # Swarm Management A2A Types
+    SwarmInitA2ARequest:
+      type: object
+      required:
+        - provider
+        - topology
+        - coordinationMode
+      properties:
+        provider:
+          type: string
+          enum: [claude-flow, ruv-swarm]
+        topology:
+          type: string
+          enum: [hierarchical, mesh, ring, star]
+        maxAgents:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 8
+        strategy:
+          type: string
+          enum: [parallel, sequential, adaptive, balanced]
+          default: adaptive
+        coordinationMode:
+          type: string
+          enum: [broadcast, consensus, pipeline]
+        targetAgents:
+          $ref: '#/components/schemas/AgentTarget'
+        distributedConfig:
+          type: object
+          properties:
+            replication:
+              type: integer
+              minimum: 1
+              default: 3
+            consistency:
+              type: string
+              enum: [eventual, strong, causal]
+              default: strong
+            partitioning:
+              type: string
+              enum: [capability-based, load-based, geographic]
+
+    SwarmA2AResponse:
+      type: object
+      properties:
+        swarmId:
+          type: string
+        provider:
+          type: string
+        topology:
+          type: string
+        coordinators:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              role:
+                type: string
+              status:
+                type: string
+        distributedState:
+          type: object
+          properties:
+            replicas:
+              type: array
+              items:
+                type: object
+            consistency:
+              type: string
+            lastSync:
+              type: string
+              format: date-time
+
+    SwarmStatusA2A:
+      type: object
+      properties:
+        swarmId:
+          type: string
+        aggregatedStatus:
+          type: string
+          enum: [healthy, degraded, failed, unknown]
+        coordinators:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              status:
+                type: string
+              lastHeartbeat:
+                type: string
+                format: date-time
+              managedAgents:
+                type: integer
+        distributedMetrics:
+          type: object
+          properties:
+            totalAgents:
+              type: integer
+            activeAgents:
+              type: integer
+            avgResponseTime:
+              type: number
+            throughput:
+              type: number
+        consensusState:
+          type: object
+          properties:
+            leader:
+              type: string
+            term:
+              type: integer
+            lastCommit:
+              type: string
+              format: date-time
+
+    # Agent Management A2A Types
+    AgentSpawnA2ARequest:
+      type: object
+      required:
+        - type
+        - coordination
+      properties:
+        type:
+          $ref: '#/components/schemas/AgentRole'
+        name:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        placement:
+          type: object
+          properties:
+            strategy:
+              type: string
+              enum: [load-balanced, capability-matched, geographic, random]
+            constraints:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  requirement:
+                    type: string
+        coordination:
+          $ref: '#/components/schemas/CoordinationMode'
+        resources:
+          type: object
+          description: Resource requirements for the agent
+
+    AgentA2AResponse:
+      type: object
+      properties:
+        agentId:
+          type: string
+        type:
+          $ref: '#/components/schemas/AgentRole'
+        name:
+          type: string
+        status:
+          type: string
+          enum: [spawning, active, failed]
+        placement:
+          type: object
+          properties:
+            coordinatorId:
+              type: string
+            location:
+              type: object
+            resources:
+              type: object
+        distributedCapabilities:
+          type: array
+          items:
+            type: string
+        networkTopology:
+          type: object
+          description: Agent's position in the network
+
+    AgentListA2AResponse:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              type:
+                $ref: '#/components/schemas/AgentRole'
+              name:
+                type: string
+              status:
+                type: string
+              coordinator:
+                type: string
+              capabilities:
+                type: array
+                items:
+                  type: string
+        distributedMetadata:
+          type: object
+          properties:
+            totalCoordinators:
+              type: integer
+            queriedCoordinators:
+              type: integer
+            consistencyLevel:
+              type: string
+            queryTime:
+              type: integer
+
+    # Task Orchestration A2A Types
+    TaskOrchestrationA2ARequest:
+      type: object
+      required:
+        - task
+        - coordination
+      properties:
+        task:
+          type: string
+          description: Task description
+        strategy:
+          type: string
+          enum: [parallel, sequential, adaptive, pipeline]
+          default: adaptive
+        coordination:
+          $ref: '#/components/schemas/CoordinationMode'
+        resourceAllocation:
+          type: array
+          items:
+            type: object
+            properties:
+              stage:
+                type: string
+              requirements:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResourceRequirement'
+        failureRecovery:
+          type: object
+          properties:
+            strategy:
+              type: string
+              enum: [abort, partial-retry, full-retry, graceful-degradation]
+            maxRetries:
+              type: integer
+            rollbackEnabled:
+              type: boolean
+        dependencies:
+          type: array
+          items:
+            type: object
+            properties:
+              taskId:
+                type: string
+              type:
+                type: string
+                enum: [hard, soft, optional]
+
+    TaskA2AResponse:
+      type: object
+      properties:
+        taskId:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, orchestrating, running, completed, failed, cancelled]
+        coordination:
+          type: object
+          properties:
+            mode:
+              type: string
+            participants:
+              type: array
+              items:
+                type: string
+            stages:
+              type: array
+              items:
+                type: object
+        distributedExecution:
+          type: object
+          properties:
+            totalStages:
+              type: integer
+            completedStages:
+              type: integer
+            activeAgents:
+              type: array
+              items:
+                type: string
+        estimatedCompletion:
+          type: string
+          format: date-time
+
+    # Memory & State Management A2A Types
+    DistributedMemoryStoreRequest:
+      type: object
+      required:
+        - key
+        - value
+        - coordination
+      properties:
+        key:
+          type: string
+        value:
+          description: Data to store
+        namespace:
+          type: string
+          default: default
+        replication:
+          type: object
+          properties:
+            factor:
+              type: integer
+              minimum: 1
+              default: 3
+            strategy:
+              type: string
+              enum: [quorum, gossip, chain]
+        consistency:
+          type: string
+          enum: [eventual, strong, causal]
+          default: eventual
+        coordination:
+          $ref: '#/components/schemas/CoordinationMode'
+        ttl:
+          type: integer
+          description: Time to live in milliseconds
+
+    DistributedMemoryResponse:
+      type: object
+      properties:
+        key:
+          type: string
+        namespace:
+          type: string
+        stored:
+          type: boolean
+        replicas:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              status:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+        consistency:
+          type: object
+          properties:
+            level:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+            version:
+              type: integer
+
+    # Neural & AI Operations A2A Types
+    DistributedTrainingRequest:
+      type: object
+      required:
+        - modelType
+        - coordination
+        - participants
+      properties:
+        modelType:
+          type: string
+          enum: [transformer, cnn, rnn, custom]
+        trainingData:
+          type: string
+          description: Data source URI
+        coordination:
+          type: object
+          properties:
+            mode:
+              type: string
+              enum: [parameter-server, all-reduce, federated]
+            synchronization:
+              type: string
+              enum: [sync, async, semi-sync]
+        participants:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              role:
+                type: string
+                enum: [worker, parameter-server, coordinator]
+              resources:
+                type: array
+                items:
+                  type: string
+        hyperparameters:
+          type: object
+          properties:
+            learningRate:
+              type: number
+            batchSize:
+              type: integer
+            epochs:
+              type: integer
+        checkpointing:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            frequency:
+              type: integer
+            storage:
+              type: string
+
+    DistributedTrainingResponse:
+      type: object
+      properties:
+        trainingId:
+          type: string
+        modelType:
+          type: string
+        status:
+          type: string
+          enum: [initializing, training, checkpointing, completed, failed]
+        participants:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              role:
+                type: string
+              status:
+                type: string
+        progress:
+          type: object
+          properties:
+            currentEpoch:
+              type: integer
+            totalEpochs:
+              type: integer
+            loss:
+              type: number
+            accuracy:
+              type: number
+        synchronization:
+          type: object
+          properties:
+            lastSync:
+              type: string
+              format: date-time
+            syncFrequency:
+              type: integer
+            pendingUpdates:
+              type: integer
+
+    # DAA Systems A2A Types
+    DAAConsensusRequest:
+      type: object
+      required:
+        - proposal
+        - algorithm
+        - participants
+      properties:
+        proposal:
+          type: object
+          required:
+            - type
+            - details
+          properties:
+            type:
+              type: string
+              enum: [resource-allocation, policy-change, agent-promotion, emergency-action]
+            details:
+              type: object
+              description: Proposal-specific details
+            priority:
+              type: string
+              enum: [low, medium, high, emergency]
+        algorithm:
+          type: string
+          enum: [raft, pbft, tendermint, custom]
+        participants:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              role:
+                type: string
+                enum: [leader, follower, observer]
+              weight:
+                type: number
+                default: 1.0
+        timeout:
+          type: integer
+          default: 30000
+        threshold:
+          type: number
+          minimum: 0.5
+          maximum: 1.0
+          description: Required agreement threshold
+
+    DAAConsensusResponse:
+      type: object
+      properties:
+        consensusId:
+          type: string
+        proposal:
+          type: object
+        decision:
+          type: string
+          enum: [approved, rejected, timeout, failed]
+        votes:
+          type: array
+          items:
+            type: object
+            properties:
+              agentId:
+                type: string
+              vote:
+                type: string
+                enum: [approve, reject, abstain]
+              weight:
+                type: number
+              timestamp:
+                type: string
+                format: date-time
+        finalTally:
+          type: object
+          properties:
+            approve:
+              type: number
+            reject:
+              type: number
+            abstain:
+              type: number
+            threshold:
+              type: number
+            result:
+              type: string
+        executionPlan:
+          type: object
+          description: Plan for executing the approved proposal
+        timestamp:
+          type: string
+          format: date-time
+
+    # Error Response
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Error message
+        details:
+          type: string
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+          description: Unique request identifier
+        a2aContext:
+          type: object
+          description: A2A-specific error context
+          properties:
+            messageId:
+              type: string
+            coordinationMode:
+              type: string
+            participantCount:
+              type: integer
+            failedAgents:
+              type: array
+              items:
+                type: string
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters or malformed request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "BAD_REQUEST"
+            message: "Invalid coordination mode specified"
+            details: "Coordination mode 'invalid-mode' is not supported"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "NOT_FOUND"
+            message: "Agent not found"
+            details: "Agent with ID 'agent-123' does not exist or is not reachable"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "INTERNAL_ERROR"
+            message: "A2A coordination failed"
+            details: "Message bus experienced an unexpected error during coordination"
+
+  securitySchemes:
+    A2ACertificate:
+      type: http
+      scheme: bearer
+      bearerFormat: X.509
+      description: |
+        X.509 certificate-based authentication for A2A communication.
+        Each agent must present a valid certificate signed by the A2A CA.
+
+    A2ASignature:
+      type: apiKey
+      in: header
+      name: X-A2A-Signature
+      description: |
+        Message signature using agent's private key for message integrity
+        and non-repudiation. Required for all A2A operations.
+
+    A2ATimestamp:
+      type: apiKey
+      in: header
+      name: X-A2A-Timestamp
+      description: |
+        Message timestamp for replay attack prevention. Must be within
+        acceptable time window (default: 5 minutes).
+
+security:
+  - A2ACertificate: []
+    A2ASignature: []
+    A2ATimestamp: []
+
+externalDocs:
+  description: Complete A2A Documentation
+  url: https://github.com/clduab11/gemini-flow/wiki/A2A-Documentation

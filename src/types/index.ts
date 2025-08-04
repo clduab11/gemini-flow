@@ -5,6 +5,7 @@
 // Core type exports
 export * from './mcp.js';
 export * from './learning.js';
+export * from './a2a.js';
 
 // MCP Tools type definitions
 // Note: mcp-tools.d.ts contains global declarations and module augmentations

@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Flow A2A API Playground</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .playground {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            height: calc(100vh - 200px);
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 25px;
+            overflow: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fafafa;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-connected {
+            background: #28a745;
+        }
+
+        .status-disconnected {
+            background: #dc3545;
+        }
+
+        .status-pending {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .response-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .response-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .response-tab {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .response-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .response-content {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .response-content pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .example-selector {
+            margin-bottom: 20px;
+        }
+
+        .example-item {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .example-item.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .example-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .example-description {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .tool-category {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .coordination-mode {
+            background: #f3e5f5;
+            color: #7b1fa2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #c62828;
+            margin-top: 10px;
+        }
+
+        .success-message {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #2e7d32;
+            margin-top: 10px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e0e0e0;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 768px) {
+            .playground {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 A2A API Playground</h1>
+            <p>Interactive testing environment for Gemini Flow's Agent-to-Agent communication system. Test all 104 A2A-enabled MCP tools with real-time coordination patterns and distributed agent orchestration.</p>
+        </div>
+
+        <div class="playground">
+            <!-- Request Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>🚀 API Request Builder</h2>
+                    <div>
+                        <span class="status-indicator status-connected"></span>
+                        <span>Connected</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <!-- Environment Selection -->
+                    <div class="form-group">
+                        <label for="environment">Environment</label>
+                        <select id="environment" class="form-control">
+                            <option value="http://localhost:3000">Local Development</option>
+                            <option value="https://a2a-sandbox.gemini-flow.dev">A2A Sandbox</option>
+                            <option value="https://api.gemini-flow.dev">Production</option>
+                        </select>
+                    </div>
+
+                    <!-- Example Selector -->
+                    <div class="form-group">
+                        <label>Quick Examples</label>
+                        <div class="example-selector">
+                            <div class="example-item" data-example="swarm-init">
+                                <div class="example-title">
+                                    <span class="tool-category">Core</span>
+                                    Initialize Swarm
+                                    <span class="coordination-mode">Broadcast</span>
+                                </div>
+                                <div class="example-description">Initialize a new swarm with hierarchical topology</div>
+                            </div>
+                            <div class="example-item" data-example="agent-spawn">
+                                <div class="example-title">
+                                    <span class="tool-category">Agent</span>
+                                    Spawn Agent
+                                    <span class="coordination-mode">Consensus</span>
+                                </div>
+                                <div class="example-description">Spawn a distributed coder agent with load balancing</div>
+                            </div>
+                            <div class="example-item" data-example="task-orchestrate">
+                                <div class="example-title">
+                                    <span class="tool-category">Task</span>
+                                    Orchestrate Task
+                                    <span class="coordination-mode">Pipeline</span>
+                                </div>
+                                <div class="example-description">Coordinate complex task across multiple agents</div>
+                            </div>
+                            <div class="example-item" data-example="daa-consensus">
+                                <div class="example-title">
+                                    <span class="tool-category">DAA</span>
+                                    DAA Consensus
+                                    <span class="coordination-mode">Consensus</span>
+                                </div>
+                                <div class="example-description">Initiate consensus decision among autonomous agents</div>
+                            </div>
+                            <div class="example-item" data-example="neural-training">
+                                <div class="example-title">
+                                    <span class="tool-category">Neural</span>
+                                    Distributed Training
+                                    <span class="coordination-mode">Parameter Server</span>
+                                </div>
+                                <div class="example-description">Start distributed neural network training</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HTTP Method and Endpoint -->
+                    <div class="form-group">
+                        <label for="method">Method & Endpoint</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="method" class="form-control" style="flex: 0 0 100px;">
+                                <option value="POST">POST</option>
+                                <option value="GET">GET</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                            </select>
+                            <input type="text" id="endpoint" class="form-control" placeholder="/api/v2/a2a/swarm/init" />
+                        </div>
+                    </div>
+
+                    <!-- Headers -->
+                    <div class="form-group">
+                        <label for="headers">Headers</label>
+                        <textarea id="headers" class="form-control" placeholder='{
+  "Content-Type": "application/json",
+  "X-A2A-Signature": "your-signature",
+  "X-A2A-Timestamp": "1640995200000"
+}'></textarea>
+                    </div>
+
+                    <!-- Request Body -->
+                    <div class="form-group">
+                        <label for="body">Request Body</label>
+                        <textarea id="body" class="form-control" placeholder='{
+  "topology": "hierarchical",
+  "maxAgents": 8,
+  "strategy": "adaptive",
+  "coordinationMode": "broadcast"
+}'></textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="btn-group">
+                        <button id="sendRequest" class="btn btn-primary">Send Request</button>
+                        <button id="clearForm" class="btn btn-secondary">Clear</button>
+                        <button id="formatJson" class="btn btn-secondary">Format JSON</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Response Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>📊 Response & Metrics</h2>
+                    <div id="responseStatus">Ready</div>
+                </div>
+                <div class="panel-content">
+                    <!-- Response Tabs -->
+                    <div class="response-tabs">
+                        <button class="response-tab active" data-tab="response">Response</button>
+                        <button class="response-tab" data-tab="headers">Headers</button>
+                        <button class="response-tab" data-tab="metrics">Metrics</button>
+                        <button class="response-tab" data-tab="curl">cURL</button>
+                    </div>
+
+                    <!-- Response Content -->
+                    <div id="responseContainer" class="response-container">
+                        <div id="response-tab" class="response-content">
+                            <pre><code>Click "Send Request" to see the response here...</code></pre>
+                        </div>
+                        <div id="headers-tab" class="response-content" style="display: none;">
+                            <pre><code>Response headers will appear here...</code></pre>
+                        </div>
+                        <div id="metrics-tab" class="response-content" style="display: none;">
+                            <div class="metrics">
+                                <div class="metric">
+                                    <div class="metric-value" id="latency">-</div>
+                                    <div class="metric-label">Latency (ms)</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value" id="statusCode">-</div>
+                                    <div class="metric-label">Status Code</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value" id="responseSize">-</div>
+                                    <div class="metric-label">Size (bytes)</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value" id="agentCount">-</div>
+                                    <div class="metric-label">Agents</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <h4>Coordination Details</h4>
+                                <pre id="coordinationDetails"><code>No coordination data available</code></pre>
+                            </div>
+                        </div>
+                        <div id="curl-tab" class="response-content" style="display: none;">
+                            <pre><code id="curlCommand">curl command will be generated here...</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // Example configurations for different A2A operations
+        const examples = {
+            'swarm-init': {
+                method: 'POST',
+                endpoint: '/api/v2/a2a/swarm/init',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-A2A-Signature': 'your-signature-here',
+                    'X-A2A-Timestamp': Date.now().toString()
+                },
+                body: {
+                    provider: 'claude-flow',
+                    topology: 'hierarchical',
+                    maxAgents: 8,
+                    strategy: 'adaptive',
+                    coordinationMode: 'broadcast',
+                    targetAgents: {
+                        type: 'group',
+                        role: 'swarm-coordinator'
+                    },
+                    distributedConfig: {
+                        replication: 3,
+                        consistency: 'strong',
+                        partitioning: 'capability-based'
+                    }
+                }
+            },
+            'agent-spawn': {
+                method: 'POST',
+                endpoint: '/api/v2/a2a/agents/spawn',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-A2A-Signature': 'your-signature-here',
+                    'X-A2A-Timestamp': Date.now().toString()
+                },
+                body: {
+                    type: 'coder',
+                    name: 'distributed-coder-001',
+                    capabilities: ['typescript', 'react', 'testing'],
+                    placement: {
+                        strategy: 'load-balanced',
+                        constraints: [
+                            {
+                                type: 'resource',
+                                requirement: 'cpu > 2.0GHz'
+                            }
+                        ]
+                    },
+                    coordination: {
+                        mode: 'consensus',
+                        participants: ['spawner-001', 'spawner-002', 'spawner-003'],
+                        consensusType: 'majority'
+                    }
+                }
+            },
+            'task-orchestrate': {
+                method: 'POST',
+                endpoint: '/api/v2/a2a/tasks/orchestrate',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-A2A-Signature': 'your-signature-here',
+                    'X-A2A-Timestamp': Date.now().toString()
+                },
+                body: {
+                    task: 'Implement microservices architecture',
+                    strategy: 'adaptive',
+                    coordination: {
+                        mode: 'pipeline',
+                        stages: [
+                            {
+                                name: 'architecture-design',
+                                targetAgents: {
+                                    type: 'group',
+                                    role: 'system-architect'
+                                },
+                                toolName: 'mcp__claude-flow__sparc_mode',
+                                parameters: {
+                                    mode: 'architect'
+                                }
+                            },
+                            {
+                                name: 'implementation',
+                                targetAgents: {
+                                    type: 'multiple',
+                                    agentIds: ['coder-001', 'coder-002', 'coder-003']
+                                },
+                                toolName: 'mcp__claude-flow__parallel_execute'
+                            }
+                        ]
+                    },
+                    resourceAllocation: [
+                        {
+                            stage: 'architecture-design',
+                            requirements: [
+                                {
+                                    type: 'cpu',
+                                    amount: 2,
+                                    unit: 'cores'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            'daa-consensus': {
+                method: 'POST',
+                endpoint: '/api/v2/a2a/daa/consensus',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-A2A-Signature': 'your-signature-here',
+                    'X-A2A-Timestamp': Date.now().toString()
+                },
+                body: {
+                    proposal: {
+                        type: 'resource-allocation',
+                        details: {
+                            resource: 'high-performance-gpu-cluster',
+                            requestingAgent: 'neural-trainer-001',
+                            duration: 3600000,
+                            priority: 'high'
+                        }
+                    },
+                    algorithm: 'raft',
+                    participants: [
+                        {
+                            agentId: 'daa-leader-001',
+                            role: 'leader'
+                        },
+                        {
+                            agentId: 'daa-follower-001',
+                            role: 'follower'
+                        },
+                        {
+                            agentId: 'daa-follower-002',
+                            role: 'follower'
+                        }
+                    ],
+                    timeout: 30000,
+                    threshold: 0.67
+                }
+            },
+            'neural-training': {
+                method: 'POST',
+                endpoint: '/api/v2/a2a/neural/distributed-training',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-A2A-Signature': 'your-signature-here',
+                    'X-A2A-Timestamp': Date.now().toString()
+                },
+                body: {
+                    modelType: 'transformer',
+                    trainingData: 's3://datasets/large-corpus',
+                    coordination: {
+                        mode: 'parameter-server',
+                        synchronization: 'async'
+                    },
+                    participants: [
+                        {
+                            agentId: 'trainer-001',
+                            role: 'worker',
+                            resources: ['gpu-01', 'gpu-02']
+                        },
+                        {
+                            agentId: 'trainer-002',
+                            role: 'worker',
+                            resources: ['gpu-03', 'gpu-04']
+                        },
+                        {
+                            agentId: 'param-server-001',
+                            role: 'parameter-server'
+                        }
+                    ],
+                    hyperparameters: {
+                        learningRate: 0.001,
+                        batchSize: 64,
+                        epochs: 100
+                    }
+                }
+            }
+        };
+
+        // DOM elements
+        const environmentSelect = document.getElementById('environment');
+        const methodSelect = document.getElementById('method');
+        const endpointInput = document.getElementById('endpoint');
+        const headersTextarea = document.getElementById('headers');
+        const bodyTextarea = document.getElementById('body');
+        const sendButton = document.getElementById('sendRequest');
+        const clearButton = document.getElementById('clearForm');
+        const formatButton = document.getElementById('formatJson');
+        const responseStatus = document.getElementById('responseStatus');
+        
+        // Response tabs
+        const responseTabs = document.querySelectorAll('.response-tab');
+        const responseContents = document.querySelectorAll('.response-content');
+
+        // Example handling
+        document.querySelectorAll('.example-item').forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove previous selection
+                document.querySelectorAll('.example-item').forEach(i => i.classList.remove('selected'));
+                
+                // Select current item
+                item.classList.add('selected');
+                
+                // Load example
+                const exampleKey = item.dataset.example;
+                const example = examples[exampleKey];
+                
+                if (example) {
+                    methodSelect.value = example.method;
+                    endpointInput.value = example.endpoint;
+                    headersTextarea.value = JSON.stringify(example.headers, null, 2);
+                    bodyTextarea.value = JSON.stringify(example.body, null, 2);
+                    
+                    generateCurlCommand();
+                }
+            });
+        });
+
+        // Tab switching
+        responseTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                responseTabs.forEach(t => t.classList.remove('active'));
+                
+                // Hide all content
+                responseContents.forEach(content => content.style.display = 'none');
+                
+                // Activate clicked tab
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                const tabName = tab.dataset.tab;
+                document.getElementById(`${tabName}-tab`).style.display = 'block';
+            });
+        });
+
+        // Format JSON button
+        formatButton.addEventListener('click', () => {
+            try {
+                if (headersTextarea.value.trim()) {
+                    const headers = JSON.parse(headersTextarea.value);
+                    headersTextarea.value = JSON.stringify(headers, null, 2);
+                }
+                
+                if (bodyTextarea.value.trim()) {
+                    const body = JSON.parse(bodyTextarea.value);
+                    bodyTextarea.value = JSON.stringify(body, null, 2);
+                }
+            } catch (error) {
+                showMessage('Invalid JSON format', 'error');
+            }
+        });
+
+        // Clear form button
+        clearButton.addEventListener('click', () => {
+            methodSelect.value = 'POST';
+            endpointInput.value = '';
+            headersTextarea.value = '';
+            bodyTextarea.value = '';
+            
+            // Clear selection
+            document.querySelectorAll('.example-item').forEach(i => i.classList.remove('selected'));
+            
+            // Reset response
+            document.getElementById('response-tab').innerHTML = '<pre><code>Click "Send Request" to see the response here...</code></pre>';
+            document.getElementById('headers-tab').innerHTML = '<pre><code>Response headers will appear here...</code></pre>';
+            
+            responseStatus.textContent = 'Ready';
+        });
+
+        // Send request button
+        sendButton.addEventListener('click', async () => {
+            const url = environmentSelect.value + endpointInput.value;
+            const method = methodSelect.value;
+            
+            let headers = {};
+            let body = null;
+            
+            try {
+                if (headersTextarea.value.trim()) {
+                    headers = JSON.parse(headersTextarea.value);
+                }
+                
+                if (bodyTextarea.value.trim() && ['POST', 'PUT', 'PATCH'].includes(method)) {
+                    body = JSON.parse(bodyTextarea.value);
+                }
+            } catch (error) {
+                showMessage('Invalid JSON in headers or body', 'error');
+                return;
+            }
+            
+            // Show loading state
+            responseStatus.innerHTML = '<span class="status-indicator status-pending"></span>Sending...';
+            sendButton.disabled = true;
+            sendButton.textContent = 'Sending...';
+            
+            const startTime = Date.now();
+            
+            try {
+                // Simulate A2A API call (in real implementation, this would be actual API calls)
+                const response = await simulateA2ARequest(url, method, headers, body);
+                const endTime = Date.now();
+                const latency = endTime - startTime;
+                
+                // Update response tab
+                document.getElementById('response-tab').innerHTML = 
+                    `<pre><code class="language-json">${JSON.stringify(response.data, null, 2)}</code></pre>`;
+                
+                // Update headers tab
+                document.getElementById('headers-tab').innerHTML = 
+                    `<pre><code class="language-json">${JSON.stringify(response.headers, null, 2)}</code></pre>`;
+                
+                // Update metrics
+                updateMetrics({
+                    latency,
+                    statusCode: response.status,
+                    responseSize: JSON.stringify(response.data).length,
+                    agentCount: response.data.participantCount || response.data.totalAgents || 1,
+                    coordinationDetails: response.data.coordination || response.data.distributedState
+                });
+                
+                // Update status
+                responseStatus.innerHTML = `<span class="status-indicator status-connected"></span>Success (${response.status})`;
+                
+                showMessage('Request completed successfully', 'success');
+                
+            } catch (error) {
+                // Update response with error
+                document.getElementById('response-tab').innerHTML = 
+                    `<pre><code class="language-json">${JSON.stringify({
+                        error: error.message,
+                        timestamp: new Date().toISOString()
+                    }, null, 2)}</code></pre>`;
+                
+                responseStatus.innerHTML = '<span class="status-indicator status-disconnected"></span>Error';
+                
+                showMessage(`Request failed: ${error.message}`, 'error');
+            } finally {
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send Request';
+                
+                // Trigger syntax highlighting
+                Prism.highlightAll();
+            }
+        });
+
+        // Generate cURL command
+        function generateCurlCommand() {
+            const url = environmentSelect.value + endpointInput.value;
+            const method = methodSelect.value;
+            
+            let curlCommand = `curl -X ${method} "${url}"`;
+            
+            try {
+                if (headersTextarea.value.trim()) {
+                    const headers = JSON.parse(headersTextarea.value);
+                    Object.entries(headers).forEach(([key, value]) => {
+                        curlCommand += ` \\\n  -H "${key}: ${value}"`;
+                    });
+                }
+                
+                if (bodyTextarea.value.trim() && ['POST', 'PUT', 'PATCH'].includes(method)) {
+                    const body = JSON.parse(bodyTextarea.value);
+                    curlCommand += ` \\\n  -d '${JSON.stringify(body, null, 2)}'`;
+                }
+            } catch (error) {
+                curlCommand += '\n\n# Error: Invalid JSON in headers or body';
+            }
+            
+            document.getElementById('curlCommand').textContent = curlCommand;
+        }
+
+        // Update metrics display
+        function updateMetrics(metrics) {
+            document.getElementById('latency').textContent = metrics.latency;
+            document.getElementById('statusCode').textContent = metrics.statusCode;
+            document.getElementById('responseSize').textContent = metrics.responseSize;
+            document.getElementById('agentCount').textContent = metrics.agentCount;
+            
+            if (metrics.coordinationDetails) {
+                document.getElementById('coordinationDetails').innerHTML = 
+                    `<code class="language-json">${JSON.stringify(metrics.coordinationDetails, null, 2)}</code>`;
+            }
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type}-message`;
+            messageDiv.textContent = message;
+            
+            const container = document.querySelector('.panel-content');
+            container.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Simulate A2A API request (replace with actual API calls in production)
+        async function simulateA2ARequest(url, method, headers, body) {
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+            
+            // Parse endpoint to determine response type
+            const endpoint = url.split('/api/v2/a2a')[1];
+            
+            if (Math.random() < 0.1) {
+                // Simulate 10% error rate
+                throw new Error('Agent not found or network timeout');
+            }
+            
+            // Generate realistic A2A responses based on endpoint
+            let responseData = {};
+            
+            if (endpoint.includes('swarm/init')) {
+                responseData = {
+                    swarmId: `swarm-${Date.now()}`,
+                    provider: body?.provider || 'claude-flow',
+                    topology: body?.topology || 'hierarchical',
+                    coordinators: [
+                        { agentId: 'coordinator-001', role: 'primary', status: 'active' },
+                        { agentId: 'coordinator-002', role: 'secondary', status: 'active' }
+                    ],
+                    distributedState: {
+                        replicas: [
+                            { agentId: 'replica-001', status: 'synced' },
+                            { agentId: 'replica-002', status: 'synced' },
+                            { agentId: 'replica-003', status: 'synced' }
+                        ],
+                        consistency: 'strong',
+                        lastSync: new Date().toISOString()
+                    },
+                    totalAgents: 0,
+                    status: 'initializing'
+                };
+            } else if (endpoint.includes('agents/spawn')) {
+                responseData = {
+                    agentId: `agent-${Date.now()}`,
+                    type: body?.type || 'coder',
+                    name: body?.name || `agent-${Date.now()}`,
+                    status: 'spawning',
+                    placement: {
+                        coordinatorId: 'coordinator-001',
+                        location: { region: 'us-west-2', datacenter: 'dc-01' },
+                        resources: { cpu: '2 cores', memory: '4GB' }
+                    },
+                    distributedCapabilities: body?.capabilities || ['general'],
+                    networkTopology: {
+                        neighbors: ['agent-001', 'agent-002'],
+                        hops: 2
+                    }
+                };
+            } else if (endpoint.includes('tasks/orchestrate')) {
+                responseData = {
+                    taskId: `task-${Date.now()}`,
+                    description: body?.task || 'Distributed task',
+                    status: 'orchestrating',
+                    coordination: {
+                        mode: body?.coordination?.mode || 'adaptive',
+                        participants: ['agent-001', 'agent-002', 'agent-003'],
+                        stages: [
+                            { name: 'stage-1', status: 'pending', assignedAgent: 'agent-001' },
+                            { name: 'stage-2', status: 'pending', assignedAgent: 'agent-002' }
+                        ]
+                    },
+                    distributedExecution: {
+                        totalStages: 2,
+                        completedStages: 0,
+                        activeAgents: ['agent-001', 'agent-002', 'agent-003']
+                    },
+                    estimatedCompletion: new Date(Date.now() + 300000).toISOString()
+                };
+            } else if (endpoint.includes('daa/consensus')) {
+                responseData = {
+                    consensusId: `consensus-${Date.now()}`,
+                    proposal: body?.proposal,
+                    decision: 'approved',
+                    votes: [
+                        { agentId: 'daa-leader-001', vote: 'approve', weight: 1.0, timestamp: new Date().toISOString() },
+                        { agentId: 'daa-follower-001', vote: 'approve', weight: 1.0, timestamp: new Date().toISOString() },
+                        { agentId: 'daa-follower-002', vote: 'approve', weight: 1.0, timestamp: new Date().toISOString() }
+                    ],
+                    finalTally: {
+                        approve: 3,
+                        reject: 0,
+                        abstain: 0,
+                        threshold: body?.threshold || 0.67,
+                        result: 'consensus_reached'
+                    },
+                    executionPlan: {
+                        steps: ['allocate_resources', 'notify_agents', 'begin_execution'],
+                        estimatedDuration: 180000
+                    },
+                    participantCount: 3,
+                    timestamp: new Date().toISOString()
+                };
+            } else if (endpoint.includes('neural/distributed-training')) {
+                responseData = {
+                    trainingId: `training-${Date.now()}`,
+                    modelType: body?.modelType || 'transformer',
+                    status: 'initializing',
+                    participants: body?.participants || [],
+                    progress: {
+                        currentEpoch: 0,
+                        totalEpochs: body?.hyperparameters?.epochs || 100,
+                        loss: null,
+                        accuracy: null
+                    },
+                    synchronization: {
+                        lastSync: new Date().toISOString(),
+                        syncFrequency: 5,
+                        pendingUpdates: 0
+                    },
+                    participantCount: body?.participants?.length || 3
+                };
+            }
+            
+            return {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-A2A-Request-Id': `req-${Date.now()}`,
+                    'X-A2A-Coordination-Mode': body?.coordination?.mode || 'direct',
+                    'X-A2A-Processing-Time': `${Math.floor(Math.random() * 100) + 50}ms`
+                },
+                data: responseData
+            };
+        }
+
+        // Update cURL command when inputs change
+        [methodSelect, endpointInput, headersTextarea, bodyTextarea].forEach(element => {
+            element.addEventListener('input', generateCurlCommand);
+        });
+
+        // Initialize with first example
+        document.querySelector('.example-item').click();
+    </script>
+</body>
+</html>
