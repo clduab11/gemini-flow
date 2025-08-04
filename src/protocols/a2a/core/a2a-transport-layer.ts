@@ -7,6 +7,11 @@
  */
 
 import { EventEmitter } from 'events';
+import * as http from 'http';
+import * as http2 from 'http2';
+import * as net from 'net';
+import * as tls from 'tls';
+import * as crypto from 'crypto';
 import {
   TransportProtocol,
   TransportConfig,
@@ -18,6 +23,46 @@ import {
   A2AErrorType
 } from '../../../types/a2a.js';
 import { Logger } from '../../../utils/logger.js';
+
+// WebSocket polyfill for Node.js environments
+let WebSocket: any;
+try {
+  WebSocket = require('ws');
+} catch (error) {
+  // WebSocket not available, will handle gracefully
+}
+
+/**
+ * Message frame structure for binary protocols
+ */
+interface MessageFrame {
+  version: number;
+  type: 'message' | 'notification' | 'response' | 'ping' | 'pong';
+  flags: number;
+  payloadLength: number;
+  payload: Buffer;
+}
+
+/**
+ * Connection state for reconnection logic
+ */
+interface ConnectionState {
+  isReconnecting: boolean;
+  reconnectAttempts: number;
+  lastReconnectTime: number;
+  maxReconnectAttempts: number;
+  backoffMultiplier: number;
+}
+
+/**
+ * Protocol-specific connection handlers
+ */
+interface ProtocolHandlers {
+  websocket?: Map<string, any>;
+  http2?: Map<string, http2.ClientHttp2Session>;
+  tcp?: Map<string, net.Socket>;
+  activeHandles?: Map<string, any>;
+}
 
 /**
  * Transport connection interface
@@ -173,6 +218,8 @@ export class A2ATransportLayer extends EventEmitter {
   private isInitialized: boolean = false;
   private connectionPool: ConnectionPool = new ConnectionPool();
   private supportedProtocols: Set<TransportProtocol> = new Set();
+  private protocolHandlers: ProtocolHandlers = {};
+  private connectionStates: Map<string, ConnectionState> = new Map();
 
   // Metrics tracking
   private metrics: {
@@ -636,16 +683,21 @@ export class A2ATransportLayer extends EventEmitter {
         await this.establishHttpConnection(connection);
         break;
       case 'grpc':
-        await this.establishGrpcConnection(connection);
+        // gRPC is handled as HTTP/2 with specific headers
+        await this.establishHttpConnection(connection);
         break;
       case 'tcp':
         await this.establishTcpConnection(connection);
         break;
       default:
-        throw new Error(`Protocol not implemented: ${config.protocol}`);
+        throw this.createTransportError('protocol_error', `Protocol not implemented: ${config.protocol}`);
     }
 
     connection.isConnected = true;
+    
+    // Initialize connection state for reconnection
+    this.initializeConnectionState(connection.id);
+    
     return connection;
   }
 
@@ -655,18 +707,60 @@ export class A2ATransportLayer extends EventEmitter {
   private async establishWebSocketConnection(connection: TransportConnection): Promise<void> {
     const config = connection.config;
     
-    // Simulate WebSocket connection establishment
+    if (!WebSocket) {
+      throw this.createTransportError('protocol_error', 'WebSocket not available. Install ws package: npm install ws');
+    }
+    
     const url = `${config.secure ? 'wss' : 'ws'}://${config.host}:${config.port}${config.path || ''}`;
     
     this.logger.debug('Establishing WebSocket connection', { url });
 
-    // In a real implementation, this would create an actual WebSocket connection
-    await this.simulateConnectionDelay(config);
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(url, {
+        handshakeTimeout: config.timeout || 30000,
+        ...(config.tls && {
+          ca: config.tls.ca,
+          cert: config.tls.cert,
+          key: config.tls.key,
+          rejectUnauthorized: config.tls.rejectUnauthorized
+        })
+      });
 
-    // Handle authentication if specified
-    if (config.auth && config.auth.type !== 'none') {
-      await this.handleAuthentication(connection);
-    }
+      const timeout = setTimeout(() => {
+        ws.terminate();
+        reject(this.createTransportError('timeout_error', 'WebSocket connection timeout'));
+      }, config.timeout || 30000);
+
+      ws.on('open', async () => {
+        clearTimeout(timeout);
+        
+        try {
+          // Handle authentication if specified
+          if (config.auth && config.auth.type !== 'none') {
+            await this.handleAuthentication(connection);
+          }
+          
+          // Store WebSocket instance
+          if (!this.protocolHandlers.websocket) {
+            this.protocolHandlers.websocket = new Map();
+          }
+          this.protocolHandlers.websocket.set(connection.id, ws);
+          
+          // Set up event listeners
+          this.setupWebSocketListeners(connection, ws);
+          
+          resolve();
+        } catch (error) {
+          ws.terminate();
+          reject(error);
+        }
+      });
+
+      ws.on('error', (error: Error) => {
+        clearTimeout(timeout);
+        reject(this.createTransportError('routing_error', `WebSocket error: ${error.message}`));
+      });
+    });
   }
 
   /**
@@ -675,45 +769,56 @@ export class A2ATransportLayer extends EventEmitter {
   private async establishHttpConnection(connection: TransportConnection): Promise<void> {
     const config = connection.config;
     
-    this.logger.debug('Establishing HTTP connection', {
+    this.logger.debug('Establishing HTTP/2 connection', {
       host: config.host,
       port: config.port,
       secure: config.secure
     });
 
-    // In a real implementation, this would set up HTTP client/connection pool
-    await this.simulateConnectionDelay(config);
+    return new Promise((resolve, reject) => {
+      const url = `${config.secure ? 'https' : 'http'}://${config.host}:${config.port}`;
+      
+      const sessionOptions: http2.ClientSessionOptions = {};
+      
+      // TLS options are handled by the URL scheme (https:// vs http://)
 
-    // Handle TLS configuration
-    if (config.secure && config.tls) {
-      await this.handleTlsConfiguration(connection);
-    }
+      const session = http2.connect(url, sessionOptions);
+      
+      const timeout = setTimeout(() => {
+        session.destroy();
+        reject(this.createTransportError('timeout_error', 'HTTP/2 connection timeout'));
+      }, config.timeout || 30000);
 
-    // Handle authentication
-    if (config.auth && config.auth.type !== 'none') {
-      await this.handleAuthentication(connection);
-    }
-  }
+      session.on('connect', async () => {
+        clearTimeout(timeout);
+        
+        try {
+          // Handle authentication if specified
+          if (config.auth && config.auth.type !== 'none') {
+            await this.handleAuthentication(connection);
+          }
+          
+          // Store HTTP/2 session
+          if (!this.protocolHandlers.http2) {
+            this.protocolHandlers.http2 = new Map();
+          }
+          this.protocolHandlers.http2.set(connection.id, session);
+          
+          // Set up session event listeners
+          this.setupHttp2Listeners(connection, session);
+          
+          resolve();
+        } catch (error) {
+          session.destroy();
+          reject(error);
+        }
+      });
 
-  /**
-   * Establish gRPC connection
-   */
-  private async establishGrpcConnection(connection: TransportConnection): Promise<void> {
-    const config = connection.config;
-    
-    this.logger.debug('Establishing gRPC connection', {
-      host: config.host,
-      port: config.port,
-      secure: config.secure
+      session.on('error', (error: Error) => {
+        clearTimeout(timeout);
+        reject(this.createTransportError('routing_error', `HTTP/2 error: ${error.message}`));
+      });
     });
-
-    // In a real implementation, this would create a gRPC channel
-    await this.simulateConnectionDelay(config);
-
-    // Handle authentication (OAuth2, certificates, etc.)
-    if (config.auth && config.auth.type !== 'none') {
-      await this.handleAuthentication(connection);
-    }
   }
 
   /**
@@ -724,16 +829,69 @@ export class A2ATransportLayer extends EventEmitter {
     
     this.logger.debug('Establishing TCP connection', {
       host: config.host,
-      port: config.port
+      port: config.port,
+      secure: config.secure
     });
 
-    // In a real implementation, this would create a TCP socket
-    await this.simulateConnectionDelay(config);
+    return new Promise((resolve, reject) => {
+      let socket: net.Socket;
+      
+      if (config.secure) {
+        socket = tls.connect({
+          host: config.host,
+          port: config.port || 443,
+          ...(config.tls && {
+            ca: config.tls.ca,
+            cert: config.tls.cert,
+            key: config.tls.key,
+            rejectUnauthorized: config.tls.rejectUnauthorized
+          })
+        });
+      } else {
+        socket = new net.Socket();
+        socket.connect(config.port || 80, config.host!);
+      }
+      
+      const timeout = setTimeout(() => {
+        socket.destroy();
+        reject(this.createTransportError('timeout_error', 'TCP connection timeout'));
+      }, config.timeout || 30000);
 
-    // Handle keepalive settings
-    if (config.keepAlive) {
-      // Configure TCP keepalive
-    }
+      socket.on('connect', async () => {
+        clearTimeout(timeout);
+        
+        try {
+          // Configure keepalive
+          if (config.keepAlive) {
+            socket.setKeepAlive(true, 60000); // 60 second keepalive
+          }
+          
+          // Handle authentication if specified
+          if (config.auth && config.auth.type !== 'none') {
+            await this.handleAuthentication(connection);
+          }
+          
+          // Store TCP socket
+          if (!this.protocolHandlers.tcp) {
+            this.protocolHandlers.tcp = new Map();
+          }
+          this.protocolHandlers.tcp.set(connection.id, socket);
+          
+          // Set up socket event listeners
+          this.setupTcpListeners(connection, socket);
+          
+          resolve();
+        } catch (error) {
+          socket.destroy();
+          reject(error);
+        }
+      });
+
+      socket.on('error', (error: Error) => {
+        clearTimeout(timeout);
+        reject(this.createTransportError('routing_error', `TCP error: ${error.message}`));
+      });
+    });
   }
 
   /**
@@ -783,10 +941,53 @@ export class A2ATransportLayer extends EventEmitter {
     connection: TransportConnection,
     message: A2AMessage
   ): Promise<A2AResponse> {
-    // In a real implementation, this would send over WebSocket
-    await this.simulateNetworkDelay();
-    
-    return this.createMockResponse(message);
+    const ws = this.protocolHandlers.websocket?.get(connection.id);
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      throw this.createTransportError('routing_error', 'WebSocket connection not available');
+    }
+
+    return new Promise((resolve, reject) => {
+      const messageId = message.id || crypto.randomUUID();
+      const serializedMessage = JSON.stringify({ ...message, id: messageId });
+      
+      // Set up response handler
+      const responseHandler = (data: Buffer) => {
+        try {
+          const response = JSON.parse(data.toString()) as A2AResponse;
+          if (response.id === messageId) {
+            ws.off('message', responseHandler);
+            clearTimeout(timeout);
+            
+            connection.messagesReceived++;
+            connection.lastActivity = Date.now();
+            connection.bytesTransferred += data.length;
+            
+            resolve(response);
+          }
+        } catch (error) {
+          // Ignore parsing errors for messages not meant for us
+        }
+      };
+      
+      const timeout = setTimeout(() => {
+        ws.off('message', responseHandler);
+        reject(this.createTransportError('timeout_error', 'WebSocket message timeout'));
+      }, connection.config.timeout || this.defaultTimeout);
+      
+      ws.on('message', responseHandler);
+      
+      ws.send(serializedMessage, (error: Error | undefined) => {
+        if (error) {
+          ws.off('message', responseHandler);
+          clearTimeout(timeout);
+          reject(this.createTransportError('routing_error', `WebSocket send error: ${error.message}`));
+        } else {
+          connection.messagesSent++;
+          connection.lastActivity = Date.now();
+          connection.bytesTransferred += Buffer.byteLength(serializedMessage);
+        }
+      });
+    });
   }
 
   /**
@@ -796,15 +997,68 @@ export class A2ATransportLayer extends EventEmitter {
     connection: TransportConnection,
     message: A2AMessage
   ): Promise<A2AResponse> {
-    // In a real implementation, this would make HTTP request
-    await this.simulateNetworkDelay();
-    
-    // Simulate potential HTTP errors
-    if (Math.random() < 0.05) { // 5% error rate
-      throw this.createTransportError('routing_error', 'HTTP request failed');
+    const session = this.protocolHandlers.http2?.get(connection.id);
+    if (!session || session.destroyed) {
+      throw this.createTransportError('routing_error', 'HTTP/2 session not available');
     }
-    
-    return this.createMockResponse(message);
+
+    return new Promise((resolve, reject) => {
+      const serializedMessage = JSON.stringify(message);
+      const headers = {
+        ':method': 'POST',
+        ':path': connection.config.path || '/a2a',
+        'content-type': 'application/json',
+        'content-length': Buffer.byteLength(serializedMessage),
+        ...(connection.config.auth?.type === 'token' && {
+          'authorization': `Bearer ${connection.config.auth.credentials?.token}`
+        })
+      };
+      
+      const req = session.request(headers);
+      let responseData = '';
+      
+      const timeout = setTimeout(() => {
+        req.destroy();
+        reject(this.createTransportError('timeout_error', 'HTTP/2 request timeout'));
+      }, connection.config.timeout || this.defaultTimeout);
+      
+      req.on('response', (headers) => {
+        const status = headers[':status'] as number;
+        if (status !== 200) {
+          clearTimeout(timeout);
+          reject(this.createTransportError('routing_error', `HTTP error ${status}`));
+          return;
+        }
+      });
+      
+      req.on('data', (chunk) => {
+        responseData += chunk;
+      });
+      
+      req.on('end', () => {
+        clearTimeout(timeout);
+        try {
+          const response = JSON.parse(responseData) as A2AResponse;
+          
+          connection.messagesSent++;
+          connection.messagesReceived++;
+          connection.lastActivity = Date.now();
+          connection.bytesTransferred += Buffer.byteLength(serializedMessage) + Buffer.byteLength(responseData);
+          
+          resolve(response);
+        } catch (error) {
+          reject(this.createTransportError('serialization_error', 'Invalid JSON response'));
+        }
+      });
+      
+      req.on('error', (error: Error) => {
+        clearTimeout(timeout);
+        reject(this.createTransportError('routing_error', `HTTP/2 request error: ${error.message}`));
+      });
+      
+      req.write(serializedMessage);
+      req.end();
+    });
   }
 
   /**
@@ -814,10 +1068,8 @@ export class A2ATransportLayer extends EventEmitter {
     connection: TransportConnection,
     message: A2AMessage
   ): Promise<A2AResponse> {
-    // In a real implementation, this would make gRPC call
-    await this.simulateNetworkDelay();
-    
-    return this.createMockResponse(message);
+    // gRPC is handled as HTTP/2 with specific headers and content-type
+    return this.sendHttpMessage(connection, message);
   }
 
   /**
@@ -827,10 +1079,60 @@ export class A2ATransportLayer extends EventEmitter {
     connection: TransportConnection,
     message: A2AMessage
   ): Promise<A2AResponse> {
-    // In a real implementation, this would send over TCP socket
-    await this.simulateNetworkDelay();
-    
-    return this.createMockResponse(message);
+    const socket = this.protocolHandlers.tcp?.get(connection.id);
+    if (!socket || socket.destroyed) {
+      throw this.createTransportError('routing_error', 'TCP socket not available');
+    }
+
+    return new Promise((resolve, reject) => {
+      const messageId = message.id || crypto.randomUUID();
+      const serializedMessage = JSON.stringify({ ...message, id: messageId });
+      const frame = this.createMessageFrame('message', Buffer.from(serializedMessage));
+      
+      // Set up response handler
+      const responseHandler = (data: Buffer) => {
+        try {
+          const frames = this.parseMessageFrames(data);
+          for (const frameData of frames) {
+            if (frameData.type === 'response') {
+              const response = JSON.parse(frameData.payload.toString()) as A2AResponse;
+              if (response.id === messageId) {
+                socket.off('data', responseHandler);
+                clearTimeout(timeout);
+                
+                connection.messagesReceived++;
+                connection.lastActivity = Date.now();
+                connection.bytesTransferred += data.length;
+                
+                resolve(response);
+                return;
+              }
+            }
+          }
+        } catch (error) {
+          // Ignore parsing errors for partial frames or other messages
+        }
+      };
+      
+      const timeout = setTimeout(() => {
+        socket.off('data', responseHandler);
+        reject(this.createTransportError('timeout_error', 'TCP message timeout'));
+      }, connection.config.timeout || this.defaultTimeout);
+      
+      socket.on('data', responseHandler);
+      
+      socket.write(frame, (error?: Error | null) => {
+        if (error) {
+          socket.off('data', responseHandler);
+          clearTimeout(timeout);
+          reject(this.createTransportError('routing_error', `TCP send error: ${error.message}`));
+        } else {
+          connection.messagesSent++;
+          connection.lastActivity = Date.now();
+          connection.bytesTransferred += frame.length;
+        }
+      });
+    });
   }
 
   /**
@@ -1047,5 +1349,238 @@ export class A2ATransportLayer extends EventEmitter {
   private async simulateNetworkDelay(): Promise<void> {
     const delay = 10 + Math.random() * 90; // 10-100ms delay
     await new Promise(resolve => setTimeout(resolve, delay));
+  }
+
+  /**
+   * Create message frame for binary protocols
+   */
+  private createMessageFrame(type: MessageFrame['type'], payload: Buffer): Buffer {
+    const version = 1;
+    const flags = 0;
+    const payloadLength = payload.length;
+    
+    // Frame format: [version:1][type:1][flags:1][payloadLength:4][payload:n]
+    const header = Buffer.allocUnsafe(7);
+    header.writeUInt8(version, 0);
+    header.writeUInt8(this.getTypeCode(type), 1);
+    header.writeUInt8(flags, 2);
+    header.writeUInt32BE(payloadLength, 3);
+    
+    return Buffer.concat([header, payload]);
+  }
+
+  /**
+   * Parse message frames from binary data
+   */
+  private parseMessageFrames(data: Buffer): MessageFrame[] {
+    const frames: MessageFrame[] = [];
+    let offset = 0;
+    
+    while (offset < data.length) {
+      if (data.length - offset < 7) {
+        // Not enough data for a complete header
+        break;
+      }
+      
+      const version = data.readUInt8(offset);
+      const typeCode = data.readUInt8(offset + 1);
+      const flags = data.readUInt8(offset + 2);
+      const payloadLength = data.readUInt32BE(offset + 3);
+      
+      if (data.length - offset < 7 + payloadLength) {
+        // Not enough data for the complete frame
+        break;
+      }
+      
+      const payload = data.subarray(offset + 7, offset + 7 + payloadLength);
+      
+      frames.push({
+        version,
+        type: this.getTypeFromCode(typeCode),
+        flags,
+        payloadLength,
+        payload
+      });
+      
+      offset += 7 + payloadLength;
+    }
+    
+    return frames;
+  }
+
+  /**
+   * Get type code for message type
+   */
+  private getTypeCode(type: MessageFrame['type']): number {
+    const typeCodes = {
+      'message': 1,
+      'notification': 2,
+      'response': 3,
+      'ping': 4,
+      'pong': 5
+    };
+    return typeCodes[type] || 0;
+  }
+
+  /**
+   * Get message type from code
+   */
+  private getTypeFromCode(code: number): MessageFrame['type'] {
+    const types: MessageFrame['type'][] = ['message', 'message', 'notification', 'response', 'ping', 'pong'];
+    return types[code] || 'message';
+  }
+
+  /**
+   * Set up WebSocket event listeners
+   */
+  private setupWebSocketListeners(connection: TransportConnection, ws: any): void {
+    ws.on('close', () => {
+      this.handleConnectionClose(connection);
+    });
+    
+    ws.on('error', (error: Error) => {
+      this.logger.error('WebSocket error', { connectionId: connection.id, error: error.message });
+      connection.errors++;
+      this.handleConnectionError(connection, error);
+    });
+    
+    ws.on('ping', () => {
+      ws.pong();
+    });
+  }
+
+  /**
+   * Set up HTTP/2 session event listeners
+   */
+  private setupHttp2Listeners(connection: TransportConnection, session: http2.ClientHttp2Session): void {
+    session.on('close', () => {
+      this.handleConnectionClose(connection);
+    });
+    
+    session.on('error', (error: Error) => {
+      this.logger.error('HTTP/2 session error', { connectionId: connection.id, error: error.message });
+      connection.errors++;
+      this.handleConnectionError(connection, error);
+    });
+    
+    session.on('goaway', (errorCode, lastStreamID, opaqueData) => {
+      this.logger.warn('HTTP/2 GOAWAY received', { connectionId: connection.id, errorCode });
+      this.handleConnectionClose(connection);
+    });
+  }
+
+  /**
+   * Set up TCP socket event listeners
+   */
+  private setupTcpListeners(connection: TransportConnection, socket: net.Socket): void {
+    socket.on('close', () => {
+      this.handleConnectionClose(connection);
+    });
+    
+    socket.on('error', (error: Error) => {
+      this.logger.error('TCP socket error', { connectionId: connection.id, error: error.message });
+      connection.errors++;
+      this.handleConnectionError(connection, error);
+    });
+    
+    socket.on('timeout', () => {
+      this.logger.warn('TCP socket timeout', { connectionId: connection.id });
+      socket.destroy();
+    });
+  }
+
+  /**
+   * Handle connection close
+   */
+  private handleConnectionClose(connection: TransportConnection): void {
+    connection.isConnected = false;
+    this.logger.debug('Connection closed', { connectionId: connection.id });
+    this.emit('connectionClosed', connection);
+    
+    // Attempt reconnection if configured
+    this.scheduleReconnection(connection);
+  }
+
+  /**
+   * Handle connection error
+   */
+  private handleConnectionError(connection: TransportConnection, error: Error): void {
+    this.emit('connectionError', { connection, error });
+    
+    // Attempt reconnection for retryable errors
+    if (this.isRetryableError(error)) {
+      this.scheduleReconnection(connection);
+    }
+  }
+
+  /**
+   * Schedule connection reconnection
+   */
+  private scheduleReconnection(connection: TransportConnection): void {
+    const state = this.connectionStates.get(connection.id);
+    if (!state || state.isReconnecting || state.reconnectAttempts >= state.maxReconnectAttempts) {
+      return;
+    }
+    
+    state.isReconnecting = true;
+    state.reconnectAttempts++;
+    
+    const delay = Math.min(
+      1000 * Math.pow(state.backoffMultiplier, state.reconnectAttempts - 1),
+      30000 // Max 30 seconds
+    );
+    
+    setTimeout(async () => {
+      try {
+        await this.reconnectConnection(connection);
+        state.isReconnecting = false;
+        state.reconnectAttempts = 0;
+        state.lastReconnectTime = Date.now();
+      } catch (error) {
+        state.isReconnecting = false;
+        this.logger.warn('Reconnection failed', { 
+          connectionId: connection.id, 
+          attempt: state.reconnectAttempts,
+          error: (error as Error).message 
+        });
+        
+        // Schedule another attempt if we haven't exceeded the limit
+        if (state.reconnectAttempts < state.maxReconnectAttempts) {
+          this.scheduleReconnection(connection);
+        }
+      }
+    }, delay);
+  }
+
+  /**
+   * Reconnect a connection
+   */
+  private async reconnectConnection(connection: TransportConnection): Promise<void> {
+    this.logger.info('Attempting to reconnect', { connectionId: connection.id });
+    
+    // Clean up old connection
+    await this.closeConnection(connection.id);
+    
+    // Re-establish connection
+    const newConnection = await this.establishConnection(connection.agentId!, connection.config);
+    
+    // Update connection pool
+    this.connectionPool.removeConnection(connection.id);
+    this.connectionPool.addConnection(newConnection);
+    
+    this.emit('connectionReconnected', newConnection);
+  }
+
+  /**
+   * Initialize connection state for reconnection
+   */
+  private initializeConnectionState(connectionId: string): void {
+    this.connectionStates.set(connectionId, {
+      isReconnecting: false,
+      reconnectAttempts: 0,
+      lastReconnectTime: 0,
+      maxReconnectAttempts: this.maxRetries,
+      backoffMultiplier: 2
+    });
   }
 }

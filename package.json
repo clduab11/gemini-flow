@@ -1,6 +1,6 @@
 {
   "name": "@clduab11/gemini-flow",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Gemini Flow - Simple AI assistant CLI powered by Google Gemini",
   "type": "module",
   "main": "dist/index.js",
@@ -50,6 +50,10 @@
     "install:memory": "npm install better-sqlite3 sqlite3",
     "install:mcp": "npm install @modelcontextprotocol/sdk",
     "install:full": "npm install @google-cloud/vertexai @google-cloud/aiplatform googleapis google-auth-library better-sqlite3 sqlite3 @modelcontextprotocol/sdk",
+    "extension:build": "cd extensions/vscode-gemini-flow && npm run compile",
+    "extension:watch": "cd extensions/vscode-gemini-flow && npm run watch",
+    "extension:package": "cd extensions/vscode-gemini-flow && npm run package",
+    "extension:install": "cd extensions/vscode-gemini-flow && npm install",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
@@ -86,6 +90,7 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.28.0",
     "@types/inquirer": "^9.0.8",
     "@types/jest": "^29.5.14",
     "@types/node": "^24.1.0",
@@ -101,14 +106,14 @@
     "node": ">=18.0.0"
   },
   "optionalDependencies": {
-    "@google-cloud/vertexai": "^1.4.0",
     "@google-cloud/aiplatform": "^3.12.0",
+    "@google-cloud/vertexai": "^1.4.0",
+    "@modelcontextprotocol/sdk": "^0.1.0",
+    "better-sqlite3": "^9.2.2",
     "google-auth-library": "^9.4.0",
     "googleapis": "^131.0.0",
-    "better-sqlite3": "^9.2.2",
-    "sqlite3": "^5.1.6",
     "sql.js": "^1.8.0",
-    "@modelcontextprotocol/sdk": "^0.1.0"
+    "sqlite3": "^5.1.6"
   },
   "geminiFlow": {
     "mode": "dual",
@@ -121,12 +126,18 @@
       "vertexAi": {
         "enabled": false,
         "mode": "auto",
-        "dependencies": ["@google-cloud/vertexai", "@google-cloud/aiplatform"]
+        "dependencies": [
+          "@google-cloud/vertexai",
+          "@google-cloud/aiplatform"
+        ]
       },
       "googleWorkspace": {
         "enabled": false,
         "mode": "auto",
-        "dependencies": ["googleapis", "google-auth-library"]
+        "dependencies": [
+          "googleapis",
+          "google-auth-library"
+        ]
       },
       "deepmind": {
         "enabled": false,
@@ -140,7 +151,9 @@
       "mcpProtocol": {
         "enabled": false,
         "mode": "auto",
-        "dependencies": ["@modelcontextprotocol/sdk"]
+        "dependencies": [
+          "@modelcontextprotocol/sdk"
+        ]
       },
       "quantumHybrid": {
         "enabled": false,

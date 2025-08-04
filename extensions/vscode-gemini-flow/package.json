@@ -1,0 +1,379 @@
+{
+  "name": "vscode-gemini-flow",
+  "displayName": "Gemini Flow Code Assist",
+  "description": "Advanced AI-powered code assistant with Gemini Code Assist integration, A2A protocols, and multi-agent orchestration",
+  "version": "1.1.0",
+  "publisher": "gemini-flow",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clduab11/gemini-flow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/clduab11/gemini-flow/issues"
+  },
+  "homepage": "https://github.com/clduab11/gemini-flow#readme",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "AI",
+    "Machine Learning",
+    "Productivity Tools",
+    "Code Assistance",
+    "Snippets",
+    "Formatters",
+    "Linters"
+  ],
+  "keywords": [
+    "gemini",
+    "ai",
+    "code-assist",
+    "google",
+    "completion",
+    "documentation",
+    "refactoring",
+    "a2a",
+    "mcp",
+    "multi-agent"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:gemini-flow.activate",
+    "onCommand:gemini-flow.configure",
+    "onCommand:gemini-flow.explain",
+    "onCommand:gemini-flow.refactor",
+    "onCommand:gemini-flow.generate",
+    "onCommand:gemini-flow.optimize",
+    "onCommand:gemini-flow.document",
+    "onCommand:gemini-flow.chat",
+    "onCommand:gemini-flow.swarm.orchestrate",
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:python",
+    "onLanguage:java",
+    "onLanguage:go",
+    "onLanguage:rust",
+    "onLanguage:cpp",
+    "onLanguage:csharp",
+    "onLanguage:php",
+    "onLanguage:ruby"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gemini-flow.activate",
+        "title": "Activate Gemini Flow",
+        "category": "Gemini Flow"
+      },
+      {
+        "command": "gemini-flow.configure",
+        "title": "Configure Gemini Flow",
+        "category": "Gemini Flow"
+      },
+      {
+        "command": "gemini-flow.explain",
+        "title": "Explain Code",
+        "category": "Gemini Flow",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "gemini-flow.refactor",
+        "title": "Suggest Refactoring",
+        "category": "Gemini Flow",
+        "icon": "$(wrench)"
+      },
+      {
+        "command": "gemini-flow.generate",
+        "title": "Generate Code",
+        "category": "Gemini Flow",
+        "icon": "$(add)"
+      },
+      {
+        "command": "gemini-flow.optimize",
+        "title": "Optimize Code",
+        "category": "Gemini Flow",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "gemini-flow.document",
+        "title": "Generate Documentation",
+        "category": "Gemini Flow",
+        "icon": "$(book)"
+      },
+      {
+        "command": "gemini-flow.chat",
+        "title": "Open Gemini Chat",
+        "category": "Gemini Flow",
+        "icon": "$(comment)"
+      },
+      {
+        "command": "gemini-flow.swarm.orchestrate",
+        "title": "Orchestrate Multi-Agent Task",
+        "category": "Gemini Flow",
+        "icon": "$(organization)"
+      },
+      {
+        "command": "gemini-flow.a2a.connect",
+        "title": "Connect A2A Protocol",
+        "category": "Gemini Flow A2A"
+      },
+      {
+        "command": "gemini-flow.mcp.connect",
+        "title": "Connect MCP Server",
+        "category": "Gemini Flow MCP"
+      },
+      {
+        "command": "gemini-flow.workspace.analyze",
+        "title": "Analyze Workspace",
+        "category": "Gemini Flow"
+      },
+      {
+        "command": "gemini-flow.security.scan",
+        "title": "Security Scan",
+        "category": "Gemini Flow"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "gemini-flow.explain",
+          "when": "editorHasSelection",
+          "group": "gemini-flow@1"
+        },
+        {
+          "command": "gemini-flow.refactor",
+          "when": "editorHasSelection",
+          "group": "gemini-flow@2"
+        },
+        {
+          "command": "gemini-flow.optimize",
+          "when": "editorHasSelection",
+          "group": "gemini-flow@3"
+        },
+        {
+          "command": "gemini-flow.document",
+          "when": "editorHasSelection",
+          "group": "gemini-flow@4"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "gemini-flow.workspace.analyze",
+          "when": "explorerResourceIsFolder",
+          "group": "gemini-flow@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "gemini-flow.activate",
+          "when": "true"
+        },
+        {
+          "command": "gemini-flow.configure",
+          "when": "true"
+        },
+        {
+          "command": "gemini-flow.explain",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "gemini-flow.refactor",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "gemini-flow.generate",
+          "when": "true"
+        },
+        {
+          "command": "gemini-flow.optimize",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "gemini-flow.document",
+          "when": "true"
+        },
+        {
+          "command": "gemini-flow.chat",
+          "when": "true"
+        },
+        {
+          "command": "gemini-flow.swarm.orchestrate",
+          "when": "true"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "gemini-flow.explain",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "gemini-flow.refactor",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "gemini-flow.generate",
+        "key": "ctrl+alt+g",
+        "mac": "cmd+alt+g",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "gemini-flow.chat",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
+        "when": "true"
+      }
+    ],
+    "configuration": {
+      "title": "Gemini Flow",
+      "properties": {
+        "gemini-flow.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable Gemini Flow extension"
+        },
+        "gemini-flow.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Google Gemini API key"
+        },
+        "gemini-flow.model": {
+          "type": "string",
+          "default": "gemini-1.5-pro",
+          "enum": [
+            "gemini-1.5-pro",
+            "gemini-1.5-flash",
+            "gemini-pro",
+            "gemini-flash"
+          ],
+          "description": "Gemini model to use"
+        },
+        "gemini-flow.autoComplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable auto-completion suggestions"
+        },
+        "gemini-flow.inlineDocumentation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline documentation generation"
+        },
+        "gemini-flow.codeExplanation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable code explanation features"
+        },
+        "gemini-flow.refactoringSuggestions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable refactoring suggestions"
+        },
+        "gemini-flow.streamingMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable streaming responses for better UX"
+        },
+        "gemini-flow.contextWindow": {
+          "type": "number",
+          "default": 32768,
+          "description": "Context window size for AI processing"
+        },
+        "gemini-flow.a2a.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable A2A protocol communication"
+        },
+        "gemini-flow.a2a.endpoint": {
+          "type": "string",
+          "default": "ws://localhost:8080/a2a",
+          "description": "A2A protocol endpoint"
+        },
+        "gemini-flow.mcp.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable MCP protocol communication"
+        },
+        "gemini-flow.mcp.servers": {
+          "type": "array",
+          "default": [],
+          "description": "List of MCP servers to connect to"
+        },
+        "gemini-flow.swarm.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable multi-agent swarm orchestration"
+        },
+        "gemini-flow.security.scanEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable security scanning features"
+        },
+        "gemini-flow.telemetry.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable telemetry and usage analytics"
+        }
+      }
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "gemini-flow-explorer",
+          "name": "Gemini Flow",
+          "when": "gemini-flow:activated"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gemini-flow",
+          "title": "Gemini Flow",
+          "icon": "$(robot)"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "gemini-flow-output",
+        "aliases": ["Gemini Flow Output"],
+        "mimetypes": ["text/x-gemini-flow-output"]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^20.0.0",
+    "@types/mocha": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.40.0",
+    "mocha": "^10.0.0",
+    "typescript": "^5.0.0",
+    "@vscode/test-electron": "^2.3.0",
+    "@vscode/vsce": "^2.19.0"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@modelcontextprotocol/sdk": "^0.1.0",
+    "ws": "^8.13.0",
+    "uuid": "^9.0.0",
+    "axios": "^1.4.0"
+  }
+}
