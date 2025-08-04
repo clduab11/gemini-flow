@@ -51,7 +51,9 @@ export async function detectSQLiteImplementations(): Promise<SQLiteDetectionResu
 
   // Test better-sqlite3 (highest performance)
   try {
-    const BetterSqlite3 = (await import('better-sqlite3')).default;
+    // @ts-ignore - Optional dependency
+    const betterSqlite3Module = await import('better-sqlite3');
+    const BetterSqlite3 = betterSqlite3Module.default;
     // Test basic functionality
     const testDb = new BetterSqlite3(':memory:');
     testDb.exec('CREATE TABLE test (id INTEGER)');
@@ -64,6 +66,7 @@ export async function detectSQLiteImplementations(): Promise<SQLiteDetectionResu
 
   // Test sqlite3 (Node.js standard)
   try {
+    // @ts-ignore - Optional dependency
     await import('sqlite3');
     result.available.push('sqlite3');
     if (result.recommended === 'sql.js') {
@@ -75,6 +78,7 @@ export async function detectSQLiteImplementations(): Promise<SQLiteDetectionResu
 
   // Test sql.js (always available WASM)
   try {
+    // @ts-ignore - Optional dependency
     await import('sql.js');
     result.available.push('sql.js');
   } catch (error) {
@@ -120,7 +124,9 @@ export async function createSQLiteDatabase(
  * Better-SQLite3 adapter implementation
  */
 async function createBetterSQLite3Database(dbPath: string): Promise<SQLiteDatabase> {
-  const BetterSqlite3 = (await import('better-sqlite3')).default;
+  // @ts-ignore - Optional dependency
+  const betterSqlite3Module = await import('better-sqlite3');
+  const BetterSqlite3 = betterSqlite3Module.default;
   const db = new BetterSqlite3(dbPath);
   
   return {
@@ -162,7 +168,9 @@ async function createBetterSQLite3Database(dbPath: string): Promise<SQLiteDataba
  * SQLite3 adapter implementation
  */
 async function createSQLite3Database(dbPath: string): Promise<SQLiteDatabase> {
-  const { default: sqlite3 } = await import('sqlite3');
+  // @ts-ignore - Optional dependency
+  const sqlite3Module = await import('sqlite3');
+  const sqlite3 = sqlite3Module.default;
   const db = new sqlite3.Database(dbPath);
   
   return {
@@ -223,7 +231,9 @@ async function createSQLite3Database(dbPath: string): Promise<SQLiteDatabase> {
  * SQL.js WASM adapter implementation
  */
 async function createSqlJsDatabase(dbPath: string): Promise<SQLiteDatabase> {
-  const { default: initSqlJs } = await import('sql.js');
+  // @ts-ignore - Optional dependency
+  const sqlJsModule = await import('sql.js');
+  const initSqlJs = sqlJsModule.default;
   const fs = await import('fs');
   const path = await import('path');
   

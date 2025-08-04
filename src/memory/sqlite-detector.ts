@@ -102,6 +102,7 @@ export class SQLiteDetector {
     const startTime = Date.now();
     
     try {
+      // @ts-ignore - Optional dependency
       const Database = await import('better-sqlite3');
       const db = new Database.default(':memory:');
       
@@ -130,6 +131,7 @@ export class SQLiteDetector {
     const startTime = Date.now();
     
     try {
+      // @ts-ignore - Optional dependency
       const sqlite3 = await import('sqlite3');
       const Database = sqlite3.default.Database;
       
@@ -179,6 +181,7 @@ export class SQLiteDetector {
     const startTime = Date.now();
     
     try {
+      // @ts-ignore - Optional dependency
       const initSqlJs = await import('sql.js');
       const SQL = await initSqlJs.default();
       

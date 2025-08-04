@@ -541,7 +541,7 @@ export class A2AProtocolManager extends EventEmitter {
    */
   private async processMessage(queuedMessage: QueuedMessage): Promise<void> {
     const startTime = Date.now();
-    const messageId = queuedMessage.message.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const messageId = String(queuedMessage.message.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
     
     this.activeMessages.set(messageId, queuedMessage);
 
@@ -636,7 +636,7 @@ export class A2AProtocolManager extends EventEmitter {
     const errorType = this.getErrorType(error);
     this.trackError(errorType);
 
-    const a2aError = error instanceof Error && 'type' in error 
+    const a2aError = error instanceof Error && 'type' in error && 'source' in error && 'code' in error
       ? error as A2AError
       : this.createError('internal_error', error.message || 'Unknown error', -32603);
 

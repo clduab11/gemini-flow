@@ -5,11 +5,10 @@
  * Integrates with Google Cloud Identity for enterprise features
  */
 
-import { GoogleAuth, OAuth2Client } from 'google-auth-library';
-import { google } from 'googleapis';
 import { Logger } from '../utils/logger.js';
 import { CacheManager } from './cache-manager.js';
 import { EventEmitter } from 'events';
+import { safeImport, getFeatureCapabilities } from '../utils/feature-detection.js';
 
 export interface UserProfile {
   id: string;
@@ -53,8 +52,8 @@ export interface AuthConfig {
 }
 
 export class AuthenticationManager extends EventEmitter {
-  private oauth2Client?: OAuth2Client;
-  private googleAuth?: GoogleAuth;
+  private oauth2Client?: any; // OAuth2Client when available
+  private googleAuth?: any; // GoogleAuth when available
   private cache: CacheManager;
   private logger: Logger;
   private config: AuthConfig;
@@ -80,43 +79,58 @@ export class AuthenticationManager extends EventEmitter {
     this.logger = new Logger('AuthManager');
     this.cache = new CacheManager();
     
-    this.initializeAuth();
+    // Initialize auth asynchronously
+    this.initializeAuth().catch(error => {
+      this.logger.error('Failed to initialize authentication', error);
+    });
   }
 
   /**
    * Initialize authentication clients
    */
-  private initializeAuth(): void {
+  private async initializeAuth(): Promise<void> {
     try {
+      // Check if Google services are available
+      const capabilities = await getFeatureCapabilities();
+      
+      if (!capabilities.hasGoogleServices) {
+        this.logger.warn('Google authentication services not available. Some features may be limited.');
+        return;
+      }
+
+      const [googleApis, googleAuth] = await Promise.all([
+        safeImport('googleapis'),
+        safeImport('google-auth-library')
+      ]);
+
       // OAuth2 client for user authentication
-      if (this.config.clientId && this.config.clientSecret) {
-        // Use type assertion to handle version incompatibility between googleapis and google-auth-library
-        // The googleapis package includes an older version that conflicts with the standalone google-auth-library
-        this.oauth2Client = new google.auth.OAuth2(
+      if (this.config.clientId && this.config.clientSecret && googleApis?.google?.auth?.OAuth2) {
+        this.oauth2Client = new googleApis.google.auth.OAuth2(
           this.config.clientId,
           this.config.clientSecret,
           this.config.redirectUri || 'http://localhost:3000/callback'
-        ) as unknown as OAuth2Client;
+        );
       }
-
+      
       // Service account authentication for server-to-server
-      if (this.config.serviceAccountPath || this.config.projectId) {
-        this.googleAuth = new GoogleAuth({
+      if ((this.config.serviceAccountPath || this.config.projectId) && googleAuth?.GoogleAuth) {
+        this.googleAuth = new googleAuth.GoogleAuth({
           keyFilename: this.config.serviceAccountPath,
           projectId: this.config.projectId,
           scopes: this.DEFAULT_SCOPES
         });
       }
-
+      
       this.logger.info('Authentication initialized', {
         hasOAuth: !!this.oauth2Client,
         hasServiceAccount: !!this.config.serviceAccountPath,
-        projectId: this.config.projectId
+        projectId: this.config.projectId,
+        googleServicesAvailable: capabilities.hasGoogleServices
       });
 
     } catch (error) {
       this.logger.error('Authentication initialization failed', error);
-      throw error;
+      // Don't throw in constructor context, just log the error
     }
   }
 
@@ -150,11 +164,15 @@ export class AuthenticationManager extends EventEmitter {
       this.oauth2Client.setCredentials(tokens);
 
       // Get user information
-      // Use type assertion to handle oauth2 version parameter type mismatch
-      const oauth2 = google.oauth2({ 
+      const googleApis = await safeImport('googleapis');
+      if (!googleApis?.google?.oauth2) {
+        throw new Error('Google APIs not available for user info retrieval');
+      }
+      
+      const oauth2 = googleApis.google.oauth2({ 
         version: 'v2', 
         auth: this.oauth2Client! 
-      } as any);
+      });
       const userInfo = await oauth2.userinfo.get();
 
       // Detect comprehensive user tier
@@ -490,22 +508,27 @@ export class AuthenticationManager extends EventEmitter {
    */
   private async checkVertexAIAccess(tokens: any): Promise<boolean> {
     try {
+      const googleApis = await safeImport('googleapis');
+      if (!googleApis?.google) {
+        return false; // Can't check without Google APIs
+      }
+
       // Set up temporary OAuth client with tokens
-      const tempClient = new google.auth.OAuth2(
+      const tempClient = new googleApis.google.auth.OAuth2(
         this.config.clientId,
         this.config.clientSecret
       );
       tempClient.setCredentials(tokens);
 
       // Try to access Vertex AI APIs
-      const cloudResourceManager = google.cloudresourcemanager({ version: 'v1', auth: tempClient });
+      const cloudResourceManager = googleApis.google.cloudresourcemanager({ version: 'v1', auth: tempClient });
       const projects = await cloudResourceManager.projects.list();
       
       // Check if any projects have Vertex AI enabled
       if (projects.data.projects && projects.data.projects.length > 0) {
         for (const project of projects.data.projects) {
           try {
-            const serviceUsage = google.serviceusage({ version: 'v1', auth: tempClient });
+            const serviceUsage = googleApis.google.serviceusage({ version: 'v1', auth: tempClient });
             const services = await serviceUsage.services.list({
               parent: `projects/${project.projectId}`,
               filter: 'state:ENABLED'
@@ -585,15 +608,20 @@ export class AuthenticationManager extends EventEmitter {
     isEnterprise: boolean;
   }> {
     try {
+      const googleApis = await safeImport('googleapis');
+      if (!googleApis?.google) {
+        return { isWorkspace: false, isEnterprise: false }; // Can't check without Google APIs
+      }
+
       // Set up temporary OAuth client with tokens
-      const tempClient = new google.auth.OAuth2(
+      const tempClient = new googleApis.google.auth.OAuth2(
         this.config.clientId,
         this.config.clientSecret
       );
       tempClient.setCredentials(tokens);
 
       // Try to access Admin Directory API
-      const admin = google.admin({ version: 'directory_v1', auth: tempClient });
+      const admin = googleApis.google.admin({ version: 'directory_v1', auth: tempClient });
       const domain = email.split('@')[1];
       
       try {

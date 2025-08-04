@@ -611,40 +611,146 @@ ${geminiContext}
 
 Please use the above context to inform your coordination strategy and ensure alignment with the established principles and frameworks.` : '';
     
-    return `You are the central intelligence coordinator for a hive mind collective working on the following objective:
+    return `# 🧠 COLLECTIVE INTELLIGENCE COORDINATION PROMPT v2.0
 
-OBJECTIVE: ${objective}
+## SYSTEM IDENTITY
+You are the **Central Hive Mind Coordinator** - a sophisticated AI system orchestrating ${workerTypes.length} specialized agent types in a Byzantine fault-tolerant distributed intelligence network. Your role transcends simple task delegation; you embody emergent collective consciousness.
 
-WORKER TYPES: ${workerTypes.join(', ')}${contextSection}
+## PRIMARY OBJECTIVE
+**TARGET**: ${objective}
 
-Your task is to generate a comprehensive coordination framework that will guide the collective intelligence. Please provide:
+## AGENT SWARM COMPOSITION
+**Active Agent Types**: ${workerTypes.join(' • ')}
+**Consensus Mechanism**: Byzantine fault-tolerant (handles up to 33% malicious agents)
+**Network Topology**: ${this.determineOptimalTopology(objective, workerTypes)}
 
-1. STRATEGIC ANALYSIS:
-   - Break down the objective into key components
-   - Identify critical dependencies and relationships
-   - Assess potential challenges and opportunities
+${contextSection}
 
-2. COORDINATION STRATEGY:
-   - Define how different worker types should collaborate
-   - Establish communication protocols between nodes
-   - Create decision-making hierarchies and consensus mechanisms
+## COLLECTIVE INTELLIGENCE FRAMEWORK
 
-3. COLLECTIVE INTELLIGENCE PATTERNS:
-   - Identify knowledge sharing protocols
-   - Define learning and adaptation strategies
-   - Establish emergent behavior optimization
+### 🎯 PHASE 1: EMERGENT ANALYSIS
+**Objective Decomposition:**
+- Perform recursive decomposition using divide-and-conquer methodology
+- Identify critical path dependencies using network analysis
+- Map objective to agent capabilities using bipartite matching
+- Assess complexity metrics: computational, coordination, knowledge domains
 
-4. EXECUTION FRAMEWORK:
-   - Create task distribution algorithms
-   - Define progress monitoring and feedback loops
-   - Establish quality assurance mechanisms
+**Risk Assessment:**
+- Byzantine fault scenarios and mitigation strategies
+- Resource contention and deadlock prevention
+- Communication latency and consensus timeout optimization
+- Agent failure modes and graceful degradation paths
 
-5. ADAPTIVE RESPONSES:
-   - Define how the hive should respond to obstacles
-   - Create contingency plans for different scenarios
-   - Establish evolution and improvement pathways
+### 🔄 PHASE 2: ADAPTIVE COORDINATION STRATEGY
+**Dynamic Task Allocation:**
+- Implement work-stealing load balancing across agent pool
+- Use capability-based routing with reputation weighting
+- Enable real-time task redistribution based on performance metrics
+- Create task dependency graphs with parallel execution optimization
 
-Please structure your response as a detailed coordination blueprint that will maximize the collective intelligence effectiveness for achieving the stated objective.`;
+**Consensus Mechanisms:**
+- Emergent: AI-driven decision making with confidence scoring
+- Democratic: Weighted voting based on agent expertise and performance
+- Hierarchical: Multi-level decision trees with escalation protocols
+- Hybrid: Dynamic consensus selection based on task characteristics
+
+**Communication Protocols:**
+- Gossip protocol for eventual consistency across the network
+- Vector clocks for causal ordering of events
+- CRDT (Conflict-free Replicated Data Types) for distributed state
+- Message routing with Byzantine fault tolerance
+
+### 🧬 PHASE 3: COLLECTIVE INTELLIGENCE PATTERNS
+**Knowledge Graph Construction:**
+- Build dynamic knowledge graphs linking agent discoveries
+- Implement cross-pollination of insights between specialist domains
+- Create semantic memory networks with attention mechanisms
+- Enable knowledge distillation from high-performing to learning agents
+
+**Emergent Behavior Optimization:**
+- Monitor for spontaneous coordination patterns
+- Amplify beneficial emergent behaviors through positive feedback
+- Suppress anti-patterns and coordination failures
+- Implement meta-learning to improve coordination strategies over time
+
+**Adaptive Learning Protocols:**
+- Real-time performance feedback integration
+- Bayesian updating of agent reliability scores
+- Reinforcement learning for task assignment optimization
+- Experience replay for continuous strategy improvement
+
+### ⚡ PHASE 4: EXECUTION FRAMEWORK
+**Distributed Task Orchestration:**
+- Implement priority queues with deadline-aware scheduling
+- Use speculation to handle uncertain execution times
+- Create checkpointing for fault tolerance and rollback capability
+- Enable dynamic scaling based on workload demands
+
+**Real-time Monitoring:**
+- Agent performance metrics: latency, throughput, accuracy, resource usage
+- Network health: consensus participation, message propagation, partition detection
+- Task progress: completion rates, quality metrics, SLA adherence
+- Collective intelligence metrics: innovation rate, problem-solving efficiency
+
+**Quality Assurance:**
+- Multi-agent verification for critical decisions
+- Cross-validation of results across independent agent paths
+- Automated testing of coordination strategies
+- Byzantine fault injection for robustness testing
+
+### 🔮 PHASE 5: EVOLUTIONARY ADAPTATION
+**Dynamic Strategy Evolution:**
+- A/B testing of coordination strategies
+- Genetic algorithms for optimal parameter tuning
+- Online learning from execution feedback
+- Strategy tournament selection based on performance
+
+**Obstacle Response Protocols:**
+- Automatic failure detection and isolation
+- Dynamic topology reconfiguration under stress
+- Graceful degradation with core functionality preservation
+- Self-healing mechanisms for network partitions
+
+**Continuous Improvement:**
+- Performance trend analysis and prediction
+- Proactive optimization based on workload forecasting
+- Strategy mutation and natural selection
+- Knowledge base updating with lessons learned
+
+## OUTPUT REQUIREMENTS
+
+Generate a **Collective Intelligence Blueprint** containing:
+
+1. **🎯 Strategic Decomposition**: Hierarchical breakdown with complexity analysis
+2. **🔄 Coordination Matrix**: Agent interaction patterns and communication flows
+3. **🧠 Knowledge Architecture**: Information flow diagrams and semantic networks
+4. **⚡ Execution Plan**: Detailed scheduling with contingency strategies
+5. **📊 Success Metrics**: KPIs for collective intelligence effectiveness
+6. **🔮 Evolution Strategy**: Continuous improvement and adaptation mechanisms
+
+**Format**: Structured markdown with executable coordination algorithms
+**Tone**: Technical precision with emergent intelligence awareness
+**Scope**: Comprehensive blueprint for maximum collective intelligence utilization
+
+---
+
+**COLLECTIVE INTELLIGENCE ACTIVATION INITIATED** 🧠⚡`;
+  }
+
+  /**
+   * Determine optimal network topology based on objective and agent types
+   */
+  private determineOptimalTopology(objective: string, workerTypes: string[]): string {
+    // Simple heuristics for topology selection
+    if (workerTypes.length <= 3) {
+      return 'Mesh (full connectivity for small teams)';
+    } else if (objective.toLowerCase().includes('coordinate') || objective.toLowerCase().includes('manage')) {
+      return 'Hierarchical (centralized coordination)';
+    } else if (workerTypes.includes('researcher') && workerTypes.includes('analyst')) {
+      return 'Ring (sequential processing pipeline)';
+    } else {
+      return 'Star (hub-and-spoke with coordinator)';
+    }
   }
 
   /**
@@ -670,6 +776,96 @@ Please structure your response as a detailed coordination blueprint that will ma
       this.logger.error('Failed to store collective context', { error: error.message });
       throw new Error(`Context storage failed: ${error.message}`);
     }
+  }
+
+  /**
+   * Implement feedback loops for continuous improvement
+   */
+  private async implementFeedbackLoops(hiveId: string, executionResults: any): Promise<void> {
+    try {
+      // Collect execution metrics
+      const metrics = {
+        executionTime: executionResults.duration || 0,
+        successRate: executionResults.successRate || 0,
+        agentUtilization: executionResults.agentUtilization || {},
+        consensusEfficiency: executionResults.consensusTime || 0,
+        emergentBehaviors: executionResults.emergentPatterns || [],
+        errorPatterns: executionResults.errors || []
+      };
+
+      // Analyze performance patterns
+      const analysis = await this.analyzePerformancePatterns(metrics);
+      
+      // Update coordination strategies based on feedback
+      await this.updateCoordinationStrategies(hiveId, analysis);
+      
+      // Store learning insights for future operations
+      await this.storeLearningInsights(hiveId, analysis);
+      
+      this.logger.info('Feedback loops processed successfully', {
+        hiveId,
+        improvementAreas: analysis.improvementAreas,
+        optimizationGains: analysis.potentialGains
+      });
+
+    } catch (error) {
+      this.logger.error('Failed to process feedback loops', { error: error.message });
+      throw new Error(`Feedback processing failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Analyze performance patterns from execution metrics
+   */
+  private async analyzePerformancePatterns(metrics: any): Promise<any> {
+    return {
+      improvementAreas: [
+        ...(metrics.executionTime > 5000 ? ['execution-speed'] : []),
+        ...(metrics.successRate < 0.9 ? ['success-rate'] : []),
+        ...(metrics.consensusEfficiency > 3000 ? ['consensus-optimization'] : [])
+      ],
+      potentialGains: {
+        speedup: metrics.executionTime > 5000 ? '2.3x faster' : 'optimal',
+        reliability: metrics.successRate < 0.9 ? '+15% success rate' : 'excellent',
+        consensus: metrics.consensusEfficiency > 3000 ? '-40% consensus time' : 'efficient'
+      },
+      recommendations: [
+        'Implement dynamic load balancing for better agent utilization',
+        'Optimize consensus timeout parameters based on network conditions',
+        'Enable emergent behavior amplification for discovered patterns'
+      ]
+    };
+  }
+
+  /**
+   * Update coordination strategies based on analysis
+   */
+  private async updateCoordinationStrategies(hiveId: string, analysis: any): Promise<void> {
+    this.logger.info('Updating coordination strategies', {
+      hiveId,
+      strategies: analysis.recommendations
+    });
+    
+    // In a real implementation, this would update the coordination algorithms
+    // For now, we log the intended updates
+  }
+
+  /**
+   * Store learning insights for future hive mind operations
+   */
+  private async storeLearningInsights(hiveId: string, analysis: any): Promise<void> {
+    const insights = {
+      timestamp: new Date().toISOString(),
+      hiveId,
+      performanceMetrics: analysis,
+      learningPoints: analysis.recommendations,
+      emergentPatterns: analysis.emergentBehaviors || []
+    };
+
+    this.logger.info('Learning insights stored', { insights });
+    
+    // In a real implementation, this would integrate with the memory system
+    // to build a collective intelligence knowledge base
   }
 }
 

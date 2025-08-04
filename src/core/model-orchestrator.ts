@@ -6,13 +6,13 @@
  */
 
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
-import { GoogleAuth } from 'google-auth-library';
 import { Logger } from '../utils/logger.js';
 import { PerformanceMonitor } from './performance-monitor.js';
 import { AuthenticationManager } from './auth-manager.js';
 import { ModelRouter } from './model-router.js';
 import { CacheManager } from './cache-manager.js';
 import { EventEmitter } from 'events';
+import { safeImport } from '../utils/feature-detection.js';
 
 export interface ModelConfig {
   name: string;
@@ -172,8 +172,13 @@ export class ModelOrchestrator extends EventEmitter {
   private async initializeModelClient(config: ModelConfig): Promise<void> {
     try {
       if (config.name.includes('vertex')) {
-        // Vertex AI client
-        const auth = new GoogleAuth({
+        // Vertex AI client with conditional import
+        const googleAuth = await safeImport('google-auth-library');
+        if (!googleAuth?.GoogleAuth) {
+          throw new Error('Google Auth Library not available for Vertex AI');
+        }
+        
+        const auth = new googleAuth.GoogleAuth({
           scopes: ['https://www.googleapis.com/auth/cloud-platform']
         });
         

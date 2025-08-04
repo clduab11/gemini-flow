@@ -5,7 +5,6 @@
  * Features advanced reasoning, long-context, and enterprise-grade capabilities
  */
 
-import { GoogleAuth } from 'google-auth-library';
 import { 
   BaseModelAdapter, 
   ModelCapabilities, 
@@ -15,6 +14,7 @@ import {
   AdapterConfig,
   AdapterError 
 } from './base-model-adapter.js';
+import { safeImport, conditionalImport } from '../utils/feature-detection.js';
 
 export interface DeepMindAdapterConfig extends AdapterConfig {
   model: 'gemini-2.5-deepmind' | 'gemini-2.5-ultra' | 'gemini-2.5-pro';
@@ -33,7 +33,7 @@ export interface DeepMindAdapterConfig extends AdapterConfig {
 }
 
 export class DeepMindAdapter extends BaseModelAdapter {
-  private auth: GoogleAuth;
+  private auth: any; // GoogleAuth when available
   private modelName: string;
   private projectId: string;
   private location: string;
@@ -58,16 +58,31 @@ export class DeepMindAdapter extends BaseModelAdapter {
       );
     }
 
-    // Initialize Google Auth for Vertex AI
-    this.auth = new GoogleAuth({
-      keyFile: config.serviceAccountKey,
-      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-      projectId: config.projectId
-    });
+    // Auth will be initialized in initialize() method with conditional import
+    this.auth = null;
   }
 
   async initialize(): Promise<void> {
     try {
+      // Try to initialize Google Auth with conditional import
+      const googleAuthLib = await safeImport('google-auth-library');
+      
+      if (!googleAuthLib?.GoogleAuth) {
+        throw this.createError(
+          'Google Auth Library not available. Install google-auth-library for DeepMind features.',
+          'MISSING_DEPENDENCY',
+          500,
+          false
+        );
+      }
+
+      // Initialize Google Auth for Vertex AI
+      this.auth = new googleAuthLib.GoogleAuth({
+        keyFile: (this.config as DeepMindAdapterConfig).serviceAccountKey,
+        scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+        projectId: this.projectId
+      });
+
       // Get authenticated client
       const authClient = await this.auth.getClient();
       

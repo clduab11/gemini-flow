@@ -36,6 +36,7 @@ export class BetterSQLite3Adapter implements DatabaseAdapter {
 
   async init(dbPath: string): Promise<void> {
     try {
+      // @ts-ignore - Optional dependency
       const Database = await import('better-sqlite3');
       this.db = new Database.default(dbPath);
       this.db.pragma('journal_mode = WAL');
@@ -103,6 +104,7 @@ export class SQLite3Adapter implements DatabaseAdapter {
 
   async init(dbPath: string): Promise<void> {
     try {
+      // @ts-ignore - Optional dependency
       const sqlite3 = await import('sqlite3');
       const Database = sqlite3.default.Database;
       
@@ -211,6 +213,7 @@ export class SQLJSAdapter implements DatabaseAdapter {
 
   async init(dbPath: string): Promise<void> {
     try {
+      // @ts-ignore - Optional dependency
       const initSqlJs = await import('sql.js');
       this.SQL = await initSqlJs.default();
       this.dbPath = dbPath;

@@ -5,12 +5,11 @@
  * Supports enterprise features, custom models, and batch processing
  */
 
-import { VertexAI } from '@google-cloud/vertexai';
-import { GoogleAuth } from 'google-auth-library';
 import { Logger } from '../utils/logger.js';
 import { PerformanceMonitor } from './performance-monitor.js';
 import { CacheManager } from './cache-manager.js';
 import { EventEmitter } from 'events';
+import { safeImport, getFeatureCapabilities } from '../utils/feature-detection.js';
 
 export interface VertexAIConfig {
   projectId: string;
@@ -61,8 +60,8 @@ export interface VertexResponse {
 export class VertexAIConnector extends EventEmitter {
   private logger: Logger;
   private config: VertexAIConfig;
-  private client: VertexAI;
-  private auth: GoogleAuth;
+  private client: any; // VertexAI when available
+  private auth: any; // GoogleAuth when available
   private performance: PerformanceMonitor;
   private cache: CacheManager;
   
@@ -98,8 +97,12 @@ export class VertexAIConnector extends EventEmitter {
       defaultTTL: 1800 // 30 minutes
     });
 
-    this.initializeVertexAI();
-    this.loadAvailableModels();
+    this.initializeVertexAI().catch(error => {
+      this.logger.error('Failed to initialize Vertex AI', error);
+    });
+    this.loadAvailableModels().catch(error => {
+      this.logger.error('Failed to load available models', error);
+    });
   }
 
   /**
@@ -107,8 +110,25 @@ export class VertexAIConnector extends EventEmitter {
    */
   private async initializeVertexAI(): Promise<void> {
     try {
+      // Check if Vertex AI dependencies are available
+      const capabilities = await getFeatureCapabilities();
+      
+      if (!capabilities.vertexAI || !capabilities.googleAuth) {
+        this.logger.warn('Vertex AI dependencies not available. Install @google-cloud/vertexai and google-auth-library for full functionality.');
+        return;
+      }
+
+      const [vertexAIModule, googleAuthModule] = await Promise.all([
+        safeImport('@google-cloud/vertexai'),
+        safeImport('google-auth-library')
+      ]);
+
+      if (!vertexAIModule?.VertexAI || !googleAuthModule?.GoogleAuth) {
+        throw new Error('Required Vertex AI modules not available');
+      }
+
       // Initialize authentication
-      this.auth = new GoogleAuth({
+      this.auth = new googleAuthModule.GoogleAuth({
         projectId: this.config.projectId,
         keyFilename: this.config.serviceAccountPath,
         credentials: this.config.credentials,
@@ -116,7 +136,7 @@ export class VertexAIConnector extends EventEmitter {
       });
 
       // Initialize Vertex AI client
-      this.client = new VertexAI({
+      this.client = new vertexAIModule.VertexAI({
         project: this.config.projectId,
         location: this.config.location,
         apiEndpoint: this.config.apiEndpoint,
@@ -131,7 +151,7 @@ export class VertexAIConnector extends EventEmitter {
 
     } catch (error) {
       this.logger.error('Failed to initialize Vertex AI client', error);
-      throw error;
+      // Don't throw in constructor context
     }
   }
 

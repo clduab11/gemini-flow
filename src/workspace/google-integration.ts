@@ -5,10 +5,9 @@
  * Leverages Gemini's native Google ecosystem advantages
  */
 
-import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
 import { Logger } from '../utils/logger.js';
 import { EventEmitter } from 'events';
+import { safeImport, getFeatureCapabilities } from '../utils/feature-detection.js';
 
 export interface WorkspaceConfig {
   clientId: string;
@@ -27,7 +26,7 @@ export interface WorkspaceDocument {
 }
 
 export class GoogleWorkspaceIntegration extends EventEmitter {
-  private auth: OAuth2Client;
+  private auth: any; // OAuth2Client when available
   private drive: any;
   private docs: any;
   private sheets: any;
@@ -47,15 +46,57 @@ export class GoogleWorkspaceIntegration extends EventEmitter {
     super();
     this.logger = new Logger('GoogleWorkspace');
     
-    // Initialize OAuth2 client
-    this.auth = new google.auth.OAuth2(
-      config.clientId,
-      config.clientSecret,
-      config.redirectUri || 'http://localhost:3000/callback'
-    ) as any;
+    // Initialize OAuth2 client conditionally
+    this.initializeAuth(config).catch(error => {
+      this.logger.error('Failed to initialize Google Workspace auth', error);
+    });
     
     // Set scopes - OAuth2Client doesn't have scopes property directly
     // Scopes are set during getAccessToken or setCredentials calls
+  }
+
+  /**
+   * Initialize authentication with conditional imports
+   */
+  private async initializeAuth(config: WorkspaceConfig): Promise<void> {
+    const capabilities = await getFeatureCapabilities();
+    
+    if (!capabilities.hasGoogleServices) {
+      this.logger.warn('Google Workspace services not available. Install googleapis and google-auth-library for full functionality.');
+      return;
+    }
+
+    const googleApis = await safeImport('googleapis');
+    if (!googleApis?.google?.auth?.OAuth2) {
+      throw new Error('Google APIs not available');
+    }
+
+    // Initialize OAuth2 client
+    this.auth = new googleApis.google.auth.OAuth2(
+      config.clientId,
+      config.clientSecret,
+      config.redirectUri || 'http://localhost:3000/callback'
+    );
+
+    // Initialize service clients
+    await this.initializeServices(googleApis.google);
+  }
+
+  /**
+   * Initialize Google Workspace service clients
+   */
+  private async initializeServices(google: any): Promise<void> {
+    try {
+      this.drive = google.drive({ version: 'v3', auth: this.auth });
+      this.docs = google.docs({ version: 'v1', auth: this.auth });
+      this.sheets = google.sheets({ version: 'v4', auth: this.auth });
+      this.slides = google.slides({ version: 'v1', auth: this.auth });
+      
+      this.logger.info('Google Workspace services initialized');
+    } catch (error) {
+      this.logger.error('Failed to initialize Google Workspace services', error);
+      throw error;
+    }
   }
 
   /**
@@ -63,22 +104,27 @@ export class GoogleWorkspaceIntegration extends EventEmitter {
    */
   async initialize(tokens?: any): Promise<void> {
     try {
+      const googleApis = await safeImport('googleapis');
+      if (!googleApis?.google) {
+        throw new Error('Google APIs not available');
+      }
+
       if (tokens) {
         this.auth.setCredentials(tokens);
       } else {
         // Use Application Default Credentials for GCP environments
-        const auth = new google.auth.GoogleAuth({
+        const auth = new googleApis.google.auth.GoogleAuth({
           scopes: this.DEFAULT_SCOPES
         });
         const client = await auth.getClient();
-        this.auth = client as any; // OAuth2Client compatibility
+        this.auth = client; // OAuth2Client compatibility
       }
       
       // Initialize API clients with auth
-      this.drive = google.drive({ version: 'v3', auth: this.auth as any });
-      this.docs = google.docs({ version: 'v1', auth: this.auth as any });
-      this.sheets = google.sheets({ version: 'v4', auth: this.auth as any });
-      this.slides = google.slides({ version: 'v1', auth: this.auth as any });
+      this.drive = googleApis.google.drive({ version: 'v3', auth: this.auth });
+      this.docs = googleApis.google.docs({ version: 'v1', auth: this.auth });
+      this.sheets = googleApis.google.sheets({ version: 'v4', auth: this.auth });
+      this.slides = googleApis.google.slides({ version: 'v1', auth: this.auth });
       
       this.logger.info('Google Workspace APIs initialized');
       this.emit('initialized');
