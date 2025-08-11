@@ -6,6 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/clduab11/gemini-flow/ci.yml)](https://github.com/clduab11/gemini-flow/actions)
 [![Stars](https://img.shields.io/github/stars/clduab11/gemini-flow?style=social)](https://github.com/clduab11/gemini-flow/stargazers)
+[![Mentioned in Awesome Gemini CLI](https://awesome.re/mentioned-badge.svg)](https://github.com/Piebald-AI/awesome-gemini-cli)
 
 **⚡ A2A + MCP Dual Protocol Support | 🧠 66 Specialized AI Agents | 🚀 396,610 SQLite ops/sec**
 
