@@ -92,9 +92,9 @@ export class GossipProtocol extends EventEmitter {
   private sentMessages: Map<string, GossipMessage> = new Map();
   
   // Timers
-  private gossipTimer?: NodeJS.Timeout;
-  private syncTimer?: NodeJS.Timeout;
-  private cleanupTimer?: NodeJS.Timeout;
+  private gossipTimer?: ReturnType<typeof setTimeout>;
+  private syncTimer?: ReturnType<typeof setTimeout>;
+  private cleanupTimer?: ReturnType<typeof setTimeout>;
   
   // Statistics
   private stats: GossipStats = {

@@ -252,7 +252,7 @@ async function createSqlJsDatabase(dbPath: string): Promise<SQLiteDatabase> {
   const db = new SQL.Database(dbData);
   
   // Auto-save functionality for persistent storage
-  let saveTimer: NodeJS.Timeout | null = null;
+  let saveTimer: ReturnType<typeof setTimeout> | null = null;
   const scheduleSync = () => {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {

@@ -841,15 +841,15 @@ export class A2AKeyExchange extends EventEmitter {
     return keyInfo.privateKey;
   }
 
-  private async getHSMPrivateKey(keyId: string): Promise<string> {
+  private async getHSMPrivateKey(_keyId: string): Promise<string> {
     // HSM private key retrieval would be implemented here
     throw new Error('HSM private key retrieval not implemented');
   }
 
   private async updateSharedSecretsForAgent(
     agentId: string,
-    oldKey: KeyPairInfo | null,
-    newKey: KeyPairInfo
+    _oldKey: KeyPairInfo | null,
+    _newKey: KeyPairInfo
   ): Promise<void> {
     // Find and update shared secrets that involve this agent
     for (const [secretId, secret] of this.sharedSecrets) {
@@ -877,7 +877,7 @@ export class A2AKeyExchange extends EventEmitter {
   }
 
   private evaluatePolynomial(polynomial: Buffer[], x: number): Buffer {
-    let result = Buffer.alloc(32);
+    const result = Buffer.alloc(32);
     
     for (let i = 0; i < polynomial.length; i++) {
       const coefficient = polynomial[i];

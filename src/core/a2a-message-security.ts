@@ -15,7 +15,6 @@ import crypto from 'crypto';
 import { EventEmitter } from 'events';
 import { Logger } from '../utils/logger.js';
 import { CacheManager } from './cache-manager.js';
-import { A2AIdentity, A2ASession } from './a2a-security-manager.js';
 
 export interface SecureMessage {
   messageId: string;
@@ -956,7 +955,7 @@ export class A2AMessageSecurity extends EventEmitter {
   private async getEncryptionKey(
     fromAgentId: string,
     toAgentId: string | string[],
-    keyId: string
+    _keyId: string
   ): Promise<Buffer> {
     // Get session key or derive from agent keys
     const sessionKey = this.sessionKeys.get(`${fromAgentId}:${toAgentId}`);

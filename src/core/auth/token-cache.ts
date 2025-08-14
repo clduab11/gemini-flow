@@ -56,7 +56,7 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
   private accessOrder = new Map<string, number>(); // For LRU tracking
   private config: TokenCacheConfig;
   private logger: Logger;
-  private cleanupTimer?: NodeJS.Timeout;
+  private cleanupTimer?: ReturnType<typeof setInterval>;
   private accessCounter = 0;
   
   // Metrics

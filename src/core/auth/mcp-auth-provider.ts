@@ -39,7 +39,7 @@ interface MCPRequestContext {
   method: string;
   timestamp: number;
   clientId?: string;
-  timeout?: NodeJS.Timeout;
+  timeout?: ReturnType<typeof setTimeout>;
 }
 
 /**

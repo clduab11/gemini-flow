@@ -1068,7 +1068,7 @@ export class A2AAuditLogger extends EventEmitter {
     return severity === 'critical' || alertType === 'intrusion_attempt';
   }
 
-  private async determineResponseActions(alertType: string, severity: string, source: SecurityAlert['source']): Promise<string[]> {
+  private async determineResponseActions(alertType: string, severity: string, _source: SecurityAlert['source']): Promise<string[]> {
     const actions: string[] = [];
     
     if (severity === 'critical') {
@@ -1114,7 +1114,7 @@ export class A2AAuditLogger extends EventEmitter {
     this.emit('external_alert', alert);
   }
 
-  private async analyzeCompliance(regulation: string, logs: AuditLogEntry[]): Promise<any> {
+  private async analyzeCompliance(_regulation: string, _logs: AuditLogEntry[]): Promise<any> {
     // Placeholder for compliance analysis
     return {
       score: 0.95,
@@ -1125,7 +1125,7 @@ export class A2AAuditLogger extends EventEmitter {
     };
   }
 
-  private async checkComplianceViolations(logEntry: AuditLogEntry, regulation: string): Promise<any[]> {
+  private async checkComplianceViolations(_logEntry: AuditLogEntry, _regulation: string): Promise<any[]> {
     // Placeholder for compliance violation checking
     return [];
   }
@@ -1197,7 +1197,7 @@ class AnomalyDetector {
 class CorrelationEngine {
   constructor(private config: AuditConfig) {}
 
-  async correlateEvents(logEntry: AuditLogEntry): Promise<AuditLogEntry[]> {
+  async correlateEvents(_logEntry: AuditLogEntry): Promise<AuditLogEntry[]> {
     // Placeholder for event correlation logic
     return [];
   }
@@ -1206,7 +1206,7 @@ class CorrelationEngine {
 class IntegrityChecker {
   constructor(private config: AuditConfig) {}
 
-  async checkIntegrity(logs: AuditLogEntry[]): Promise<{
+  async checkIntegrity(_logs: AuditLogEntry[]): Promise<{
     valid: boolean;
     compromisedLogs: string[];
   }> {

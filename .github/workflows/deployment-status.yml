@@ -1,0 +1,184 @@
+name: Deployment Status Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  deployment-readiness:
+    name: Deployment Readiness Check
+    runs-on: ubuntu-latest
+    
+    outputs:
+      ready-for-deployment: ${{ steps.readiness.outputs.ready }}
+      version: ${{ steps.version-check.outputs.version }}
+      lint-status: ${{ steps.lint-check.outputs.status }}
+      test-status: ${{ steps.test-check.outputs.status }}
+      build-status: ${{ steps.build-check.outputs.status }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Check version
+        id: version-check
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+          
+          if [ "$VERSION" = "1.2.0" ]; then
+            echo "✅ Version 1.2.0 confirmed"
+          else
+            echo "⚠️  Version is $VERSION (expected 1.2.0)"
+          fi
+      
+      - name: Lint check
+        id: lint-check
+        run: |
+          if npm run lint; then
+            echo "status=passed" >> $GITHUB_OUTPUT
+            echo "✅ Linting passed"
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "❌ Linting failed"
+          fi
+      
+      - name: Type check
+        id: type-check
+        run: |
+          if npm run typecheck; then
+            echo "✅ Type checking passed"
+          else
+            echo "❌ Type checking failed"
+            exit 1
+          fi
+      
+      - name: Test check
+        id: test-check
+        run: |
+          if npm test; then
+            echo "status=passed" >> $GITHUB_OUTPUT
+            echo "✅ Tests passed"
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "❌ Tests failed"
+          fi
+        env:
+          NODE_OPTIONS: '--experimental-vm-modules'
+      
+      - name: Build check
+        id: build-check
+        run: |
+          if npm run build; then
+            echo "status=passed" >> $GITHUB_OUTPUT
+            echo "✅ Build successful"
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "❌ Build failed"
+            exit 1
+          fi
+      
+      - name: NPM availability check
+        run: |
+          VERSION="${{ steps.version-check.outputs.version }}"
+          if npm view "@clduab11/gemini-flow@$VERSION" version 2>/dev/null; then
+            echo "⚠️  Version $VERSION already exists on NPM"
+          else
+            echo "✅ Version $VERSION is available for publishing"
+          fi
+      
+      - name: Overall readiness assessment
+        id: readiness
+        run: |
+          VERSION="${{ steps.version-check.outputs.version }}"
+          LINT_STATUS="${{ steps.lint-check.outputs.status }}"
+          TEST_STATUS="${{ steps.test-check.outputs.status }}"
+          BUILD_STATUS="${{ steps.build-check.outputs.status }}"
+          
+          echo "📊 Deployment Readiness Assessment:"
+          echo "Version: $VERSION"
+          echo "Lint: $LINT_STATUS"
+          echo "Tests: $TEST_STATUS"  
+          echo "Build: $BUILD_STATUS"
+          
+          if [ "$VERSION" = "1.2.0" ] && [ "$LINT_STATUS" = "passed" ] && [ "$TEST_STATUS" = "passed" ] && [ "$BUILD_STATUS" = "passed" ]; then
+            echo "ready=true" >> $GITHUB_OUTPUT
+            echo "✅ Ready for deployment!"
+          else
+            echo "ready=false" >> $GITHUB_OUTPUT
+            echo "❌ Not ready for deployment"
+            
+            if [ "$VERSION" != "1.2.0" ]; then
+              echo "  - Version must be 1.2.0"
+            fi
+            if [ "$LINT_STATUS" != "passed" ]; then
+              echo "  - Linting must pass"
+            fi
+            if [ "$TEST_STATUS" != "passed" ]; then
+              echo "  - Tests must pass"
+            fi
+            if [ "$BUILD_STATUS" != "passed" ]; then
+              echo "  - Build must succeed"
+            fi
+          fi
+
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: deployment-readiness
+    if: always()
+    
+    steps:
+      - name: Display deployment status
+        run: |
+          echo "## 🚀 Deployment Status Summary"
+          echo ""
+          echo "**Version:** ${{ needs.deployment-readiness.outputs.version }}"
+          echo "**Ready for Deployment:** ${{ needs.deployment-readiness.outputs.ready-for-deployment }}"
+          echo ""
+          echo "### Status Checks:"
+          echo "- **Lint:** ${{ needs.deployment-readiness.outputs.lint-status }}"
+          echo "- **Tests:** ${{ needs.deployment-readiness.outputs.test-status }}"
+          echo "- **Build:** ${{ needs.deployment-readiness.outputs.build-status }}"
+          echo ""
+          
+          if [ "${{ needs.deployment-readiness.outputs.ready-for-deployment }}" = "true" ]; then
+            echo "🎉 **All checks passed! Ready to deploy v1.2.0**"
+            echo ""
+            echo "### Next Steps:"
+            echo "1. Use the 'Quick Deploy v1.2.0' workflow to deploy immediately"
+            echo "2. Or trigger the full 'Deployment Pipeline' for comprehensive checks"
+            echo ""
+            echo "### Quick Deploy Command:"
+            echo "\`\`\`"
+            echo "Go to Actions → Quick Deploy v1.2.0 → Run workflow"
+            echo "Type 'DEPLOY' to confirm"
+            echo "\`\`\`"
+          else
+            echo "❌ **Not ready for deployment. Please fix the issues above.**"
+          fi
+      
+      - name: Create deployment readiness badge
+        if: github.ref == 'refs/heads/main'
+        run: |
+          if [ "${{ needs.deployment-readiness.outputs.ready-for-deployment }}" = "true" ]; then
+            echo "Deployment ready - would update badge to green"
+          else
+            echo "Deployment not ready - would update badge to red"
+          fi

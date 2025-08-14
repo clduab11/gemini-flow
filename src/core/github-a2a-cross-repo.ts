@@ -774,7 +774,7 @@ export class GitHubA2ACrossRepo extends EventEmitter {
       
       // Check for similar languages
       const commonLanguages = Object.keys(repo.languages).filter(lang => 
-        otherRepo.languages.hasOwnProperty(lang)
+        Object.hasOwn(otherRepo.languages, lang)
       );
       
       if (commonTopics.length > 0 || commonLanguages.length > 0) {

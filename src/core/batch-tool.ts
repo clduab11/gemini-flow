@@ -394,7 +394,7 @@ export class BatchTool extends EventEmitter {
   }
 
   // Placeholder methods for different operation types
-  private async spawnAgent(data: any): Promise<any> {
+  private async spawnAgent(_data: any): Promise<any> {
     // Implementation delegated to agent manager
     throw new Error('Not implemented - use spawnAgentOptimized');
   }

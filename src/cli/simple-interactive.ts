@@ -328,7 +328,7 @@ export class SimpleInteractive {
 
     console.log(chalk.blue('\n📝 Conversation History:\n'));
     
-    this.history.forEach((entry, index) => {
+    this.history.forEach((entry, _index) => {
       const role = entry.role === 'user' ? chalk.green('You') : chalk.blue('Assistant');
       const timestamp = entry.timestamp.toLocaleTimeString();
       console.log(`${role} [${timestamp}]: ${entry.content.substring(0, 100)}${entry.content.length > 100 ? '...' : ''}`);

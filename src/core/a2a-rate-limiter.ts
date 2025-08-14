@@ -423,7 +423,7 @@ export class A2ARateLimiter extends EventEmitter {
       }
       
       // Find applicable rate limit rule
-      const rule = this.findApplicableRule(agentId);
+      let rule = this.findApplicableRule(agentId);
       if (!rule || !rule.enabled) {
         // No rule applies, use default limits
         rule = this.rateLimitRules.get('default')!;
@@ -650,9 +650,6 @@ export class A2ARateLimiter extends EventEmitter {
   ): RateLimitResult {
     const now = Date.now();
     const currentSecond = Math.floor(now / 1000) % 60;
-    const currentMinute = Math.floor(now / 60000) % 60;
-    const currentHour = Math.floor(now / 3600000) % 24;
-    const currentDay = Math.floor(now / 86400000) % 7;
     
     // Check per-second limit
     const recentSecondsCount = agentState.requestCounts.perSecond
@@ -912,7 +909,7 @@ export class A2ARateLimiter extends EventEmitter {
     return circuitBreaker;
   }
 
-  private calculateQuotaResetTime(agentState: RateLimitState): number {
+  private calculateQuotaResetTime(_agentState: RateLimitState): number {
     // Calculate when the next token will be available
     const refillRate = this.config.defaultLimits.requestsPerSecond;
     const refillInterval = 1000 / refillRate;
@@ -920,7 +917,7 @@ export class A2ARateLimiter extends EventEmitter {
     return Date.now() + refillInterval;
   }
 
-  private async getIPRegion(ip: string): Promise<string> {
+  private async getIPRegion(_ip: string): Promise<string> {
     // Placeholder for IP geolocation service
     // In production, integrate with MaxMind, IPinfo, or similar service
     return 'unknown';
@@ -1142,7 +1139,7 @@ class BehaviorAnalyzer {
 class IPReputationService {
   constructor(private config: DDoSProtectionConfig) {}
 
-  async getReputation(ip: string): Promise<number> {
+  async getReputation(_ip: string): Promise<number> {
     // Placeholder for IP reputation service
     // In production, integrate with threat intelligence feeds
     return Math.random();

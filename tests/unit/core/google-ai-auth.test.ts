@@ -29,7 +29,7 @@ const mockPath = path as jest.Mocked<typeof path>;
 
 describe('GoogleAIAuth', () => {
   let auth: GoogleAIAuth;
-  let originalEnv: NodeJS.ProcessEnv;
+  let originalEnv: typeof process.env;
 
   beforeEach(() => {
     // Store original environment

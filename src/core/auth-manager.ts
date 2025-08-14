@@ -9,7 +9,7 @@ import { Logger } from '../utils/logger.js';
 import { CacheManager } from './cache-manager.js';
 import { EventEmitter } from 'events';
 import { safeImport, getFeatureCapabilities } from '../utils/feature-detection.js';
-import { OAuth2Tokens, OAuth2TokenResponse, RefreshTokenResult, ValidationResult } from '../types/auth.js';
+import { OAuth2Tokens, RefreshTokenResult, ValidationResult } from '../types/auth.js';
 
 export interface UserProfile {
   id: string;
@@ -59,7 +59,7 @@ export class AuthenticationManager extends EventEmitter {
   private logger: Logger;
   private config: AuthConfig;
   private userTokens: Map<string, OAuth2Tokens> = new Map(); // User token storage
-  private tokenRefreshTimers: Map<string, NodeJS.Timeout> = new Map(); // Auto-refresh timers
+  private tokenRefreshTimers: Map<string, ReturnType<typeof setTimeout>> = new Map(); // Auto-refresh timers
   private readonly TOKEN_REFRESH_BUFFER = 300000; // 5 minutes before expiry
   
   // Default scopes for user authentication
@@ -770,7 +770,7 @@ export class AuthenticationManager extends EventEmitter {
   /**
    * Detect Pro tier (Paid subscription)
    */
-  private async detectProTier(email: string, domain: string): Promise<{
+  private async detectProTier(email: string, _domain: string): Promise<{
     isPro: boolean;
     confidence: number;
     features: string[];
@@ -882,7 +882,7 @@ export class AuthenticationManager extends EventEmitter {
   /**
    * Check enterprise billing patterns
    */
-  private async checkEnterpriseBilling(email: string, domain: string): Promise<boolean> {
+  private async checkEnterpriseBilling(email: string, _domain: string): Promise<boolean> {
     try {
       // Check for enterprise billing indicators
       // This would integrate with Google Cloud Billing API

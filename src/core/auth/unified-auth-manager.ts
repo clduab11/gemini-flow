@@ -68,9 +68,9 @@ export class UnifiedAuthManager extends EventEmitter {
   private eventHandlers = new Set<AuthEventHandler>();
   
   // Background tasks
-  private tokenRefreshInterval?: NodeJS.Timeout;
-  private sessionCleanupInterval?: NodeJS.Timeout;
-  private metricsInterval?: NodeJS.Timeout;
+  private tokenRefreshInterval?: ReturnType<typeof setInterval>;
+  private sessionCleanupInterval?: ReturnType<typeof setInterval>;
+  private metricsInterval?: ReturnType<typeof setInterval>;
   
   // Metrics
   private metrics: AuthMetrics = {

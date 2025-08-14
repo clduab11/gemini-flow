@@ -322,7 +322,7 @@ export class PerformanceOptimizationLayer extends EventEmitter {
     const successRateModel = this.predictionModels.get('success_rate');
     
     let estimatedLatency = profile.averageLatency;
-    let estimatedSuccessRate = profile.successRate;
+    const estimatedSuccessRate = profile.successRate;
     let confidence = 0.7; // Base confidence
     
     // Adjust based on system load
@@ -993,7 +993,7 @@ class BatchProcessor {
     invocation: A2AToolInvocation;
     callback: (result: A2AToolResponse) => void;
   }> = [];
-  private timer?: NodeJS.Timeout;
+  private timer?: ReturnType<typeof setTimeout>;
   
   constructor(
     private toolId: string,

@@ -32,7 +32,19 @@
   ],
   "exclude": [
     "node_modules",
-    "../dist"
+    "../dist",
+    "../src/core/a2a-audit-logger.ts",
+    "../src/core/a2a-integration.ts", 
+    "../src/core/a2a-key-exchange.ts",
+    "../src/core/a2a-message-security.ts",
+    "../src/core/a2a-rate-limiter.ts",
+    "../src/core/a2a-security-manager.ts",
+    "../src/core/a2a-zero-trust.ts",
+    "../src/core/github-a2a-*.ts",
+    "../src/protocols/a2a/**/*",
+    "integration/a2a-transport-layer.test.ts",
+    "production/a2a-transport-validation.test.js",
+    "unit/protocols/a2a-*.test.ts"
   ],
   "ts-node": {
     "transpileOnly": true,

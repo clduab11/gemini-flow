@@ -271,7 +271,7 @@ export class JulesWorkflowAdapter extends BaseModelAdapter {
     let code = 'UNKNOWN_ERROR';
     let statusCode = 500;
     let retryable = false;
-    let message = error.message || 'Unknown Jules workflow error occurred';
+    const message = error.message || 'Unknown Jules workflow error occurred';
 
     // Handle Jules-specific errors
     if (error.code === 'WORKFLOW_TIMEOUT') {

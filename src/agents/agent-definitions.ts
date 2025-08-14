@@ -645,6 +645,246 @@ export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
     description: 'A/B testing and experiment management',
     capabilities: ['experiments', 'ab-testing', 'tracking', 'analysis'],
     temperature: 0.4
+  },
+
+  // 17. Development Domain Agents (8) - NEW from Claude-Flow
+  'backend-dev': {
+    id: 'backend-dev',
+    name: 'Backend Developer',
+    type: 'developer',
+    category: 'development-domain',
+    description: 'Backend API and service development specialist',
+    capabilities: ['rest-api', 'graphql', 'microservices', 'database', 'authentication'],
+    temperature: 0.3,
+    systemPrompt: 'You are a backend development specialist. Focus on creating robust, scalable, and secure server-side solutions.'
+  },
+  'frontend-dev': {
+    id: 'frontend-dev',
+    name: 'Frontend Developer',
+    type: 'developer',
+    category: 'development-domain',
+    description: 'Frontend application development specialist',
+    capabilities: ['react', 'vue', 'angular', 'css', 'responsive-design', 'accessibility'],
+    temperature: 0.4,
+    systemPrompt: 'You are a frontend development specialist. Create beautiful, responsive, and accessible user interfaces.'
+  },
+  'fullstack-dev': {
+    id: 'fullstack-dev',
+    name: 'Fullstack Developer',
+    type: 'developer',
+    category: 'development-domain',
+    description: 'End-to-end application development specialist',
+    capabilities: ['frontend', 'backend', 'database', 'deployment', 'integration'],
+    temperature: 0.4,
+    systemPrompt: 'You are a fullstack developer. Handle both frontend and backend development with seamless integration.'
+  },
+  'mobile-dev-specialist': {
+    id: 'mobile-dev-specialist',
+    name: 'Mobile Developer Specialist',
+    type: 'developer',
+    category: 'development-domain',
+    description: 'Native and cross-platform mobile app development',
+    capabilities: ['react-native', 'flutter', 'ios', 'android', 'mobile-optimization'],
+    temperature: 0.4,
+    systemPrompt: 'You are a mobile development specialist. Create performant mobile applications for iOS and Android.'
+  },
+  'ml-developer': {
+    id: 'ml-developer',
+    name: 'Machine Learning Developer',
+    type: 'developer',
+    category: 'development-domain',
+    description: 'Machine learning model development and training',
+    capabilities: ['tensorflow', 'pytorch', 'scikit-learn', 'model-training', 'feature-engineering'],
+    temperature: 0.3,
+    systemPrompt: 'You are an ML developer. Build and optimize machine learning models for production use.'
+  },
+  'data-analyst-specialist': {
+    id: 'data-analyst-specialist',
+    name: 'Data Analysis Specialist',
+    type: 'developer',
+    category: 'development-domain',
+    description: 'Advanced data analysis and insights generation',
+    capabilities: ['sql', 'python', 'pandas', 'visualization', 'statistical-analysis'],
+    temperature: 0.4,
+    systemPrompt: 'You are a data analysis specialist. Extract meaningful insights from complex datasets.'
+  },
+  'api-architect': {
+    id: 'api-architect',
+    name: 'API Architect',
+    type: 'developer',
+    category: 'development-domain',
+    description: 'API design and architecture specialist',
+    capabilities: ['rest', 'graphql', 'grpc', 'openapi', 'api-gateway', 'versioning'],
+    temperature: 0.4,
+    systemPrompt: 'You are an API architect. Design scalable, maintainable, and well-documented APIs.'
+  },
+  'database-architect': {
+    id: 'database-architect',
+    name: 'Database Architect',
+    type: 'developer',
+    category: 'development-domain',
+    description: 'Database design and optimization specialist',
+    capabilities: ['sql', 'nosql', 'schema-design', 'optimization', 'replication', 'sharding'],
+    temperature: 0.3,
+    systemPrompt: 'You are a database architect. Design efficient, scalable database systems.'
+  },
+
+  // 18. Engineering Operations Agents (5) - NEW from Claude-Flow
+  'cicd-engineer': {
+    id: 'cicd-engineer',
+    name: 'CI/CD Engineer',
+    type: 'engineer',
+    category: 'engineering-operations',
+    description: 'Continuous integration and deployment pipeline specialist',
+    capabilities: ['github-actions', 'jenkins', 'gitlab-ci', 'docker', 'kubernetes', 'automation'],
+    temperature: 0.3,
+    systemPrompt: 'You are a CI/CD engineer. Build and maintain robust deployment pipelines.'
+  },
+  'infrastructure-engineer': {
+    id: 'infrastructure-engineer',
+    name: 'Infrastructure Engineer',
+    type: 'engineer',
+    category: 'engineering-operations',
+    description: 'Infrastructure as code and cloud resource management',
+    capabilities: ['terraform', 'ansible', 'cloudformation', 'pulumi', 'infrastructure-as-code'],
+    temperature: 0.3,
+    systemPrompt: 'You are an infrastructure engineer. Manage cloud resources with infrastructure as code.'
+  },
+  'deployment-engineer': {
+    id: 'deployment-engineer',
+    name: 'Deployment Engineer',
+    type: 'engineer',
+    category: 'engineering-operations',
+    description: 'Application deployment and release management',
+    capabilities: ['deployment', 'rollback', 'blue-green', 'canary', 'feature-flags'],
+    temperature: 0.3,
+    systemPrompt: 'You are a deployment engineer. Ensure smooth and reliable application deployments.'
+  },
+  'monitoring-engineer': {
+    id: 'monitoring-engineer',
+    name: 'Monitoring Engineer',
+    type: 'engineer',
+    category: 'engineering-operations',
+    description: 'System monitoring and observability specialist',
+    capabilities: ['prometheus', 'grafana', 'datadog', 'elk-stack', 'tracing', 'alerting'],
+    temperature: 0.3,
+    systemPrompt: 'You are a monitoring engineer. Implement comprehensive observability solutions.'
+  },
+  'performance-benchmarker': {
+    id: 'performance-benchmarker',
+    name: 'Performance Benchmarker',
+    type: 'engineer',
+    category: 'engineering-operations',
+    description: 'System performance benchmarking and optimization',
+    capabilities: ['load-testing', 'profiling', 'benchmarking', 'optimization', 'metrics'],
+    temperature: 0.3,
+    systemPrompt: 'You are a performance benchmarking specialist. Measure and optimize system performance.'
+  },
+
+  // 19. Code Quality Agents (3) - NEW from Claude-Flow
+  'code-analyzer-specialist': {
+    id: 'code-analyzer-specialist',
+    name: 'Code Analysis Specialist',
+    type: 'quality',
+    category: 'code-quality',
+    description: 'Advanced static and dynamic code analysis',
+    capabilities: ['static-analysis', 'dynamic-analysis', 'complexity-metrics', 'code-smells', 'ast-analysis'],
+    temperature: 0.3,
+    systemPrompt: 'You are a code analysis specialist. Identify and fix code quality issues.'
+  },
+  'security-analyzer': {
+    id: 'security-analyzer',
+    name: 'Security Analyzer',
+    type: 'quality',
+    category: 'code-quality',
+    description: 'Security vulnerability detection and remediation',
+    capabilities: ['vulnerability-scanning', 'sast', 'dast', 'dependency-scanning', 'security-best-practices'],
+    temperature: 0.2,
+    systemPrompt: 'You are a security analyzer. Identify and fix security vulnerabilities in code.'
+  },
+  'refactoring-specialist': {
+    id: 'refactoring-specialist',
+    name: 'Refactoring Specialist',
+    type: 'quality',
+    category: 'code-quality',
+    description: 'Code refactoring and modernization expert',
+    capabilities: ['refactoring', 'design-patterns', 'code-cleanup', 'modernization', 'debt-reduction'],
+    temperature: 0.4,
+    systemPrompt: 'You are a refactoring specialist. Improve code quality through systematic refactoring.'
+  },
+
+  // 20. Testing Specialists (4) - NEW from Claude-Flow
+  'unit-tester': {
+    id: 'unit-tester',
+    name: 'Unit Test Specialist',
+    type: 'testing',
+    category: 'testing-specialists',
+    description: 'Unit test creation and maintenance specialist',
+    capabilities: ['jest', 'mocha', 'pytest', 'junit', 'mocking', 'coverage'],
+    temperature: 0.3,
+    systemPrompt: 'You are a unit testing specialist. Write comprehensive unit tests with high coverage.'
+  },
+  'integration-tester': {
+    id: 'integration-tester',
+    name: 'Integration Test Specialist',
+    type: 'testing',
+    category: 'testing-specialists',
+    description: 'Integration and API testing specialist',
+    capabilities: ['api-testing', 'integration-testing', 'contract-testing', 'postman', 'rest-assured'],
+    temperature: 0.3,
+    systemPrompt: 'You are an integration testing specialist. Test component interactions and API contracts.'
+  },
+  'e2e-tester': {
+    id: 'e2e-tester',
+    name: 'E2E Test Specialist',
+    type: 'testing',
+    category: 'testing-specialists',
+    description: 'End-to-end test automation specialist',
+    capabilities: ['cypress', 'playwright', 'selenium', 'puppeteer', 'test-automation'],
+    temperature: 0.3,
+    systemPrompt: 'You are an E2E testing specialist. Create reliable end-to-end test automation.'
+  },
+  'performance-tester': {
+    id: 'performance-tester',
+    name: 'Performance Test Specialist',
+    type: 'testing',
+    category: 'testing-specialists',
+    description: 'Load and performance testing specialist',
+    capabilities: ['jmeter', 'gatling', 'k6', 'load-testing', 'stress-testing', 'performance-analysis'],
+    temperature: 0.3,
+    systemPrompt: 'You are a performance testing specialist. Test system performance under various load conditions.'
+  },
+
+  // 21. Documentation Specialists (3) - NEW from Claude-Flow
+  'api-docs-writer': {
+    id: 'api-docs-writer',
+    name: 'API Documentation Writer',
+    type: 'documentation',
+    category: 'documentation-specialists',
+    description: 'API documentation and specification writer',
+    capabilities: ['openapi', 'swagger', 'api-blueprints', 'postman-docs', 'technical-writing'],
+    temperature: 0.5,
+    systemPrompt: 'You are an API documentation specialist. Create clear, comprehensive API documentation.'
+  },
+  'technical-writer': {
+    id: 'technical-writer',
+    name: 'Technical Documentation Writer',
+    type: 'documentation',
+    category: 'documentation-specialists',
+    description: 'Technical documentation and guide creation',
+    capabilities: ['technical-writing', 'user-guides', 'tutorials', 'architecture-docs', 'markdown'],
+    temperature: 0.5,
+    systemPrompt: 'You are a technical writer. Create clear, well-structured technical documentation.'
+  },
+  'readme-specialist': {
+    id: 'readme-specialist',
+    name: 'README Specialist',
+    type: 'documentation',
+    category: 'documentation-specialists',
+    description: 'README and project documentation specialist',
+    capabilities: ['readme', 'getting-started', 'contributing-guides', 'badges', 'examples'],
+    temperature: 0.5,
+    systemPrompt: 'You are a README specialist. Create engaging, informative project documentation.'
   }
 };
 
@@ -665,7 +905,12 @@ export const AGENT_CATEGORIES = {
   'monitoring-systems': 3,
   'creative-development': 2,
   'specialized-tasks': 2,
-  'ai-ml-operations': 2
+  'ai-ml-operations': 2,
+  'development-domain': 8,        // NEW category
+  'engineering-operations': 5,    // NEW category
+  'code-quality': 3,              // NEW category
+  'testing-specialists': 4,       // NEW category
+  'documentation-specialists': 3  // NEW category
 };
 
-// Total: 64 agents
+// Total: 87 agents (expanded from 64 with Claude-Flow integration)

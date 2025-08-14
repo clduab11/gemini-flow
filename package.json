@@ -1,7 +1,7 @@
 {
   "name": "@clduab11/gemini-flow",
-  "version": "1.1.1",
-  "description": "Gemini Flow - Simple AI assistant CLI powered by Google Gemini",
+  "version": "1.2.0",
+  "description": "Gemini Flow - Advanced AI orchestration platform with 87 specialized agents powered by Google Gemini and enhanced with Claude-Flow integration",
   "type": "module",
   "main": "dist/index.js",
   "bin": {

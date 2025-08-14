@@ -23,7 +23,7 @@ When using the `--gemini` flag, this document is loaded as context to enhance AI
 
 Gemini-Flow is an enterprise-grade AI orchestration platform that leverages Google's Gemini models for advanced multi-agent coordination and swarm intelligence. The system provides:
 
-- **Multi-Agent Orchestration**: 66 specialized agent types across 16 categories
+- **Multi-Agent Orchestration**: 87 specialized agent types across 21 categories (enhanced with Claude-Flow integration)
 - **Hive-Mind Coordination**: Collective intelligence with consensus mechanisms
 - **Performance Optimization**: <100ms agent spawn, 396K ops/sec SQLite performance
 - **Memory Persistence**: Cross-session knowledge sharing with SQLite WAL
@@ -295,7 +295,7 @@ gemini-flow security <command> [options]
 
 ## 🤖 Agent Types
 
-### Complete Agent Registry (66 Types)
+### Complete Agent Registry (87 Types - Enhanced with Claude-Flow)
 
 ```typescript
 // Core Development Agents (5)
@@ -400,14 +400,27 @@ export const INTELLIGENCE_AGENTS = {
 ### Agent Categories Summary
 - **Core Development**: 5 agents
 - **Swarm Coordination**: 3 agents
-- **Consensus Systems**: 14 agents
-- **GitHub Integration**: 17 agents
-- **Performance & Optimization**: 12 agents
-- **Development Support**: 6 agents
-- **System Architecture**: 4 agents
-- **Intelligence & Analysis**: 5 agents
+- **Consensus Systems**: 7 agents
+- **GitHub Integration**: 13 agents
+- **Performance Optimization**: 6 agents
+- **Neural Processing**: 4 agents
+- **Quantum Computing**: 3 agents
+- **Security Systems**: 4 agents
+- **Data Analytics**: 3 agents
+- **Infrastructure**: 4 agents
+- **Knowledge Management**: 3 agents
+- **Communication**: 2 agents
+- **Monitoring Systems**: 3 agents
+- **Creative Development**: 2 agents
+- **Specialized Tasks**: 2 agents
+- **AI/ML Operations**: 2 agents
+- **Development Domain**: 8 agents (NEW from Claude-Flow)
+- **Engineering Operations**: 5 agents (NEW from Claude-Flow)
+- **Code Quality**: 3 agents (NEW from Claude-Flow)
+- **Testing Specialists**: 4 agents (NEW from Claude-Flow)
+- **Documentation Specialists**: 3 agents (NEW from Claude-Flow)
 
-**Total**: 66 specialized agent types
+**Total**: 87 specialized agent types (enhanced from 64 with Claude-Flow integration)
 
 ## 💾 Memory Architecture
 

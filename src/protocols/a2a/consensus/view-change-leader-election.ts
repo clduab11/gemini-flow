@@ -83,8 +83,8 @@ export class ViewChangeLeaderElection extends EventEmitter {
   private consecutiveTerms: Map<string, number> = new Map();
   
   private readonly config: ElectionConfiguration;
-  private heartbeatTimer: NodeJS.Timeout | null = null;
-  private electionTimer: NodeJS.Timeout | null = null;
+  private heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
+  private electionTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private nodeId: string,

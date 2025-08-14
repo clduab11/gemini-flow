@@ -430,7 +430,7 @@ export class GeminiAdapter extends BaseModelAdapter {
     let code = 'UNKNOWN_ERROR';
     let statusCode = 500;
     let retryable = false;
-    let message = error.message || 'Unknown error occurred';
+    const message = error.message || 'Unknown error occurred';
 
     // Handle Google AI API specific errors
     if (error.status) {

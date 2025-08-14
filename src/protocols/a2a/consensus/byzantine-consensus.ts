@@ -52,7 +52,7 @@ export class ByzantineConsensus extends EventEmitter {
   private messageLog: ConsensusMessage[] = [];
   private faultThreshold: number;
   private timeoutDuration: number = 30000; // 30 seconds
-  private viewChangeTimeout: NodeJS.Timeout | null = null;
+  private viewChangeTimeout: ReturnType<typeof setTimeout> | null = null;
   private performance: {
     consensusRounds: number;
     averageLatency: number;
@@ -229,7 +229,7 @@ export class ByzantineConsensus extends EventEmitter {
   private async collectPrepareResponses(proposalId: string): Promise<boolean> {
     return new Promise((resolve) => {
       const requiredResponses = 2 * this.faultThreshold;
-      let receivedResponses = 0;
+      const receivedResponses = 0;
       
       const timeout = setTimeout(() => {
         resolve(false);

@@ -16,7 +16,6 @@ import { EventEmitter } from 'events';
 import crypto from 'crypto';
 import { Logger } from '../utils/logger.js';
 import { CacheManager } from './cache-manager.js';
-import { A2AIdentity, A2ASession } from './a2a-security-manager.js';
 
 export interface ZeroTrustPolicy {
   policyId: string;
@@ -950,7 +949,7 @@ export class A2AZeroTrust extends EventEmitter {
     }
   }
 
-  private async checkPolicyCompliance(policy: ZeroTrustPolicy): Promise<any[]> {
+  private async checkPolicyCompliance(_policy: ZeroTrustPolicy): Promise<any[]> {
     // Placeholder for policy compliance checking
     return [];
   }
@@ -1080,7 +1079,7 @@ class PolicyEngine {
 }
 
 class TrustCalculator {
-  async calculateDelta(event: any, currentTrust: TrustScore): Promise<number> {
+  async calculateDelta(event: any, _currentTrust: TrustScore): Promise<number> {
     let delta = 0;
     
     switch (event.type) {
@@ -1158,7 +1157,7 @@ class SegmentationEngine {
     }
   }
 
-  async validateSegmentState(segment: NetworkSegment): Promise<{
+  async validateSegmentState(_segment: NetworkSegment): Promise<{
     valid: boolean;
     issues: string[];
   }> {
@@ -1277,7 +1276,7 @@ class AdaptiveResponder {
     context: SecurityContext,
     trustScore: TrustScore,
     riskAssessment: RiskAssessment,
-    policyDecision: any
+    _policyDecision: any
   ): Promise<AdaptiveResponse> {
     const actions: string[] = [];
     
@@ -1322,7 +1321,7 @@ class AdaptiveResponder {
 }
 
 class BehaviorAnalyzer {
-  async analyzeAgent(agentId: string): Promise<{
+  async analyzeAgent(_agentId: string): Promise<{
     hasChanges: boolean;
     outcome: 'positive' | 'negative' | 'neutral';
     details: Record<string, any>;
@@ -1337,7 +1336,7 @@ class BehaviorAnalyzer {
 }
 
 class ContextAnalyzer {
-  async analyzeContext(context: SecurityContext): Promise<any> {
+  async analyzeContext(_context: SecurityContext): Promise<any> {
     // Placeholder for context analysis
     return {};
   }

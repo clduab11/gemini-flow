@@ -36,7 +36,7 @@ export interface MemoryEntry {
 export class SQLiteMemoryManager extends EventEmitter {
   private db: SQLiteDatabase;
   private logger: Logger;
-  private cleanupInterval?: NodeJS.Timeout;
+  private cleanupInterval?: ReturnType<typeof setInterval>;
   private implementation: SQLiteImplementation = 'sql.js';
   
   private constructor(db: SQLiteDatabase, implementation: SQLiteImplementation) {

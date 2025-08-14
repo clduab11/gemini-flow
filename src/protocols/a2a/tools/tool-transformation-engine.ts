@@ -450,7 +450,7 @@ export class ToolTransformationEngine {
     // Basic validation - could be enhanced with JSON Schema validation
     if (schema.required && Array.isArray(schema.required)) {
       for (const requiredField of schema.required) {
-        if (!parameters.hasOwnProperty(requiredField)) {
+        if (!Object.hasOwn(parameters, requiredField)) {
           errors.push({
             code: 'MISSING_REQUIRED_FIELD',
             message: `Required field missing: ${requiredField}`,

@@ -91,8 +91,8 @@ export class SecurityContextManager extends EventEmitter {
   private contextValidationRules = new Map<string, (context: SecurityContext) => boolean>();
   
   // Cleanup intervals
-  private cleanupInterval?: NodeJS.Timeout;
-  private auditCleanupInterval?: NodeJS.Timeout;
+  private cleanupInterval?: ReturnType<typeof setInterval>;
+  private auditCleanupInterval?: ReturnType<typeof setInterval>;
 
   constructor(config: Partial<SecurityContextConfig> = {}) {
     super();

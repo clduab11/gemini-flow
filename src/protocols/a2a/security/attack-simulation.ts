@@ -211,7 +211,7 @@ export class AttackSimulationFramework extends EventEmitter {
   // Simulation state
   private isRunning: boolean = false;
   private currentSimulation?: AttackSimulationResult;
-  private simulationTimer?: NodeJS.Timeout;
+  private simulationTimer?: ReturnType<typeof setTimeout>;
   
   // Configuration
   private config = {

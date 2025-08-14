@@ -749,7 +749,7 @@ export class UnifiedAPI extends EventEmitter {
     const errorRate = this.metrics.failedRequests / this.metrics.totalRequests;
     if (errorRate > 0.1) { // 10% error rate
       // More aggressive circuit breaking
-      for (const [_adapter, breaker] of this.circuitBreakers) {
+      for (const [, breaker] of this.circuitBreakers) {
         if (breaker.failures >= 3) { // Lower threshold
           breaker.open = true;
         }

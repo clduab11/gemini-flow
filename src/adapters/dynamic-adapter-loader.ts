@@ -362,7 +362,6 @@ export class DynamicAdapterLoader extends EventEmitter {
    */
   async loadEnabledAdapters(): Promise<Map<string, LoadedAdapter>> {
     const loaded = new Map<string, LoadedAdapter>();
-    const enabledFeatures = featureFlags.getEnabledFeatures();
     
     for (const [key, spec] of this.adapterSpecs) {
       // Load if feature is enabled or adapter is required

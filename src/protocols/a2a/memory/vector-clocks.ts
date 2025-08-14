@@ -54,7 +54,7 @@ export class VectorClock {
   };
   
   private agentLastSeen: Map<string, Date> = new Map();
-  private pruningTimer?: NodeJS.Timeout;
+  private pruningTimer?: ReturnType<typeof setTimeout>;
 
   constructor(agentId: string, initialClocks?: Map<string, number>) {
     this.agentId = agentId;

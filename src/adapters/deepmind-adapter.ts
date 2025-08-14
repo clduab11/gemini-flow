@@ -14,7 +14,7 @@ import {
   AdapterConfig,
   AdapterError 
 } from './base-model-adapter.js';
-import { safeImport, conditionalImport } from '../utils/feature-detection.js';
+import { safeImport } from '../utils/feature-detection.js';
 
 export interface DeepMindAdapterConfig extends AdapterConfig {
   model: 'gemini-2.5-deepmind' | 'gemini-2.5-ultra' | 'gemini-2.5-pro';

@@ -182,7 +182,7 @@ Examples:
    * Setup list-models command
    */
   private setupListModelsCommand(): void {
-    const listCommand = this.program
+    this.program
       .command('list-models')
       .alias('models')
       .description('List available models')
@@ -494,20 +494,22 @@ Get your API key from: https://aistudio.google.com/app/apikey
           options.model = args[++i];
           break;
         case '--temperature':
-        case '-t':
+        case '-t': {
           const temp = parseFloat(args[++i]);
           if (isNaN(temp) || temp < 0 || temp > 2) {
             throw new Error('Invalid temperature value. Must be between 0 and 2.');
           }
           options.temperature = temp;
           break;
-        case '--max-tokens':
+        }
+        case '--max-tokens': {
           const tokens = parseInt(args[++i]);
           if (isNaN(tokens) || tokens <= 0) {
             throw new Error('Invalid max-tokens value. Must be a positive integer.');
           }
           options.maxTokens = tokens;
           break;
+        }
         case '--verbose':
         case '-v':
           options.verbose = true;
@@ -540,18 +542,21 @@ Get your API key from: https://aistudio.google.com/app/apikey
         return 'Interactive mode started';
         
       case 'generate':
-      case 'g':
+      case 'g': {
         const response = await this.executeGenerateCommand(args[0], options);
         return this.formatOutput(response.text, response, options);
+      }
         
       case 'list-models':
-      case 'models':
+      case 'models': {
         const models = await this.listModels();
         return this.formatModelsList(models, options);
+      }
         
-      case 'auth':
+      case 'auth': {
         const result = await this.executeAuthCommand(options);
         return result || '';
+      }
         
       default:
         throw new Error(`Unknown command: ${command}`);

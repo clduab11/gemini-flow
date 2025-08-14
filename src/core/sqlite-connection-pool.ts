@@ -62,7 +62,7 @@ export class SQLiteConnectionPool extends EventEmitter {
   private implementation?: SQLiteImplementation;
   private dbPath: string;
   private isShuttingDown: boolean = false;
-  private evictionTimer?: NodeJS.Timeout;
+  private evictionTimer?: ReturnType<typeof setTimeout>;
   private waitTimes: number[] = [];
   private connectionErrors: number = 0;
 

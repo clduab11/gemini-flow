@@ -66,7 +66,7 @@ export class CacheManager extends EventEmitter {
   // Performance optimization
   private accessOrder: string[] = []; // For LRU
   private frequencyMap: Map<string, number> = new Map(); // For LFU
-  private cleanupInterval?: NodeJS.Timeout;
+  private cleanupInterval?: ReturnType<typeof setInterval>;
 
   constructor(config: CacheConfig = {}) {
     super();

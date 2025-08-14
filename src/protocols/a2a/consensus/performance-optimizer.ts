@@ -74,8 +74,8 @@ export class PerformanceOptimizer extends EventEmitter {
   private adaptiveThresholds: Map<string, AdaptiveThreshold> = new Map();
   private messageCache: Map<string, ConsensusMessage> = new Map();
   
-  private batchTimer: NodeJS.Timeout | null = null;
-  private performanceMonitor: NodeJS.Timeout | null = null;
+  private batchTimer: ReturnType<typeof setTimeout> | null = null;
+  private performanceMonitor: ReturnType<typeof setTimeout> | null = null;
   private lastMetricsUpdate: Date = new Date();
   private operationHistory: Array<{ timestamp: Date; operation: string; duration: number; success: boolean }> = [];
 
@@ -372,7 +372,7 @@ export class PerformanceOptimizer extends EventEmitter {
       
       // Apply message optimizations
       const optimizations: string[] = [];
-      let optimizedMessage = { ...message };
+      const optimizedMessage = { ...message };
       
       // Deduplicate message
       if (this.isDuplicateMessage(message)) {

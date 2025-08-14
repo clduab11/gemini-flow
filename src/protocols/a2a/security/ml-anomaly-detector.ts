@@ -615,7 +615,7 @@ export class MLAnomalyDetector extends EventEmitter {
     
     // Simulate prediction based on model type
     let score = 0;
-    let confidence = 0.8;
+    const confidence = 0.8;
     
     switch (model.modelType) {
       case 'isolation_forest':

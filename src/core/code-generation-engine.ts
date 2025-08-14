@@ -303,7 +303,7 @@ export class CodeGenerationEngine {
     this.logger.info('Generating with hybrid approach');
 
     // Start with template if available
-    let result = approach.template ? 
+    const result = approach.template ? 
       await this.generateFromTemplate(request, approach.template) :
       { files: [], metadata: this.buildMetadata([], [], 'hybrid'), suggestions: [], dependencies: [] };
 
@@ -726,11 +726,11 @@ export default app;`,
   }
 
   // Placeholder implementations for helper methods
-  private async selectBestTemplate(request: GenerationRequest): Promise<Template | null> { return null; }
-  private evaluateConditions(conditions: Record<string, any> | undefined, variables: Record<string, any>): boolean { return true; }
-  private async generateSuggestions(files: GeneratedFile[], request: GenerationRequest): Promise<string[]> { return []; }
-  private async selectBestPatterns(request: GenerationRequest): Promise<CodePattern[]> { return []; }
-  private async applyPattern(pattern: CodePattern, request: GenerationRequest): Promise<GeneratedFile | null> { return null; }
+  private async selectBestTemplate(_request: GenerationRequest): Promise<Template | null> { return null; }
+  private evaluateConditions(_conditions: Record<string, any> | undefined, _variables: Record<string, any>): boolean { return true; }
+  private async generateSuggestions(_files: GeneratedFile[], _request: GenerationRequest): Promise<string[]> { return []; }
+  private async selectBestPatterns(_request: GenerationRequest): Promise<CodePattern[]> { return []; }
+  private async applyPattern(_pattern: CodePattern, _request: GenerationRequest): Promise<GeneratedFile | null> { return null; }
   private async buildAIContext(request: GenerationRequest): Promise<any> { return {}; }
   private buildGenerationPrompt(request: GenerationRequest, context: any): string { return ''; }
   private async parseAIResponse(content: string, request: GenerationRequest): Promise<any> { return { files: [], suggestions: [], dependencies: [] }; }

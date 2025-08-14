@@ -724,7 +724,7 @@ class ConnectionPool extends EventEmitter {
   private queue: Array<{
     resolve: (connection: Connection) => void;
     reject: (error: Error) => void;
-    timeout: NodeJS.Timeout;
+    timeout: ReturnType<typeof setTimeout>;
   }> = [];
   
   private metrics: ConnectionPoolMetrics = {

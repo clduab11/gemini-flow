@@ -183,9 +183,9 @@ export class EnhancedA2ASecurityManager extends EventEmitter {
   private consensusVotes: Map<string, ConsensusVote[]> = new Map();
   
   // Monitoring and automation
-  private detectionTimer?: NodeJS.Timeout;
-  private metricsTimer?: NodeJS.Timeout;
-  private simulationTimer?: NodeJS.Timeout;
+  private detectionTimer?: ReturnType<typeof setTimeout>;
+  private metricsTimer?: ReturnType<typeof setTimeout>;
+  private simulationTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     authManager: AuthenticationManager,

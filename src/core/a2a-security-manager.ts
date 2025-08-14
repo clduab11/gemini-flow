@@ -13,12 +13,8 @@
 
 import { EventEmitter } from 'events';
 import crypto from 'crypto';
-import * as tls from 'tls';
-import * as fs from 'fs';
-import * as path from 'path';
-import jwt from 'jsonwebtoken';
 import { Logger } from '../utils/logger.js';
-import { AuthenticationManager, UserProfile } from './auth-manager.js';
+import { AuthenticationManager } from './auth-manager.js';
 import { CacheManager } from './cache-manager.js';
 
 // A2A Security Interfaces
@@ -812,7 +808,7 @@ export class A2ASecurityManager extends EventEmitter {
    * Helper methods for cryptographic operations
    */
 
-  private async verifyAgentCertificates(certificates: {
+  private async verifyAgentCertificates(_certificates: {
     identity: string;
     tls: string;
     signing: string;
@@ -851,7 +847,7 @@ export class A2ASecurityManager extends EventEmitter {
     return { encryptionKey, macKey };
   }
 
-  private async signMessage(message: A2AMessage, identity: A2AIdentity): Promise<string> {
+  private async signMessage(message: A2AMessage, _identity: A2AIdentity): Promise<string> {
     const keyPair = this.keyPairs.get('root')!;
     const messageData = JSON.stringify({
       id: message.id,
@@ -1311,7 +1307,7 @@ class AnomalyDetector {
     return anomalies;
   }
 
-  private async getRecentMessageCount(agentId: string): Promise<number> {
+  private async getRecentMessageCount(_agentId: string): Promise<number> {
     // Implementation would track recent message counts
     return 0;
   }
@@ -1363,7 +1359,7 @@ class BehaviorAnalyzer {
     this.policy = policy;
   }
 
-  async recordMessageBehavior(message: A2AMessage, identity: A2AIdentity): Promise<void> {
+  async recordMessageBehavior(message: A2AMessage, _identity: A2AIdentity): Promise<void> {
     if (!this.policy.zeroTrust.behaviorAnalysis) {
       return;
     }

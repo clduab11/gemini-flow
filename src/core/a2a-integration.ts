@@ -656,7 +656,7 @@ export class A2ASecurityIntegration extends EventEmitter {
         
         if (this.rateLimiter) {
           // Block all agents temporarily
-          const agents = this.rateLimiter.getMetrics();
+          this.rateLimiter.getMetrics();
           // Implementation would block all known agents
         }
         
@@ -960,12 +960,12 @@ export class A2ASecurityIntegration extends EventEmitter {
 class SecurityEventCorrelator {
   constructor(private config: A2AIntegrationConfig) {}
 
-  async correlateEvent(event: UnifiedSecurityEvent): Promise<UnifiedSecurityEvent[]> {
+  async correlateEvent(_event: UnifiedSecurityEvent): Promise<UnifiedSecurityEvent[]> {
     // Placeholder for event correlation logic
     return [];
   }
 
-  async correlateOptimizationEvent(event: any): Promise<void> {
+  async correlateOptimizationEvent(_event: any): Promise<void> {
     // Placeholder for optimization event correlation
   }
 }

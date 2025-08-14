@@ -47,7 +47,7 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
   private storage = new Map<string, StorageEntry>();
   private logger: Logger;
   private config: StorageConfig;
-  private cleanupInterval?: NodeJS.Timeout;
+  private cleanupInterval?: ReturnType<typeof setInterval>;
 
   constructor(config: Partial<StorageConfig> = {}) {
     super();
