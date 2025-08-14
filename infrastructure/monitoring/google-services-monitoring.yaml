@@ -1,0 +1,326 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: google-services-monitoring-config
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: monitoring
+data:
+  prometheus-rules.yaml: |
+    groups:
+    - name: google-services.rules
+      interval: 30s
+      rules:
+      # Veo3 Video Generation Metrics
+      - alert: Veo3HighLatency
+        expr: histogram_quantile(0.95, rate(veo3_video_generation_duration_seconds_bucket[5m])) > 30
+        for: 2m
+        labels:
+          severity: warning
+          service: veo3
+        annotations:
+          summary: "Veo3 video generation experiencing high latency"
+          description: "95th percentile latency is {{ $value }}s, above 30s threshold"
+
+      - alert: Veo3ProcessingErrors
+        expr: rate(veo3_processing_errors_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+          service: veo3
+        annotations:
+          summary: "High error rate in Veo3 video processing"
+          description: "Error rate is {{ $value }} per second"
+
+      # Imagen4 Image Generation Metrics
+      - alert: Imagen4HighLatency
+        expr: histogram_quantile(0.95, rate(imagen4_generation_duration_seconds_bucket[5m])) > 15
+        for: 2m
+        labels:
+          severity: warning
+          service: imagen4
+        annotations:
+          summary: "Imagen4 image generation experiencing high latency"
+          description: "95th percentile latency is {{ $value }}s, above 15s threshold"
+
+      - alert: Imagen4QueueOverload
+        expr: imagen4_queue_size > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: imagen4
+        annotations:
+          summary: "Imagen4 processing queue is overloaded"
+          description: "Queue size is {{ $value }}, above 100 threshold"
+
+      # Lyria Music Composition Metrics
+      - alert: LyriaHighLatency
+        expr: histogram_quantile(0.95, rate(lyria_composition_duration_seconds_bucket[5m])) > 45
+        for: 3m
+        labels:
+          severity: warning
+          service: lyria
+        annotations:
+          summary: "Lyria music composition experiencing high latency"
+          description: "95th percentile latency is {{ $value }}s, above 45s threshold"
+
+      - alert: LyriaMemoryUsage
+        expr: lyria_memory_usage_bytes / lyria_memory_limit_bytes > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          service: lyria
+        annotations:
+          summary: "Lyria service using excessive memory"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      # Chirp Audio Processing Metrics
+      - alert: ChirpProcessingErrors
+        expr: rate(chirp_processing_errors_total[5m]) > 0.05
+        for: 1m
+        labels:
+          severity: warning
+          service: chirp
+        annotations:
+          summary: "Elevated error rate in Chirp audio processing"
+          description: "Error rate is {{ $value }} per second"
+
+      # GPU Resource Monitoring
+      - alert: GPUUtilizationHigh
+        expr: nvidia_gpu_utilization_gpu > 95
+        for: 5m
+        labels:
+          severity: warning
+          resource: gpu
+        annotations:
+          summary: "GPU utilization is critically high"
+          description: "GPU utilization is {{ $value }}%"
+
+      - alert: GPUMemoryHigh
+        expr: nvidia_gpu_memory_used_bytes / nvidia_gpu_memory_total_bytes > 0.9
+        for: 3m
+        labels:
+          severity: warning
+          resource: gpu
+        annotations:
+          summary: "GPU memory usage is high"
+          description: "GPU memory usage is {{ $value | humanizePercentage }}"
+
+      # API Rate Limits
+      - alert: GoogleAPIRateLimitApproaching
+        expr: google_api_requests_remaining < 100
+        for: 1m
+        labels:
+          severity: warning
+          service: google-api
+        annotations:
+          summary: "Approaching Google API rate limits"
+          description: "Only {{ $value }} requests remaining in current window"
+
+      # Service Health
+      - alert: GoogleServiceDown
+        expr: up{job=~".*google-services.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Google service is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+
+  grafana-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Google Services - Production Monitoring",
+        "tags": ["google", "services", "multimedia"],
+        "timezone": "UTC",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Veo3 Video Generation",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(veo3_videos_generated_total[5m])",
+                "legendFormat": "Videos/sec"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "min": 0
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Imagen4 Image Generation",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(imagen4_images_generated_total[5m])",
+                "legendFormat": "Images/sec"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "min": 0
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Lyria Music Compositions",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "rate(lyria_compositions_created_total[5m])",
+                "legendFormat": "Compositions/sec"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "min": 0
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+          },
+          {
+            "id": 4,
+            "title": "GPU Utilization",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "nvidia_gpu_utilization_gpu",
+                "legendFormat": "GPU {{instance}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "min": 0,
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": 0},
+                    {"color": "yellow", "value": 70},
+                    {"color": "red", "value": 90}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+    }
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: google-services-metrics
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gemini-flow
+      metrics: google-services
+  endpoints:
+  - port: metrics
+    interval: 15s
+    path: /metrics
+    honorLabels: true
+  - port: gpu-metrics
+    interval: 30s
+    path: /gpu-metrics
+    honorLabels: true
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gpu-metrics-exporter
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gpu-metrics
+    metrics: google-services
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9400
+    targetPort: 9400
+    protocol: TCP
+    name: gpu-metrics
+  selector:
+    app.kubernetes.io/name: gpu-metrics
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gpu-metrics-exporter
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gpu-metrics
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gpu-metrics
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gpu-metrics
+    spec:
+      nodeSelector:
+        accelerator: nvidia-tesla-v100
+      containers:
+      - name: gpu-exporter
+        image: nvcr.io/nvidia/k8s/dcgm-exporter:3.1.8-3.1.5-ubuntu20.04
+        ports:
+        - containerPort: 9400
+          name: gpu-metrics
+        env:
+        - name: DCGM_EXPORTER_LISTEN
+          value: ":9400"
+        - name: DCGM_EXPORTER_KUBERNETES
+          value: "true"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          capabilities:
+            add: ["SYS_ADMIN"]
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: sys
+        hostPath:
+          path: /sys
+      hostNetwork: true
+      hostPID: true

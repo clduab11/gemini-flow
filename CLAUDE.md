@@ -3,6 +3,7 @@
 ## 🚨 CRITICAL: Concurrent Execution Rules
 
 **ABSOLUTE RULE**: ALL operations MUST be concurrent/parallel in ONE message:
+**ABSOLUTE RULE**: You must ALWAYS use git tools or git commands for GitHub operations; NEVER use gh commands.
 
 ### 🔴 Mandatory Patterns:
 - **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ minimum)

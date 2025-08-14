@@ -1,0 +1,342 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Gemini-Flow SRE Dashboard",
+    "tags": ["gemini-flow", "sre", "production"],
+    "style": "dark",
+    "timezone": "UTC",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service Level Objectives",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "avg_over_time(up{job=\"gemini-flow\"}[7d]) * 100",
+            "legendFormat": "Availability %",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"gemini-flow\"}[5m])) * 1000",
+            "legendFormat": "P95 Latency (ms)",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(http_requests_total{job=\"gemini-flow\",status=~\"5..\"}[5m]) / rate(http_requests_total{job=\"gemini-flow\"}[5m]) * 100",
+            "legendFormat": "Error Rate %",
+            "refId": "C"
+          },
+          {
+            "expr": "rate(http_requests_total{job=\"gemini-flow\"}[5m])",
+            "legendFormat": "Request Rate (rps)",
+            "refId": "D"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 95},
+                {"color": "green", "value": 99.9}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"gemini-flow\"}[5m])",
+            "legendFormat": "Total Requests",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(http_requests_total{job=\"gemini-flow\",status=~\"2..\"}[5m])",
+            "legendFormat": "Successful Requests",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(http_requests_total{job=\"gemini-flow\",status=~\"5..\"}[5m])",
+            "legendFormat": "Error Requests",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {"label": "Requests per Second", "min": 0}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Response Time Distribution",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"gemini-flow\"}[5m]))",
+            "legendFormat": "P50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"gemini-flow\"}[5m]))",
+            "legendFormat": "P95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"gemini-flow\"}[5m]))",
+            "legendFormat": "P99",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {"label": "Response Time (seconds)", "min": 0}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Google Services Health",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "vertex_ai_api_success_rate",
+            "legendFormat": "Vertex AI",
+            "refId": "A"
+          },
+          {
+            "expr": "workspace_api_success_rate",
+            "legendFormat": "Workspace",
+            "refId": "B"
+          },
+          {
+            "expr": "storage_api_success_rate",
+            "legendFormat": "Storage",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 95},
+                {"color": "green", "value": 99}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Resource Utilization",
+        "type": "graph",
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 16},
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{container=\"gemini-flow\"}[5m]) * 100",
+            "legendFormat": "CPU %",
+            "refId": "A"
+          },
+          {
+            "expr": "container_memory_usage_bytes{container=\"gemini-flow\"} / container_spec_memory_limit_bytes{container=\"gemini-flow\"} * 100",
+            "legendFormat": "Memory %",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {"label": "Utilization %", "min": 0, "max": 100}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Error Budget Burn Rate",
+        "type": "graph",
+        "gridPos": {"h": 6, "w": 8, "x": 16, "y": 16},
+        "targets": [
+          {
+            "expr": "(1 - avg_over_time(up{job=\"gemini-flow\"}[1h])) * 100 * 24 * 30 / 0.1",
+            "legendFormat": "Availability Budget Burn",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(http_requests_total{job=\"gemini-flow\",status=~\"5..\"}[1h]) / rate(http_requests_total{job=\"gemini-flow\"}[1h]) * 100 * 24 * 30 / 0.1",
+            "legendFormat": "Error Budget Burn",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {"label": "Budget Burn Rate", "min": 0}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Agent Performance",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 22},
+        "targets": [
+          {
+            "expr": "agent_task_completion_rate",
+            "legendFormat": "{{agent_type}}",
+            "refId": "A",
+            "format": "table"
+          },
+          {
+            "expr": "avg_over_time(agent_response_time_seconds[5m])",
+            "legendFormat": "{{agent_type}}",
+            "refId": "B",
+            "format": "table"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "merge",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Infrastructure Status",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 22},
+        "targets": [
+          {
+            "expr": "kube_pod_status_ready{namespace=\"gemini-flow\",condition=\"true\"}",
+            "legendFormat": "Ready Pods",
+            "refId": "A"
+          },
+          {
+            "expr": "kube_deployment_status_replicas_available{namespace=\"gemini-flow\"}",
+            "legendFormat": "Available Replicas",
+            "refId": "B"
+          },
+          {
+            "expr": "kube_node_status_condition{condition=\"Ready\",status=\"true\"}",
+            "legendFormat": "Ready Nodes",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Cost Optimization Metrics",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 12, "x": 0, "y": 30},
+        "targets": [
+          {
+            "expr": "gcp_billing_total{project=\"gemini-flow-prod\"}",
+            "legendFormat": "Daily Cost ($)",
+            "refId": "A"
+          },
+          {
+            "expr": "avg_over_time(vertex_ai_requests_total[1d]) * vertex_ai_cost_per_request",
+            "legendFormat": "AI API Cost ($)",
+            "refId": "B"
+          },
+          {
+            "expr": "gce_instance_cost_total{project=\"gemini-flow-prod\"}",
+            "legendFormat": "Compute Cost ($)",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Security Metrics",
+        "type": "stat",
+        "gridPos": {"h": 6, "w": 12, "x": 12, "y": 30},
+        "targets": [
+          {
+            "expr": "rate(authentication_failures_total[5m])",
+            "legendFormat": "Auth Failures/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(rate_limit_exceeded_total[5m])",
+            "legendFormat": "Rate Limit Hits/sec",
+            "refId": "B"
+          },
+          {
+            "expr": "security_scan_violations_total",
+            "legendFormat": "Security Violations",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 10}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Recent Alerts",
+        "type": "logs",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 36},
+        "targets": [
+          {
+            "expr": "{job=\"alertmanager\"} |= \"firing\"",
+            "refId": "A"
+          }
+        ]
+      }
+    ],
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "prometheus",
+          "enable": true,
+          "expr": "deployment_event{namespace=\"gemini-flow\"}",
+          "iconColor": "blue",
+          "tags": ["deployment"]
+        },
+        {
+          "name": "Incidents",
+          "datasource": "prometheus", 
+          "enable": true,
+          "expr": "incident_event{severity!=\"info\"}",
+          "iconColor": "red",
+          "tags": ["incident"]
+        }
+      ]
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "environment",
+          "type": "query",
+          "query": "label_values(up{job=~\"gemini-flow.*\"}, environment)",
+          "current": {
+            "value": "production",
+            "text": "production"
+          }
+        },
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(up{job=\"gemini-flow\",environment=\"$environment\"}, instance)",
+          "multi": true,
+          "includeAll": true
+        }
+      ]
+    }
+  }
+}

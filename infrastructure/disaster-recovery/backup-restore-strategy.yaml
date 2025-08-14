@@ -1,0 +1,676 @@
+# Disaster Recovery and Backup Strategy for Gemini-Flow Google Services Integration
+# RTO: 4 hours | RPO: 1 hour | SLA: 99.9%
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: disaster-recovery-config
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: disaster-recovery
+    app.kubernetes.io/component: configuration
+data:
+  strategy.yaml: |
+    disaster_recovery:
+      rto: "4h"  # Recovery Time Objective
+      rpo: "1h"  # Recovery Point Objective
+      sla: "99.9%"
+      
+      backup_strategy:
+        frequency:
+          full_backup: "weekly"
+          incremental_backup: "daily"
+          transaction_log_backup: "15min"
+          configuration_backup: "daily"
+        
+        retention:
+          daily_backups: 30
+          weekly_backups: 12
+          monthly_backups: 12
+          yearly_backups: 7
+        
+        storage_locations:
+          primary: "us-central1"
+          secondary: "us-east1"
+          cross_region: true
+          cross_cloud: false
+        
+        encryption:
+          enabled: true
+          key_management: "google-kms"
+          encryption_algorithm: "AES-256"
+      
+      replication:
+        database:
+          enabled: true
+          type: "synchronous"
+          regions: ["us-central1", "us-east1"]
+        
+        object_storage:
+          enabled: true
+          type: "asynchronous"
+          regions: ["us-central1", "us-east1", "europe-west1"]
+        
+        container_registry:
+          enabled: true
+          type: "asynchronous"
+          regions: ["us-central1", "us-east1"]
+      
+      failover:
+        automatic: false
+        manual_approval_required: true
+        health_check_interval: "30s"
+        failure_threshold: 3
+        
+        triggers:
+          - "region_unavailable"
+          - "rto_exceeded"
+          - "critical_service_failure"
+          - "data_corruption_detected"
+      
+      testing:
+        disaster_recovery_drills: "monthly"
+        backup_restoration_tests: "weekly"
+        failover_tests: "quarterly"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: database-backup
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: database
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: backup
+            app.kubernetes.io/component: database
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: backup-service-account
+          containers:
+          - name: postgres-backup
+            image: postgres:15-alpine
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Starting PostgreSQL backup..."
+              
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              BACKUP_NAME="gemini-flow-db-${TIMESTAMP}"
+              
+              # Create full database dump
+              pg_dump -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${POSTGRES_DB} \
+                --no-password --compress=9 --verbose \
+                > /tmp/${BACKUP_NAME}.sql.gz
+              
+              # Upload to Google Cloud Storage
+              gsutil cp /tmp/${BACKUP_NAME}.sql.gz \
+                gs://${BACKUP_BUCKET}/database/daily/${BACKUP_NAME}.sql.gz
+              
+              # Create metadata file
+              cat > /tmp/${BACKUP_NAME}.metadata << EOF
+              {
+                "backup_name": "${BACKUP_NAME}",
+                "timestamp": "${TIMESTAMP}",
+                "database": "${POSTGRES_DB}",
+                "size_bytes": $(stat -c %s /tmp/${BACKUP_NAME}.sql.gz),
+                "checksum": "$(md5sum /tmp/${BACKUP_NAME}.sql.gz | cut -d' ' -f1)",
+                "type": "full",
+                "retention_days": 30
+              }
+              EOF
+              
+              gsutil cp /tmp/${BACKUP_NAME}.metadata \
+                gs://${BACKUP_BUCKET}/database/daily/${BACKUP_NAME}.metadata
+              
+              # Cleanup old backups (keep last 30 days)
+              gsutil ls gs://${BACKUP_BUCKET}/database/daily/ | \
+                grep -E ".*-[0-9]{8}_[0-9]{6}\.sql\.gz$" | \
+                sort | head -n -30 | \
+                xargs -r gsutil rm
+              
+              echo "Database backup completed: ${BACKUP_NAME}"
+            env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: host
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: database
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            - name: BACKUP_BUCKET
+              value: "gemini-flow-backups-primary"
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 1Gi
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: application-state-backup
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: application-state
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: backup
+            app.kubernetes.io/component: application-state
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: backup-service-account
+          containers:
+          - name: kubernetes-backup
+            image: google/cloud-sdk:alpine
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Starting Kubernetes state backup..."
+              
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              BACKUP_DIR="/tmp/k8s-backup-${TIMESTAMP}"
+              mkdir -p ${BACKUP_DIR}
+              
+              # Backup Kubernetes resources
+              kubectl get all -n gemini-flow -o yaml > ${BACKUP_DIR}/all-resources.yaml
+              kubectl get configmaps -n gemini-flow -o yaml > ${BACKUP_DIR}/configmaps.yaml
+              kubectl get secrets -n gemini-flow -o yaml > ${BACKUP_DIR}/secrets.yaml
+              kubectl get pvc -n gemini-flow -o yaml > ${BACKUP_DIR}/pvcs.yaml
+              kubectl get ingress -n gemini-flow -o yaml > ${BACKUP_DIR}/ingress.yaml
+              
+              # Backup Argo Rollouts
+              kubectl get rollouts -n gemini-flow -o yaml > ${BACKUP_DIR}/rollouts.yaml || true
+              
+              # Backup feature flags configuration
+              kubectl get configmap feature-flags-config -n gemini-flow -o yaml > ${BACKUP_DIR}/feature-flags.yaml || true
+              
+              # Backup Helm releases
+              helm list -n gemini-flow -o yaml > ${BACKUP_DIR}/helm-releases.yaml || true
+              
+              # Create archive
+              tar -czf /tmp/k8s-backup-${TIMESTAMP}.tar.gz -C /tmp k8s-backup-${TIMESTAMP}
+              
+              # Upload to Google Cloud Storage
+              gsutil cp /tmp/k8s-backup-${TIMESTAMP}.tar.gz \
+                gs://${BACKUP_BUCKET}/kubernetes/daily/k8s-backup-${TIMESTAMP}.tar.gz
+              
+              # Create metadata
+              cat > /tmp/k8s-backup-${TIMESTAMP}.metadata << EOF
+              {
+                "backup_name": "k8s-backup-${TIMESTAMP}",
+                "timestamp": "${TIMESTAMP}",
+                "type": "kubernetes-state",
+                "namespace": "gemini-flow",
+                "size_bytes": $(stat -c %s /tmp/k8s-backup-${TIMESTAMP}.tar.gz),
+                "checksum": "$(md5sum /tmp/k8s-backup-${TIMESTAMP}.tar.gz | cut -d' ' -f1)",
+                "retention_days": 30
+              }
+              EOF
+              
+              gsutil cp /tmp/k8s-backup-${TIMESTAMP}.metadata \
+                gs://${BACKUP_BUCKET}/kubernetes/daily/k8s-backup-${TIMESTAMP}.metadata
+              
+              echo "Kubernetes backup completed: k8s-backup-${TIMESTAMP}"
+            env:
+            - name: BACKUP_BUCKET
+              value: "gemini-flow-backups-primary"
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 200m
+                memory: 256Mi
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cross-region-sync
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: cross-region-sync
+spec:
+  schedule: "0 4 * * *"  # Daily at 4 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: backup
+            app.kubernetes.io/component: cross-region-sync
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: backup-service-account
+          containers:
+          - name: cross-region-sync
+            image: google/cloud-sdk:alpine
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Starting cross-region backup sync..."
+              
+              # Sync database backups
+              gsutil -m rsync -r -d \
+                gs://${PRIMARY_BACKUP_BUCKET}/database/ \
+                gs://${SECONDARY_BACKUP_BUCKET}/database/
+              
+              # Sync Kubernetes backups
+              gsutil -m rsync -r -d \
+                gs://${PRIMARY_BACKUP_BUCKET}/kubernetes/ \
+                gs://${SECONDARY_BACKUP_BUCKET}/kubernetes/
+              
+              # Sync application data
+              gsutil -m rsync -r -d \
+                gs://${PRIMARY_MULTIMEDIA_BUCKET}/ \
+                gs://${SECONDARY_MULTIMEDIA_BUCKET}/
+              
+              # Verify sync integrity
+              PRIMARY_COUNT=$(gsutil ls -l gs://${PRIMARY_BACKUP_BUCKET}/** | wc -l)
+              SECONDARY_COUNT=$(gsutil ls -l gs://${SECONDARY_BACKUP_BUCKET}/** | wc -l)
+              
+              if [ "$PRIMARY_COUNT" -ne "$SECONDARY_COUNT" ]; then
+                echo "WARNING: Backup counts do not match!"
+                echo "Primary: $PRIMARY_COUNT, Secondary: $SECONDARY_COUNT"
+                exit 1
+              fi
+              
+              echo "Cross-region sync completed successfully"
+              echo "Synced $PRIMARY_COUNT files"
+            env:
+            - name: PRIMARY_BACKUP_BUCKET
+              value: "gemini-flow-backups-primary"
+            - name: SECONDARY_BACKUP_BUCKET
+              value: "gemini-flow-backups-secondary"
+            - name: PRIMARY_MULTIMEDIA_BUCKET
+              value: "gemini-flow-multimedia-primary"
+            - name: SECONDARY_MULTIMEDIA_BUCKET
+              value: "gemini-flow-multimedia-secondary"
+            resources:
+              requests:
+                cpu: 200m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: disaster-recovery-scripts
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: disaster-recovery
+    app.kubernetes.io/component: scripts
+data:
+  restore-database.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_NAME=$1
+    TARGET_DB=${2:-gemini_flow}
+    
+    if [ -z "$BACKUP_NAME" ]; then
+      echo "Usage: $0 <backup-name> [target-database]"
+      exit 1
+    fi
+    
+    echo "Restoring database from backup: $BACKUP_NAME"
+    
+    # Download backup
+    gsutil cp gs://${BACKUP_BUCKET}/database/daily/${BACKUP_NAME}.sql.gz /tmp/
+    
+    # Verify checksum
+    EXPECTED_CHECKSUM=$(gsutil cat gs://${BACKUP_BUCKET}/database/daily/${BACKUP_NAME}.metadata | jq -r .checksum)
+    ACTUAL_CHECKSUM=$(md5sum /tmp/${BACKUP_NAME}.sql.gz | cut -d' ' -f1)
+    
+    if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
+      echo "ERROR: Checksum mismatch!"
+      exit 1
+    fi
+    
+    # Stop application
+    kubectl scale deployment gemini-flow -n gemini-flow --replicas=0
+    
+    # Create new database if needed
+    createdb -h ${POSTGRES_HOST} -U ${POSTGRES_USER} ${TARGET_DB} || true
+    
+    # Restore database
+    gunzip -c /tmp/${BACKUP_NAME}.sql.gz | \
+      psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d ${TARGET_DB}
+    
+    # Update connection strings if needed
+    if [ "$TARGET_DB" != "gemini_flow" ]; then
+      kubectl patch secret postgres-credentials -n gemini-flow \
+        -p "{\"data\":{\"database\":\"$(echo -n $TARGET_DB | base64)\"}}"
+    fi
+    
+    # Restart application
+    kubectl scale deployment gemini-flow -n gemini-flow --replicas=3
+    
+    echo "Database restoration completed"
+
+  restore-kubernetes.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_NAME=$1
+    NAMESPACE=${2:-gemini-flow}
+    
+    if [ -z "$BACKUP_NAME" ]; then
+      echo "Usage: $0 <backup-name> [namespace]"
+      exit 1
+    fi
+    
+    echo "Restoring Kubernetes resources from backup: $BACKUP_NAME"
+    
+    # Download backup
+    gsutil cp gs://${BACKUP_BUCKET}/kubernetes/daily/${BACKUP_NAME}.tar.gz /tmp/
+    
+    # Extract backup
+    cd /tmp
+    tar -xzf ${BACKUP_NAME}.tar.gz
+    
+    # Create namespace if it doesn't exist
+    kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+    
+    # Restore secrets first
+    kubectl apply -f k8s-backup-*/secrets.yaml -n ${NAMESPACE} || true
+    
+    # Restore ConfigMaps
+    kubectl apply -f k8s-backup-*/configmaps.yaml -n ${NAMESPACE} || true
+    
+    # Restore PVCs
+    kubectl apply -f k8s-backup-*/pvcs.yaml -n ${NAMESPACE} || true
+    
+    # Wait for PVCs to be bound
+    kubectl wait --for=condition=Bound pvc --all -n ${NAMESPACE} --timeout=300s || true
+    
+    # Restore other resources
+    kubectl apply -f k8s-backup-*/all-resources.yaml -n ${NAMESPACE} || true
+    kubectl apply -f k8s-backup-*/ingress.yaml -n ${NAMESPACE} || true
+    kubectl apply -f k8s-backup-*/rollouts.yaml -n ${NAMESPACE} || true
+    
+    # Restore Helm releases
+    helm install gemini-flow /tmp/helm-charts/gemini-flow -n ${NAMESPACE} --create-namespace || \
+    helm upgrade gemini-flow /tmp/helm-charts/gemini-flow -n ${NAMESPACE}
+    
+    echo "Kubernetes restoration completed"
+
+  failover-to-secondary.sh: |
+    #!/bin/bash
+    set -e
+    
+    SECONDARY_REGION=${1:-us-east1}
+    
+    echo "Initiating failover to secondary region: $SECONDARY_REGION"
+    
+    # Update DNS to point to secondary region
+    gcloud dns record-sets transaction start --zone=gemini-flow-zone
+    gcloud dns record-sets transaction remove --zone=gemini-flow-zone \
+      --name=api.gemini-flow.example.com. --type=A --ttl=300 \
+      --rrdatas="$(gcloud compute addresses describe gemini-flow-ip --region=us-central1 --format='value(address)')"
+    gcloud dns record-sets transaction add --zone=gemini-flow-zone \
+      --name=api.gemini-flow.example.com. --type=A --ttl=60 \
+      --rrdatas="$(gcloud compute addresses describe gemini-flow-ip --region=$SECONDARY_REGION --format='value(address)')"
+    gcloud dns record-sets transaction execute --zone=gemini-flow-zone
+    
+    # Switch to secondary GKE cluster
+    gcloud container clusters get-credentials gemini-flow-secondary \
+      --region $SECONDARY_REGION --project $PROJECT_ID
+    
+    # Scale up secondary deployment
+    kubectl scale deployment gemini-flow -n gemini-flow --replicas=5
+    
+    # Wait for pods to be ready
+    kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=gemini-flow \
+      -n gemini-flow --timeout=300s
+    
+    # Update feature flags for emergency mode
+    curl -X POST "http://unleash:4242/api/admin/features/emergency-mode/environments/production/on" \
+      -H "Authorization: Bearer $UNLEASH_TOKEN"
+    
+    echo "Failover completed to $SECONDARY_REGION"
+
+  health-check.sh: |
+    #!/bin/bash
+    
+    ENDPOINT=${1:-"https://api.gemini-flow.example.com/health"}
+    TIMEOUT=${2:-30}
+    
+    echo "Performing health check on $ENDPOINT"
+    
+    # Check API health
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time $TIMEOUT $ENDPOINT)
+    
+    if [ "$HTTP_CODE" -eq 200 ]; then
+      echo "✅ API health check passed"
+    else
+      echo "❌ API health check failed with code: $HTTP_CODE"
+      exit 1
+    fi
+    
+    # Check database connectivity
+    kubectl exec -n gemini-flow deployment/gemini-flow -- \
+      sh -c 'pg_isready -h $POSTGRES_HOST -U $POSTGRES_USER'
+    
+    if [ $? -eq 0 ]; then
+      echo "✅ Database connectivity check passed"
+    else
+      echo "❌ Database connectivity check failed"
+      exit 1
+    fi
+    
+    # Check Redis connectivity
+    kubectl exec -n gemini-flow deployment/gemini-flow -- \
+      sh -c 'redis-cli -h $REDIS_HOST ping'
+    
+    if [ $? -eq 0 ]; then
+      echo "✅ Redis connectivity check passed"
+    else
+      echo "❌ Redis connectivity check failed"
+      exit 1
+    fi
+    
+    echo "All health checks passed"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-service-account
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: service-account
+  annotations:
+    iam.gke.io/gcp-service-account: gemini-flow-backup@PROJECT_ID.iam.gserviceaccount.com
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: backup-operator
+  labels:
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: rbac
+rules:
+- apiGroups: [""]
+  resources: ["*"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"]
+- apiGroups: ["apps", "extensions"]
+  resources: ["*"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"]
+- apiGroups: ["argoproj.io"]
+  resources: ["rollouts"]
+  verbs: ["get", "list", "create", "update", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: backup-operator
+  labels:
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: backup-operator
+subjects:
+- kind: ServiceAccount
+  name: backup-service-account
+  namespace: gemini-flow
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: disaster-recovery-test
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: disaster-recovery
+    app.kubernetes.io/component: testing
+spec:
+  schedule: "0 1 1 * *"  # Monthly on the 1st at 1 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: disaster-recovery
+            app.kubernetes.io/component: testing
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: backup-service-account
+          containers:
+          - name: dr-test
+            image: google/cloud-sdk:alpine
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Starting disaster recovery test..."
+              
+              # Test database backup restoration in test environment
+              LATEST_BACKUP=$(gsutil ls gs://${BACKUP_BUCKET}/database/daily/ | \
+                grep -E ".*-[0-9]{8}_[0-9]{6}\.sql\.gz$" | sort | tail -1 | \
+                xargs -I {} basename {} .sql.gz)
+              
+              echo "Testing restoration of backup: $LATEST_BACKUP"
+              
+              # Create test database
+              createdb -h ${POSTGRES_HOST} -U ${POSTGRES_USER} test_restore_db || true
+              
+              # Download and restore backup
+              gsutil cp gs://${BACKUP_BUCKET}/database/daily/${LATEST_BACKUP}.sql.gz /tmp/
+              gunzip -c /tmp/${LATEST_BACKUP}.sql.gz | \
+                psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d test_restore_db
+              
+              # Verify restoration
+              TABLE_COUNT=$(psql -h ${POSTGRES_HOST} -U ${POSTGRES_USER} -d test_restore_db \
+                -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+              
+              if [ "$TABLE_COUNT" -lt 5 ]; then
+                echo "ERROR: Insufficient tables restored ($TABLE_COUNT)"
+                exit 1
+              fi
+              
+              # Cleanup test database
+              dropdb -h ${POSTGRES_HOST} -U ${POSTGRES_USER} test_restore_db
+              
+              # Test cross-region backup availability
+              gsutil ls gs://${SECONDARY_BACKUP_BUCKET}/database/daily/${LATEST_BACKUP}.sql.gz
+              
+              # Test health check scripts
+              /scripts/health-check.sh
+              
+              echo "Disaster recovery test completed successfully"
+              echo "Verified backup: $LATEST_BACKUP"
+              echo "Tables restored: $TABLE_COUNT"
+            env:
+            - name: BACKUP_BUCKET
+              value: "gemini-flow-backups-primary"
+            - name: SECONDARY_BACKUP_BUCKET
+              value: "gemini-flow-backups-secondary"
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: host
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: password
+            volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+          volumes:
+          - name: scripts
+            configMap:
+              name: disaster-recovery-scripts
+              defaultMode: 0755

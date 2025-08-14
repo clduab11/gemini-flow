@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/instance: gemini-flow
+    app.kubernetes.io/version: "1.2.1"
+    app.kubernetes.io/component: infrastructure
+    app.kubernetes.io/part-of: gemini-flow-platform
+    app.kubernetes.io/managed-by: kubernetes
+    environment: production
+  annotations:
+    description: "Namespace for Gemini-Flow Google Services Integration"
+    contact: "platform-team@gemini-flow.com"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gemini-flow-quota
+  namespace: gemini-flow
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: 40Gi
+    limits.cpu: "40"
+    limits.memory: 80Gi
+    persistentvolumeclaims: "10"
+    pods: "50"
+    services: "20"
+    secrets: "30"
+    configmaps: "30"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: gemini-flow-limits
+  namespace: gemini-flow
+spec:
+  limits:
+  - default:
+      cpu: "1"
+      memory: "2Gi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+    type: Container
+  - max:
+      cpu: "8"
+      memory: "16Gi"
+    min:
+      cpu: "50m"
+      memory: "128Mi"
+    type: Container

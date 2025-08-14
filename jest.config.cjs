@@ -1,60 +1,85 @@
+const { pathsToModuleNameMapper } = require('ts-jest');
+
 module.exports = {
   preset: 'ts-jest/presets/default-esm',
+  extensionsToTreatAsEsm: ['.ts'],
   testEnvironment: 'node',
-  testEnvironmentOptions: {
-    NODE_OPTIONS: '--experimental-vm-modules --loader ./tests/setup/esm-loader.mjs'
-  },
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: [
-    '**/__tests__/**/*.+(ts|tsx|js|mjs)',
-    '**/?(*.)+(spec|test).+(ts|tsx|js|mjs)'
+    '**/__tests__/**/*.+(ts|tsx|js)',
+    '**/*.(test|spec).+(ts|tsx|js)'
   ],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       useESM: true,
-      tsconfig: './tests/tsconfig.json'
-    }],
-    '^.+\\.(js|jsx|mjs)$': ['babel-jest', {
-      presets: [
-        ['@babel/preset-env', { 
-          targets: { node: 'current' },
-          modules: false
-        }]
-      ]
+      tsconfig: {
+        module: 'esnext'
+      }
     }]
   },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/tests/(.*)$': '<rootDir>/tests/$1'
+  },
   collectCoverageFrom: [
-    'src/**/*.{js,ts}',
+    'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
-    '!src/**/*.test.{js,ts}',
-    '!src/**/*.spec.{js,ts}',
-    '!src/index.ts',
-    '!src/cli/index.ts'
+    '!src/**/__tests__/**',
+    '!src/**/*.test.*',
+    '!src/benchmarks/**',
+    '!src/examples/**'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json'],
-  moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
-    '^@/(.*)$': '<rootDir>/src/$1',
-    // Map Node.js modules for ESM compatibility
-    '^node:(.*)$': '$1'
+  coverageThreshold: {
+    global: {
+      branches: 75,
+      functions: 75,
+      lines: 75,
+      statements: 75
+    }
   },
-  extensionsToTreatAsEsm: ['.ts', '.mts'],
-  transformIgnorePatterns: [
-    'node_modules/(?!(chalk|ora|inquirer|source-map-support|@google-cloud|googleapis)/)'
-  ],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   testTimeout: 30000,
-  setupFilesAfterEnv: ['<rootDir>/tests/setup/jest.setup.js'],
-  // ESM-specific configuration - removed deprecated globals
-  // ts-jest config is now in transform section above
-  // Skip problematic test files during transition
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/dist/',
-    '/coverage/'
+  maxWorkers: '50%',
+  // Performance and integration test configuration
+  projects: [
+    {
+      displayName: 'unit',
+      testMatch: ['<rootDir>/tests/unit/**/*.test.ts'],
+      testEnvironment: 'node'
+    },
+    {
+      displayName: 'integration',
+      testMatch: ['<rootDir>/tests/integration/**/*.test.ts'],
+      testEnvironment: 'node',
+      testTimeout: 60000
+    },
+    {
+      displayName: 'a2a-compliance',
+      testMatch: ['<rootDir>/tests/a2a/**/*.test.ts'],
+      testEnvironment: 'node',
+      testTimeout: 120000
+    },
+    {
+      displayName: 'streaming',
+      testMatch: ['<rootDir>/tests/streaming/**/*.test.ts'],
+      testEnvironment: 'node',
+      testTimeout: 180000
+    },
+    {
+      displayName: 'performance',
+      testMatch: ['<rootDir>/tests/**/*benchmark*.test.ts'],
+      testEnvironment: 'node',
+      testTimeout: 300000
+    }
   ],
-  // Mock file extensions
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'mjs'],
-  // Resolve modules with .js extensions in TypeScript
-  resolver: undefined
+  globalSetup: '<rootDir>/tests/global-setup.ts',
+  globalTeardown: '<rootDir>/tests/global-teardown.ts',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  globals: {
+    'ts-jest': {
+      useESM: true
+    }
+  }
 };

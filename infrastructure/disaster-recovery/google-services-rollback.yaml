@@ -1,0 +1,348 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: google-services-rollback-procedures
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: disaster-recovery
+data:
+  rollback-playbook.yaml: |
+    rollbackProcedures:
+      emergency:
+        # Immediate rollback for critical failures
+        trigger:
+          conditions:
+            - error_rate > 10%
+            - response_time > 60s
+            - gpu_memory_exhaustion
+            - service_unavailable_5min
+        
+        actions:
+          - name: disable_google_services
+            type: feature_flag
+            config:
+              features:
+                veo3: false
+                imagen4: false
+                lyria: false
+                chirp: false
+                coScientist: false
+            timeout: 30s
+          
+          - name: scale_down_workers
+            type: kubernetes
+            config:
+              resource: deployment/gemini-flow-worker
+              replicas: 1
+            timeout: 60s
+          
+          - name: drain_processing_queues
+            type: application
+            config:
+              command: "npm run drain-queues --service=all"
+            timeout: 120s
+          
+          - name: restart_core_services
+            type: kubernetes
+            config:
+              resource: deployment/gemini-flow
+              action: restart
+            timeout: 300s
+
+      gradual:
+        # Gradual rollback for performance issues
+        trigger:
+          conditions:
+            - p95_latency > 30s for 5min
+            - gpu_utilization > 95% for 10min
+            - memory_usage > 90% for 5min
+        
+        steps:
+          - name: reduce_traffic_to_google_services
+            trafficSplit:
+              googleServices: 50%
+              core: 100%
+            duration: 5m
+            
+          - name: disable_resource_intensive_services
+            services:
+              - veo3  # Most resource intensive
+              - lyria # High memory usage
+            duration: 10m
+            
+          - name: scale_down_if_needed
+            autoScaling:
+              minReplicas: 2
+              maxReplicas: 10
+            duration: 15m
+            
+          - name: monitor_and_decide
+            metrics:
+              - p95_latency < 15s
+              - gpu_utilization < 80%
+              - memory_usage < 75%
+            decision: continue_or_full_rollback
+
+      service_specific:
+        veo3:
+          rollback_triggers:
+            - video_generation_failures > 20%
+            - veo3_queue_size > 50
+            - veo3_processing_time > 60s
+          actions:
+            - disable_veo3_service
+            - clear_veo3_queue
+            - notify_video_team
+        
+        imagen4:
+          rollback_triggers:
+            - image_generation_failures > 15%
+            - imagen4_memory_leak_detected
+            - imagen4_processing_time > 30s
+          actions:
+            - disable_imagen4_service
+            - clear_imagen4_cache
+            - restart_imagen4_workers
+        
+        lyria:
+          rollback_triggers:
+            - music_composition_failures > 10%
+            - lyria_memory_usage > 90%
+            - lyria_processing_time > 90s
+          actions:
+            - disable_lyria_service
+            - save_lyria_work_in_progress
+            - notify_audio_team
+
+  automated-rollback.sh: |
+    #!/bin/bash
+    
+    # Automated rollback script for Google Services
+    set -euo pipefail
+    
+    NAMESPACE=${NAMESPACE:-"gemini-flow"}
+    ENVIRONMENT=${ENVIRONMENT:-"production"}
+    ROLLBACK_TYPE=${ROLLBACK_TYPE:-"emergency"}
+    
+    log() {
+        echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
+    }
+    
+    emergency_rollback() {
+        log "🚨 EMERGENCY ROLLBACK INITIATED"
+        
+        # 1. Disable all Google services immediately
+        log "Disabling Google services feature flags..."
+        kubectl patch configmap gemini-flow-config -n $NAMESPACE --patch '{
+          "data": {
+            "app.json": "{\"features\":{\"vertexAi\":true,\"multimodalStreaming\":true,\"agentSpace\":true,\"projectMariner\":false,\"veo3\":false,\"coScientist\":false,\"imagen4\":false,\"chrip\":false,\"lyria\":false}}"
+          }
+        }'
+        
+        # 2. Scale down workers to prevent new processing
+        log "Scaling down workers..."
+        kubectl scale deployment gemini-flow-worker -n $NAMESPACE --replicas=1
+        
+        # 3. Drain processing queues
+        log "Draining processing queues..."
+        kubectl exec -n $NAMESPACE deployment/gemini-flow -- \
+          node -e "require('./src/scripts/drain-queues.js').drainAll()" || true
+        
+        # 4. Restart main deployment to apply changes
+        log "Restarting main deployment..."
+        kubectl rollout restart deployment/gemini-flow -n $NAMESPACE
+        kubectl rollout status deployment/gemini-flow -n $NAMESPACE --timeout=300s
+        
+        # 5. Verify system stability
+        log "Verifying system stability..."
+        sleep 30
+        if curl -f "http://localhost:8080/health" > /dev/null 2>&1; then
+            log "✅ Emergency rollback completed successfully"
+        else
+            log "❌ System still unstable after rollback"
+            exit 1
+        fi
+    }
+    
+    gradual_rollback() {
+        log "🔄 GRADUAL ROLLBACK INITIATED"
+        
+        # 1. Reduce traffic to Google services (50%)
+        log "Reducing traffic to Google services..."
+        kubectl patch configmap google-services-rollout-config -n $NAMESPACE --patch '{
+          "data": {
+            "traffic-split": "google-services:50,core:100"
+          }
+        }'
+        
+        # 2. Wait and monitor
+        sleep 300  # 5 minutes
+        
+        # 3. Check metrics
+        if check_system_health; then
+            log "System stabilized with reduced traffic"
+        else
+            log "System still unstable, proceeding to full rollback"
+            emergency_rollback
+        fi
+    }
+    
+    service_specific_rollback() {
+        local service=$1
+        log "🔧 SERVICE-SPECIFIC ROLLBACK: $service"
+        
+        case $service in
+            "veo3")
+                kubectl patch configmap gemini-flow-config -n $NAMESPACE --patch '{
+                  "data": {
+                    "app.json": "{\"features\":{\"veo3\":false}}"
+                  }
+                }'
+                ;;
+            "imagen4")
+                kubectl patch configmap gemini-flow-config -n $NAMESPACE --patch '{
+                  "data": {
+                    "app.json": "{\"features\":{\"imagen4\":false}}"
+                  }
+                }'
+                ;;
+            "lyria")
+                kubectl patch configmap gemini-flow-config -n $NAMESPACE --patch '{
+                  "data": {
+                    "app.json": "{\"features\":{\"lyria\":false}}"
+                  }
+                }'
+                ;;
+            *)
+                log "Unknown service: $service"
+                exit 1
+                ;;
+        esac
+        
+        # Restart to apply changes
+        kubectl rollout restart deployment/gemini-flow -n $NAMESPACE
+    }
+    
+    check_system_health() {
+        local error_rate
+        local avg_latency
+        local gpu_usage
+        
+        # Simple health checks (in production, use proper monitoring)
+        if curl -f "http://localhost:8080/health" > /dev/null 2>&1 && \
+           curl -f "http://localhost:8080/metrics" > /dev/null 2>&1; then
+            return 0
+        else
+            return 1
+        fi
+    }
+    
+    # Main execution
+    case $ROLLBACK_TYPE in
+        "emergency")
+            emergency_rollback
+            ;;
+        "gradual")
+            gradual_rollback
+            ;;
+        "service")
+            service_specific_rollback ${SERVICE:-"veo3"}
+            ;;
+        *)
+            log "Unknown rollback type: $ROLLBACK_TYPE"
+            exit 1
+            ;;
+    esac
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rollback-notification-config
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: disaster-recovery
+type: Opaque
+stringData:
+  notification-config.json: |
+    {
+      "slack": {
+        "enabled": true,
+        "webhook_url": "${SLACK_WEBHOOK_URL}",
+        "channel": "#alerts-production",
+        "mention_on_emergency": "@channel"
+      },
+      "email": {
+        "enabled": true,
+        "smtp_server": "smtp.gmail.com",
+        "smtp_port": 587,
+        "from": "alerts@gemini-flow.com",
+        "to": ["devops@gemini-flow.com", "engineering@gemini-flow.com"]
+      },
+      "pagerduty": {
+        "enabled": true,
+        "service_key": "${PAGERDUTY_SERVICE_KEY}",
+        "escalation_policy": "P1-Critical"
+      }
+    }
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rollback-validation
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: validation
+spec:
+  template:
+    spec:
+      containers:
+      - name: rollback-validator
+        image: gcr.io/PROJECT_ID/gemini-flow-tools:latest
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          echo "🔍 Validating rollback procedures..."
+          
+          # Test emergency rollback procedure (dry-run)
+          echo "Testing emergency rollback (dry-run)..."
+          ROLLBACK_TYPE=emergency DRY_RUN=true ./rollback-procedures.sh
+          
+          # Test gradual rollback procedure (dry-run)
+          echo "Testing gradual rollback (dry-run)..."
+          ROLLBACK_TYPE=gradual DRY_RUN=true ./rollback-procedures.sh
+          
+          # Validate monitoring connectivity
+          echo "Validating monitoring connectivity..."
+          curl -f http://prometheus:9090/api/v1/query?query=up || echo "Warning: Prometheus not accessible"
+          
+          # Validate notification channels
+          echo "Validating notification channels..."
+          # Test notification systems here
+          
+          echo "✅ Rollback validation completed"
+        env:
+        - name: NAMESPACE
+          value: "gemini-flow"
+        - name: ENVIRONMENT
+          value: "production"
+        volumeMounts:
+        - name: rollback-scripts
+          mountPath: /scripts
+        - name: kube-config
+          mountPath: /root/.kube
+      volumes:
+      - name: rollback-scripts
+        configMap:
+          name: google-services-rollback-procedures
+          defaultMode: 0755
+      - name: kube-config
+        secret:
+          secretName: kube-config
+      restartPolicy: OnFailure
+  backoffLimit: 3

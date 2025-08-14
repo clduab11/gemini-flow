@@ -1,0 +1,736 @@
+name: Google Services Integration Deployment
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'infrastructure/**'
+      - 'package.json'
+      - 'Dockerfile'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'infrastructure/**'
+      - 'package.json'
+      - 'Dockerfile'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      deployment_type:
+        description: 'Deployment type'
+        required: true
+        default: 'rolling'
+        type: choice
+        options:
+          - rolling
+          - blue-green
+          - canary
+      skip_tests:
+        description: 'Skip tests (NOT recommended)'
+        required: false
+        default: false
+        type: boolean
+      feature_flags:
+        description: 'Comma-separated feature flags to enable'
+        required: false
+        default: 'vertexAi,multimodalStreaming,veo3,imagen4,lyria,chirp'
+        type: string
+      google_services_mode:
+        description: 'Google services activation mode'
+        required: false
+        default: 'gradual'
+        type: choice
+        options:
+          - gradual
+          - immediate
+          - testing-only
+
+env:
+  NODE_VERSION: '20'
+  DOCKER_BUILDKIT: 1
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+  REGISTRY: gcr.io
+  IMAGE_NAME: gemini-flow
+  CACHE_VERSION: 'v4'
+
+concurrency:
+  group: deployment-${{ github.ref }}-${{ github.event.inputs.environment || 'auto' }}
+  cancel-in-progress: false
+
+jobs:
+  # Environment Detection and Validation
+  detect-environment:
+    name: Detect Environment & Validate
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env-detection.outputs.environment }}
+      deployment-type: ${{ steps.env-detection.outputs.deployment-type }}
+      should-deploy: ${{ steps.env-detection.outputs.should-deploy }}
+      feature-flags: ${{ steps.env-detection.outputs.feature-flags }}
+      image-tag: ${{ steps.env-detection.outputs.image-tag }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Environment Detection
+        id: env-detection
+        run: |
+          # Determine environment
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENVIRONMENT="${{ github.event.inputs.environment }}"
+            DEPLOYMENT_TYPE="${{ github.event.inputs.deployment_type }}"
+            FEATURE_FLAGS="${{ github.event.inputs.feature_flags }}"
+            SHOULD_DEPLOY="true"
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            ENVIRONMENT="production"
+            DEPLOYMENT_TYPE="canary"
+            FEATURE_FLAGS="vertexAi,multimodalStreaming,agentSpace,veo3,imagen4,lyria,chirp"
+            SHOULD_DEPLOY="true"
+          elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+            ENVIRONMENT="staging"
+            DEPLOYMENT_TYPE="rolling"
+            FEATURE_FLAGS="vertexAi,multimodalStreaming,agentSpace,projectMariner,veo3,imagen4,lyria,chirp"
+            SHOULD_DEPLOY="true"
+          else
+            ENVIRONMENT="development"
+            DEPLOYMENT_TYPE="rolling"
+            FEATURE_FLAGS="vertexAi,multimodalStreaming,veo3,imagen4"
+            SHOULD_DEPLOY="false"
+          fi
+          
+          # Generate image tag
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          IMAGE_TAG="${ENVIRONMENT}-${SHORT_SHA}-${TIMESTAMP}"
+          
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "deployment-type=$DEPLOYMENT_TYPE" >> $GITHUB_OUTPUT
+          echo "should-deploy=$SHOULD_DEPLOY" >> $GITHUB_OUTPUT
+          echo "feature-flags=$FEATURE_FLAGS" >> $GITHUB_OUTPUT
+          echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          
+          echo "🎯 Target Environment: $ENVIRONMENT"
+          echo "🚀 Deployment Type: $DEPLOYMENT_TYPE"
+          echo "🏷️ Image Tag: $IMAGE_TAG"
+          echo "🚩 Feature Flags: $FEATURE_FLAGS"
+
+  # Security and Compliance Scanning
+  security-scan:
+    name: Security & Compliance Scan
+    runs-on: ubuntu-latest
+    needs: detect-environment
+    if: needs.detect-environment.outputs.should-deploy == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Dependency audit
+        run: |
+          npm audit --audit-level moderate --json > audit-results.json || true
+          if npm audit --audit-level high --json | jq -e '.vulnerabilities | length > 0' > /dev/null; then
+            echo "❌ High severity vulnerabilities found!"
+            npm audit --audit-level high
+            exit 1
+          fi
+          echo "✅ Security audit passed"
+
+  # Build and Test Matrix
+  build-test-matrix:
+    name: Build & Test Matrix
+    runs-on: ${{ matrix.os }}
+    needs: [detect-environment, security-scan]
+    if: needs.detect-environment.outputs.should-deploy == 'true'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node-version: [20]
+        test-suite: [unit, integration, e2e]
+        include:
+          - os: ubuntu-latest
+            node-version: 20
+            test-suite: unit
+            upload-coverage: true
+    
+    env:
+      NODE_OPTIONS: '--experimental-vm-modules --max-old-space-size=4096'
+      ENVIRONMENT: ${{ needs.detect-environment.outputs.environment }}
+      FEATURE_FLAGS: ${{ needs.detect-environment.outputs.feature-flags }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ env.CACHE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-${{ env.CACHE_VERSION }}-
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          # Install environment-specific dependencies
+          if [ "${{ needs.detect-environment.outputs.environment }}" == "production" ]; then
+            npm run install:enterprise
+          fi
+
+      - name: Setup test environment
+        run: |
+          # Create test configuration
+          echo '{}' > test-config.json
+          # Setup feature flags for testing
+          echo "FEATURE_FLAGS=${{ needs.detect-environment.outputs.feature-flags }}" >> $GITHUB_ENV
+
+      - name: Run ${{ matrix.test-suite }} tests
+        if: github.event.inputs.skip_tests != 'true'
+        run: |
+          case "${{ matrix.test-suite }}" in
+            "unit")
+              npm run test:unit -- --coverage --coverageReporters=json-summary --coverageReporters=lcov
+              ;;
+            "integration")
+              npm run test:integration
+              ;;
+            "e2e")
+              npm run test:protocols
+              ;;
+          esac
+
+      - name: Type checking
+        run: npm run typecheck
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload coverage
+        if: matrix.upload-coverage == true && github.event.inputs.skip_tests != 'true'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  # Docker Build and Push
+  docker-build:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [detect-environment, build-test-matrix]
+    if: needs.detect-environment.outputs.should-deploy == 'true'
+    
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-full-name: ${{ steps.build.outputs.image-full-name }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:v0.12.0
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure Docker for GCR
+        run: |
+          gcloud auth configure-docker
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=${{ needs.detect-environment.outputs.image-tag }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_VERSION=${{ env.NODE_VERSION }}
+            ENVIRONMENT=${{ needs.detect-environment.outputs.environment }}
+            FEATURE_FLAGS=${{ needs.detect-environment.outputs.feature-flags }}
+            BUILD_VERSION=${{ needs.detect-environment.outputs.image-tag }}
+
+      - name: Output image details
+        run: |
+          IMAGE_FULL_NAME="${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ needs.detect-environment.outputs.image-tag }}"
+          echo "image-full-name=$IMAGE_FULL_NAME" >> $GITHUB_OUTPUT
+          echo "🐳 Built and pushed: $IMAGE_FULL_NAME"
+          echo "📋 Digest: ${{ steps.build.outputs.digest }}"
+
+  # Infrastructure Provisioning
+  infrastructure-deploy:
+    name: Infrastructure Deployment
+    runs-on: ubuntu-latest
+    needs: [detect-environment, docker-build]
+    environment: ${{ needs.detect-environment.outputs.environment }}
+    if: needs.detect-environment.outputs.should-deploy == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Terraform Format Check
+        run: |
+          cd infrastructure/terraform/environments/${{ needs.detect-environment.outputs.environment }}
+          terraform fmt -check
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure/terraform/environments/${{ needs.detect-environment.outputs.environment }}
+          terraform init
+
+      - name: Terraform Plan
+        run: |
+          cd infrastructure/terraform/environments/${{ needs.detect-environment.outputs.environment }}
+          terraform plan -var="image_tag=${{ needs.detect-environment.outputs.image-tag }}" -out=tfplan
+
+      - name: Terraform Apply
+        if: needs.detect-environment.outputs.environment != 'production' || github.event_name == 'workflow_dispatch'
+        run: |
+          cd infrastructure/terraform/environments/${{ needs.detect-environment.outputs.environment }}
+          terraform apply -auto-approve tfplan
+
+  # Kubernetes Deployment
+  kubernetes-deploy:
+    name: Kubernetes Deployment (${{ needs.detect-environment.outputs.deployment-type }})
+    runs-on: ubuntu-latest
+    needs: [detect-environment, docker-build, infrastructure-deploy]
+    environment: ${{ needs.detect-environment.outputs.environment }}
+    if: needs.detect-environment.outputs.should-deploy == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials \
+            ${{ needs.detect-environment.outputs.environment }}-gemini-flow-gke \
+            --region us-central1 \
+            --project ${{ env.GCP_PROJECT_ID }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.12.0'
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add istio https://istio-release.storage.googleapis.com/charts
+          helm repo update
+
+      - name: Deploy with Helm (${{ needs.detect-environment.outputs.deployment-type }})
+        run: |
+          cd infrastructure/helm
+          
+          # Set deployment-specific values
+          DEPLOYMENT_TYPE="${{ needs.detect-environment.outputs.deployment-type }}"
+          IMAGE_FULL_NAME="${{ needs.docker-build.outputs.image-full-name }}"
+          FEATURE_FLAGS="${{ needs.detect-environment.outputs.feature-flags }}"
+          
+          case "$DEPLOYMENT_TYPE" in
+            "rolling")
+              helm upgrade --install gemini-flow ./gemini-flow \
+                --namespace gemini-flow \
+                --create-namespace \
+                --values ./gemini-flow/values.yaml \
+                --values ./gemini-flow/values-${{ needs.detect-environment.outputs.environment }}.yaml \
+                --set image.repository="${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}" \
+                --set image.tag="${{ needs.detect-environment.outputs.image-tag }}" \
+                --set environment="${{ needs.detect-environment.outputs.environment }}" \
+                --set featureFlags.enabled="$FEATURE_FLAGS" \
+                --wait --timeout=10m
+              ;;
+            "blue-green")
+              # Blue-Green deployment using Argo Rollouts
+              helm upgrade --install gemini-flow ./gemini-flow \
+                --namespace gemini-flow \
+                --create-namespace \
+                --values ./gemini-flow/values.yaml \
+                --values ./gemini-flow/values-${{ needs.detect-environment.outputs.environment }}.yaml \
+                --set image.repository="${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}" \
+                --set image.tag="${{ needs.detect-environment.outputs.image-tag }}" \
+                --set blueGreen.enabled=true \
+                --set rollouts.enabled=true \
+                --wait --timeout=15m
+              ;;
+            "canary")
+              # Canary deployment using Argo Rollouts
+              helm upgrade --install gemini-flow ./gemini-flow \
+                --namespace gemini-flow \
+                --create-namespace \
+                --values ./gemini-flow/values.yaml \
+                --values ./gemini-flow/values-${{ needs.detect-environment.outputs.environment }}.yaml \
+                --set image.repository="${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}" \
+                --set image.tag="${{ needs.detect-environment.outputs.image-tag }}" \
+                --set canary.enabled=true \
+                --set rollouts.enabled=true \
+                --wait --timeout=20m
+              ;;
+          esac
+
+      - name: Wait for deployment readiness
+        run: |
+          kubectl -n gemini-flow rollout status deployment/gemini-flow --timeout=600s
+          kubectl -n gemini-flow wait --for=condition=available --timeout=600s deployment/gemini-flow
+
+      - name: Setup port forwarding for health check
+        run: |
+          kubectl -n gemini-flow port-forward svc/gemini-flow 8080:8080 &
+          sleep 10
+
+      - name: Health check
+        run: |
+          max_attempts=30
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            if curl -f http://localhost:8080/health; then
+              echo "✅ Health check passed"
+              break
+            fi
+            
+            echo "⏳ Health check attempt $attempt/$max_attempts failed, retrying..."
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+          
+          if [ $attempt -gt $max_attempts ]; then
+            echo "❌ Health check failed after $max_attempts attempts"
+            kubectl -n gemini-flow describe pods
+            kubectl -n gemini-flow logs -l app.kubernetes.io/name=gemini-flow --tail=100
+            exit 1
+          fi
+
+  # Feature Flag Configuration
+  feature-flags-config:
+    name: Configure Feature Flags
+    runs-on: ubuntu-latest
+    needs: [detect-environment, kubernetes-deploy]
+    if: needs.detect-environment.outputs.should-deploy == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure Unleash feature flags
+        run: |
+          # Parse feature flags
+          IFS=',' read -ra FLAGS <<< "${{ needs.detect-environment.outputs.feature-flags }}"
+          
+          echo "🚩 Configuring feature flags for ${{ needs.detect-environment.outputs.environment }}:"
+          for flag in "${FLAGS[@]}"; do
+            echo "  - $flag: enabled"
+            # Here you would make API calls to your feature flag service
+            # curl -X POST "https://unleash.example.com/api/admin/features/$flag/environments/${{ needs.detect-environment.outputs.environment }}/on" \
+            #   -H "Authorization: Bearer ${{ secrets.UNLEASH_API_TOKEN }}"
+          done
+
+  # Post-Deployment Testing
+  post-deployment-tests:
+    name: Post-Deployment Testing
+    runs-on: ubuntu-latest
+    needs: [detect-environment, kubernetes-deploy, feature-flags-config]
+    if: needs.detect-environment.outputs.should-deploy == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run integration tests against deployed environment
+        run: |
+          export TEST_ENVIRONMENT="${{ needs.detect-environment.outputs.environment }}"
+          export TEST_URL="https://api-${{ needs.detect-environment.outputs.environment }}.gemini-flow.example.com"
+          npm run test:integration:live
+
+      - name: Run performance benchmarks
+        run: |
+          npm run test:performance -- --environment=${{ needs.detect-environment.outputs.environment }}
+
+      - name: API health validation
+        run: |
+          curl -f "https://api-${{ needs.detect-environment.outputs.environment }}.gemini-flow.example.com/health" || exit 1
+          curl -f "https://api-${{ needs.detect-environment.outputs.environment }}.gemini-flow.example.com/metrics" || exit 1
+
+  # Rollback Mechanism
+  rollback-on-failure:
+    name: Automated Rollback
+    runs-on: ubuntu-latest
+    needs: [detect-environment, kubernetes-deploy, post-deployment-tests]
+    if: failure() && needs.detect-environment.outputs.should-deploy == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials \
+            ${{ needs.detect-environment.outputs.environment }}-gemini-flow-gke \
+            --region us-central1 \
+            --project ${{ env.GCP_PROJECT_ID }}
+
+      - name: Rollback deployment
+        run: |
+          kubectl -n gemini-flow rollout undo deployment/gemini-flow
+          kubectl -n gemini-flow rollout status deployment/gemini-flow --timeout=300s
+          echo "🔄 Deployment rolled back successfully"
+
+      - name: Notify rollback
+        run: |
+          echo "🚨 Deployment to ${{ needs.detect-environment.outputs.environment }} failed and was rolled back"
+          # Add notification logic here (Slack, email, etc.)
+
+  # Deployment Success Notification
+  deployment-success:
+    name: Deployment Success Notification
+    runs-on: ubuntu-latest
+    needs: [detect-environment, kubernetes-deploy, post-deployment-tests]
+    if: success() && needs.detect-environment.outputs.should-deploy == 'true'
+    
+    steps:
+      - name: Success notification
+        run: |
+          echo "🎉 Successful deployment to ${{ needs.detect-environment.outputs.environment }}"
+          echo "🚀 Deployment Type: ${{ needs.detect-environment.outputs.deployment-type }}"
+          echo "🏷️ Image: ${{ needs.docker-build.outputs.image-full-name }}"
+          echo "🚩 Feature Flags: ${{ needs.detect-environment.outputs.feature-flags }}"
+          echo "🌐 URL: https://api-${{ needs.detect-environment.outputs.environment }}.gemini-flow.example.com"
+          
+          # Add success notification logic here (Slack, email, etc.)
+
+  # Google Services Specific Validation
+  google-services-validation:
+    name: Google Services Integration Validation
+    runs-on: ubuntu-latest
+    needs: [detect-environment, kubernetes-deploy]
+    if: needs.detect-environment.outputs.should-deploy == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials \
+            ${{ needs.detect-environment.outputs.environment }}-gemini-flow-gke \
+            --region us-central1 \
+            --project ${{ env.GCP_PROJECT_ID }}
+
+      - name: Apply Google Services secrets
+        run: |
+          # Apply secrets with environment substitution
+          envsubst < infrastructure/k8s/google-services-secrets.yaml | kubectl apply -f -
+        env:
+          VERTEX_AI_KEY: ${{ secrets.VERTEX_AI_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VEO3_API_KEY: ${{ secrets.VEO3_API_KEY }}
+          IMAGEN4_API_KEY: ${{ secrets.IMAGEN4_API_KEY }}
+          LYRIA_API_KEY: ${{ secrets.LYRIA_API_KEY }}
+          CHIRP_API_KEY: ${{ secrets.CHIRP_API_KEY }}
+          CO_SCIENTIST_API_KEY: ${{ secrets.CO_SCIENTIST_API_KEY }}
+
+      - name: Apply Google Services monitoring
+        run: |
+          kubectl apply -f infrastructure/monitoring/google-services-monitoring.yaml
+
+      - name: Wait for Google Services to be ready
+        run: |
+          echo "🔍 Waiting for Google Services to initialize..."
+          max_attempts=60
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            # Check if all services are responding
+            if kubectl exec -n gemini-flow deployment/gemini-flow -- curl -f http://localhost:8080/health/google-services; then
+              echo "✅ Google Services are ready"
+              break
+            fi
+            
+            echo "⏳ Attempt $attempt/$max_attempts - Google Services not ready yet"
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+          
+          if [ $attempt -gt $max_attempts ]; then
+            echo "❌ Google Services failed to become ready"
+            kubectl logs -n gemini-flow -l app.kubernetes.io/name=gemini-flow --tail=50
+            exit 1
+          fi
+
+      - name: Run Google Services integration tests
+        run: |
+          export TEST_ENVIRONMENT="${{ needs.detect-environment.outputs.environment }}"
+          export GOOGLE_SERVICES_ENABLED="true"
+          npm run test:google-services:integration
+
+      - name: Validate Veo3 service
+        run: |
+          echo "🎬 Testing Veo3 video generation..."
+          kubectl exec -n gemini-flow deployment/gemini-flow -- \
+            node -e "
+              const veo3 = require('./src/services/google-services/veo3-video-generator');
+              veo3.healthCheck().then(result => {
+                console.log('Veo3 health check:', result);
+                process.exit(result.healthy ? 0 : 1);
+              });
+            "
+
+      - name: Validate Imagen4 service
+        run: |
+          echo "🖼️ Testing Imagen4 image generation..."
+          kubectl exec -n gemini-flow deployment/gemini-flow -- \
+            node -e "
+              const imagen4 = require('./src/services/google-services/imagen4-generator');
+              imagen4.healthCheck().then(result => {
+                console.log('Imagen4 health check:', result);
+                process.exit(result.healthy ? 0 : 1);
+              });
+            "
+
+      - name: Validate Lyria service
+        run: |
+          echo "🎵 Testing Lyria music composition..."
+          kubectl exec -n gemini-flow deployment/gemini-flow -- \
+            node -e "
+              const lyria = require('./src/services/google-services/lyria-music-composer');
+              lyria.healthCheck().then(result => {
+                console.log('Lyria health check:', result);
+                process.exit(result.healthy ? 0 : 1);
+              });
+            "
+
+      - name: Performance baseline test
+        run: |
+          echo "📊 Running performance baseline tests..."
+          npm run test:performance:google-services -- \
+            --environment=${{ needs.detect-environment.outputs.environment }} \
+            --baseline-mode=true
+
+      - name: GPU utilization check
+        run: |
+          echo "🖥️ Checking GPU utilization..."
+          kubectl exec -n gemini-flow daemonset/gpu-metrics-exporter -- \
+            curl -s http://localhost:9400/metrics | grep nvidia_gpu_utilization || echo "GPU metrics not available"
+
+  # Cleanup
+  cleanup:
+    name: Cleanup Resources
+    runs-on: ubuntu-latest
+    needs: [deployment-success, rollback-on-failure]
+    if: always()
+    
+    steps:
+      - name: Cleanup temporary resources
+        run: |
+          echo "🧹 Cleaning up temporary resources..."
+          # Add cleanup logic for temporary resources
+          echo "✅ Cleanup completed"

@@ -1,0 +1,64 @@
+apiVersion: v2
+name: gemini-flow
+description: A Helm chart for Gemini-Flow Google Services Integration Platform
+type: application
+
+# Chart version - increment for chart changes
+version: 1.2.1
+
+# Application version - should match the application version
+appVersion: "1.2.1"
+
+home: https://github.com/clduab11/gemini-flow
+sources:
+  - https://github.com/clduab11/gemini-flow
+
+maintainers:
+  - name: Gemini-Flow Team
+    email: platform-team@gemini-flow.com
+
+keywords:
+  - ai
+  - google-services
+  - vertex-ai
+  - gemini
+  - multimodal
+  - orchestration
+  - agent-coordination
+
+annotations:
+  category: AI/ML Platform
+  licenses: MIT
+  images: |
+    - name: gemini-flow-api
+      image: gcr.io/PROJECT_ID/gemini-flow-api:1.2.1
+    - name: gemini-flow-worker
+      image: gcr.io/PROJECT_ID/gemini-flow-worker:1.2.1
+    - name: gemini-flow-scheduler
+      image: gcr.io/PROJECT_ID/gemini-flow-scheduler:1.2.1
+
+dependencies:
+  - name: redis
+    version: "17.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: postgresql
+    version: "12.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: prometheus
+    version: "23.x.x"
+    repository: "https://prometheus-community.github.io/helm-charts"
+    condition: monitoring.prometheus.enabled
+  - name: grafana
+    version: "6.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: monitoring.grafana.enabled
+  - name: istio-base
+    version: "1.19.x"
+    repository: "https://istio-release.storage.googleapis.com/charts"
+    condition: serviceMesh.istio.enabled
+  - name: istiod
+    version: "1.19.x"
+    repository: "https://istio-release.storage.googleapis.com/charts"
+    condition: serviceMesh.istio.enabled

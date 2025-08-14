@@ -1,0 +1,380 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gemini-flow-blue-green
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+    deployment-strategy: blue-green
+  annotations:
+    rollout.argoproj.io/revision: "1"
+    deployment.kubernetes.io/revision: "1"
+spec:
+  replicas: 5
+  strategy:
+    blueGreen:
+      # Reference to service that the rollout modifies as the active service
+      activeService: gemini-flow-active
+      # Reference to service that the rollout modifies as the preview service
+      previewService: gemini-flow-preview
+      # Auto-promote to green after successful promotion
+      autoPromotionEnabled: false
+      # Defines if the rollout should scale down the old version before replacing it
+      scaleDownDelaySeconds: 30
+      prePromotionAnalysis:
+        templates:
+        - templateName: success-rate
+        args:
+        - name: service-name
+          value: gemini-flow-preview
+      postPromotionAnalysis:
+        templates:
+        - templateName: success-rate
+        - templateName: error-rate
+        args:
+        - name: service-name
+          value: gemini-flow-active
+      previewReplicaCount: 2 # Number of replicas for preview environment
+      promotion:
+        # Manual promotion required for production safety
+        strategy: Manual
+      # Time to wait before scaling down the old version
+      scaleDownDelaySeconds: 300
+      # Time to wait before automatically promoting (if autoPromotionEnabled: true)
+      autoPromotionSeconds: 600
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gemini-flow
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gemini-flow
+        app.kubernetes.io/component: api
+        app.kubernetes.io/version: "1.2.1"
+        deployment-strategy: blue-green
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: gemini-flow
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: gemini-flow-api
+        image: gcr.io/PROJECT_ID/gemini-flow:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "8080"
+        - name: METRICS_PORT
+          value: "9090"
+        - name: DEPLOYMENT_STRATEGY
+          value: "blue-green"
+        - name: GOOGLE_CLOUD_PROJECT
+          valueFrom:
+            secretKeyRef:
+              name: google-config
+              key: project-id
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-keys
+              key: gemini-api-key
+        - name: VERTEX_AI_LOCATION
+          value: "us-central1"
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: redis-config
+              key: connection-string
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-config
+              key: connection-string
+        # Feature flags
+        - name: FEATURE_VERTEX_AI
+          value: "true"
+        - name: FEATURE_MULTIMODAL_STREAMING
+          value: "true"
+        - name: FEATURE_AGENT_SPACE
+          value: "true"
+        - name: FEATURE_PROJECT_MARINER
+          value: "false"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 12
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        - name: google-credentials
+          mountPath: /app/credentials
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: config
+        configMap:
+          name: gemini-flow-config
+      - name: google-credentials
+        secret:
+          secretName: google-service-account
+      - name: tmp
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - gemini-flow
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+      - key: "deployment-strategy"
+        operator: "Equal"
+        value: "blue-green"
+        effect: "NoSchedule"
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 600
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gemini-flow-active
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+    service-type: active
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  - port: 9090
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  selector:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gemini-flow-preview
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+    service-type: preview
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  - port: 9090
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  selector:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate
+  namespace: gemini-flow
+spec:
+  args:
+  - name: service-name
+  metrics:
+  - name: success-rate
+    successCondition: result[0] >= 0.95
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(http_requests_total{job="{{args.service-name}}",status!~"5.."}[5m])) /
+          sum(rate(http_requests_total{job="{{args.service-name}}"}[5m]))
+  - name: avg-response-time
+    successCondition: result[0] <= 500
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          avg(rate(http_request_duration_seconds_sum{job="{{args.service-name}}"}[5m]) /
+          rate(http_request_duration_seconds_count{job="{{args.service-name}}"}[5m])) * 1000
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: error-rate
+  namespace: gemini-flow
+spec:
+  args:
+  - name: service-name
+  metrics:
+  - name: error-rate
+    successCondition: result[0] <= 0.05
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(http_requests_total{job="{{args.service-name}}",status=~"5.."}[5m])) /
+          sum(rate(http_requests_total{job="{{args.service-name}}"}[5m]))
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gemini-flow-blue-green-ingress
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    deployment-strategy: blue-green
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/canary: "false"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Blue-Green specific annotations
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.gemini-flow.example.com
+    - preview.gemini-flow.example.com
+    secretName: gemini-flow-tls
+  rules:
+  - host: api.gemini-flow.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gemini-flow-active
+            port:
+              number: 80
+  - host: preview.gemini-flow.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gemini-flow-preview
+            port:
+              number: 80
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: gemini-flow-blue-green-vs
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    deployment-strategy: blue-green
+spec:
+  hosts:
+  - api.gemini-flow.example.com
+  - preview.gemini-flow.example.com
+  gateways:
+  - gemini-flow-gateway
+  http:
+  - match:
+    - headers:
+        x-preview:
+          exact: "true"
+    route:
+    - destination:
+        host: gemini-flow-preview
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: gemini-flow-active
+        port:
+          number: 80
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: gateway-error,connect-failure,refused-stream

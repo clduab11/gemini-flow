@@ -15,9 +15,21 @@ import {
   AdapterError,
   HealthCheck 
 } from './base-model-adapter.js';
-import { GeminiAdapter, GeminiAdapterConfig } from './gemini-adapter.js';
-import { DeepMindAdapter, DeepMindAdapterConfig } from './deepmind-adapter.js';
-import { JulesWorkflowAdapter, JulesWorkflowConfig } from './jules-workflow-adapter.js';
+import { GeminiAdapter } from './gemini-adapter.js';
+import { DeepMindAdapter } from './deepmind-adapter.js';
+import { JulesWorkflowAdapter } from './jules-workflow-adapter.js';
+import { EnhancedStreamingAPI, EnhancedStreamingConfig } from '../streaming/enhanced-streaming-api.js';
+import { 
+  VideoStreamRequest, 
+  AudioStreamRequest, 
+  VideoStreamResponse, 
+  AudioStreamResponse,
+  MultiModalChunk,
+  StreamingSession,
+  StreamingContext,
+  EdgeCacheConfig,
+  CDNConfiguration
+} from '../types/streaming.js';
 
 export interface UnifiedAPIConfig {
   routing: {
@@ -40,9 +52,13 @@ export interface UnifiedAPIConfig {
     performanceThreshold: number;
   };
   models: {
-    gemini: GeminiAdapterConfig[];
-    deepmind: DeepMindAdapterConfig[];
-    jules: JulesWorkflowConfig[];
+    gemini: any[];
+    deepmind: any[];
+    jules: any[];
+  };
+  streaming?: {
+    enabled: boolean;
+    config: EnhancedStreamingConfig;
   };
 }
 
@@ -96,6 +112,10 @@ export class UnifiedAPI extends EventEmitter {
   private capabilityMatrix = new Map<string, Set<string>>(); // adapter -> capabilities
   private latencyBaseline = new Map<string, number>(); // adapter -> avg latency
 
+  // Enhanced streaming capabilities
+  private streamingAPI?: EnhancedStreamingAPI;
+  private streamingSessions = new Map<string, StreamingSession>();
+
   constructor(config: UnifiedAPIConfig) {
     super();
     this.logger = new Logger('UnifiedAPI');
@@ -105,6 +125,7 @@ export class UnifiedAPI extends EventEmitter {
     this.initializeAdapters();
     this.setupMonitoring();
     this.startHealthChecks();
+    this.initializeStreaming();
   }
 
   /**
@@ -793,6 +814,371 @@ export class UnifiedAPI extends EventEmitter {
 
     await Promise.allSettled(healthPromises);
     return health;
+  }
+
+  // ===== ENHANCED STREAMING API METHODS =====
+
+  /**
+   * Create a new streaming session with full multimedia support
+   */
+  async createStreamingSession(
+    sessionId: string,
+    type: 'video' | 'audio' | 'multimodal' | 'data',
+    context: StreamingContext
+  ): Promise<StreamingSession | null> {
+    if (!this.streamingAPI) {
+      throw new Error('Streaming API not initialized. Enable streaming in configuration.');
+    }
+
+    try {
+      const session = await this.streamingAPI.createSession(sessionId, type, context);
+      this.streamingSessions.set(sessionId, session);
+      
+      this.logger.info('Streaming session created', { 
+        sessionId, 
+        type, 
+        quality: session.quality.level 
+      });
+      
+      this.emit('streaming_session_created', session);
+      return session;
+    } catch (error) {
+      this.logger.error('Failed to create streaming session', {
+        sessionId,
+        type,
+        error: (error as Error).message
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Start video streaming with real-time optimization
+   */
+  async startVideoStream(
+    sessionId: string,
+    request: VideoStreamRequest,
+    context: StreamingContext
+  ): Promise<VideoStreamResponse | null> {
+    if (!this.streamingAPI) {
+      throw new Error('Streaming API not initialized');
+    }
+
+    const startTime = performance.now();
+
+    try {
+      const response = await this.streamingAPI.startVideoStream(sessionId, request, context);
+      
+      const streamTime = performance.now() - startTime;
+      this.validateStreamingLatency(streamTime, 'video_start');
+      
+      this.emit('video_stream_started', { sessionId, request, response, latency: streamTime });
+      return response;
+    } catch (error) {
+      this.logger.error('Video stream start failed', {
+        sessionId,
+        streamId: request.id,
+        error: (error as Error).message
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Start audio streaming with low-latency optimization
+   */
+  async startAudioStream(
+    sessionId: string,
+    request: AudioStreamRequest,
+    context: StreamingContext
+  ): Promise<AudioStreamResponse | null> {
+    if (!this.streamingAPI) {
+      throw new Error('Streaming API not initialized');
+    }
+
+    const startTime = performance.now();
+
+    try {
+      const response = await this.streamingAPI.startAudioStream(sessionId, request, context);
+      
+      const streamTime = performance.now() - startTime;
+      this.validateStreamingLatency(streamTime, 'audio_start');
+      
+      this.emit('audio_stream_started', { sessionId, request, response, latency: streamTime });
+      return response;
+    } catch (error) {
+      this.logger.error('Audio stream start failed', {
+        sessionId,
+        streamId: request.id,
+        error: (error as Error).message
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Process multi-modal chunks with synchronization
+   */
+  async processMultiModalChunk(
+    sessionId: string,
+    chunk: MultiModalChunk
+  ): Promise<boolean> {
+    if (!this.streamingAPI) {
+      this.logger.warn('Streaming API not available for chunk processing');
+      return false;
+    }
+
+    const startTime = performance.now();
+
+    try {
+      const success = await this.streamingAPI.processMultiModalChunk(sessionId, chunk);
+      
+      const processingTime = performance.now() - startTime;
+      this.validateStreamingLatency(processingTime, 'chunk_processing');
+      
+      if (success) {
+        this.emit('chunk_processed', { sessionId, chunk, latency: processingTime });
+      }
+      
+      return success;
+    } catch (error) {
+      this.logger.error('Chunk processing failed', {
+        sessionId,
+        chunkId: chunk.id,
+        error: (error as Error).message
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Get streaming session metrics
+   */
+  getStreamingMetrics(sessionId?: string): any {
+    if (!this.streamingAPI) {
+      return null;
+    }
+
+    if (sessionId) {
+      return this.streamingAPI.getSessionMetrics(sessionId);
+    }
+
+    // Return overall streaming statistics
+    return this.streamingAPI.getPerformanceStatistics();
+  }
+
+  /**
+   * Adapt stream quality in real-time
+   */
+  async adaptStreamQuality(
+    sessionId: string,
+    streamId: string,
+    targetQuality?: any
+  ): Promise<boolean> {
+    if (!this.streamingAPI) {
+      return false;
+    }
+
+    try {
+      return await this.streamingAPI.adaptStreamQuality(sessionId, streamId);
+    } catch (error) {
+      this.logger.error('Quality adaptation failed', {
+        sessionId,
+        streamId,
+        error: (error as Error).message
+      });
+      return false;
+    }
+  }
+
+  /**
+   * End streaming session and cleanup
+   */
+  async endStreamingSession(sessionId: string): Promise<boolean> {
+    if (!this.streamingAPI) {
+      return false;
+    }
+
+    try {
+      const success = await this.streamingAPI.endSession(sessionId);
+      
+      if (success) {
+        this.streamingSessions.delete(sessionId);
+        this.emit('streaming_session_ended', { sessionId });
+      }
+      
+      return success;
+    } catch (error) {
+      this.logger.error('Failed to end streaming session', {
+        sessionId,
+        error: (error as Error).message
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Emergency stream degradation
+   */
+  async emergencyStreamDegrade(sessionId: string, reason: string): Promise<boolean> {
+    if (!this.streamingAPI) {
+      return false;
+    }
+
+    try {
+      return await this.streamingAPI.emergencyDegrade(sessionId, reason);
+    } catch (error) {
+      this.logger.error('Emergency degradation failed', {
+        sessionId,
+        reason,
+        error: (error as Error).message
+      });
+      return false;
+    }
+  }
+
+  // ===== PRIVATE HELPER METHODS =====
+
+  /**
+   * Initialize streaming API if enabled
+   */
+  private initializeStreaming(): void {
+    if (this.config.streaming?.enabled && this.config.streaming.config) {
+      try {
+        this.streamingAPI = new EnhancedStreamingAPI(this.config.streaming.config);
+        
+        // Setup streaming event handlers
+        this.streamingAPI.on('session_created', (session) => {
+          this.emit('streaming_session_created', session);
+        });
+        
+        this.streamingAPI.on('quality_adapted', (event) => {
+          this.emit('streaming_quality_adapted', event);
+        });
+        
+        this.streamingAPI.on('session_error', (error) => {
+          this.emit('streaming_error', error);
+        });
+        
+        this.streamingAPI.on('performance_alert', (alert) => {
+          this.emit('streaming_performance_alert', alert);
+        });
+
+        this.logger.info('Enhanced streaming API initialized successfully');
+      } catch (error) {
+        this.logger.error('Failed to initialize streaming API', {
+          error: (error as Error).message
+        });
+      }
+    } else {
+      this.logger.info('Streaming API disabled in configuration');
+    }
+  }
+
+  /**
+   * Validate streaming latency against targets
+   */
+  private validateStreamingLatency(actualLatency: number, operation: string): void {
+    const targets = {
+      video_start: this.config.streaming?.config.performance.multimediaLatencyTarget || 500,
+      audio_start: this.config.streaming?.config.performance.multimediaLatencyTarget || 500,
+      chunk_processing: this.config.streaming?.config.performance.textLatencyTarget || 100
+    };
+
+    const target = targets[operation as keyof typeof targets] || 500;
+
+    if (actualLatency > target) {
+      this.logger.warn('Streaming latency target exceeded', {
+        operation,
+        actual: actualLatency,
+        target,
+        exceeded: actualLatency - target
+      });
+
+      this.emit('streaming_latency_exceeded', {
+        operation,
+        actual: actualLatency,
+        target,
+        exceeded: actualLatency - target
+      });
+    }
+  }
+
+  /**
+   * Create default streaming configuration
+   */
+  private createDefaultStreamingConfig(): EnhancedStreamingConfig {
+    return {
+      webrtc: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ],
+        enableDataChannels: true,
+        enableTranscoding: true
+      },
+      caching: {
+        enabled: true,
+        ttl: 3600000, // 1 hour
+        maxSize: 1000000000, // 1GB
+        purgeStrategy: 'lru',
+        cdnEndpoints: ['https://cdn.example.com'],
+        cacheKeys: {
+          includeQuality: true,
+          includeUser: false,
+          includeSession: true
+        }
+      },
+      cdn: {
+        provider: 'cloudflare',
+        endpoints: {
+          primary: 'https://cdn.example.com',
+          fallback: ['https://cdn2.example.com'],
+          geographic: {}
+        },
+        caching: {
+          strategy: 'adaptive',
+          ttl: 3600000,
+          edgeLocations: ['us-east', 'eu-west', 'ap-southeast']
+        },
+        optimization: {
+          compression: true,
+          minification: true,
+          imageSizing: true,
+          formatConversion: true
+        }
+      },
+      synchronization: {
+        enabled: true,
+        tolerance: 50,
+        maxDrift: 200,
+        resyncThreshold: 500,
+        method: 'rtp',
+        masterClock: 'audio'
+      },
+      quality: {
+        enableAdaptation: true,
+        targetLatency: 100,
+        adaptationSpeed: 'medium',
+        mlPrediction: true
+      },
+      a2a: {
+        enableCoordination: true,
+        consensusThreshold: 0.6,
+        failoverTimeout: 30000
+      },
+      performance: {
+        textLatencyTarget: 100,
+        multimediaLatencyTarget: 500,
+        enableOptimizations: true,
+        monitoringInterval: 5000
+      },
+      security: {
+        enableEncryption: true,
+        enableAuthentication: true,
+        enableIntegrityChecks: true
+      }
+    };
   }
 
   // Helper methods

@@ -1,0 +1,651 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gemini-flow-canary
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+    deployment-strategy: canary
+  annotations:
+    rollout.argoproj.io/revision: "1"
+    deployment.kubernetes.io/revision: "1"
+spec:
+  replicas: 10
+  strategy:
+    canary:
+      # Reference to stable service
+      stableService: gemini-flow-stable
+      # Reference to canary service
+      canaryService: gemini-flow-canary
+      # Traffic routing using Istio
+      trafficRouting:
+        istio:
+          virtualService:
+            name: gemini-flow-canary-vs
+            routes:
+            - primary
+          destinationRule:
+            name: gemini-flow-canary-dr
+            canarySubsetName: canary
+            stableSubsetName: stable
+      # Canary deployment steps
+      steps:
+      - setWeight: 5
+      - pause:
+          duration: 120s
+      - setWeight: 10
+      - pause:
+          duration: 300s
+      - analysis:
+          templates:
+          - templateName: success-rate-canary
+          - templateName: error-rate-canary
+          - templateName: response-time-canary
+          args:
+          - name: canary-service
+            value: gemini-flow-canary
+          - name: stable-service
+            value: gemini-flow-stable
+      - setWeight: 20
+      - pause:
+          duration: 300s
+      - analysis:
+          templates:
+          - templateName: success-rate-canary
+          - templateName: error-rate-canary
+          args:
+          - name: canary-service
+            value: gemini-flow-canary
+          - name: stable-service
+            value: gemini-flow-stable
+      - setWeight: 40
+      - pause:
+          duration: 600s
+      - analysis:
+          templates:
+          - templateName: success-rate-canary
+          - templateName: error-rate-canary
+          - templateName: cpu-usage-canary
+          - templateName: memory-usage-canary
+          args:
+          - name: canary-service
+            value: gemini-flow-canary
+          - name: stable-service
+            value: gemini-flow-stable
+      - setWeight: 60
+      - pause:
+          duration: 600s
+      - setWeight: 80
+      - pause:
+          duration: 300s
+      - analysis:
+          templates:
+          - templateName: final-validation
+          args:
+          - name: canary-service
+            value: gemini-flow-canary
+      # Analysis configuration
+      analysis:
+        templates:
+        - templateName: continuous-monitoring
+        args:
+        - name: service-name
+          value: gemini-flow-canary
+        # Start analysis after first step
+        startingStep: 2
+        # Run analysis every step after starting
+        stepWeights:
+        - stepIndex: 2
+          weight: 100
+        - stepIndex: 4
+          weight: 100
+        - stepIndex: 7
+          weight: 100
+      # Automatic rollback configuration
+      autoRollbackMode: BlueGreenAutoRollback
+      maxSurge: "25%"
+      maxUnavailable: 0
+      # Scale down delay for old replica sets
+      scaleDownDelaySeconds: 60
+      # Revision history limit
+      revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gemini-flow
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gemini-flow
+        app.kubernetes.io/component: api
+        app.kubernetes.io/version: "1.2.1"
+        deployment-strategy: canary
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+        rollme: "{{ randAlphaNum 5 | quote }}"
+    spec:
+      serviceAccountName: gemini-flow
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: gemini-flow-api
+        image: gcr.io/PROJECT_ID/gemini-flow:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "8080"
+        - name: METRICS_PORT
+          value: "9090"
+        - name: DEPLOYMENT_STRATEGY
+          value: "canary"
+        - name: CANARY_VERSION
+          value: "true"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: GOOGLE_CLOUD_PROJECT
+          valueFrom:
+            secretKeyRef:
+              name: google-config
+              key: project-id
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-keys
+              key: gemini-api-key
+        - name: VERTEX_AI_LOCATION
+          value: "us-central1"
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: redis-config
+              key: connection-string
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-config
+              key: connection-string
+        # Feature flags for canary testing (Google services enabled)
+        - name: FEATURE_VERTEX_AI
+          value: "true"
+        - name: FEATURE_MULTIMODAL_STREAMING
+          value: "true"
+        - name: FEATURE_AGENT_SPACE
+          value: "true"
+        - name: FEATURE_PROJECT_MARINER
+          value: "true"
+        - name: FEATURE_VEO3
+          value: "true"
+        - name: FEATURE_CO_SCIENTIST
+          value: "true"
+        - name: FEATURE_IMAGEN4
+          value: "true"
+        - name: FEATURE_LYRIA
+          value: "true"
+        - name: FEATURE_CHIRP
+          value: "true"
+        # Performance monitoring
+        - name: ENABLE_DETAILED_METRICS
+          value: "true"
+        - name: TRACE_SAMPLING_RATE
+          value: "0.1"
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+            nvidia.com/gpu: 1
+          limits:
+            cpu: 4000m
+            memory: 8Gi
+            nvidia.com/gpu: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            httpHeaders:
+            - name: X-Health-Check
+              value: "canary"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+            httpHeaders:
+            - name: X-Ready-Check
+              value: "canary"
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: http
+            httpHeaders:
+            - name: X-Startup-Check
+              value: "canary"
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 12
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        - name: google-credentials
+          mountPath: /app/credentials
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: config
+        configMap:
+          name: gemini-flow-config
+      - name: google-credentials
+        secret:
+          secretName: google-service-account
+      - name: tmp
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - gemini-flow
+              topologyKey: kubernetes.io/hostname
+      tolerations:
+      - key: "deployment-strategy"
+        operator: "Equal"
+        value: "canary"
+        effect: "NoSchedule"
+  progressDeadlineSeconds: 1200
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gemini-flow-stable
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+    service-type: stable
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  - port: 9090
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  selector:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gemini-flow-canary
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+    service-type: canary
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  - port: 9090
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  selector:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/component: api
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: gemini-flow-canary-vs
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    deployment-strategy: canary
+spec:
+  hosts:
+  - api.gemini-flow.example.com
+  gateways:
+  - gemini-flow-gateway
+  http:
+  - name: primary
+    match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: gemini-flow-stable
+        port:
+          number: 80
+      weight: 100
+    - destination:
+        host: gemini-flow-canary
+        port:
+          number: 80
+      weight: 0
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: gateway-error,connect-failure,refused-stream
+    fault:
+      delay:
+        percentage:
+          value: 0.1
+        fixedDelay: 5s
+  - name: canary-header
+    match:
+    - headers:
+        canary:
+          exact: "true"
+    route:
+    - destination:
+        host: gemini-flow-canary
+        port:
+          number: 80
+    timeout: 30s
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: gemini-flow-canary-dr
+  namespace: gemini-flow
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    deployment-strategy: canary
+spec:
+  host: gemini-flow-stable
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 10
+        maxRetries: 3
+    loadBalancer:
+      simple: LEAST_CONN
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+  subsets:
+  - name: stable
+    labels:
+      app.kubernetes.io/name: gemini-flow
+      app.kubernetes.io/component: api
+  - name: canary
+    labels:
+      app.kubernetes.io/name: gemini-flow
+      app.kubernetes.io/component: api
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate-canary
+  namespace: gemini-flow
+spec:
+  args:
+  - name: canary-service
+  - name: stable-service
+  metrics:
+  - name: canary-success-rate
+    successCondition: result[0] >= 0.95
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(http_requests_total{job="{{args.canary-service}}",status!~"5.."}[2m])) /
+          sum(rate(http_requests_total{job="{{args.canary-service}}"}[2m]))
+  - name: stable-success-rate
+    successCondition: result[0] >= 0.95
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(http_requests_total{job="{{args.stable-service}}",status!~"5.."}[2m])) /
+          sum(rate(http_requests_total{job="{{args.stable-service}}"}[2m]))
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: error-rate-canary
+  namespace: gemini-flow
+spec:
+  args:
+  - name: canary-service
+  - name: stable-service
+  metrics:
+  - name: canary-error-rate
+    successCondition: result[0] <= 0.05
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(http_requests_total{job="{{args.canary-service}}",status=~"5.."}[2m])) /
+          sum(rate(http_requests_total{job="{{args.canary-service}}"}[2m]))
+  - name: stable-error-rate
+    successCondition: result[0] <= 0.05
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(http_requests_total{job="{{args.stable-service}}",status=~"5.."}[2m])) /
+          sum(rate(http_requests_total{job="{{args.stable-service}}"}[2m]))
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: response-time-canary
+  namespace: gemini-flow
+spec:
+  args:
+  - name: canary-service
+  - name: stable-service
+  metrics:
+  - name: canary-response-time
+    successCondition: result[0] <= 500
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          avg(rate(http_request_duration_seconds_sum{job="{{args.canary-service}}"}[2m]) /
+          rate(http_request_duration_seconds_count{job="{{args.canary-service}}"}[2m])) * 1000
+  - name: stable-response-time
+    successCondition: result[0] <= 500
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          avg(rate(http_request_duration_seconds_sum{job="{{args.stable-service}}"}[2m]) /
+          rate(http_request_duration_seconds_count{job="{{args.stable-service}}"}[2m])) * 1000
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: cpu-usage-canary
+  namespace: gemini-flow
+spec:
+  args:
+  - name: canary-service
+  - name: stable-service
+  metrics:
+  - name: canary-cpu-usage
+    successCondition: result[0] <= 80
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          avg(rate(container_cpu_usage_seconds_total{pod=~"{{args.canary-service}}-.*"}[2m])) * 100
+  - name: stable-cpu-usage
+    successCondition: result[0] <= 80
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          avg(rate(container_cpu_usage_seconds_total{pod=~"{{args.stable-service}}-.*"}[2m])) * 100
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: memory-usage-canary
+  namespace: gemini-flow
+spec:
+  args:
+  - name: canary-service
+  - name: stable-service
+  metrics:
+  - name: canary-memory-usage
+    successCondition: result[0] <= 85
+    interval: 60s
+    count: 5
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          avg(container_memory_usage_bytes{pod=~"{{args.canary-service}}-.*"} / 
+          container_spec_memory_limit_bytes{pod=~"{{args.canary-service}}-.*"}) * 100
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: continuous-monitoring
+  namespace: gemini-flow
+spec:
+  args:
+  - name: service-name
+  metrics:
+  - name: continuous-success-rate
+    successCondition: result[0] >= 0.95
+    interval: 30s
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(http_requests_total{job="{{args.service-name}}",status!~"5.."}[1m])) /
+          sum(rate(http_requests_total{job="{{args.service-name}}"}[1m]))
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: final-validation
+  namespace: gemini-flow
+spec:
+  args:
+  - name: canary-service
+  metrics:
+  - name: final-success-rate
+    successCondition: result[0] >= 0.99
+    interval: 60s
+    count: 10
+    failureLimit: 1
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(http_requests_total{job="{{args.canary-service}}",status!~"5.."}[5m])) /
+          sum(rate(http_requests_total{job="{{args.canary-service}}"}[5m]))
+  - name: final-error-rate
+    successCondition: result[0] <= 0.01
+    interval: 60s
+    count: 10
+    failureLimit: 1
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(http_requests_total{job="{{args.canary-service}}",status=~"5.."}[5m])) /
+          sum(rate(http_requests_total{job="{{args.canary-service}}"}[5m]))
+  - name: final-response-time
+    successCondition: result[0] <= 300
+    interval: 60s
+    count: 10
+    failureLimit: 1
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          avg(rate(http_request_duration_seconds_sum{job="{{args.canary-service}}"}[5m]) /
+          rate(http_request_duration_seconds_count{job="{{args.canary-service}}"}[5m])) * 1000

@@ -1,0 +1,2594 @@
+openapi: 3.1.0
+info:
+  title: Gemini-Flow Google Services API
+  version: 1.0.0
+  description: |
+    Comprehensive API documentation for Google Services integration in Gemini-Flow platform.
+    
+    This API provides enterprise-grade integration with:
+    - Google Workspace (Drive, Docs, Sheets, Slides)
+    - Google AI & Gemini Models
+    - Vertex AI Platform
+    - Future Google Services (Video, Audio, AgentSpace)
+    
+    ## Authentication
+    
+    Multiple authentication methods are supported:
+    - **OAuth 2.0**: For user-delegated access to Google services
+    - **Service Account**: For server-to-server authentication
+    - **API Key**: For direct Google AI API access
+    - **Application Default Credentials**: For GCP environments
+    
+    ## Rate Limiting
+    
+    - **Google AI API**: 60 requests/minute per API key
+    - **Workspace APIs**: Varies by service (10-100 requests/second)
+    - **Vertex AI**: Based on model quotas and regions
+    
+    ## Error Handling
+    
+    All endpoints return structured error responses with detailed information
+    for troubleshooting and recovery.
+    
+  termsOfService: https://developers.google.com/terms
+  contact:
+    name: Gemini-Flow API Support
+    url: https://github.com/clduab11/gemini-flow
+    email: support@gemini-flow.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.gemini-flow.dev/v1
+    description: Production server
+  - url: https://staging-api.gemini-flow.dev/v1
+    description: Staging server
+  - url: http://localhost:3000/v1
+    description: Development server
+
+tags:
+  - name: authentication
+    description: Authentication and authorization operations
+  - name: workspace
+    description: Google Workspace integration (Drive, Docs, Sheets, Slides)
+  - name: ai-models
+    description: Google AI and Gemini model operations
+  - name: vertex-ai
+    description: Vertex AI platform integration
+  - name: multimedia
+    description: Video, audio, and image generation services
+  - name: research
+    description: Co-Scientist research agent operations
+  - name: agent-space
+    description: AgentSpace virtual environment management
+  - name: automation
+    description: Project Mariner web automation
+  - name: monitoring
+    description: Service monitoring and metrics
+
+paths:
+  # Authentication Endpoints
+  /auth/google/oauth:
+    get:
+      tags: [authentication]
+      summary: Initialize OAuth 2.0 flow
+      description: Redirects user to Google OAuth consent screen
+      operationId: initiateOAuth
+      parameters:
+        - name: scopes
+          in: query
+          description: Comma-separated list of OAuth scopes
+          schema:
+            type: string
+            example: "drive,docs,sheets"
+        - name: redirect_uri
+          in: query
+          description: Callback URI after authentication
+          schema:
+            type: string
+            format: uri
+      responses:
+        '302':
+          description: Redirect to Google OAuth consent screen
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/google/callback:
+    post:
+      tags: [authentication]
+      summary: Handle OAuth callback
+      description: Exchange authorization code for access tokens
+      operationId: handleOAuthCallback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OAuthCallbackRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokens'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/service-account:
+    post:
+      tags: [authentication]
+      summary: Authenticate with service account
+      description: Initialize authentication using service account credentials
+      operationId: authenticateServiceAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceAccountRequest'
+      responses:
+        '200':
+          description: Service account authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+
+  # Google Workspace Endpoints
+  /workspace/drive/search:
+    get:
+      tags: [workspace]
+      summary: Search Google Drive files
+      description: Search for files and folders in Google Drive
+      operationId: searchDriveFiles
+      security:
+        - OAuth2: [https://www.googleapis.com/auth/drive]
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Search query (supports Google Drive search syntax)
+          schema:
+            type: string
+            example: "name contains 'project' and mimeType = 'application/pdf'"
+        - name: limit
+          in: query
+          description: Maximum number of results
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: orderBy
+          in: query
+          description: Sort order for results
+          schema:
+            type: string
+            enum: [name, modifiedTime, createdTime, folder, starred]
+            default: "modifiedTime desc"
+      responses:
+        '200':
+          description: Search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriveSearchResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /workspace/docs/create:
+    post:
+      tags: [workspace]
+      summary: Create Google Doc with AI content
+      description: Create a new Google Doc with AI-generated content
+      operationId: createGoogleDoc
+      security:
+        - OAuth2: [https://www.googleapis.com/auth/documents]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDocRequest'
+            example:
+              title: "Project Requirements Document"
+              content: "# Project Overview\n\nThis document outlines the requirements for our new project..."
+              folderId: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+              template: "business-document"
+      responses:
+        '201':
+          description: Document created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceDocument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /workspace/sheets/analyze:
+    post:
+      tags: [workspace]
+      summary: Analyze spreadsheet data with AI
+      description: Perform AI-powered analysis on spreadsheet data
+      operationId: analyzeSpreadsheet
+      security:
+        - OAuth2: [https://www.googleapis.com/auth/spreadsheets]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpreadsheetAnalysisRequest'
+            example:
+              spreadsheetId: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+              range: "Sheet1!A1:Z1000"
+              analysisType: "statistical"
+              includeCharts: true
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpreadsheetAnalysisResponse'
+
+  /workspace/slides/generate:
+    post:
+      tags: [workspace]
+      summary: Generate presentation from content
+      description: Create a Google Slides presentation from structured content
+      operationId: generatePresentation
+      security:
+        - OAuth2: [https://www.googleapis.com/auth/presentations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneratePresentationRequest'
+      responses:
+        '201':
+          description: Presentation generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceDocument'
+
+  # Google AI & Gemini Endpoints
+  /ai/models:
+    get:
+      tags: [ai-models]
+      summary: List available AI models
+      description: Get list of available Google AI and Gemini models
+      operationId: listAIModels
+      responses:
+        '200':
+          description: Models retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIModelsResponse'
+
+  /ai/generate:
+    post:
+      tags: [ai-models]
+      summary: Generate AI content
+      description: Generate text, code, or multimodal content using Google AI models
+      operationId: generateAIContent
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIGenerationRequest'
+            examples:
+              text-generation:
+                summary: Text generation example
+                value:
+                  model: "gemini-1.5-pro"
+                  prompt: "Write a technical blog post about AI agents"
+                  temperature: 0.7
+                  maxTokens: 2000
+              code-generation:
+                summary: Code generation example
+                value:
+                  model: "gemini-1.5-flash"
+                  prompt: "Create a TypeScript interface for a user profile"
+                  temperature: 0.2
+                  language: "typescript"
+              multimodal:
+                summary: Multimodal analysis
+                value:
+                  model: "gemini-1.5-pro"
+                  prompt: "Describe what you see in this image"
+                  media:
+                    - type: "image"
+                      data: "base64-encoded-image-data"
+      responses:
+        '200':
+          description: Content generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIGenerationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /ai/stream:
+    post:
+      tags: [ai-models]
+      summary: Stream AI generation
+      description: Stream AI content generation in real-time
+      operationId: streamAIGeneration
+      security:
+        - ApiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIStreamRequest'
+      responses:
+        '200':
+          description: Streaming response
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  event: content
+                  data: {"text": "This is the beginning of the generated content..."}
+                  
+                  event: content
+                  data: {"text": " continuing with more content..."}
+                  
+                  event: done
+                  data: {"finished": true, "totalTokens": 150}
+
+  # Vertex AI Endpoints
+  /vertex-ai/models:
+    get:
+      tags: [vertex-ai]
+      summary: List Vertex AI models
+      description: Get available models in Vertex AI platform
+      operationId: listVertexAIModels
+      security:
+        - ServiceAccount: []
+      parameters:
+        - name: region
+          in: query
+          description: GCP region
+          schema:
+            type: string
+            default: "us-central1"
+      responses:
+        '200':
+          description: Vertex AI models retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VertexAIModelsResponse'
+
+  /vertex-ai/predict:
+    post:
+      tags: [vertex-ai]
+      summary: Make prediction request
+      description: Send prediction request to Vertex AI model
+      operationId: vertexAIPredict
+      security:
+        - ServiceAccount: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VertexAIPredictRequest'
+      responses:
+        '200':
+          description: Prediction completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VertexAIPredictResponse'
+
+  # Multimedia Services
+  /multimedia/video/generate:
+    post:
+      tags: [multimedia]
+      summary: Generate video content (Veo3)
+      description: Generate video content using Google's Veo3 model
+      operationId: generateVideo
+      security:
+        - ServiceAccount: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoGenerationRequest'
+            example:
+              prompt: "A serene lake at sunset with mountains in the background"
+              duration: 10
+              resolution: "1080p"
+              style: "cinematic"
+              aspectRatio: "16:9"
+      responses:
+        '202':
+          description: Video generation started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoGenerationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /multimedia/audio/generate:
+    post:
+      tags: [multimedia]
+      summary: Generate audio content (Chrip)
+      description: Generate audio content using Google's Chrip model
+      operationId: generateAudio
+      security:
+        - ServiceAccount: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AudioGenerationRequest'
+      responses:
+        '202':
+          description: Audio generation started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudioGenerationResponse'
+
+  /multimedia/music/compose:
+    post:
+      tags: [multimedia]
+      summary: Compose music (Lyria)
+      description: Compose music using Google's Lyria model
+      operationId: composeMusic
+      security:
+        - ServiceAccount: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MusicCompositionRequest'
+      responses:
+        '202':
+          description: Music composition started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MusicCompositionResponse'
+
+  /multimedia/image/generate:
+    post:
+      tags: [multimedia]
+      summary: Generate images (Imagen 4)
+      description: Generate high-quality images using Google's Imagen 4 model
+      operationId: generateImage
+      security:
+        - ServiceAccount: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageGenerationRequest'
+      responses:
+        '200':
+          description: Image generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponse'
+
+  # Research Agent (Co-Scientist)
+  /research/hypothesis/create:
+    post:
+      tags: [research]
+      summary: Create research hypothesis
+      description: Create and validate a research hypothesis using Co-Scientist
+      operationId: createResearchHypothesis
+      security:
+        - ServiceAccount: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResearchHypothesisRequest'
+      responses:
+        '201':
+          description: Research hypothesis created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchHypothesisResponse'
+
+  /research/experiment/design:
+    post:
+      tags: [research]
+      summary: Design experiment
+      description: Design and plan scientific experiments
+      operationId: designExperiment
+      security:
+        - ServiceAccount: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentDesignRequest'
+      responses:
+        '201':
+          description: Experiment design created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExperimentDesignResponse'
+
+  # AgentSpace
+  /agent-space/environment/create:
+    post:
+      tags: [agent-space]
+      summary: Create agent environment
+      description: Create isolated environment for AI agents
+      operationId: createAgentEnvironment
+      security:
+        - ServiceAccount: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentEnvironmentRequest'
+      responses:
+        '201':
+          description: Agent environment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentEnvironmentResponse'
+
+  /agent-space/{environmentId}/deploy:
+    post:
+      tags: [agent-space]
+      summary: Deploy agent to environment
+      description: Deploy AI agent to AgentSpace environment
+      operationId: deployAgentToEnvironment
+      security:
+        - ServiceAccount: []
+      parameters:
+        - name: environmentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentDeploymentRequest'
+      responses:
+        '201':
+          description: Agent deployed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDeploymentResponse'
+
+  # Web Automation (Project Mariner)
+  /automation/browser/session:
+    post:
+      tags: [automation]
+      summary: Create browser automation session
+      description: Start new browser automation session with Project Mariner
+      operationId: createBrowserSession
+      security:
+        - ServiceAccount: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrowserSessionRequest'
+      responses:
+        '201':
+          description: Browser session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrowserSessionResponse'
+
+  /automation/browser/{sessionId}/execute:
+    post:
+      tags: [automation]
+      summary: Execute automation task
+      description: Execute web automation task in browser session
+      operationId: executeBrowserTask
+      security:
+        - ServiceAccount: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrowserTaskRequest'
+      responses:
+        '200':
+          description: Task executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrowserTaskResponse'
+
+  # Monitoring & Metrics
+  /monitoring/quota:
+    get:
+      tags: [monitoring]
+      summary: Get API quota usage
+      description: Retrieve current quota usage across all Google services
+      operationId: getQuotaUsage
+      security:
+        - ServiceAccount: []
+      parameters:
+        - name: service
+          in: query
+          description: Specific Google service to query
+          schema:
+            type: string
+            enum: [ai, workspace, vertex-ai, multimedia]
+      responses:
+        '200':
+          description: Quota usage retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotaUsageResponse'
+
+  /monitoring/metrics:
+    get:
+      tags: [monitoring]
+      summary: Get service metrics
+      description: Retrieve performance and usage metrics
+      operationId: getServiceMetrics
+      security:
+        - ServiceAccount: []
+      parameters:
+        - name: timeRange
+          in: query
+          description: Time range for metrics
+          schema:
+            type: string
+            enum: [1h, 24h, 7d, 30d]
+            default: "24h"
+        - name: services
+          in: query
+          description: Comma-separated list of services
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Service metrics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceMetricsResponse'
+
+  # Webhook Endpoints
+  /webhooks/google/workspace:
+    post:
+      tags: [monitoring]
+      summary: Handle Workspace webhooks
+      description: Receive and process Google Workspace webhook notifications
+      operationId: handleWorkspaceWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceWebhookPayload'
+      responses:
+        '200':
+          description: Webhook processed successfully
+
+components:
+  schemas:
+    # Authentication Schemas
+    OAuthCallbackRequest:
+      type: object
+      required: [code, state]
+      properties:
+        code:
+          type: string
+          description: Authorization code from Google
+        state:
+          type: string
+          description: State parameter for CSRF protection
+        redirectUri:
+          type: string
+          format: uri
+          description: Redirect URI used in the initial request
+
+    AuthTokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: OAuth 2.0 access token
+        refreshToken:
+          type: string
+          description: OAuth 2.0 refresh token
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+        tokenType:
+          type: string
+          default: "Bearer"
+        scope:
+          type: string
+          description: Granted scopes
+        idToken:
+          type: string
+          description: OpenID Connect ID token
+
+    ServiceAccountRequest:
+      type: object
+      required: [credentials]
+      properties:
+        credentials:
+          type: object
+          description: Service account credentials JSON
+        projectId:
+          type: string
+          description: GCP project ID
+        scopes:
+          type: array
+          items:
+            type: string
+          description: Required OAuth scopes
+
+    AuthStatus:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        authType:
+          type: string
+          enum: [oauth2, service_account, api_key, adc]
+        expiresAt:
+          type: string
+          format: date-time
+        scopes:
+          type: array
+          items:
+            type: string
+        projectId:
+          type: string
+
+    # Google Workspace Schemas
+    DriveSearchResponse:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspaceDocument'
+        nextPageToken:
+          type: string
+          description: Token for pagination
+        totalResults:
+          type: integer
+        searchTime:
+          type: number
+          description: Search execution time in milliseconds
+
+    WorkspaceDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique document identifier
+        name:
+          type: string
+          description: Document name
+        type:
+          type: string
+          enum: [doc, sheet, slide, folder, file]
+        mimeType:
+          type: string
+          description: MIME type of the document
+        url:
+          type: string
+          format: uri
+          description: Web view URL
+        downloadUrl:
+          type: string
+          format: uri
+          description: Download URL (if applicable)
+        lastModified:
+          type: string
+          format: date-time
+        createdTime:
+          type: string
+          format: date-time
+        size:
+          type: integer
+          description: File size in bytes
+        permissions:
+          type: array
+          items:
+            type: string
+          description: User permissions on the document
+        owners:
+          type: array
+          items:
+            type: string
+          description: Document owners
+        shared:
+          type: boolean
+          description: Whether document is shared
+
+    CreateDocRequest:
+      type: object
+      required: [title, content]
+      properties:
+        title:
+          type: string
+          description: Document title
+          maxLength: 255
+        content:
+          type: string
+          description: Document content in Markdown or HTML
+        folderId:
+          type: string
+          description: Parent folder ID
+        template:
+          type: string
+          enum: [blank, business-document, meeting-notes, project-plan]
+          default: blank
+        sharing:
+          $ref: '#/components/schemas/SharingSettings'
+        formatting:
+          $ref: '#/components/schemas/DocumentFormatting'
+
+    SharingSettings:
+      type: object
+      properties:
+        visibility:
+          type: string
+          enum: [private, link-readable, link-writable, public]
+          default: private
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentPermission'
+
+    DocumentPermission:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [reader, commenter, writer, owner]
+        type:
+          type: string
+          enum: [user, group, domain, anyone]
+          default: user
+
+    DocumentFormatting:
+      type: object
+      properties:
+        fontSize:
+          type: integer
+          minimum: 8
+          maximum: 72
+          default: 12
+        fontFamily:
+          type: string
+          default: "Arial"
+        lineSpacing:
+          type: number
+          default: 1.0
+        margins:
+          $ref: '#/components/schemas/DocumentMargins'
+
+    DocumentMargins:
+      type: object
+      properties:
+        top:
+          type: number
+          default: 1.0
+        bottom:
+          type: number
+          default: 1.0
+        left:
+          type: number
+          default: 1.0
+        right:
+          type: number
+          default: 1.0
+
+    SpreadsheetAnalysisRequest:
+      type: object
+      required: [spreadsheetId, range, analysisType]
+      properties:
+        spreadsheetId:
+          type: string
+          description: Google Sheets ID
+        range:
+          type: string
+          description: Range in A1 notation
+          example: "Sheet1!A1:Z1000"
+        analysisType:
+          type: string
+          enum: [statistical, summary, anomaly, forecast, correlation, regression]
+        includeCharts:
+          type: boolean
+          default: false
+        customPrompt:
+          type: string
+          description: Custom analysis prompt for AI
+        outputFormat:
+          type: string
+          enum: [json, markdown, html]
+          default: json
+
+    SpreadsheetAnalysisResponse:
+      type: object
+      properties:
+        analysisId:
+          type: string
+        analysisType:
+          type: string
+        results:
+          type: object
+          description: Analysis results (structure varies by type)
+        visualizations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChartData'
+        insights:
+          type: array
+          items:
+            type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        processingTime:
+          type: number
+          description: Processing time in milliseconds
+
+    ChartData:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [line, bar, pie, scatter, histogram]
+        title:
+          type: string
+        data:
+          type: object
+          description: Chart data in Chart.js format
+        embedUrl:
+          type: string
+          format: uri
+          description: URL to embedded chart
+
+    GeneratePresentationRequest:
+      type: object
+      required: [title, slides]
+      properties:
+        title:
+          type: string
+        slides:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlideContent'
+        template:
+          type: string
+          enum: [business, academic, creative, minimal]
+          default: business
+        theme:
+          type: string
+          description: Color theme for the presentation
+
+    SlideContent:
+      type: object
+      properties:
+        title:
+          type: string
+        subtitle:
+          type: string
+        content:
+          type: array
+          items:
+            type: string
+          description: Bullet points or content blocks
+        layout:
+          type: string
+          enum: [title-slide, title-and-body, section-header, two-columns, blank]
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlideImage'
+        notes:
+          type: string
+          description: Speaker notes
+
+    SlideImage:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        caption:
+          type: string
+        position:
+          type: string
+          enum: [top, center, bottom, left, right]
+
+    # Google AI Schemas
+    AIModelsResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            $ref: '#/components/schemas/AIModel'
+        totalModels:
+          type: integer
+        categories:
+          type: array
+          items:
+            type: string
+
+    AIModel:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Model identifier
+        name:
+          type: string
+          description: Human-readable model name
+        version:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+          enum: [text, code, vision, audio, multimodal]
+        contextLength:
+          type: integer
+          description: Maximum context length in tokens
+        inputTokenLimit:
+          type: integer
+        outputTokenLimit:
+          type: integer
+        supportedLanguages:
+          type: array
+          items:
+            type: string
+        pricing:
+          $ref: '#/components/schemas/ModelPricing'
+        rateLimits:
+          $ref: '#/components/schemas/RateLimits'
+        regions:
+          type: array
+          items:
+            type: string
+          description: Available regions
+
+    ModelPricing:
+      type: object
+      properties:
+        inputTokens:
+          type: number
+          description: Cost per 1K input tokens in USD
+        outputTokens:
+          type: number
+          description: Cost per 1K output tokens in USD
+        currency:
+          type: string
+          default: "USD"
+
+    RateLimits:
+      type: object
+      properties:
+        requestsPerMinute:
+          type: integer
+        requestsPerDay:
+          type: integer
+        tokensPerMinute:
+          type: integer
+        concurrentRequests:
+          type: integer
+
+    AIGenerationRequest:
+      type: object
+      required: [model, prompt]
+      properties:
+        model:
+          type: string
+          description: Model ID to use
+          example: "gemini-1.5-pro"
+        prompt:
+          type: string
+          description: Input prompt
+        systemPrompt:
+          type: string
+          description: System prompt for context
+        temperature:
+          type: number
+          minimum: 0.0
+          maximum: 2.0
+          default: 0.7
+          description: Sampling temperature
+        topP:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+          default: 1.0
+          description: Nucleus sampling parameter
+        topK:
+          type: integer
+          minimum: 1
+          description: Top-K sampling parameter
+        maxTokens:
+          type: integer
+          minimum: 1
+          description: Maximum output tokens
+        stopSequences:
+          type: array
+          items:
+            type: string
+          description: Stop sequences for generation
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaInput'
+          description: Multimodal inputs
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/AITool'
+          description: Available tools for function calling
+        safetySettings:
+          type: array
+          items:
+            $ref: '#/components/schemas/SafetySetting'
+
+    MediaInput:
+      type: object
+      required: [type, data]
+      properties:
+        type:
+          type: string
+          enum: [image, audio, video, document]
+        data:
+          type: string
+          description: Base64-encoded media data or URL
+        mimeType:
+          type: string
+          description: MIME type of the media
+        filename:
+          type: string
+          description: Optional filename
+
+    AITool:
+      type: object
+      required: [name, description, parameters]
+      properties:
+        name:
+          type: string
+          description: Tool function name
+        description:
+          type: string
+          description: Description of what the tool does
+        parameters:
+          type: object
+          description: JSON Schema for tool parameters
+
+    SafetySetting:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [HARM_CATEGORY_HARASSMENT, HARM_CATEGORY_HATE_SPEECH, HARM_CATEGORY_SEXUALLY_EXPLICIT, HARM_CATEGORY_DANGEROUS_CONTENT]
+        threshold:
+          type: string
+          enum: [BLOCK_NONE, BLOCK_ONLY_HIGH, BLOCK_MEDIUM_AND_ABOVE, BLOCK_LOW_AND_ABOVE]
+
+    AIGenerationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Generation request ID
+        model:
+          type: string
+          description: Model used for generation
+        content:
+          type: string
+          description: Generated content
+        finishReason:
+          type: string
+          enum: [STOP, MAX_TOKENS, SAFETY, RECITATION, OTHER]
+        usage:
+          $ref: '#/components/schemas/TokenUsage'
+        safetyRatings:
+          type: array
+          items:
+            $ref: '#/components/schemas/SafetyRating'
+        citationMetadata:
+          $ref: '#/components/schemas/CitationMetadata'
+        toolCalls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolCall'
+        generatedAt:
+          type: string
+          format: date-time
+
+    TokenUsage:
+      type: object
+      properties:
+        promptTokens:
+          type: integer
+        candidateTokens:
+          type: integer
+        totalTokens:
+          type: integer
+        cachedContentTokens:
+          type: integer
+
+    SafetyRating:
+      type: object
+      properties:
+        category:
+          type: string
+        probability:
+          type: string
+          enum: [NEGLIGIBLE, LOW, MEDIUM, HIGH]
+        blocked:
+          type: boolean
+
+    CitationMetadata:
+      type: object
+      properties:
+        citationSources:
+          type: array
+          items:
+            $ref: '#/components/schemas/CitationSource'
+
+    CitationSource:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+        endIndex:
+          type: integer
+        uri:
+          type: string
+          format: uri
+        license:
+          type: string
+
+    ToolCall:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        arguments:
+          type: object
+        result:
+          type: object
+
+    AIStreamRequest:
+      allOf:
+        - $ref: '#/components/schemas/AIGenerationRequest'
+        - type: object
+          properties:
+            streamOptions:
+              $ref: '#/components/schemas/StreamOptions'
+
+    StreamOptions:
+      type: object
+      properties:
+        includeUsage:
+          type: boolean
+          default: false
+        bufferSize:
+          type: integer
+          default: 1024
+
+    # Vertex AI Schemas
+    VertexAIModelsResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            $ref: '#/components/schemas/VertexAIModel'
+        region:
+          type: string
+        totalModels:
+          type: integer
+
+    VertexAIModel:
+      type: object
+      properties:
+        name:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        inputSchema:
+          type: object
+        outputSchema:
+          type: object
+        supportedActions:
+          type: array
+          items:
+            type: string
+        versionId:
+          type: string
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+
+    VertexAIPredictRequest:
+      type: object
+      required: [instances]
+      properties:
+        endpoint:
+          type: string
+          description: Model endpoint
+        instances:
+          type: array
+          items:
+            type: object
+          description: Prediction instances
+        parameters:
+          type: object
+          description: Model parameters
+
+    VertexAIPredictResponse:
+      type: object
+      properties:
+        predictions:
+          type: array
+          items:
+            type: object
+        metadata:
+          type: object
+        deployedModelId:
+          type: string
+
+    # Multimedia Schemas
+    VideoGenerationRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt:
+          type: string
+          description: Video generation prompt
+        duration:
+          type: integer
+          minimum: 1
+          maximum: 300
+          default: 10
+          description: Video duration in seconds
+        resolution:
+          type: string
+          enum: [720p, 1080p, 4K]
+          default: "1080p"
+        aspectRatio:
+          type: string
+          enum: ["16:9", "9:16", "1:1", "4:3"]
+          default: "16:9"
+        style:
+          type: string
+          enum: [realistic, animated, artistic, cinematic]
+          default: realistic
+        frameRate:
+          type: integer
+          enum: [24, 30, 60]
+          default: 30
+        quality:
+          type: string
+          enum: [draft, standard, high, ultra]
+          default: standard
+        motionLevel:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+        seed:
+          type: integer
+          description: Random seed for reproducible generation
+        negativePrompt:
+          type: string
+          description: Elements to avoid in the video
+
+    VideoGenerationResponse:
+      type: object
+      properties:
+        taskId:
+          type: string
+          description: Generation task identifier
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        estimatedTime:
+          type: integer
+          description: Estimated completion time in seconds
+        videoUrl:
+          type: string
+          format: uri
+          description: URL of generated video (when completed)
+        thumbnailUrl:
+          type: string
+          format: uri
+          description: Video thumbnail URL
+        metadata:
+          $ref: '#/components/schemas/VideoMetadata'
+        cost:
+          type: number
+          description: Generation cost in USD
+
+    VideoMetadata:
+      type: object
+      properties:
+        duration:
+          type: number
+        fileSize:
+          type: integer
+          description: File size in bytes
+        format:
+          type: string
+        codec:
+          type: string
+        bitrate:
+          type: integer
+        fps:
+          type: integer
+        resolution:
+          type: object
+          properties:
+            width:
+              type: integer
+            height:
+              type: integer
+
+    AudioGenerationRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt:
+          type: string
+          description: Audio generation prompt
+        duration:
+          type: integer
+          minimum: 1
+          maximum: 300
+          default: 30
+          description: Audio duration in seconds
+        voice:
+          type: string
+          enum: [male, female, child, elderly, robotic]
+          default: female
+        language:
+          type: string
+          description: Language code (e.g., en-US, es-ES)
+          default: "en-US"
+        style:
+          type: string
+          enum: [natural, conversational, news, audiobook, dramatic]
+          default: natural
+        speed:
+          type: number
+          minimum: 0.5
+          maximum: 2.0
+          default: 1.0
+        pitch:
+          type: number
+          minimum: -20
+          maximum: 20
+          default: 0
+        format:
+          type: string
+          enum: [mp3, wav, ogg, m4a]
+          default: mp3
+        quality:
+          type: string
+          enum: [low, medium, high, lossless]
+          default: high
+
+    AudioGenerationResponse:
+      type: object
+      properties:
+        taskId:
+          type: string
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        audioUrl:
+          type: string
+          format: uri
+        duration:
+          type: number
+        fileSize:
+          type: integer
+        format:
+          type: string
+        sampleRate:
+          type: integer
+        bitrate:
+          type: integer
+        cost:
+          type: number
+
+    MusicCompositionRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt:
+          type: string
+          description: Music composition prompt
+        genre:
+          type: string
+          enum: [classical, jazz, rock, pop, electronic, ambient, folk, country]
+        mood:
+          type: string
+          enum: [happy, sad, energetic, calm, dramatic, mysterious, romantic]
+        tempo:
+          type: integer
+          minimum: 60
+          maximum: 200
+          description: BPM (beats per minute)
+        key:
+          type: string
+          enum: [C, Db, D, Eb, E, F, Gb, G, Ab, A, Bb, B]
+        mode:
+          type: string
+          enum: [major, minor]
+        duration:
+          type: integer
+          minimum: 10
+          maximum: 600
+          description: Duration in seconds
+        instruments:
+          type: array
+          items:
+            type: string
+          description: Preferred instruments
+        structure:
+          type: string
+          enum: [verse-chorus, aba, rondo, through-composed]
+
+    MusicCompositionResponse:
+      type: object
+      properties:
+        compositionId:
+          type: string
+        status:
+          type: string
+        audioUrl:
+          type: string
+          format: uri
+        midiUrl:
+          type: string
+          format: uri
+        sheetMusicUrl:
+          type: string
+          format: uri
+        metadata:
+          $ref: '#/components/schemas/MusicMetadata'
+
+    MusicMetadata:
+      type: object
+      properties:
+        title:
+          type: string
+        genre:
+          type: string
+        tempo:
+          type: integer
+        key:
+          type: string
+        duration:
+          type: number
+        instruments:
+          type: array
+          items:
+            type: string
+        structure:
+          type: object
+
+    ImageGenerationRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt:
+          type: string
+          description: Image generation prompt
+        negativePrompt:
+          type: string
+          description: Elements to avoid
+        style:
+          type: string
+          enum: [photorealistic, artistic, cartoon, anime, sketch, oil-painting]
+          default: photorealistic
+        aspectRatio:
+          type: string
+          enum: ["1:1", "16:9", "9:16", "4:3", "3:4"]
+          default: "1:1"
+        resolution:
+          type: string
+          enum: [512x512, 1024x1024, 1536x1536, 2048x2048]
+          default: "1024x1024"
+        quality:
+          type: string
+          enum: [draft, standard, high, ultra]
+          default: standard
+        seed:
+          type: integer
+        guidance:
+          type: number
+          minimum: 1.0
+          maximum: 20.0
+          default: 7.0
+        steps:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        samples:
+          type: integer
+          minimum: 1
+          maximum: 4
+          default: 1
+
+    ImageGenerationResponse:
+      type: object
+      properties:
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeneratedImage'
+        metadata:
+          $ref: '#/components/schemas/ImageMetadata'
+        cost:
+          type: number
+
+    GeneratedImage:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+        base64:
+          type: string
+          description: Base64-encoded image data
+        seed:
+          type: integer
+        revisedPrompt:
+          type: string
+
+    ImageMetadata:
+      type: object
+      properties:
+        width:
+          type: integer
+        height:
+          type: integer
+        format:
+          type: string
+        fileSize:
+          type: integer
+        colorSpace:
+          type: string
+
+    # Research Schemas
+    ResearchHypothesisRequest:
+      type: object
+      required: [statement, domain]
+      properties:
+        statement:
+          type: string
+          description: Research hypothesis statement
+        domain:
+          type: string
+          enum: [biology, chemistry, physics, psychology, medicine, computer_science, environmental]
+        variables:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResearchVariable'
+        methodology:
+          $ref: '#/components/schemas/ResearchMethodology'
+        significance:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Expected significance level
+
+    ResearchVariable:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [independent, dependent, control, confounding]
+        dataType:
+          type: string
+          enum: [numerical, categorical, ordinal, binary]
+        description:
+          type: string
+        unit:
+          type: string
+        expectedRange:
+          type: object
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+
+    ResearchMethodology:
+      type: object
+      properties:
+        design:
+          type: string
+          enum: [experimental, observational, correlational, meta-analysis, case-study]
+        sampleSize:
+          type: integer
+        duration:
+          type: string
+          description: Study duration
+        dataCollection:
+          type: array
+          items:
+            type: string
+        analysisApproach:
+          type: string
+        ethicalConsiderations:
+          type: array
+          items:
+            type: string
+
+    ResearchHypothesisResponse:
+      type: object
+      properties:
+        hypothesisId:
+          type: string
+        validationScore:
+          type: number
+          minimum: 0
+          maximum: 1
+        feasibilityAssessment:
+          type: object
+          properties:
+            score:
+              type: number
+            factors:
+              type: array
+              items:
+                type: string
+        recommendedNextSteps:
+          type: array
+          items:
+            type: string
+        literatureReview:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResearchPaper'
+        estimatedCost:
+          type: number
+        estimatedDuration:
+          type: string
+
+    ResearchPaper:
+      type: object
+      properties:
+        title:
+          type: string
+        authors:
+          type: array
+          items:
+            type: string
+        journal:
+          type: string
+        year:
+          type: integer
+        doi:
+          type: string
+        relevanceScore:
+          type: number
+        abstract:
+          type: string
+
+    ExperimentDesignRequest:
+      type: object
+      required: [hypothesisId, objectives]
+      properties:
+        hypothesisId:
+          type: string
+        objectives:
+          type: array
+          items:
+            type: string
+        constraints:
+          type: object
+          properties:
+            budget:
+              type: number
+            timeframe:
+              type: string
+            equipment:
+              type: array
+              items:
+                type: string
+            participants:
+              type: integer
+        requirements:
+          type: object
+          properties:
+            statistical_power:
+              type: number
+            significance_level:
+              type: number
+            effect_size:
+              type: number
+
+    ExperimentDesignResponse:
+      type: object
+      properties:
+        designId:
+          type: string
+        protocol:
+          $ref: '#/components/schemas/ExperimentProtocol'
+        statisticalPlan:
+          $ref: '#/components/schemas/StatisticalPlan'
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelinePhase'
+        budgetEstimate:
+          type: number
+        riskAssessment:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskFactor'
+
+    ExperimentProtocol:
+      type: object
+      properties:
+        phases:
+          type: array
+          items:
+            type: object
+        procedures:
+          type: array
+          items:
+            type: string
+        measurements:
+          type: array
+          items:
+            type: string
+        controls:
+          type: array
+          items:
+            type: string
+        safetyProcedures:
+          type: array
+          items:
+            type: string
+
+    StatisticalPlan:
+      type: object
+      properties:
+        primaryAnalysis:
+          type: string
+        secondaryAnalyses:
+          type: array
+          items:
+            type: string
+        sampleSizeJustification:
+          type: string
+        multipleComparisonCorrection:
+          type: string
+        missingDataStrategy:
+          type: string
+
+    TimelinePhase:
+      type: object
+      properties:
+        phase:
+          type: string
+        duration:
+          type: string
+        activities:
+          type: array
+          items:
+            type: string
+        deliverables:
+          type: array
+          items:
+            type: string
+        dependencies:
+          type: array
+          items:
+            type: string
+
+    RiskFactor:
+      type: object
+      properties:
+        risk:
+          type: string
+        probability:
+          type: string
+          enum: [low, medium, high]
+        impact:
+          type: string
+          enum: [low, medium, high]
+        mitigation:
+          type: string
+
+    # AgentSpace Schemas
+    AgentEnvironmentRequest:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+          description: Environment name
+        type:
+          type: string
+          enum: [development, testing, production, sandbox]
+        resources:
+          $ref: '#/components/schemas/ResourceAllocation'
+        isolation:
+          $ref: '#/components/schemas/IsolationConfig'
+        networking:
+          $ref: '#/components/schemas/NetworkConfig'
+        storage:
+          $ref: '#/components/schemas/StorageConfig'
+
+    ResourceAllocation:
+      type: object
+      properties:
+        cpu:
+          type: number
+          description: CPU allocation in vCPUs
+        memory:
+          type: integer
+          description: Memory allocation in MB
+        storage:
+          type: integer
+          description: Storage allocation in GB
+        gpu:
+          $ref: '#/components/schemas/GPUAllocation'
+        network:
+          $ref: '#/components/schemas/NetworkAllocation'
+
+    GPUAllocation:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [T4, V100, A100, H100]
+        count:
+          type: integer
+        memory:
+          type: integer
+          description: GPU memory in GB
+
+    NetworkAllocation:
+      type: object
+      properties:
+        bandwidth:
+          type: integer
+          description: Bandwidth in Mbps
+        ports:
+          type: array
+          items:
+            type: integer
+        connections:
+          type: integer
+
+    IsolationConfig:
+      type: object
+      properties:
+        level:
+          type: string
+          enum: [process, container, vm, bare-metal]
+        security:
+          $ref: '#/components/schemas/SecurityConfig'
+        restrictions:
+          type: array
+          items:
+            type: string
+
+    SecurityConfig:
+      type: object
+      properties:
+        encryption:
+          type: boolean
+          default: true
+        authentication:
+          type: boolean
+          default: true
+        auditLogging:
+          type: boolean
+          default: true
+        firewall:
+          type: boolean
+          default: true
+
+    NetworkConfig:
+      type: object
+      properties:
+        vpc:
+          type: string
+        subnet:
+          type: string
+        securityGroups:
+          type: array
+          items:
+            type: string
+        loadBalancer:
+          type: boolean
+
+    StorageConfig:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ssd, hdd, nvme]
+        size:
+          type: integer
+          description: Storage size in GB
+        encrypted:
+          type: boolean
+          default: true
+        backup:
+          type: boolean
+          default: true
+
+    AgentEnvironmentResponse:
+      type: object
+      properties:
+        environmentId:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [creating, active, stopping, stopped, error]
+        endpoint:
+          type: string
+          format: uri
+        resources:
+          $ref: '#/components/schemas/ResourceAllocation'
+        createdAt:
+          type: string
+          format: date-time
+        cost:
+          type: number
+          description: Estimated hourly cost in USD
+
+    AgentDeploymentRequest:
+      type: object
+      required: [agentType, configuration]
+      properties:
+        agentType:
+          type: string
+          description: Type of agent to deploy
+        configuration:
+          type: object
+          description: Agent configuration
+        resources:
+          $ref: '#/components/schemas/ResourceAllocation'
+        scaling:
+          $ref: '#/components/schemas/ScalingConfig'
+
+    ScalingConfig:
+      type: object
+      properties:
+        minInstances:
+          type: integer
+          default: 1
+        maxInstances:
+          type: integer
+          default: 10
+        targetCPU:
+          type: integer
+          default: 70
+        targetMemory:
+          type: integer
+          default: 80
+
+    AgentDeploymentResponse:
+      type: object
+      properties:
+        deploymentId:
+          type: string
+        agentId:
+          type: string
+        status:
+          type: string
+          enum: [deploying, running, failed, stopped]
+        endpoint:
+          type: string
+          format: uri
+        metrics:
+          $ref: '#/components/schemas/DeploymentMetrics'
+
+    DeploymentMetrics:
+      type: object
+      properties:
+        instances:
+          type: integer
+        cpu:
+          type: number
+        memory:
+          type: number
+        requests:
+          type: integer
+        errors:
+          type: integer
+
+    # Web Automation Schemas
+    BrowserSessionRequest:
+      type: object
+      properties:
+        headless:
+          type: boolean
+          default: true
+        viewport:
+          $ref: '#/components/schemas/ViewportConfig'
+        userAgent:
+          type: string
+        proxy:
+          type: string
+        timeout:
+          type: integer
+          default: 30000
+        options:
+          type: object
+
+    ViewportConfig:
+      type: object
+      properties:
+        width:
+          type: integer
+          default: 1920
+        height:
+          type: integer
+          default: 1080
+        deviceScaleFactor:
+          type: number
+          default: 1.0
+
+    BrowserSessionResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        status:
+          type: string
+          enum: [active, closed, error]
+        endpoint:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+
+    BrowserTaskRequest:
+      type: object
+      required: [actions]
+      properties:
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrowserAction'
+        timeout:
+          type: integer
+          default: 60000
+        retryCount:
+          type: integer
+          default: 3
+        screenshot:
+          type: boolean
+          default: false
+
+    BrowserAction:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [navigate, click, type, wait, scroll, extract, screenshot]
+        selector:
+          type: string
+          description: CSS selector or XPath
+        value:
+          type: string
+          description: Value for type actions
+        url:
+          type: string
+          format: uri
+          description: URL for navigate actions
+        timeout:
+          type: integer
+          description: Action-specific timeout
+        waitFor:
+          type: string
+          enum: [element, navigation, load, idle]
+
+    BrowserTaskResponse:
+      type: object
+      properties:
+        taskId:
+          type: string
+        status:
+          type: string
+          enum: [completed, failed, timeout]
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionResult'
+        screenshots:
+          type: array
+          items:
+            type: string
+            format: uri
+        duration:
+          type: number
+          description: Execution time in milliseconds
+        error:
+          type: string
+
+    ActionResult:
+      type: object
+      properties:
+        action:
+          type: string
+        success:
+          type: boolean
+        result:
+          type: object
+          description: Action-specific result data
+        error:
+          type: string
+        duration:
+          type: number
+
+    # Monitoring Schemas
+    QuotaUsageResponse:
+      type: object
+      properties:
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceQuota'
+        totalCost:
+          type: number
+          description: Total cost in USD
+        period:
+          type: string
+          description: Reporting period
+
+    ServiceQuota:
+      type: object
+      properties:
+        service:
+          type: string
+        quotas:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuotaDetail'
+        cost:
+          type: number
+
+    QuotaDetail:
+      type: object
+      properties:
+        metric:
+          type: string
+        used:
+          type: integer
+        limit:
+          type: integer
+        percentage:
+          type: number
+        resetTime:
+          type: string
+          format: date-time
+
+    ServiceMetricsResponse:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceMetric'
+        timeRange:
+          type: string
+        collectedAt:
+          type: string
+          format: date-time
+
+    ServiceMetric:
+      type: object
+      properties:
+        service:
+          type: string
+        metric:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        dimensions:
+          type: object
+
+    # Webhook Schemas
+    WorkspaceWebhookPayload:
+      type: object
+      properties:
+        eventType:
+          type: string
+          enum: [file_created, file_updated, file_deleted, permission_changed, comment_added]
+        resourceId:
+          type: string
+        resourceType:
+          type: string
+          enum: [file, folder, comment, permission]
+        userId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        changes:
+          type: object
+          description: Details of what changed
+
+    # Error Schemas
+    APIError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_PARAMETER"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The provided parameter 'model' is not valid"
+        details:
+          type: object
+          description: Additional error details
+        requestId:
+          type: string
+          description: Request identifier for debugging
+        timestamp:
+          type: string
+          format: date-time
+        retryable:
+          type: boolean
+          description: Whether the request can be retried
+          default: false
+        retryAfter:
+          type: integer
+          description: Seconds to wait before retrying (if retryable)
+
+  responses:
+    BadRequest:
+      description: Bad Request - Invalid parameters or malformed request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIError'
+          example:
+            code: "BAD_REQUEST"
+            message: "Invalid request parameters"
+            details:
+              field: "model"
+              error: "Model 'invalid-model' does not exist"
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIError'
+          example:
+            code: "UNAUTHORIZED"
+            message: "Authentication failed"
+            details:
+              reason: "Invalid API key"
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIError'
+          example:
+            code: "FORBIDDEN"
+            message: "Insufficient permissions"
+
+    NotFound:
+      description: Not Found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIError'
+          example:
+            code: "NOT_FOUND"
+            message: "Resource not found"
+
+    RateLimited:
+      description: Too Many Requests - Rate limit exceeded
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+        X-RateLimit-Limit:
+          description: Request limit per time window
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          description: Remaining requests in time window
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          description: Time when rate limit resets
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIError'
+          example:
+            code: "RATE_LIMITED"
+            message: "Rate limit exceeded"
+            retryable: true
+            retryAfter: 60
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIError'
+          example:
+            code: "INTERNAL_ERROR"
+            message: "An unexpected error occurred"
+            retryable: true
+
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Google AI API key
+
+    OAuth2:
+      type: oauth2
+      description: Google OAuth 2.0
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.google.com/o/oauth2/auth
+          tokenUrl: https://oauth2.googleapis.com/token
+          scopes:
+            https://www.googleapis.com/auth/drive: Access Google Drive files
+            https://www.googleapis.com/auth/documents: Access Google Docs
+            https://www.googleapis.com/auth/spreadsheets: Access Google Sheets
+            https://www.googleapis.com/auth/presentations: Access Google Slides
+            https://www.googleapis.com/auth/cloud-platform: Access Google Cloud Platform
+
+    ServiceAccount:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Service Account JWT token
+
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Bearer token authentication
+
+security:
+  - ApiKey: []
+  - OAuth2: []
+  - ServiceAccount: []
+
+webhooks:
+  workspaceFileChanged:
+    post:
+      summary: Workspace file changed
+      description: Triggered when a file in Google Workspace is modified
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceWebhookPayload'
+      responses:
+        '200':
+          description: Webhook received successfully
+
+  quotaExceeded:
+    post:
+      summary: Quota exceeded warning
+      description: Triggered when approaching API quota limits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                service:
+                  type: string
+                metric:
+                  type: string
+                percentage:
+                  type: number
+                limit:
+                  type: integer
+      responses:
+        '200':
+          description: Alert processed
+
+externalDocs:
+  description: Complete API documentation and guides
+  url: https://docs.gemini-flow.dev/api/google-services

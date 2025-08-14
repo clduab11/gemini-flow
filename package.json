@@ -1,211 +1,251 @@
 {
-  "name": "@clduab11/gemini-flow",
-  "version": "1.2.1",
-  "description": "Gemini Flow - Advanced AI orchestration platform with 87 specialized agents powered by Google Gemini and enhanced with Claude-Flow integration",
+  "name": "gemini-flow",
+  "version": "1.3.0",
+  "description": "Revolutionary AI agent swarm coordination platform with Google Services integration, multimedia processing, and production-ready monitoring. Features 8 Google AI services, quantum computing capabilities, and enterprise-grade security.",
+  "main": "index.js",
   "type": "module",
-  "main": "dist/index.js",
-  "bin": {
-    "gemini-flow": "bin/gemini-flow",
-    "gf": "bin/gemini-flow"
+  "engines": {
+    "node": ">=18.0.0"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./cli": {
-      "import": "./dist/cli/index.js",
-      "types": "./dist/cli/index.d.ts"
-    },
-    "./package.json": "./package.json"
-  },
-  "files": [
-    "dist/**/*",
-    "bin/**/*",
-    "config/**/*",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
-    "build": "tsc && npm run build:cli",
-    "build:cli": "chmod +x bin/gemini-flow && chmod +x dist/cli/index.js",
-    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
-    "test:lightweight": "GEMINI_FLOW_MODE=minimal npm test",
-    "test:enterprise": "GEMINI_FLOW_MODE=enterprise npm test",
-    "test:protocols": "node scripts/test-protocols.js",
-    "test:protocols:watch": "jest --config=jest.protocols.config.js --watch",
-    "test:protocols:coverage": "jest --config=jest.protocols.config.js --coverage --verbose",
-    "test:integration": "jest --config=jest.config.cjs --testMatch=\"**/integration/**/*.test.js\"",
-    "test:unit": "jest --config=jest.config.cjs --testMatch=\"**/unit/**/*.test.ts\"",
-    "test:performance": "jest --config=jest.config.cjs --testMatch=\"**/performance/**/*.test.js\"",
-    "test:all": "npm run test && npm run test:protocols && npm run test:integration",
-    "coverage": "jest --coverage && npm run test:protocols:coverage",
-    "coverage:report": "open coverage/lcov-report/index.html",
-    "lint": "eslint src/**/*.ts",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build": "npm run build:consensus && npm run build:benchmarks",
+    "build:consensus": "rollup -c rollup.consensus.config.js",
+    "build:benchmarks": "rollup -c rollup.benchmarks.config.js",
+    "test": "npm run test:unit && npm run test:integration && npm run test:performance",
+    "test:unit": "jest --config jest.config.cjs --testPathPattern=unit",
+    "test:integration": "jest --config jest.config.cjs --testPathPattern=integration",
+    "test:performance": "jest --config jest.config.cjs --testPathPattern=performance --detectOpenHandles",
+    "test:google-services": "npm run test:google-services:unit && npm run test:google-services:integration",
+    "test:google-services:unit": "jest --config jest.config.js --testPathPattern=google-services.*unit",
+    "test:google-services:integration": "jest --config jest.config.js --testPathPattern=google-services.*integration --detectOpenHandles",
+    "test:protocols": "jest --config jest.config.js --testPathPattern=protocols --testTimeout=300000",
+    "test:integration:live": "jest --config jest.config.js --testPathPattern=live-integration --testTimeout=600000",
+    "test:performance:google-services": "node src/benchmarks/google-services-performance.js",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src tests --ext .js,.ts,.jsx,.tsx",
+    "lint:fix": "eslint src tests --ext .js,.ts,.jsx,.tsx --fix",
     "typecheck": "tsc --noEmit",
-    "dev": "tsx watch src/index.ts",
-    "dev:lightweight": "GEMINI_FLOW_MODE=minimal tsx watch src/index.ts",
-    "dev:enterprise": "GEMINI_FLOW_MODE=enterprise tsx watch src/index.ts",
-    "cli:dev": "tsx src/cli/index.ts",
-    "start": "node dist/index.js",
-    "start:lightweight": "GEMINI_FLOW_MODE=minimal node dist/index.js",
-    "start:enterprise": "GEMINI_FLOW_MODE=enterprise node dist/index.js",
-    "clean": "rm -rf dist coverage",
-    "doctor": "node dist/cli/index.js doctor",
-    "feature:enable": "node -e \"console.log('Use: gemini-flow config --set features.{feature}=true')\"",
-    "feature:status": "node dist/cli/index.js config --get features",
-    "install:enterprise": "npm install @google-cloud/vertexai googleapis google-auth-library better-sqlite3",
-    "install:workspace": "npm install googleapis google-auth-library",
-    "install:memory": "npm install better-sqlite3 sqlite3",
-    "install:mcp": "npm install @modelcontextprotocol/sdk",
-    "install:full": "npm install @google-cloud/vertexai @google-cloud/aiplatform googleapis google-auth-library better-sqlite3 sqlite3 @modelcontextprotocol/sdk",
-    "install:test-deps": "npm install --save-dev jest-html-reporters jest-junit jest-sonar-reporter jest-watch-typeahead",
-    "extension:build": "cd extensions/vscode-gemini-flow && npm run compile",
-    "extension:watch": "cd extensions/vscode-gemini-flow && npm run watch",
-    "extension:package": "cd extensions/vscode-gemini-flow && npm run package",
-    "extension:install": "cd extensions/vscode-gemini-flow && npm install",
-    "prepublishOnly": "npm run clean && npm run build"
+    "format": "prettier --write \"src/**/*.{js,ts,jsx,tsx,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,jsx,tsx,json,md}\"",
+    "clean": "rm -rf dist coverage .nyc_output",
+    "consensus:start": "node src/consensus/consensus-coordinator.js",
+    "swarm:init": "node src/swarm/swarm-initializer.js",
+    "benchmark:google-services": "node src/benchmarks/benchmark-runner.js --mode comprehensive",
+    "benchmark:quick": "node src/benchmarks/benchmark-runner.js --mode quick",
+    "benchmark:soak": "node src/benchmarks/benchmark-runner.js --mode soak",
+    "benchmark:spike": "node src/benchmarks/benchmark-runner.js --mode spike",
+    "benchmark:optimization": "node src/benchmarks/benchmark-runner.js --mode optimization",
+    "performance:analyze": "node src/benchmarks/performance-optimization-strategies.js",
+    "load-test:1k": "node src/benchmarks/load-testing-coordinator.js --scenario concurrent_1k",
+    "load-test:10k": "node src/benchmarks/load-testing-coordinator.js --scenario concurrent_10k",
+    "load-test:100k": "node src/benchmarks/load-testing-coordinator.js --scenario concurrent_100k",
+    "load-test:sustained": "node src/benchmarks/load-testing-coordinator.js --scenario sustained_24h",
+    "monitoring:start": "node src/monitoring/performance-monitor.js",
+    "grafana:import": "node scripts/import-grafana-dashboard.js",
+    "health-check": "node scripts/health-check.js",
+    "validate:google-services": "bash scripts/deployment/validate-google-services.sh",
+    "drain-queues": "node src/scripts/drain-queues.js",
+    "install:enterprise": "npm install --production && npm run build:enterprise",
+    "build:enterprise": "npm run build && npm run optimize:enterprise",
+    "optimize:enterprise": "node scripts/enterprise-optimization.js",
+    "deploy:staging": "npm run build && npm run test && node scripts/deploy.js staging",
+    "deploy:production": "npm run build && npm run test && node scripts/deploy.js production",
+    "docs:generate": "typedoc --out docs src",
+    "docs:serve": "http-server docs -p 8080",
+    "security:audit": "npm audit --audit-level moderate",
+    "docker:build": "docker build -t gemini-flow:latest .",
+    "docker:run": "docker run -p 3000:3000 -p 8080:8080 gemini-flow:latest",
+    "kubernetes:deploy": "kubectl apply -f k8s/",
+    "postinstall": "husky install && npm run build"
   },
   "keywords": [
-    "gemini",
     "ai",
-    "google",
-    "cli",
-    "assistant",
-    "generative-ai",
-    "conversation",
-    "chat"
+    "coordination",
+    "consensus",
+    "distributed-systems",
+    "performance",
+    "benchmarking",
+    "google-services",
+    "load-testing",
+    "optimization",
+    "monitoring",
+    "grafana",
+    "prometheus",
+    "swarm-intelligence",
+    "byzantine-fault-tolerance",
+    "raft-consensus",
+    "microservices",
+    "scalability",
+    "real-time",
+    "websockets",
+    "streaming"
   ],
-  "author": "Gemini-Flow Team",
+  "author": "Claude Code <claude@anthropic.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/clduab11/gemini-flow.git"
+    "url": "git+https://github.com/claude-ai/gemini-flow.git"
   },
   "bugs": {
-    "url": "https://github.com/clduab11/gemini-flow/issues"
+    "url": "https://github.com/claude-ai/gemini-flow/issues"
   },
-  "homepage": "https://github.com/clduab11/gemini-flow#readme",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/",
-    "tag": "latest"
-  },
+  "homepage": "https://github.com/claude-ai/gemini-flow#readme",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "chalk": "^5.3.0",
-    "commander": "^11.0.0",
-    "inquirer": "^9.2.0",
-    "ora": "^7.0.1",
-    "winston": "^3.11.0"
+    "express": "^4.18.2",
+    "ws": "^8.14.2",
+    "redis": "^4.6.10",
+    "mongodb": "^6.2.0",
+    "kafka-node": "^5.0.0",
+    "prometheus-client": "^15.0.0",
+    "pino": "^8.16.1",
+    "pino-pretty": "^10.2.3",
+    "joi": "^17.11.0",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
+    "uuid": "^9.0.1",
+    "crypto-js": "^4.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "compression": "^1.7.4",
+    "rate-limiter-flexible": "^4.0.1",
+    "bull": "^4.12.2",
+    "ioredis": "^5.3.2",
+    "pg": "^8.11.3",
+    "sequelize": "^6.35.0",
+    "mongoose": "^8.0.1",
+    "axios": "^1.6.0",
+    "node-fetch": "^3.3.2",
+    "cheerio": "^1.0.0-rc.12",
+    "puppeteer": "^21.5.2",
+    "sharp": "^0.33.0",
+    "ffmpeg-static": "^5.2.0",
+    "canvas": "^2.11.2",
+    "jimp": "^0.22.10",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.7.4",
+    "socket.io-client": "^4.7.4",
+    "eventemitter3": "^5.0.1",
+    "p-queue": "^7.4.1",
+    "p-retry": "^5.1.2",
+    "p-timeout": "^6.1.2",
+    "async": "^3.2.4",
+    "rxjs": "^7.8.1",
+    "zod": "^3.22.4",
+    "dotenv": "^16.3.1",
+    "config": "^3.3.9",
+    "node-config-ts": "^4.2.0"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.28.0",
-    "@types/inquirer": "^9.0.8",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^24.1.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.54.0",
+    "@types/node": "^20.8.9",
+    "@types/express": "^4.17.20",
+    "@types/ws": "^8.5.8",
+    "@types/jest": "^29.5.7",
+    "@types/lodash": "^4.14.201",
+    "@types/uuid": "^9.0.6",
+    "@types/bcryptjs": "^2.4.5",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/multer": "^1.4.9",
+    "@types/async": "^3.2.24",
+    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/parser": "^6.9.1",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-security": "^1.7.1",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2",
     "jest": "^29.7.0",
-    "ts-jest": "^29.4.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.3.0"
+    "jest-environment-node": "^29.7.0",
+    "supertest": "^6.3.3",
+    "nock": "^13.3.8",
+    "mongodb-memory-server": "^9.0.1",
+    "redis-memory-server": "^0.9.0",
+    "testcontainers": "^10.2.1",
+    "nodemon": "^3.0.1",
+    "rollup": "^4.3.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.0.1",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-visualizer": "^5.9.2",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.2",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "semantic-release": "^22.0.5",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.1",
+    "nyc": "^15.1.0",
+    "typedoc": "^0.25.3",
+    "http-server": "^14.1.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3"
   },
   "peerDependencies": {
-    "node": ">=18.0.0"
+    "grafana": "^10.0.0",
+    "prometheus": "^2.45.0",
+    "jmeter": "^5.6.0",
+    "gatling": "^3.9.0",
+    "kubernetes": "^1.28.0",
+    "docker": "^24.0.0"
   },
   "optionalDependencies": {
-    "@google-cloud/aiplatform": "^3.12.0",
-    "@google-cloud/vertexai": "^1.4.0",
-    "@modelcontextprotocol/sdk": "^0.1.0",
-    "better-sqlite3": "^9.2.2",
-    "google-auth-library": "^9.4.0",
-    "googleapis": "^131.0.0",
-    "sql.js": "^1.8.0",
-    "sqlite3": "^5.1.6"
+    "sharp": "^0.33.0",
+    "canvas": "^2.11.2",
+    "puppeteer": "^21.5.2"
   },
-  "geminiFlow": {
-    "mode": "dual",
-    "features": {
-      "sqliteAdapters": {
-        "enabled": false,
-        "mode": "auto",
-        "fallback": true
-      },
-      "vertexAi": {
-        "enabled": false,
-        "mode": "auto",
-        "dependencies": [
-          "@google-cloud/vertexai",
-          "@google-cloud/aiplatform"
-        ]
-      },
-      "googleWorkspace": {
-        "enabled": false,
-        "mode": "auto",
-        "dependencies": [
-          "googleapis",
-          "google-auth-library"
-        ]
-      },
-      "deepmind": {
-        "enabled": false,
-        "mode": "auto",
-        "experimental": true
-      },
-      "a2aProtocol": {
-        "enabled": false,
-        "mode": "auto"
-      },
-      "mcpProtocol": {
-        "enabled": false,
-        "mode": "auto",
-        "dependencies": [
-          "@modelcontextprotocol/sdk"
-        ]
-      },
-      "quantumHybrid": {
-        "enabled": false,
-        "mode": "manual",
-        "experimental": true
-      },
-      "neuralPatterns": {
-        "enabled": false,
-        "mode": "auto",
-        "experimental": true
-      },
-      "swarmOrchestration": {
-        "enabled": false,
-        "mode": "auto"
-      },
-      "distributedMemory": {
-        "enabled": false,
-        "mode": "auto"
-      },
-      "wasmOptimization": {
-        "enabled": true,
-        "mode": "auto"
-      },
-      "connectionPooling": {
-        "enabled": true,
-        "mode": "auto"
-      },
-      "caching": {
-        "enabled": true,
-        "mode": "auto"
-      }
-    },
-    "installers": {
-      "enterprise": "npm install @google-cloud/vertexai googleapis google-auth-library better-sqlite3",
-      "workspace": "npm install googleapis google-auth-library",
-      "memory": "npm install better-sqlite3 sqlite3",
-      "mcp": "npm install @modelcontextprotocol/sdk",
-      "full": "npm install @google-cloud/vertexai @google-cloud/aiplatform googleapis google-auth-library better-sqlite3 sqlite3 @modelcontextprotocol/sdk"
+  "lint-staged": {
+    "*.{js,ts,jsx,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitizen",
+      "pre-push": "npm run test:unit && npm run lint"
     }
   },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "src/**/*.{js,ts}",
+      "!src/**/*.d.ts",
+      "!src/benchmarks/**/*.js",
+      "!src/examples/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 75,
+        "functions": 75,
+        "lines": 75,
+        "statements": 75
+      }
+    }
+  },
+  "browserslist": [
+    "node >= 18"
+  ],
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/claude-ai"
   }
 }

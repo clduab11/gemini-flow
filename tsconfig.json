@@ -1,50 +1,41 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["ES2022", "DOM"],
     "outDir": "./dist",
     "rootDir": "./src",
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "removeComments": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "isolatedModules": true
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/tests/*": ["tests/*"]
+    },
+    "types": ["node", "jest"]
   },
-  "include": ["src/**/*", "src/types/**/*.d.ts"],
+  "include": [
+    "src/**/*",
+    "tests/**/*"
+  ],
   "exclude": [
-    "node_modules", 
-    "dist", 
-    "tests",
-    "src/core/a2a-audit-logger.ts",
-    "src/core/a2a-integration.ts",
-    "src/core/a2a-key-exchange.ts",
-    "src/core/a2a-message-security.ts",
-    "src/core/a2a-rate-limiter.ts",
-    "src/core/a2a-security-manager.ts",
-    "src/core/a2a-zero-trust.ts",
-    "src/core/github-a2a-*.ts",
-    "src/protocols/a2a/**/*"
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.spec.ts",
+    "**/*.test.ts"
   ],
   "ts-node": {
-    "transpileOnly": true,
-    "compilerOptions": {
-      "strict": false,
-      "noImplicitAny": false
-    }
+    "esm": true
   }
 }

@@ -27,7 +27,7 @@ import type { DeepMindAdapterConfig } from './deepmind-adapter.js';
 import { GeminiAdapter } from './gemini-adapter.js';
 import { DeepMindAdapter } from './deepmind-adapter.js';
 
-export { JulesWorkflowAdapter, type JulesWorkflowConfig, type WorkflowStep, type WorkflowDefinition, type WorkflowExecution } from './jules-workflow-adapter.js';
+export { JulesWorkflowAdapter, type JulesWorkflowConfig } from './jules-workflow-adapter.js';
 export { UnifiedAPI, type UnifiedAPIConfig, type RoutingDecision, type UnifiedMetrics } from './unified-api.js';
 export { AdapterManager, type AdapterManagerConfig, type AdapterStatus, type SystemHealth } from './adapter-manager.js';
 
@@ -40,7 +40,7 @@ import { AdapterManager, type AdapterManagerConfig } from './adapter-manager.js'
 export async function createGeminiAdapter(config: Partial<GeminiAdapterConfig>): Promise<GeminiAdapter> {
   const fullConfig: GeminiAdapterConfig = {
     modelName: 'gemini-adapter',
-    model: 'gemini-2.0-flash',
+    modelName: 'gemini-2.0-flash',
     timeout: 30000,
     retryAttempts: 3,
     streamingEnabled: true,
@@ -56,7 +56,7 @@ export async function createGeminiAdapter(config: Partial<GeminiAdapterConfig>):
 export async function createDeepMindAdapter(config: Partial<DeepMindAdapterConfig>): Promise<DeepMindAdapter> {
   const fullConfig: DeepMindAdapterConfig = {
     modelName: 'deepmind-adapter',
-    model: 'gemini-2.5-deepmind',
+    modelName: 'gemini-2.5-deepmind',
     projectId: config.projectId || process.env.GOOGLE_CLOUD_PROJECT_ID || '',
     location: config.location || 'us-central1',
     timeout: 45000,
@@ -78,7 +78,7 @@ export async function createDeepMindAdapter(config: Partial<DeepMindAdapterConfi
 export async function createJulesWorkflowAdapter(config: Partial<JulesWorkflowConfig>): Promise<JulesWorkflowAdapter> {
   const fullConfig: JulesWorkflowConfig = {
     modelName: 'jules-workflow-adapter',
-    julesApiKey: config.julesApiKey || process.env.JULES_API_KEY || '',
+    apiKey: config.apiKey || process.env.JULES_API_KEY || '',
     timeout: 60000,
     retryAttempts: 2,
     streamingEnabled: true,
@@ -88,7 +88,7 @@ export async function createJulesWorkflowAdapter(config: Partial<JulesWorkflowCo
     ...config
   };
   
-  if (!fullConfig.julesApiKey) {
+  if (!fullConfig.apiKey) {
     throw new Error('Jules API key is required for workflow adapter');
   }
   

@@ -1,0 +1,584 @@
+# Default values for gemini-flow
+# This is a YAML-formatted file with comprehensive configuration for Google Services integration
+
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+  postgresql:
+    auth:
+      existingSecret: ""
+  redis:
+    auth:
+      existingSecret: ""
+
+# Image configuration
+image:
+  registry: gcr.io
+  repository: PROJECT_ID/gemini-flow
+  tag: "1.2.1"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: http
+  annotations: {}
+  labels: {}
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: api.gemini-flow.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: gemini-flow-tls
+      hosts:
+        - api.gemini-flow.example.com
+
+# Deployment configuration
+replicaCount: 3
+
+# Resource limits (upgraded for Google services)
+resources:
+  limits:
+    cpu: 4000m
+    memory: 8Gi
+    nvidia.com/gpu: 1
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+    nvidia.com/gpu: 1
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Security Context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+# Service Account
+serviceAccount:
+  create: true
+  automount: true
+  annotations:
+    iam.gke.io/gcp-service-account: gemini-flow-workload@PROJECT_ID.iam.gserviceaccount.com
+  name: ""
+
+# Node selection
+nodeSelector: {}
+tolerations: []
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - gemini-flow
+        topologyKey: kubernetes.io/hostname
+
+# Environment variables
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: PORT
+    value: "8080"
+  - name: GEMINI_FLOW_MODE
+    value: "enterprise"
+  - name: GCP_PROJECT_ID
+    value: "PROJECT_ID"
+  - name: GCP_REGION
+    value: "us-central1"
+  - name: GOOGLE_VEO3_ENABLED
+    value: "true"
+  - name: GOOGLE_IMAGEN4_ENABLED
+    value: "true"
+  - name: GOOGLE_LYRIA_ENABLED
+    value: "true"
+  - name: GOOGLE_CHIRP_ENABLED
+    value: "true"
+  - name: GPU_ACCELERATION_ENABLED
+    value: "true"
+
+# Secret management
+secrets:
+  googleCredentials:
+    enabled: true
+    secretName: google-credentials
+    key: service-account-key.json
+  apiKeys:
+    enabled: true
+    secretName: api-keys
+    keys:
+      - GEMINI_API_KEY
+      - VERTEX_AI_KEY
+      - GOOGLE_WORKSPACE_KEY
+      - VEO3_API_KEY
+      - IMAGEN4_API_KEY
+      - LYRIA_API_KEY
+      - CHIRP_API_KEY
+      - CO_SCIENTIST_API_KEY
+  database:
+    enabled: true
+    secretName: database-credentials
+    keys:
+      - DATABASE_URL
+      - POSTGRES_PASSWORD
+
+# ConfigMap configuration
+configMap:
+  enabled: true
+  data:
+    app.json: |
+      {
+        "features": {
+          "vertexAi": true,
+          "multimodalStreaming": true,
+          "agentSpace": true,
+          "projectMariner": true,
+          "veo3": true,
+          "coScientist": true,
+          "imagen4": true,
+          "chrip": true,
+          "lyria": true
+        },
+        "optimization": {
+          "wasmOptimization": true,
+          "connectionPooling": true,
+          "caching": true
+        }
+      }
+
+# Volume mounts
+volumeMounts:
+  - name: config
+    mountPath: /app/config
+    readOnly: true
+  - name: google-credentials
+    mountPath: /app/credentials
+    readOnly: true
+  - name: cache
+    mountPath: /app/cache
+  - name: logs
+    mountPath: /app/logs
+
+volumes:
+  - name: config
+    configMap:
+      name: gemini-flow-config
+  - name: google-credentials
+    secret:
+      secretName: google-credentials
+  - name: cache
+    emptyDir:
+      sizeLimit: 1Gi
+  - name: logs
+    emptyDir:
+      sizeLimit: 500Mi
+
+# Persistent Volume Claims
+persistence:
+  enabled: true
+  storageClass: "fast-ssd"
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  httpGet:
+    path: /startup
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 12
+
+# Worker deployment for background tasks (enhanced for Google services)
+worker:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: PROJECT_ID/gemini-flow-worker
+    tag: "1.2.1"
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+      nvidia.com/gpu: 1
+    requests:
+      cpu: 500m
+      memory: 1Gi
+      nvidia.com/gpu: 1
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  env:
+    - name: GOOGLE_SERVICES_WORKER_MODE
+      value: "multimedia"
+    - name: VEO3_PROCESSING_ENABLED
+      value: "true"
+    - name: IMAGEN4_PROCESSING_ENABLED
+      value: "true"
+    - name: LYRIA_PROCESSING_ENABLED
+      value: "true"
+
+# Scheduler for periodic tasks
+scheduler:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: PROJECT_ID/gemini-flow-scheduler
+    tag: "1.2.1"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: ""
+    existingSecret: "redis-credentials"
+    existingSecretPasswordKey: "password"
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: "fast-ssd"
+  replica:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: "fast-ssd"
+  metrics:
+    enabled: true
+  sentinel:
+    enabled: true
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    username: gemini_flow
+    database: gemini_flow
+    existingSecret: "postgresql-credentials"
+    secretKeys:
+      adminPasswordKey: "admin-password"
+      userPasswordKey: "user-password"
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "fast-ssd"
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+  readReplicas:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "fast-ssd"
+  metrics:
+    enabled: true
+
+# Monitoring and observability
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      scrapeTimeout: 10s
+      labels: {}
+      annotations: {}
+  grafana:
+    enabled: true
+    dashboards:
+      enabled: true
+  jaeger:
+    enabled: true
+  logging:
+    enabled: true
+    fluentd:
+      enabled: true
+
+# Service Mesh (Istio)
+serviceMesh:
+  enabled: true
+  istio:
+    enabled: true
+    virtualService:
+      enabled: true
+      hosts:
+        - api.gemini-flow.example.com
+      gateways:
+        - gemini-flow-gateway
+    destinationRule:
+      enabled: true
+      trafficPolicy:
+        tls:
+          mode: ISTIO_MUTUAL
+    peerAuthentication:
+      enabled: true
+      mtls:
+        mode: STRICT
+
+# Network Policies
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: istio-system
+      - namespaceSelector:
+          matchLabels:
+            name: monitoring
+    - from:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/name: gemini-flow
+      ports:
+      - protocol: TCP
+        port: 8080
+      - protocol: TCP
+        port: 9090
+  egress:
+    - to: []
+      ports:
+      - protocol: TCP
+        port: 443
+      - protocol: TCP
+        port: 80
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: kube-system
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53
+
+# Backup and disaster recovery
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retention: "30d"
+  storage:
+    type: gcs
+    bucket: "gemini-flow-backups"
+    region: "us-central1"
+
+# Feature flags
+featureFlags:
+  launchdarkly:
+    enabled: false
+    sdkKey: ""
+  unleash:
+    enabled: true
+    url: "http://unleash:4242"
+    instanceId: "gemini-flow"
+    appName: "gemini-flow"
+    environment: "production"
+
+# Blue-green deployment
+blueGreen:
+  enabled: false
+  preview:
+    replicaCount: 1
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+
+# Canary deployment
+canary:
+  enabled: true
+  steps:
+    - setWeight: 10
+    - pause:
+        duration: 300s
+    - setWeight: 20
+    - pause:
+        duration: 300s
+    - setWeight: 50
+    - pause:
+        duration: 600s
+    - setWeight: 100
+  analysis:
+    enabled: true
+    metrics:
+      - name: success-rate
+        successCondition: result[0] >= 0.95
+        interval: 60s
+        count: 5
+        provider:
+          prometheus:
+            address: http://prometheus:9090
+            query: |
+              sum(rate(http_requests_total{job="gemini-flow",status!~"5.."}[5m])) /
+              sum(rate(http_requests_total{job="gemini-flow"}[5m]))
+
+# Performance tuning
+performance:
+  jvm:
+    maxHeapSize: "2g"
+    minHeapSize: "512m"
+    gcAlgorithm: "G1GC"
+  nodejs:
+    maxOldSpaceSize: 2048
+    maxSemiSpaceSize: 128
+  cache:
+    redis:
+      maxMemory: "1gb"
+      policy: "allkeys-lru"
+
+# Security scanning
+security:
+  podSecurityStandards:
+    enforce: "restricted"
+    audit: "restricted"
+    warn: "restricted"
+  networkPolicies:
+    defaultDeny: true
+  imageSecurity:
+    scanOnPush: true
+    blockVulnerabilities: "high"
+
+# Cost optimization
+costOptimization:
+  verticalPodAutoscaler:
+    enabled: true
+    updateMode: "Auto"
+  nodeAffinity:
+    preferSpotInstances: false
+  preemptibleNodes:
+    enabled: false
+    percentage: 50
+
+# Environment-specific overrides
+environments:
+  development:
+    replicaCount: 1
+    autoscaling:
+      enabled: false
+    redis:
+      enabled: false
+    postgresql:
+      enabled: false
+    monitoring:
+      enabled: false
+    persistence:
+      enabled: false
+  
+  staging:
+    replicaCount: 2
+    autoscaling:
+      minReplicas: 2
+      maxReplicas: 5
+    redis:
+      replica:
+        replicaCount: 1
+    postgresql:
+      readReplicas:
+        replicaCount: 0
+  
+  production:
+    replicaCount: 3
+    autoscaling:
+      minReplicas: 3
+      maxReplicas: 20
+    redis:
+      replica:
+        replicaCount: 2
+    postgresql:
+      readReplicas:
+        replicaCount: 1
+    monitoring:
+      enabled: true
+    backup:
+      enabled: true

@@ -1,0 +1,140 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gemini-flow-staging
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: gemini-flow
+    app.kubernetes.io/instance: staging
+    environment: staging
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: staging-deployments
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: staging-deployments
+spec:
+  project: gemini-flow
+  
+  source:
+    repoURL: https://github.com/clduab11/gemini-flow.git
+    targetRevision: develop
+    path: infrastructure/helm/gemini-flow
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-staging.yaml
+      parameters:
+        - name: image.tag
+          value: staging-latest
+        - name: environment
+          value: staging
+        - name: replicaCount
+          value: "2"
+        - name: autoscaling.minReplicas
+          value: "2"
+        - name: autoscaling.maxReplicas
+          value: "8"
+        - name: featureFlags.vertexAi
+          value: "true"
+        - name: featureFlags.multimodalStreaming
+          value: "true"
+        - name: featureFlags.agentSpace
+          value: "true"
+        - name: featureFlags.projectMariner
+          value: "true"
+        - name: featureFlags.veo3
+          value: "false"
+        - name: redis.enabled
+          value: "true"
+        - name: postgresql.enabled
+          value: "true"
+        - name: monitoring.enabled
+          value: "true"
+        - name: serviceMesh.enabled
+          value: "true"
+        - name: canary.enabled
+          value: "false"
+        - name: blueGreen.enabled
+          value: "false"
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gemini-flow-staging
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  revisionHistoryLimit: 10
+  
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers:
+        - kube-controller-manager
+    - group: ""
+      kind: Service
+      managedFieldsManagers:
+        - kube-controller-manager
+  
+  info:
+    - name: Environment
+      value: Staging
+    - name: Owner
+      value: Platform Team
+    - name: Documentation
+      value: https://docs.gemini-flow.example.com/deployment/staging
+    - name: Monitoring
+      value: https://grafana-staging.gemini-flow.example.com
+    - name: Logs
+      value: https://kibana-staging.gemini-flow.example.com
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gemini-flow-staging-monitoring
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: gemini-flow-monitoring
+    app.kubernetes.io/instance: staging
+    environment: staging
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: gemini-flow
+  
+  source:
+    repoURL: https://github.com/clduab11/gemini-flow.git
+    targetRevision: develop
+    path: infrastructure/helm/monitoring
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-staging.yaml
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gemini-flow-monitoring
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+  
+  revisionHistoryLimit: 5

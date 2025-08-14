@@ -1,0 +1,547 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unleash
+  namespace: gemini-flow
+  labels:
+    app: unleash
+    component: feature-flags
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: unleash
+  template:
+    metadata:
+      labels:
+        app: unleash
+        component: feature-flags
+    spec:
+      containers:
+      - name: unleash
+        image: unleashorg/unleash-server:5.7.0
+        ports:
+        - containerPort: 4242
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: unleash-db-credentials
+              key: database-url
+        - name: UNLEASH_URL
+          value: "https://unleash.gemini-flow.example.com"
+        - name: UNLEASH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: unleash-secrets
+              key: unleash-secret
+        - name: INIT_ADMIN_API_TOKENS
+          valueFrom:
+            secretKeyRef:
+              name: unleash-secrets
+              key: admin-token
+        - name: INIT_CLIENT_API_TOKENS
+          valueFrom:
+            secretKeyRef:
+              name: unleash-secrets
+              key: client-token
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4242
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 4242
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unleash
+  namespace: gemini-flow
+  labels:
+    app: unleash
+    component: feature-flags
+spec:
+  selector:
+    app: unleash
+  ports:
+  - port: 4242
+    targetPort: 4242
+    name: http
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: feature-flags-config
+  namespace: gemini-flow
+  labels:
+    app: gemini-flow
+    component: feature-flags
+data:
+  default-flags.json: |
+    {
+      "flags": {
+        "vertex-ai": {
+          "enabled": true,
+          "description": "Enable Vertex AI integration",
+          "environments": {
+            "development": true,
+            "staging": true,
+            "production": true
+          },
+          "segments": [],
+          "rollout": {
+            "percentage": 100,
+            "strategy": "default"
+          }
+        },
+        "multimodal-streaming": {
+          "enabled": true,
+          "description": "Enable multimodal streaming API",
+          "environments": {
+            "development": true,
+            "staging": true,
+            "production": true
+          },
+          "segments": [],
+          "rollout": {
+            "percentage": 100,
+            "strategy": "default"
+          }
+        },
+        "agent-space": {
+          "enabled": true,
+          "description": "Enable AgentSpace functionality",
+          "environments": {
+            "development": true,
+            "staging": true,
+            "production": true
+          },
+          "segments": ["beta-users"],
+          "rollout": {
+            "percentage": 80,
+            "strategy": "gradual"
+          }
+        },
+        "project-mariner": {
+          "enabled": false,
+          "description": "Enable Project Mariner browser automation",
+          "environments": {
+            "development": true,
+            "staging": true,
+            "production": false
+          },
+          "segments": ["early-adopters", "qa-team"],
+          "rollout": {
+            "percentage": 20,
+            "strategy": "gradual"
+          }
+        },
+        "veo3-video": {
+          "enabled": false,
+          "description": "Enable Veo3 video generation",
+          "environments": {
+            "development": true,
+            "staging": false,
+            "production": false
+          },
+          "segments": ["alpha-testers"],
+          "rollout": {
+            "percentage": 5,
+            "strategy": "gradual"
+          }
+        },
+        "co-scientist": {
+          "enabled": false,
+          "description": "Enable Co-Scientist research agent",
+          "environments": {
+            "development": true,
+            "staging": false,
+            "production": false
+          },
+          "segments": ["research-team", "beta-users"],
+          "rollout": {
+            "percentage": 10,
+            "strategy": "gradual"
+          }
+        },
+        "imagen4": {
+          "enabled": false,
+          "description": "Enable Imagen 4 image generation",
+          "environments": {
+            "development": true,
+            "staging": false,
+            "production": false
+          },
+          "segments": ["creative-users"],
+          "rollout": {
+            "percentage": 15,
+            "strategy": "gradual"
+          }
+        },
+        "chrip-audio": {
+          "enabled": false,
+          "description": "Enable Chrip audio generation",
+          "environments": {
+            "development": false,
+            "staging": false,
+            "production": false
+          },
+          "segments": [],
+          "rollout": {
+            "percentage": 0,
+            "strategy": "off"
+          }
+        },
+        "lyria-music": {
+          "enabled": false,
+          "description": "Enable Lyria music generation",
+          "environments": {
+            "development": false,
+            "staging": false,
+            "production": false
+          },
+          "segments": [],
+          "rollout": {
+            "percentage": 0,
+            "strategy": "off"
+          }
+        },
+        "enhanced-security": {
+          "enabled": true,
+          "description": "Enable enhanced security features",
+          "environments": {
+            "development": false,
+            "staging": true,
+            "production": true
+          },
+          "segments": [],
+          "rollout": {
+            "percentage": 100,
+            "strategy": "default"
+          }
+        },
+        "performance-optimization": {
+          "enabled": true,
+          "description": "Enable performance optimization features",
+          "environments": {
+            "development": true,
+            "staging": true,
+            "production": true
+          },
+          "segments": [],
+          "rollout": {
+            "percentage": 100,
+            "strategy": "default"
+          }
+        },
+        "debug-mode": {
+          "enabled": false,
+          "description": "Enable debug mode for troubleshooting",
+          "environments": {
+            "development": true,
+            "staging": false,
+            "production": false
+          },
+          "segments": ["developers", "qa-team"],
+          "rollout": {
+            "percentage": 100,
+            "strategy": "targeted"
+          }
+        },
+        "experimental-features": {
+          "enabled": false,
+          "description": "Enable experimental features",
+          "environments": {
+            "development": true,
+            "staging": false,
+            "production": false
+          },
+          "segments": ["alpha-testers", "internal-team"],
+          "rollout": {
+            "percentage": 30,
+            "strategy": "gradual"
+          }
+        }
+      },
+      "segments": {
+        "alpha-testers": {
+          "description": "Alpha testing users",
+          "constraints": [
+            {
+              "contextName": "userId",
+              "operator": "IN",
+              "values": ["user-1", "user-2", "user-3"]
+            }
+          ]
+        },
+        "beta-users": {
+          "description": "Beta testing users",
+          "constraints": [
+            {
+              "contextName": "betaUser",
+              "operator": "IN",
+              "values": ["true"]
+            }
+          ]
+        },
+        "early-adopters": {
+          "description": "Early adopter users",
+          "constraints": [
+            {
+              "contextName": "userType",
+              "operator": "IN",
+              "values": ["early-adopter", "premium"]
+            }
+          ]
+        },
+        "developers": {
+          "description": "Developer team members",
+          "constraints": [
+            {
+              "contextName": "role",
+              "operator": "IN",
+              "values": ["developer", "admin"]
+            }
+          ]
+        },
+        "qa-team": {
+          "description": "QA team members",
+          "constraints": [
+            {
+              "contextName": "role",
+              "operator": "IN",
+              "values": ["qa", "tester"]
+            }
+          ]
+        },
+        "research-team": {
+          "description": "Research team members",
+          "constraints": [
+            {
+              "contextName": "department",
+              "operator": "IN",
+              "values": ["research", "data-science"]
+            }
+          ]
+        },
+        "creative-users": {
+          "description": "Creative content users",
+          "constraints": [
+            {
+              "contextName": "userType",
+              "operator": "IN",
+              "values": ["creator", "artist", "designer"]
+            }
+          ]
+        },
+        "internal-team": {
+          "description": "Internal team members",
+          "constraints": [
+            {
+              "contextName": "organization",
+              "operator": "IN",
+              "values": ["gemini-flow-internal"]
+            }
+          ]
+        }
+      },
+      "environments": {
+        "development": {
+          "name": "Development",
+          "description": "Development environment",
+          "enabled": true,
+          "protected": false
+        },
+        "staging": {
+          "name": "Staging",
+          "description": "Staging environment for testing",
+          "enabled": true,
+          "protected": true
+        },
+        "production": {
+          "name": "Production",
+          "description": "Production environment",
+          "enabled": true,
+          "protected": true
+        }
+      }
+    }
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: unleash-secrets
+  namespace: gemini-flow
+  labels:
+    app: unleash
+    component: feature-flags
+type: Opaque
+stringData:
+  unleash-secret: "your-unleash-secret-here"
+  admin-token: "*:development.unleash-admin-token"
+  client-token: "default:development.unleash-client-token"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: unleash-db-credentials
+  namespace: gemini-flow
+  labels:
+    app: unleash
+    component: feature-flags
+type: Opaque
+stringData:
+  database-url: "postgres://unleash:password@postgres:5432/unleash"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: unleash-ingress
+  namespace: gemini-flow
+  labels:
+    app: unleash
+    component: feature-flags
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: unleash-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Unleash Admin Access"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - unleash.gemini-flow.example.com
+    secretName: unleash-tls
+  rules:
+  - host: unleash.gemini-flow.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: unleash
+            port:
+              number: 4242
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: unleash-init
+  namespace: gemini-flow
+  labels:
+    app: unleash
+    component: init
+spec:
+  template:
+    metadata:
+      labels:
+        app: unleash
+        component: init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: unleash-init
+        image: curlimages/curl:8.4.0
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for Unleash to be ready..."
+          until curl -f http://unleash:4242/health; do
+            echo "Waiting for Unleash..."
+            sleep 5
+          done
+          
+          echo "Initializing feature flags..."
+          
+          # Create development environment
+          curl -X POST "http://unleash:4242/api/admin/environments" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer *:development.unleash-admin-token" \
+            -d '{
+              "name": "development",
+              "type": "development",
+              "enabled": true,
+              "protected": false,
+              "sortOrder": 1
+            }'
+          
+          # Create staging environment
+          curl -X POST "http://unleash:4242/api/admin/environments" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer *:development.unleash-admin-token" \
+            -d '{
+              "name": "staging",
+              "type": "test",
+              "enabled": true,
+              "protected": true,
+              "sortOrder": 2
+            }'
+          
+          # Create production environment
+          curl -X POST "http://unleash:4242/api/admin/environments" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer *:development.unleash-admin-token" \
+            -d '{
+              "name": "production",
+              "type": "production",
+              "enabled": true,
+              "protected": true,
+              "sortOrder": 3
+            }'
+          
+          # Create feature flags
+          for flag in vertex-ai multimodal-streaming agent-space project-mariner veo3-video co-scientist imagen4 chrip-audio lyria-music; do
+            echo "Creating feature flag: $flag"
+            curl -X POST "http://unleash:4242/api/admin/projects/default/features" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer *:development.unleash-admin-token" \
+              -d "{
+                \"name\": \"$flag\",
+                \"type\": \"release\",
+                \"description\": \"Feature flag for $flag\",
+                \"impressionData\": true
+              }"
+          done
+          
+          echo "Feature flags initialization completed"
+
+---
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: unleash-metrics
+  namespace: gemini-flow
+  labels:
+    app: unleash
+    component: feature-flags
+spec:
+  selector:
+    matchLabels:
+      app: unleash
+  endpoints:
+  - port: http
+    path: /internal-backstage/prometheus
+    interval: 30s
+    scrapeTimeout: 10s

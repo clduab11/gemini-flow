@@ -885,6 +885,100 @@ export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
     capabilities: ['readme', 'getting-started', 'contributing-guides', 'badges', 'examples'],
     temperature: 0.5,
     systemPrompt: 'You are a README specialist. Create engaging, informative project documentation.'
+  },
+
+  // 22. Research and Scientific Agents (4) - NEW Co-Scientist Integration
+  'research-coordinator': {
+    id: 'research-coordinator',
+    name: 'Research Coordinator',
+    type: 'researcher',
+    category: 'research-scientific',
+    description: 'Advanced research coordination with hypothesis testing and academic integration',
+    capabilities: ['hypothesis-generation', 'academic-database-search', 'peer-review-simulation', 'research-paper-generation', 'knowledge-graph-construction', 'citation-management'],
+    temperature: 0.4,
+    systemPrompt: 'You are a research coordinator. Apply scientific method rigor to generate, validate, and document research findings with academic standards.'
+  },
+  'hypothesis-tester': {
+    id: 'hypothesis-tester',
+    name: 'Hypothesis Testing Specialist',
+    type: 'researcher',
+    category: 'research-scientific',
+    description: 'Scientific hypothesis testing with statistical validation',
+    capabilities: ['hypothesis-design', 'statistical-analysis', 'experimental-design', 'data-validation', 'results-interpretation'],
+    temperature: 0.3,
+    systemPrompt: 'You are a hypothesis testing specialist. Design and execute rigorous scientific experiments with proper statistical analysis.'
+  },
+  'academic-integrator': {
+    id: 'academic-integrator',
+    name: 'Academic Database Integrator',
+    type: 'researcher',
+    category: 'research-scientific',
+    description: 'Integration with academic databases and literature review',
+    capabilities: ['pubmed-integration', 'arxiv-search', 'google-scholar', 'semantic-scholar', 'literature-review', 'citation-analysis'],
+    temperature: 0.4,
+    systemPrompt: 'You are an academic integrator. Search, analyze, and synthesize academic literature to support research objectives.'
+  },
+  'peer-reviewer': {
+    id: 'peer-reviewer',
+    name: 'Peer Review Simulator',
+    type: 'reviewer',
+    category: 'research-scientific',
+    description: 'Automated peer review simulation for research validation',
+    capabilities: ['peer-review-simulation', 'research-validation', 'methodology-assessment', 'quality-evaluation', 'feedback-generation'],
+    temperature: 0.3,
+    systemPrompt: 'You are a peer reviewer. Evaluate research with academic rigor, providing constructive feedback and validation.'
+  },
+
+  // 23. Security Framework Agents (5) - NEW Comprehensive Security
+  'security-framework-manager': {
+    id: 'security-framework-manager',
+    name: 'Security Framework Manager',
+    type: 'security',
+    category: 'security-framework',
+    description: 'Comprehensive security framework management and coordination',
+    capabilities: ['security-policy-management', 'framework-coordination', 'compliance-monitoring', 'threat-assessment', 'security-governance'],
+    temperature: 0.2,
+    systemPrompt: 'You are a security framework manager. Coordinate comprehensive security measures across all system components.'
+  },
+  'encryption-specialist': {
+    id: 'encryption-specialist',
+    name: 'Encryption Specialist',
+    type: 'security',
+    category: 'security-framework',
+    description: 'End-to-end encryption and cryptographic security specialist',
+    capabilities: ['e2e-encryption', 'key-management', 'cryptographic-protocols', 'secure-storage', 'drm-integration'],
+    temperature: 0.1,
+    systemPrompt: 'You are an encryption specialist. Implement and manage enterprise-grade encryption for all data types.'
+  },
+  'compliance-auditor': {
+    id: 'compliance-auditor',
+    name: 'Compliance Auditor',
+    type: 'auditor',
+    category: 'security-framework',
+    description: 'GDPR, CCPA, HIPAA, SOX, PCI compliance auditing and management',
+    capabilities: ['gdpr-compliance', 'ccpa-compliance', 'hipaa-audit', 'sox-controls', 'pci-dss', 'iso27001', 'compliance-reporting'],
+    temperature: 0.2,
+    systemPrompt: 'You are a compliance auditor. Ensure adherence to regulatory frameworks with comprehensive audit trails.'
+  },
+  'zero-trust-architect': {
+    id: 'zero-trust-architect',
+    name: 'Zero Trust Architect',
+    type: 'architect',
+    category: 'security-framework',
+    description: 'Zero-trust architecture design for agent communication',
+    capabilities: ['zero-trust-design', 'agent-authentication', 'micro-segmentation', 'identity-verification', 'secure-channels'],
+    temperature: 0.2,
+    systemPrompt: 'You are a zero-trust architect. Design and implement zero-trust security for all agent interactions.'
+  },
+  'threat-modeler': {
+    id: 'threat-modeler',
+    name: 'Threat Modeling Specialist',
+    type: 'security',
+    category: 'security-framework',
+    description: 'Advanced threat modeling with STRIDE methodology and risk assessment',
+    capabilities: ['stride-modeling', 'attack-surface-analysis', 'risk-assessment', 'vulnerability-analysis', 'mitigation-strategies'],
+    temperature: 0.3,
+    systemPrompt: 'You are a threat modeling specialist. Identify, analyze, and mitigate security threats using systematic methodologies.'
   }
 };
 
@@ -910,7 +1004,9 @@ export const AGENT_CATEGORIES = {
   'engineering-operations': 5,    // NEW category
   'code-quality': 3,              // NEW category
   'testing-specialists': 4,       // NEW category
-  'documentation-specialists': 3  // NEW category
+  'documentation-specialists': 3, // NEW category
+  'research-scientific': 4,       // NEW Co-Scientist category
+  'security-framework': 5         // NEW Comprehensive Security category
 };
 
-// Total: 87 agents (expanded from 64 with Claude-Flow integration)
+// Total: 96 agents (expanded from 87 with Co-Scientist and Security Framework integration)

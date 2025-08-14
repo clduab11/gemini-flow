@@ -64,3 +64,10 @@ audit-*.log
 coverage/
 reports/temp/
 *.coverage
+
+# Temporary reports and completion documents (should be archived)
+*_SUMMARY.md
+*_REPORT.md
+*_COMPLETION_*.md
+GOOGLE_SERVICES_BENCHMARKS.md
+V*.*.0-RELEASE-READINESS-REPORT.md
