@@ -51,6 +51,7 @@ export interface GossipConfig {
   compressionThreshold: number; // Compress messages larger than this
   batchSize: number; // Maximum messages per batch
   adaptiveGossip: boolean; // Enable adaptive algorithms
+  minQuorumThreshold: number; // Configurable quorum threshold (default 0.51)
 }
 
 export interface GossipStats {
@@ -82,7 +83,8 @@ export class GossipProtocol extends EventEmitter {
     failureThreshold: 3,
     compressionThreshold: 1024, // 1KB
     batchSize: 10,
-    adaptiveGossip: true
+    adaptiveGossip: true,
+    minQuorumThreshold: 0.51 // Default 51% threshold
   };
   
   // State management
@@ -325,6 +327,32 @@ export class GossipProtocol extends EventEmitter {
   getStats(): GossipStats {
     this.updateNetworkUtilization();
     return { ...this.stats };
+  }
+
+  /**
+   * Calculate minimum quorum size based on threshold
+   */
+  getMinQuorum(): number {
+    return Math.ceil(this.nodes.size * this.config.minQuorumThreshold);
+  }
+
+  /**
+   * Check if we have sufficient active nodes for quorum
+   */
+  hasQuorum(): boolean {
+    const activeCount = this.getActiveNodes().length;
+    return activeCount >= this.getMinQuorum();
+  }
+
+  /**
+   * Update quorum threshold
+   */
+  updateQuorumThreshold(threshold: number): void {
+    if (threshold <= 0 || threshold > 1) {
+      throw new Error('Quorum threshold must be between 0 and 1');
+    }
+    this.config.minQuorumThreshold = threshold;
+    this.logger.info('Quorum threshold updated', { threshold });
   }
 
   /**

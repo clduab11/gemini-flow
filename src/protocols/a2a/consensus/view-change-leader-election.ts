@@ -213,9 +213,9 @@ export class ViewChangeLeaderElection extends EventEmitter {
     
     messages.push(message);
     
-    // Check if we have enough view change messages
+    // Check if we have enough view change messages (Byzantine quorum)
     const faultThreshold = Math.floor((this.totalAgents - 1) / 3);
-    const requiredMessages = 2 * faultThreshold + 1;
+    const requiredMessages = 2 * faultThreshold + 1; // Byzantine minimum quorum
     
     if (messages.length >= requiredMessages) {
       await this.processViewChange(message.viewNumber);
@@ -529,9 +529,9 @@ export class ViewChangeLeaderElection extends EventEmitter {
       return false;
     }
 
-    // Validate view change messages
+    // Validate view change messages (Byzantine quorum requirement)
     const faultThreshold = Math.floor((this.totalAgents - 1) / 3);
-    const requiredMessages = 2 * faultThreshold + 1;
+    const requiredMessages = 2 * faultThreshold + 1; // Byzantine minimum quorum
     
     if (message.viewChangeMessages.length < requiredMessages) {
       return false;
@@ -560,8 +560,9 @@ export class ViewChangeLeaderElection extends EventEmitter {
     for (const seq of checkpointSequences) {
       const checkpoints = this.checkpoints.get(seq) || [];
       const faultThreshold = Math.floor((this.totalAgents - 1) / 3);
+      const minQuorum = 2 * faultThreshold + 1; // Byzantine quorum
       
-      if (checkpoints.length >= 2 * faultThreshold + 1) {
+      if (checkpoints.length >= minQuorum) {
         return seq;
       }
     }
@@ -653,6 +654,21 @@ export class ViewChangeLeaderElection extends EventEmitter {
       averageTermLength: avgTermLength,
       candidateScores
     };
+  }
+
+  /**
+   * Get minimum quorum size for Byzantine consensus
+   */
+  public getMinQuorum(): number {
+    const faultThreshold = Math.floor((this.totalAgents - 1) / 3);
+    return 2 * faultThreshold + 1;
+  }
+
+  /**
+   * Check if we have sufficient active agents for quorum
+   */
+  public hasQuorum(): boolean {
+    return this.viewState.participatingAgents.size >= this.getMinQuorum();
   }
 
   /**
