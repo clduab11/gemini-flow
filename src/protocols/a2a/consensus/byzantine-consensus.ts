@@ -51,6 +51,7 @@ export class ByzantineConsensus extends EventEmitter {
   private state: ConsensusState;
   private messageLog: ConsensusMessage[] = [];
   private faultThreshold: number;
+  private minQuorum: number; // Byzantine: Math.floor(2*n/3)+1
   private timeoutDuration: number = 30000; // 30 seconds
   private viewChangeTimeout: ReturnType<typeof setTimeout> | null = null;
   private performance: {
@@ -66,6 +67,7 @@ export class ByzantineConsensus extends EventEmitter {
   ) {
     super();
     this.faultThreshold = Math.floor((totalAgents - 1) / 3);
+    this.minQuorum = Math.floor((2 * totalAgents) / 3) + 1; // Byzantine: 2f+1 where f is fault threshold
     this.state = this.initializeState();
     this.performance = {
       consensusRounds: 0,
@@ -473,7 +475,21 @@ export class ByzantineConsensus extends EventEmitter {
     const maliciousCount = Array.from(this.agents.values())
       .filter(a => a.isMalicious && this.state.activeAgents.has(a.id)).length;
     
-    return maliciousCount <= this.faultThreshold && activeCount >= 3 * this.faultThreshold + 1;
+    return maliciousCount <= this.faultThreshold && activeCount >= this.minQuorum;
+  }
+
+  /**
+   * Get minimum quorum size for Byzantine consensus
+   */
+  public getMinQuorum(): number {
+    return this.minQuorum;
+  }
+
+  /**
+   * Check if we have sufficient nodes for quorum
+   */
+  public hasQuorum(): boolean {
+    return this.state.activeAgents.size >= this.minQuorum;
   }
 
   /**

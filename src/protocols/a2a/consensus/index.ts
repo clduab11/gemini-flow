@@ -1,11 +1,11 @@
 /**
- * Byzantine Fault-Tolerant Consensus System for Agent-to-Agent Communication
+ * Consensus Protocols for Agent-to-Agent Communication
  * 
- * This module provides a comprehensive Byzantine consensus system that can handle
- * up to 33% malicious agents while maintaining correctness and security.
+ * This module provides comprehensive consensus protocols for distributed systems:
  * 
  * Features:
  * - PBFT (Practical Byzantine Fault Tolerance) consensus algorithm
+ * - Raft consensus protocol for leader-based consensus
  * - Advanced voting mechanisms (weighted, quadratic, liquid democracy)
  * - Sophisticated malicious agent detection and isolation
  * - State machine replication with conflict resolution
@@ -13,6 +13,12 @@
  * - Performance optimizations (batching, pipelining, speculation)
  * - Integration with A2A security framework
  * - Comprehensive fault injection testing
+ * 
+ * Quorum Requirements:
+ * - Byzantine: Math.floor(2*n/3) + 1 (handles up to 33% malicious nodes)
+ * - Raft: Math.floor(n/2) + 1 (majority consensus)
+ * - Gossip: Configurable threshold (default 51%)
+ * - CRDT: No quorum needed (eventual consistency)
  * 
  * @author AI Assistant
  * @version 1.0.0
@@ -27,6 +33,15 @@ export {
   ConsensusState,
   default as ByzantineConsensusDefault
 } from './byzantine-consensus';
+
+export {
+  RaftConsensus,
+  RaftNode,
+  LogEntry,
+  RaftMessage,
+  RaftState,
+  default as RaftConsensusDefault
+} from './raft-consensus';
 
 export {
   VotingMechanisms,
@@ -92,6 +107,44 @@ export {
 } from './consensus-security-integration';
 
 // Utility types and constants
+export const QUORUM_CALCULATIONS = {
+  /**
+   * Calculate Byzantine consensus quorum (2f + 1)
+   * @param totalAgents Total number of agents in the system
+   * @returns Minimum quorum size for Byzantine consensus
+   */
+  calculateByzantineQuorum: (totalAgents: number): number => {
+    return Math.floor((2 * totalAgents) / 3) + 1;
+  },
+
+  /**
+   * Calculate Raft consensus quorum (majority)
+   * @param totalAgents Total number of agents in the system
+   * @returns Minimum quorum size for Raft consensus
+   */
+  calculateRaftQuorum: (totalAgents: number): number => {
+    return Math.floor(totalAgents / 2) + 1;
+  },
+
+  /**
+   * Calculate gossip quorum based on threshold
+   * @param totalAgents Total number of agents in the system
+   * @param threshold Percentage threshold (0-1, default 0.51)
+   * @returns Minimum quorum size for gossip consensus
+   */
+  calculateGossipQuorum: (totalAgents: number, threshold: number = 0.51): number => {
+    return Math.ceil(totalAgents * threshold);
+  },
+
+  /**
+   * CRDT doesn't require quorum (eventual consistency)
+   * @returns Always 1 (any single node can make progress)
+   */
+  calculateCRDTQuorum: (): number => {
+    return 1;
+  }
+};
+
 export const BYZANTINE_FAULT_TOLERANCE = {
   /**
    * Calculate the maximum number of faulty agents that can be tolerated
@@ -159,6 +212,28 @@ export const VOTING_TYPES = {
   LIQUID_DEMOCRACY: 'liquid-democracy' as const,
   STAKE_WEIGHTED: 'stake-weighted' as const
 };
+
+/**
+ * Factory function to create a Raft consensus system
+ */
+export function createRaftConsensusSystem(
+  nodeId: string,
+  totalNodes: number = 3
+): {
+  consensus: RaftConsensus;
+  quorumSize: number;
+  hasQuorum: boolean;
+} {
+  const consensus = new RaftConsensus(nodeId, totalNodes);
+  const quorumSize = QUORUM_CALCULATIONS.calculateRaftQuorum(totalNodes);
+  const hasQuorum = consensus.hasQuorum();
+
+  return {
+    consensus,
+    quorumSize,
+    hasQuorum
+  };
+}
 
 /**
  * Factory function to create a complete Byzantine consensus system

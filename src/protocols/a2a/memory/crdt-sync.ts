@@ -543,6 +543,8 @@ class CRDTMap implements CRDT {
 
 /**
  * Main CRDT Synchronizer
+ * Note: CRDTs use eventual consistency and do not require quorum-based consensus.
+ * All operations are commutative and convergent, allowing for asynchronous merging.
  */
 export class CRDTSynchronizer extends EventEmitter {
   private logger: Logger;
@@ -810,6 +812,8 @@ export class CRDTSynchronizer extends EventEmitter {
     syncStates: Map<string, SyncState>;
     averageConflictRate: number;
   } {
+    // Note: CRDTs don't require quorum as they achieve eventual consistency
+    // through commutative operations and deterministic conflict resolution
     const totalConflicts = Array.from(this.syncStates.values())
       .reduce((sum, state) => sum + state.conflictCount, 0);
     
@@ -824,6 +828,23 @@ export class CRDTSynchronizer extends EventEmitter {
       syncStates: new Map(this.syncStates),
       averageConflictRate
     };
+  }
+
+  /**
+   * CRDTs achieve eventual consistency without quorum requirements
+   * This method exists for API consistency but always returns true
+   */
+  hasQuorum(): boolean {
+    // CRDTs don't require quorum - eventual consistency through convergent operations
+    return true;
+  }
+
+  /**
+   * Get quorum size - not applicable for CRDTs but provided for API consistency
+   */
+  getMinQuorum(): number {
+    // CRDTs don't use quorum-based consensus
+    return 1;
   }
 
   /**
