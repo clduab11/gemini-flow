@@ -4,7 +4,7 @@
  */
 
 // Core Performance Components
-export { 
+export {
   PredictiveStreamingManager,
   ContentPredictionModel,
   QualityController,
@@ -15,8 +15,8 @@ export {
   type NetworkCondition,
   type BufferHealth,
   type UserInteraction,
-  type PerformanceMetrics
-} from './predictive-streaming-manager';
+  type PerformanceMetrics,
+} from "./predictive-streaming-manager";
 
 export {
   GPUClusterCoordinator,
@@ -29,8 +29,8 @@ export {
   type GPUCapability,
   type RenderingTask,
   type ClusterMetrics,
-  type ResourcePrediction
-} from './gpu-cluster-coordinator';
+  type ResourcePrediction,
+} from "./gpu-cluster-coordinator";
 
 export {
   MemoryPoolManager,
@@ -42,8 +42,8 @@ export {
   type MemoryPool,
   type AllocationRequest,
   type GCMetrics,
-  type MemoryMetrics
-} from './memory-pool-manager';
+  type MemoryMetrics,
+} from "./memory-pool-manager";
 
 export {
   QueuePrioritizationSystem,
@@ -55,8 +55,8 @@ export {
   type QueueItem,
   type QueueMetrics,
   type FairnessPolicy,
-  type ProcessingResult
-} from './queue-prioritization-system';
+  type ProcessingResult,
+} from "./queue-prioritization-system";
 
 export {
   CostOptimizationManager,
@@ -68,8 +68,8 @@ export {
   type ResourceUsage,
   type CostBudget,
   type OptimizationRecommendation,
-  type CostForecast
-} from './cost-optimization-manager';
+  type CostForecast,
+} from "./cost-optimization-manager";
 
 export {
   EdgeCacheOptimizer,
@@ -82,8 +82,8 @@ export {
   type CacheItem,
   type CachePolicy,
   type WarmingStrategy,
-  type CDNMetrics
-} from './edge-cache-optimizer';
+  type CDNMetrics,
+} from "./edge-cache-optimizer";
 
 export {
   MonitoringDashboard,
@@ -96,8 +96,8 @@ export {
   type Widget,
   type Alert,
   type AlertChannel,
-  type MonitoringConfig
-} from './monitoring-dashboard';
+  type MonitoringConfig,
+} from "./monitoring-dashboard";
 
 // Testing Framework Components
 export {
@@ -114,15 +114,15 @@ export {
   type TestAssertion,
   type TestResult,
   type StepResult,
-  type TestMetrics
-} from '../testing/comprehensive-test-framework';
+  type TestMetrics,
+} from "../testing/comprehensive-test-framework";
 
 export {
   PerformanceProfiler,
   MemoryProfiler,
   LoadTestRunner,
-  PERFORMANCE_BASELINES
-} from '../testing/jest-performance-suite.test';
+  PERFORMANCE_BASELINES,
+} from "../testing/jest-performance-suite.test";
 
 /**
  * Performance Optimization Manager - Orchestrates all performance components
@@ -151,7 +151,7 @@ export class PerformanceOptimizationManager {
       maxSize: 10 * 1024 * 1024, // 10MB
       minSize: 512 * 1024, // 512KB
       adaptationRate: 0.1,
-      predictionWindow: 30000
+      predictionWindow: 30000,
     });
 
     // Initialize GPU coordinator
@@ -162,16 +162,16 @@ export class PerformanceOptimizationManager {
 
     // Initialize queue system
     this.queueSystem = new QueuePrioritizationSystem({
-      algorithm: 'weighted-fair',
+      algorithm: "weighted-fair",
       tierWeights: new Map([
-        ['free', 1],
-        ['basic', 2], 
-        ['premium', 4],
-        ['enterprise', 8]
+        ["free", 1],
+        ["basic", 2],
+        ["premium", 4],
+        ["enterprise", 8],
       ]),
       maxStarvationTime: 10000,
       agingFactor: 1.2,
-      burstAllowance: 1000
+      burstAllowance: 1000,
     });
 
     // Initialize cost optimizer
@@ -185,13 +185,15 @@ export class PerformanceOptimizationManager {
       metricsRetention: 86400, // 24 hours
       aggregationInterval: 60, // 1 minute
       alertEvaluationInterval: 30, // 30 seconds
-      maxMetricsPerSecond: 10000
+      maxMetricsPerSecond: 10000,
     });
 
     // Initialize test framework
     this.testFramework = new ComprehensiveTestFramework();
 
-    console.log('Performance Optimization Manager initialized with all components');
+    console.log(
+      "Performance Optimization Manager initialized with all components",
+    );
   }
 
   /**
@@ -206,7 +208,7 @@ export class PerformanceOptimizationManager {
       cost: this.costOptimizer,
       cache: this.cacheOptimizer,
       monitoring: this.dashboard,
-      testing: this.testFramework
+      testing: this.testFramework,
     };
   }
 
@@ -220,14 +222,14 @@ export class PerformanceOptimizationManager {
       memoryMetrics,
       queueMetrics,
       cacheMetrics,
-      systemHealth
+      systemHealth,
     ] = await Promise.all([
-      this.streamingManager.getPerformanceMetrics('system'),
+      this.streamingManager.getPerformanceMetrics("system"),
       this.gpuCoordinator.getClusterMetrics(),
       this.memoryManager.getMemoryMetrics(),
       this.queueSystem.getMetrics(),
       this.cacheOptimizer.getCDNMetrics(),
-      this.dashboard.getSystemHealth()
+      this.dashboard.getSystemHealth(),
     ]);
 
     return {
@@ -237,7 +239,7 @@ export class PerformanceOptimizationManager {
       queue: queueMetrics,
       cache: cacheMetrics,
       system: systemHealth,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -245,26 +247,26 @@ export class PerformanceOptimizationManager {
    * Execute comprehensive performance optimization
    */
   async optimizePerformance() {
-    console.log('Starting comprehensive performance optimization...');
+    console.log("Starting comprehensive performance optimization...");
 
     const optimizationResults = await Promise.allSettled([
       // Streaming optimization
-      this.streamingManager.optimizeBuffering('system-user', 'system-content'),
-      
+      this.streamingManager.optimizeBuffering("system-user", "system-content"),
+
       // GPU optimization
       this.gpuCoordinator.autoScale(),
-      
+
       // Memory optimization
       this.memoryManager.optimizeAllocationStrategy(),
-      
+
       // Queue optimization
       this.queueSystem.optimizeConfiguration(),
-      
+
       // Cost optimization
       this.costOptimizer.generateOptimizationRecommendations(),
-      
+
       // Cache optimization
-      this.cacheOptimizer.optimizeDistribution()
+      this.cacheOptimizer.optimizeDistribution(),
     ]);
 
     const results = {
@@ -273,10 +275,10 @@ export class PerformanceOptimizationManager {
       memory: optimizationResults[2],
       queue: optimizationResults[3],
       cost: optimizationResults[4],
-      cache: optimizationResults[5]
+      cache: optimizationResults[5],
     };
 
-    console.log('Performance optimization completed');
+    console.log("Performance optimization completed");
     return results;
   }
 
@@ -284,37 +286,37 @@ export class PerformanceOptimizationManager {
    * Run comprehensive performance tests
    */
   async runPerformanceTests() {
-    console.log('Starting comprehensive performance testing...');
+    console.log("Starting comprehensive performance testing...");
 
     // Generate test suite
     const testSuite = await this.testFramework.generateTestSuite();
 
     // Execute load tests
     const loadTestResults = await this.testFramework.executeLoadTest({
-      scenarioId: 'performance-load-test',
+      scenarioId: "performance-load-test",
       targetRPS: 1000000, // 1M requests/sec target
       duration: 300000, // 5 minutes
       rampUpTime: 60000, // 1 minute ramp up
-      concurrency: 1000
+      concurrency: 1000,
     });
 
     // Execute chaos tests
     const chaosTestResults = await this.testFramework.executeChaosTest({
-      scenarioId: 'performance-chaos-test',
-      chaosType: 'network',
+      scenarioId: "performance-chaos-test",
+      chaosType: "network",
       intensity: 0.3,
-      duration: 180000 // 3 minutes
+      duration: 180000, // 3 minutes
     });
 
     // Generate report
-    const reportPath = await this.testFramework.generateReport('html');
+    const reportPath = await this.testFramework.generateReport("html");
 
-    console.log('Performance testing completed');
+    console.log("Performance testing completed");
     return {
       testSuite,
       loadTest: loadTestResults,
       chaosTest: chaosTestResults,
-      report: reportPath
+      report: reportPath,
     };
   }
 
@@ -322,25 +324,22 @@ export class PerformanceOptimizationManager {
    * Get optimization recommendations
    */
   async getOptimizationRecommendations() {
-    const [
-      costRecommendations,
-      queueOptimizations,
-      memoryOptimizations
-    ] = await Promise.all([
-      this.costOptimizer.generateOptimizationRecommendations(),
-      this.queueSystem.optimizeConfiguration(),
-      this.memoryManager.optimizeAllocationStrategy()
-    ]);
+    const [costRecommendations, queueOptimizations, memoryOptimizations] =
+      await Promise.all([
+        this.costOptimizer.generateOptimizationRecommendations(),
+        this.queueSystem.optimizeConfiguration(),
+        this.memoryManager.optimizeAllocationStrategy(),
+      ]);
 
     return {
       cost: costRecommendations,
       queue: queueOptimizations,
       memory: memoryOptimizations,
-      priority: 'high',
+      priority: "high",
       estimatedSavings: {
         cost: costRecommendations.reduce((sum, rec) => sum + rec.savings, 0),
-        performance: 15 // percentage improvement
-      }
+        performance: 15, // percentage improvement
+      },
     };
   }
 }
@@ -365,43 +364,43 @@ export function createPerformanceConfig(targets: {
     streaming: {
       targetLatency: targets.textLatency || 100,
       adaptiveBuffering: true,
-      predictionEnabled: true
+      predictionEnabled: true,
     },
     gpu: {
       autoScaling: true,
       faultTolerance: true,
-      loadBalancing: 'least-loaded'
+      loadBalancing: "least-loaded",
     },
     memory: {
-      gcStrategy: 'generational',
+      gcStrategy: "generational",
       defragmentation: true,
-      compression: true
+      compression: true,
     },
     queue: {
-      fairnessAlgorithm: 'weighted-fair',
+      fairnessAlgorithm: "weighted-fair",
       starvationPrevention: true,
-      adaptiveScheduling: true
+      adaptiveScheduling: true,
     },
     cost: {
       budget: targets.costBudget || 10000,
       optimization: true,
-      alerting: true
+      alerting: true,
     },
     cache: {
       predictiveWarming: true,
       intelligentInvalidation: true,
-      compressionEnabled: true
+      compressionEnabled: true,
     },
     monitoring: {
       realTimeMetrics: true,
       alerting: true,
-      dashboard: true
+      dashboard: true,
     },
     testing: {
       continuousTesting: true,
       performanceBaselines: true,
-      chaosEngineering: true
-    }
+      chaosEngineering: true,
+    },
   };
 
   return config;

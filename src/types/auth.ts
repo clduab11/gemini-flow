@@ -1,10 +1,10 @@
 /**
  * Authentication Types and Interfaces
- * 
+ *
  * Comprehensive type definitions for OAuth2, Vertex AI, and unified authentication system
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 export interface OAuth2Config {
   clientId: string;
@@ -30,19 +30,19 @@ export interface OAuth2Tokens {
 }
 
 export interface OAuth2AuthorizationRequest {
-  responseType: 'code';
+  responseType: "code";
   clientId: string;
   redirectUri: string;
   scope: string;
   state: string;
   codeChallenge?: string;
-  codeChallengeMethod?: 'S256' | 'plain';
-  prompt?: 'none' | 'consent' | 'select_account';
-  accessType?: 'online' | 'offline';
+  codeChallengeMethod?: "S256" | "plain";
+  prompt?: "none" | "consent" | "select_account";
+  accessType?: "online" | "offline";
 }
 
 export interface OAuth2TokenRequest {
-  grantType: 'authorization_code' | 'refresh_token' | 'client_credentials';
+  grantType: "authorization_code" | "refresh_token" | "client_credentials";
   code?: string;
   redirectUri?: string;
   clientId: string;
@@ -71,7 +71,7 @@ export interface OAuth2ErrorResponse {
 export interface PKCECodePair {
   codeVerifier: string;
   codeChallenge: string;
-  codeChallengeMethod: 'S256';
+  codeChallengeMethod: "S256";
 }
 
 export interface VertexAIConfig {
@@ -87,7 +87,7 @@ export interface VertexAIConfig {
 }
 
 export interface VertexAICredentials {
-  type: 'service_account' | 'user' | 'external_account';
+  type: "service_account" | "user" | "external_account";
   project_id?: string;
   private_key_id?: string;
   private_key?: string;
@@ -111,7 +111,7 @@ export interface GoogleAuthTokens {
 
 export interface AuthProvider {
   name: string;
-  type: 'oauth2' | 'service_account' | 'api_key' | 'jwt';
+  type: "oauth2" | "service_account" | "api_key" | "jwt";
   authenticate(): Promise<AuthenticationResult>;
   refresh(credentials: AuthCredentials): Promise<RefreshTokenResult>;
   validate(credentials: AuthCredentials): Promise<ValidationResult>;
@@ -119,7 +119,7 @@ export interface AuthProvider {
 }
 
 export interface AuthCredentials {
-  type: 'oauth2' | 'service_account' | 'api_key' | 'jwt';
+  type: "oauth2" | "service_account" | "api_key" | "jwt";
   accessToken?: string;
   refreshToken?: string;
   apiKey?: string;
@@ -152,7 +152,7 @@ export interface TokenCache extends EventEmitter {
 }
 
 export interface StorageConfig {
-  type: 'memory' | 'file' | 'encrypted-file' | 'database' | 'redis';
+  type: "memory" | "file" | "encrypted-file" | "database" | "redis";
   basePath?: string;
   encryptionKey?: string;
   maxEntries?: number;
@@ -199,7 +199,12 @@ export interface AuthenticationResult {
 
 export interface AuthError extends Error {
   code: string;
-  type: 'authentication' | 'authorization' | 'validation' | 'network' | 'configuration';
+  type:
+    | "authentication"
+    | "authorization"
+    | "validation"
+    | "network"
+    | "configuration";
   retryable: boolean;
   statusCode?: number;
   originalError?: Error;
@@ -243,7 +248,7 @@ export interface UnifiedAuthConfig {
     };
   };
   storage: {
-    type: 'memory' | 'file' | 'encrypted-file' | 'redis' | 'database';
+    type: "memory" | "file" | "encrypted-file" | "redis" | "database";
     encryption?: {
       enabled: boolean;
       algorithm?: string;
@@ -252,7 +257,7 @@ export interface UnifiedAuthConfig {
     options?: Record<string, any>;
   };
   cache: {
-    type: 'memory' | 'redis' | 'file';
+    type: "memory" | "redis" | "file";
     ttl: number;
     maxSize?: number;
     options?: Record<string, any>;
@@ -267,7 +272,7 @@ export interface UnifiedAuthConfig {
     tokenRefreshBuffer: number;
   };
   logging: {
-    level: 'debug' | 'info' | 'warn' | 'error';
+    level: "debug" | "info" | "warn" | "error";
     logCredentials?: boolean;
     logTokens?: boolean;
     enableMetrics?: boolean;
@@ -276,8 +281,12 @@ export interface UnifiedAuthConfig {
 
 // A2A Protocol Integration Types
 export interface A2AAuthMessage {
-  jsonrpc: '2.0';
-  method: 'auth.authenticate' | 'auth.refresh' | 'auth.validate' | 'auth.revoke';
+  jsonrpc: "2.0";
+  method:
+    | "auth.authenticate"
+    | "auth.refresh"
+    | "auth.validate"
+    | "auth.revoke";
   params: {
     provider: string;
     credentials?: any;
@@ -287,12 +296,12 @@ export interface A2AAuthMessage {
   from: string;
   to: string;
   timestamp: number;
-  messageType: 'request';
+  messageType: "request";
   signature?: string;
 }
 
 export interface A2AAuthResponse {
-  jsonrpc: '2.0';
+  jsonrpc: "2.0";
   result?: {
     success: boolean;
     credentials?: AuthCredentials;
@@ -308,12 +317,12 @@ export interface A2AAuthResponse {
   from: string;
   to: string;
   timestamp: number;
-  messageType: 'response';
+  messageType: "response";
 }
 
 export interface A2ASecurityContext {
   agentId: string;
-  authLevel: 'none' | 'basic' | 'elevated' | 'admin';
+  authLevel: "none" | "basic" | "elevated" | "admin";
   permissions: string[];
   trustedPeers: string[];
   encryptionEnabled: boolean;
@@ -343,7 +352,7 @@ export interface MCPAuthProvider {
 
 // Event Types
 export interface AuthEvent {
-  type: 'authentication' | 'refresh' | 'validation' | 'revocation' | 'error';
+  type: "authentication" | "refresh" | "validation" | "revocation" | "error";
   timestamp: number;
   provider: string;
   userId?: string;
@@ -358,11 +367,26 @@ export interface AuthEventHandler {
 }
 
 // Utility Types
-export type AuthProviderType = 'oauth2' | 'vertex-ai' | 'google-ai' | 'service-account' | 'api-key';
+export type AuthProviderType =
+  | "oauth2"
+  | "vertex-ai"
+  | "google-ai"
+  | "service-account"
+  | "api-key";
 
-export type AuthStatus = 'authenticated' | 'expired' | 'refreshing' | 'failed' | 'revoked';
+export type AuthStatus =
+  | "authenticated"
+  | "expired"
+  | "refreshing"
+  | "failed"
+  | "revoked";
 
-export type CredentialType = 'access_token' | 'refresh_token' | 'api_key' | 'service_account' | 'jwt';
+export type CredentialType =
+  | "access_token"
+  | "refresh_token"
+  | "api_key"
+  | "service_account"
+  | "jwt";
 
 export interface AuthProviderFactory {
   create(type: AuthProviderType, config: any): AuthProvider;

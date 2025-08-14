@@ -8,7 +8,7 @@ import { describe, it, expect } from '@jest/globals';
 describe('ESM Test Framework Validation', () => {
   it('should import ES modules successfully', async () => {
     // Test dynamic import
-    const module = await import('../../src/utils/logger.js');
+    const module = await import('../../src/utils/logger');
     expect(module).toBeDefined();
   });
 

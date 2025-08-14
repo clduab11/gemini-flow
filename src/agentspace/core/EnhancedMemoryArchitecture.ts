@@ -1,6 +1,6 @@
 /**
  * Enhanced Memory Architecture for AgentSpace
- * 
+ *
  * Integrates with existing distributed memory system and extends it with:
  * - Spatial memory nodes with location-aware storage
  * - Mem0 MCP integration for knowledge graphs
@@ -9,10 +9,14 @@
  * - Memory analytics and optimization
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
-import { DistributedMemoryManager, MemoryOperation, MemoryDelta } from '../../protocols/a2a/memory/distributed-memory-manager.js';
-import { VectorClock } from '../../protocols/a2a/memory/vector-clocks.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
+import {
+  DistributedMemoryManager,
+  MemoryOperation,
+  MemoryDelta,
+} from "../../protocols/a2a/memory/distributed-memory-manager.js";
+import { VectorClock } from "../../protocols/a2a/memory/vector-clocks.js";
 import {
   SpatialMemoryNode,
   MemoryMetadata,
@@ -23,8 +27,8 @@ import {
   Vector3D,
   EnvironmentalFactor,
   TemporalContext,
-  ProximityNeighbor
-} from '../types/AgentSpaceTypes.js';
+  ProximityNeighbor,
+} from "../types/AgentSpaceTypes.js";
 
 export interface EnhancedMemoryConfig {
   spatialIndexingEnabled: boolean;
@@ -33,12 +37,12 @@ export interface EnhancedMemoryConfig {
   compressionEnabled: boolean;
   spatialRadius: number;
   maxMemoryNodes: number;
-  persistenceLevel: 'volatile' | 'session' | 'persistent' | 'archival';
+  persistenceLevel: "volatile" | "session" | "persistent" | "archival";
   analyticsEnabled: boolean;
 }
 
 export interface MemoryQuery {
-  type: 'spatial' | 'semantic' | 'temporal' | 'knowledge_graph' | 'full_text';
+  type: "spatial" | "semantic" | "temporal" | "knowledge_graph" | "full_text";
   parameters: MemoryQueryParameters;
   filters?: MemoryFilter[];
   limit?: number;
@@ -58,12 +62,12 @@ export interface MemoryQueryParameters {
 
 export interface MemoryFilter {
   field: string;
-  operator: 'equals' | 'contains' | 'greater_than' | 'less_than' | 'in_range';
+  operator: "equals" | "contains" | "greater_than" | "less_than" | "in_range";
   value: any;
 }
 
 export interface MemoryInsight {
-  type: 'pattern' | 'anomaly' | 'correlation' | 'prediction';
+  type: "pattern" | "anomaly" | "correlation" | "prediction";
   description: string;
   confidence: number;
   data: any;
@@ -116,9 +120,12 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
   private knowledgeGraph: Map<string, Set<KnowledgeLink>> = new Map();
   private proximityIndex: Map<string, ProximityIndex> = new Map();
   private temporalIndex: Map<string, SpatialMemoryNode[]> = new Map(); // Time bucket -> Nodes
-  private analyticsCache: { analytics: MemoryAnalytics | null; lastUpdate: Date } = {
+  private analyticsCache: {
+    analytics: MemoryAnalytics | null;
+    lastUpdate: Date;
+  } = {
     analytics: null,
-    lastUpdate: new Date(0)
+    lastUpdate: new Date(0),
   };
 
   // Performance metrics
@@ -129,39 +136,41 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     compressionSavings: 0,
     averageQueryTime: 0,
     cacheHitRate: 0,
-    indexUpdates: 0
+    indexUpdates: 0,
   };
 
   constructor(
     config: EnhancedMemoryConfig,
-    baseMemoryManager: DistributedMemoryManager
+    baseMemoryManager: DistributedMemoryManager,
   ) {
     super();
-    this.logger = new Logger('EnhancedMemoryArchitecture');
+    this.logger = new Logger("EnhancedMemoryArchitecture");
     this.config = config;
     this.baseMemoryManager = baseMemoryManager;
-    
+
     this.initializeEnhancedFeatures();
     this.setupBaseManagerIntegration();
-    
-    this.logger.info('Enhanced Memory Architecture initialized', {
+
+    this.logger.info("Enhanced Memory Architecture initialized", {
       spatialIndexing: config.spatialIndexingEnabled,
       knowledgeGraph: config.knowledgeGraphEnabled,
-      mem0Integration: config.mem0Integration
+      mem0Integration: config.mem0Integration,
     });
   }
 
   /**
    * Store a spatial memory node
    */
-  async storeMemoryNode(node: Omit<SpatialMemoryNode, 'id' | 'vectorClock'>): Promise<string> {
+  async storeMemoryNode(
+    node: Omit<SpatialMemoryNode, "id" | "vectorClock">,
+  ): Promise<string> {
     const nodeId = `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const vectorClock = new VectorClock(node.agentId);
-    
+
     const spatialNode: SpatialMemoryNode = {
       id: nodeId,
       vectorClock: vectorClock.increment(),
-      ...node
+      ...node,
     };
 
     // Store in spatial memory
@@ -173,7 +182,10 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     }
 
     // Update knowledge graph
-    if (this.config.knowledgeGraphEnabled && spatialNode.knowledgeLinks.length > 0) {
+    if (
+      this.config.knowledgeGraphEnabled &&
+      spatialNode.knowledgeLinks.length > 0
+    ) {
       this.updateKnowledgeGraph(spatialNode);
     }
 
@@ -185,16 +197,16 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
     // Store in base distributed memory system
     const memoryOperation: MemoryOperation = {
-      type: 'set',
+      type: "set",
       key: `spatial:${nodeId}`,
       value: spatialNode,
       vectorClock: spatialNode.vectorClock,
       metadata: {
         priority: spatialNode.metadata.priority,
         ttl: spatialNode.metadata.expirationDate?.getTime(),
-        namespace: 'agentspace',
-        sourceAgent: spatialNode.agentId
-      }
+        namespace: "agentspace",
+        sourceAgent: spatialNode.agentId,
+      },
     };
 
     await this.propagateToDistributedMemory(memoryOperation);
@@ -205,15 +217,15 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     }
 
     this.metrics.memoryOperations++;
-    
-    this.logger.debug('Memory node stored', {
+
+    this.logger.debug("Memory node stored", {
       nodeId,
       agentId: spatialNode.agentId,
       location: spatialNode.location,
-      memoryType: spatialNode.memoryType
+      memoryType: spatialNode.memoryType,
     });
 
-    this.emit('memory_node_stored', spatialNode);
+    this.emit("memory_node_stored", spatialNode);
     return nodeId;
   }
 
@@ -224,10 +236,10 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     location: Vector3D,
     radius: number,
     memoryTypes?: string[],
-    limit: number = 50
+    limit: number = 50,
   ): Promise<SpatialMemoryNode[]> {
     const startTime = Date.now();
-    
+
     try {
       const candidateNodes = this.getSpatialCandidates(location, radius);
       const results: SpatialMemoryNode[] = [];
@@ -245,24 +257,24 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       }
 
       // Sort by distance and limit
-      results.sort((a, b) => 
-        this.calculateDistance(location, a.location) - 
-        this.calculateDistance(location, b.location)
+      results.sort(
+        (a, b) =>
+          this.calculateDistance(location, a.location) -
+          this.calculateDistance(location, b.location),
       );
 
       const finalResults = results.slice(0, limit);
-      
+
       // Update metrics
       this.updateQueryMetrics(startTime);
       this.metrics.spatialQueries++;
 
       return finalResults;
-
     } catch (error) {
-      this.logger.error('Spatial memory query failed', {
+      this.logger.error("Spatial memory query failed", {
         location,
         radius,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -275,17 +287,17 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     startNodeId: string,
     traversalDepth: number = 2,
     linkTypes?: string[],
-    limit: number = 100
+    limit: number = 100,
   ): Promise<{ nodes: SpatialMemoryNode[]; paths: string[][] }> {
     if (!this.config.knowledgeGraphEnabled) {
-      throw new Error('Knowledge graph is not enabled');
+      throw new Error("Knowledge graph is not enabled");
     }
 
     const startTime = Date.now();
     const visited = new Set<string>();
     const results = new Map<string, SpatialMemoryNode>();
     const paths: string[][] = [];
-    
+
     try {
       await this.traverseKnowledgeGraph(
         startNodeId,
@@ -295,7 +307,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
         visited,
         results,
         paths,
-        limit
+        limit,
       );
 
       this.updateQueryMetrics(startTime);
@@ -303,13 +315,12 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
       return {
         nodes: Array.from(results.values()),
-        paths
+        paths,
       };
-
     } catch (error) {
-      this.logger.error('Knowledge graph traversal failed', {
+      this.logger.error("Knowledge graph traversal failed", {
         startNodeId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -325,43 +336,43 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       let candidates: SpatialMemoryNode[];
 
       switch (query.type) {
-        case 'spatial':
+        case "spatial":
           candidates = await this.queryMemoryBySpatialProximity(
             query.parameters.location!,
             query.parameters.radius!,
             query.parameters.memoryTypes,
-            query.limit
+            query.limit,
           );
           break;
 
-        case 'temporal':
+        case "temporal":
           candidates = this.queryByTemporalRange(
             query.parameters.timeRange!.start,
-            query.parameters.timeRange!.end
+            query.parameters.timeRange!.end,
           );
           break;
 
-        case 'semantic':
+        case "semantic":
           candidates = await this.queryBySemantic(
             query.parameters.semantic!,
-            query.parameters.agentId
+            query.parameters.agentId,
           );
           break;
 
-        case 'knowledge_graph':
+        case "knowledge_graph":
           const graphResult = await this.queryMemoryByKnowledgeGraph(
             query.parameters.agentId!, // Using as start node
             3,
             undefined,
-            query.limit
+            query.limit,
           );
           candidates = graphResult.nodes;
           break;
 
-        case 'full_text':
+        case "full_text":
           candidates = await this.queryByFullText(
             query.parameters.keywords!,
-            query.parameters.memoryTypes
+            query.parameters.memoryTypes,
           );
           break;
 
@@ -381,13 +392,12 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       const results = filtered.slice(start, end);
 
       this.updateQueryMetrics(startTime);
-      
-      return results;
 
+      return results;
     } catch (error) {
-      this.logger.error('Memory query failed', {
+      this.logger.error("Memory query failed", {
         query: query.type,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -398,7 +408,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
    */
   async updateMemoryNode(
     nodeId: string,
-    updates: Partial<SpatialMemoryNode>
+    updates: Partial<SpatialMemoryNode>,
   ): Promise<void> {
     const node = this.spatialMemoryNodes.get(nodeId);
     if (!node) {
@@ -412,8 +422,8 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       metadata: {
         ...node.metadata,
         ...updates.metadata,
-        lastAccessed: new Date()
-      }
+        lastAccessed: new Date(),
+      },
     };
 
     this.spatialMemoryNodes.set(nodeId, updatedNode);
@@ -434,22 +444,22 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
     // Propagate to distributed memory
     const memoryOperation: MemoryOperation = {
-      type: 'set',
+      type: "set",
       key: `spatial:${nodeId}`,
       value: updatedNode,
       vectorClock: updatedNode.vectorClock,
       metadata: {
         priority: updatedNode.metadata.priority,
         ttl: updatedNode.metadata.expirationDate?.getTime(),
-        namespace: 'agentspace',
-        sourceAgent: updatedNode.agentId
-      }
+        namespace: "agentspace",
+        sourceAgent: updatedNode.agentId,
+      },
     };
 
     await this.propagateToDistributedMemory(memoryOperation);
 
     this.metrics.memoryOperations++;
-    this.emit('memory_node_updated', updatedNode);
+    this.emit("memory_node_updated", updatedNode);
   }
 
   /**
@@ -470,20 +480,20 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
     // Remove from distributed memory
     const memoryOperation: MemoryOperation = {
-      type: 'delete',
+      type: "delete",
       key: `spatial:${nodeId}`,
       vectorClock: node.vectorClock.increment(),
       metadata: {
         priority: 5,
-        namespace: 'agentspace',
-        sourceAgent: node.agentId
-      }
+        namespace: "agentspace",
+        sourceAgent: node.agentId,
+      },
     };
 
     await this.propagateToDistributedMemory(memoryOperation);
 
-    this.logger.debug('Memory node deleted', { nodeId });
-    this.emit('memory_node_deleted', { nodeId, node });
+    this.logger.debug("Memory node deleted", { nodeId });
+    this.emit("memory_node_deleted", { nodeId, node });
   }
 
   /**
@@ -491,26 +501,26 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
    */
   async synchronizeWithNearbyAgents(
     agentLocation: Vector3D,
-    syncRadius: number
+    syncRadius: number,
   ): Promise<void> {
     const nearbyNodes = await this.queryMemoryBySpatialProximity(
       agentLocation,
-      syncRadius
+      syncRadius,
     );
 
-    const agentIds = [...new Set(nearbyNodes.map(node => node.agentId))];
-    
+    const agentIds = [...new Set(nearbyNodes.map((node) => node.agentId))];
+
     for (const targetAgentId of agentIds) {
       try {
         await this.baseMemoryManager.createDeltaSync(targetAgentId);
-        this.logger.debug('Synchronized with nearby agent', {
+        this.logger.debug("Synchronized with nearby agent", {
           targetAgentId,
-          location: agentLocation
+          location: agentLocation,
         });
       } catch (error) {
-        this.logger.warn('Failed to sync with agent', {
+        this.logger.warn("Failed to sync with agent", {
           targetAgentId,
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -521,15 +531,16 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
    */
   async getMemoryAnalytics(forceRefresh = false): Promise<MemoryAnalytics> {
     const cacheAge = Date.now() - this.analyticsCache.lastUpdate.getTime();
-    
-    if (!forceRefresh && this.analyticsCache.analytics && cacheAge < 300000) { // 5 minute cache
+
+    if (!forceRefresh && this.analyticsCache.analytics && cacheAge < 300000) {
+      // 5 minute cache
       return this.analyticsCache.analytics;
     }
 
     const analytics = await this.generateAnalytics();
     this.analyticsCache = {
       analytics,
-      lastUpdate: new Date()
+      lastUpdate: new Date(),
     };
 
     return analytics;
@@ -545,7 +556,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       totalMemoryNodes: this.spatialMemoryNodes.size,
       spatialIndexSize: this.spatialIndex.size,
       knowledgeGraphSize: this.knowledgeGraph.size,
-      proximityIndexSize: this.proximityIndex.size
+      proximityIndexSize: this.proximityIndex.size,
     };
   }
 
@@ -572,22 +583,22 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
   private setupBaseManagerIntegration(): void {
     // Listen for distributed memory events
-    this.baseMemoryManager.on('delta_applied', (delta) => {
+    this.baseMemoryManager.on("delta_applied", (delta) => {
       this.handleDistributedMemoryDelta(delta);
     });
 
-    this.baseMemoryManager.on('conflict_resolved', (resolution) => {
+    this.baseMemoryManager.on("conflict_resolved", (resolution) => {
       this.handleConflictResolution(resolution);
     });
   }
 
   private updateSpatialIndex(node: SpatialMemoryNode): void {
     const gridKey = this.getSpatialGridKey(node.location);
-    
+
     if (!this.spatialIndex.has(gridKey)) {
       this.spatialIndex.set(gridKey, new Set());
     }
-    
+
     this.spatialIndex.get(gridKey)!.add(node.id);
     this.metrics.indexUpdates++;
   }
@@ -595,7 +606,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
   private removeSpatialIndex(node: SpatialMemoryNode): void {
     const gridKey = this.getSpatialGridKey(node.location);
     const nodeSet = this.spatialIndex.get(gridKey);
-    
+
     if (nodeSet) {
       nodeSet.delete(node.id);
       if (nodeSet.size === 0) {
@@ -612,11 +623,14 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     return `${x},${y},${z}`;
   }
 
-  private getSpatialCandidates(location: Vector3D, radius: number): Set<string> {
+  private getSpatialCandidates(
+    location: Vector3D,
+    radius: number,
+  ): Set<string> {
     const candidates = new Set<string>();
     const gridSize = this.config.spatialRadius / 2;
     const gridRadius = Math.ceil(radius / gridSize);
-    
+
     const centerX = Math.floor(location.x / gridSize);
     const centerY = Math.floor(location.y / gridSize);
     const centerZ = Math.floor(location.z / gridSize);
@@ -627,7 +641,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
           const gridKey = `${x},${y},${z}`;
           const nodes = this.spatialIndex.get(gridKey);
           if (nodes) {
-            nodes.forEach(nodeId => candidates.add(nodeId));
+            nodes.forEach((nodeId) => candidates.add(nodeId));
           }
         }
       }
@@ -649,22 +663,22 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
     // Add new links
     this.knowledgeGraph.set(node.id, new Set(node.knowledgeLinks));
-    
+
     // Add reverse links
     for (const link of node.knowledgeLinks) {
       if (!this.knowledgeGraph.has(link.targetNodeId)) {
         this.knowledgeGraph.set(link.targetNodeId, new Set());
       }
-      
+
       // Create reverse link
       const reverseLink: KnowledgeLink = {
         targetNodeId: node.id,
         linkType: link.linkType,
         strength: link.strength,
         confidence: link.confidence,
-        metadata: { ...link.metadata, reverse: true }
+        metadata: { ...link.metadata, reverse: true },
       };
-      
+
       this.knowledgeGraph.get(link.targetNodeId)!.add(reverseLink);
     }
   }
@@ -685,7 +699,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
         }
       }
     }
-    
+
     this.knowledgeGraph.delete(nodeId);
   }
 
@@ -694,16 +708,16 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       node.location,
       this.config.spatialRadius,
       undefined,
-      20
+      20,
     );
 
     const proximityNeighbors: ProximityNeighbor[] = neighbors
-      .filter(neighbor => neighbor.id !== node.id)
-      .map(neighbor => ({
+      .filter((neighbor) => neighbor.id !== node.id)
+      .map((neighbor) => ({
         nodeId: neighbor.id,
         distance: this.calculateDistance(node.location, neighbor.location),
         relationship: this.determineRelationshipType(node, neighbor),
-        weight: this.calculateRelationshipWeight(node, neighbor)
+        weight: this.calculateRelationshipWeight(node, neighbor),
       }))
       .sort((a, b) => a.distance - b.distance);
 
@@ -711,7 +725,8 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       spatialHash: this.getSpatialGridKey(node.location),
       neighbors: proximityNeighbors,
       influenceRadius: this.config.spatialRadius,
-      interactionStrength: this.calculateInteractionStrength(proximityNeighbors)
+      interactionStrength:
+        this.calculateInteractionStrength(proximityNeighbors),
     };
 
     this.proximityIndex.set(node.id, proximityIndex);
@@ -719,24 +734,24 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
   private updateTemporalIndex(node: SpatialMemoryNode): void {
     const timeBucket = this.getTimeBucket(node.metadata.lastAccessed);
-    
+
     if (!this.temporalIndex.has(timeBucket)) {
       this.temporalIndex.set(timeBucket, []);
     }
-    
+
     this.temporalIndex.get(timeBucket)!.push(node);
   }
 
   private removeTemporalIndex(node: SpatialMemoryNode): void {
     const timeBucket = this.getTimeBucket(node.metadata.lastAccessed);
     const nodes = this.temporalIndex.get(timeBucket);
-    
+
     if (nodes) {
-      const index = nodes.findIndex(n => n.id === node.id);
+      const index = nodes.findIndex((n) => n.id === node.id);
       if (index > -1) {
         nodes.splice(index, 1);
       }
-      
+
       if (nodes.length === 0) {
         this.temporalIndex.delete(timeBucket);
       }
@@ -745,7 +760,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
   private getTimeBucket(date: Date): string {
     const hour = date.getHours();
-    const day = date.toISOString().split('T')[0];
+    const day = date.toISOString().split("T")[0];
     return `${day}_${Math.floor(hour / 4) * 4}`; // 4-hour buckets
   }
 
@@ -757,15 +772,19 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     visited: Set<string>,
     results: Map<string, SpatialMemoryNode>,
     paths: string[][],
-    limit: number
+    limit: number,
   ): Promise<void> {
-    if (remainingDepth === 0 || visited.has(currentNodeId) || results.size >= limit) {
+    if (
+      remainingDepth === 0 ||
+      visited.has(currentNodeId) ||
+      results.size >= limit
+    ) {
       return;
     }
 
     visited.add(currentNodeId);
     const currentNode = this.spatialMemoryNodes.get(currentNodeId);
-    
+
     if (currentNode) {
       results.set(currentNodeId, currentNode);
       paths.push([...currentPath, currentNodeId]);
@@ -776,7 +795,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
     for (const link of links) {
       if (linkTypes && !linkTypes.includes(link.linkType)) continue;
-      
+
       await this.traverseKnowledgeGraph(
         link.targetNodeId,
         [...currentPath, currentNodeId],
@@ -785,16 +804,16 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
         visited,
         results,
         paths,
-        limit
+        limit,
       );
     }
   }
 
   private queryByTemporalRange(start: Date, end: Date): SpatialMemoryNode[] {
     const results: SpatialMemoryNode[] = [];
-    
+
     for (const [timeBucket, nodes] of this.temporalIndex) {
-      const bucketTime = new Date(timeBucket.replace('_', 'T') + ':00:00.000Z');
+      const bucketTime = new Date(timeBucket.replace("_", "T") + ":00:00.000Z");
       if (bucketTime >= start && bucketTime <= end) {
         results.push(...nodes);
       }
@@ -803,13 +822,16 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     return results;
   }
 
-  private async queryBySemantic(semantic: string, agentId?: string): Promise<SpatialMemoryNode[]> {
+  private async queryBySemantic(
+    semantic: string,
+    agentId?: string,
+  ): Promise<SpatialMemoryNode[]> {
     // Simplified semantic search - would integrate with actual semantic search engine
     const results: SpatialMemoryNode[] = [];
-    
+
     for (const node of this.spatialMemoryNodes.values()) {
       if (agentId && node.agentId !== agentId) continue;
-      
+
       // Simple text matching - would use embeddings in production
       const dataString = JSON.stringify(node.data).toLowerCase();
       if (dataString.includes(semantic.toLowerCase())) {
@@ -820,17 +842,20 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     return results;
   }
 
-  private async queryByFullText(keywords: string[], memoryTypes?: string[]): Promise<SpatialMemoryNode[]> {
+  private async queryByFullText(
+    keywords: string[],
+    memoryTypes?: string[],
+  ): Promise<SpatialMemoryNode[]> {
     const results: SpatialMemoryNode[] = [];
-    
+
     for (const node of this.spatialMemoryNodes.values()) {
       if (memoryTypes && !memoryTypes.includes(node.memoryType)) continue;
-      
+
       const dataString = JSON.stringify(node.data).toLowerCase();
-      const matches = keywords.some(keyword => 
-        dataString.includes(keyword.toLowerCase())
+      const matches = keywords.some((keyword) =>
+        dataString.includes(keyword.toLowerCase()),
       );
-      
+
       if (matches) {
         results.push(node);
       }
@@ -839,48 +864,61 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     return results;
   }
 
-  private applyFilters(nodes: SpatialMemoryNode[], filters: MemoryFilter[]): SpatialMemoryNode[] {
-    return nodes.filter(node => {
-      return filters.every(filter => {
+  private applyFilters(
+    nodes: SpatialMemoryNode[],
+    filters: MemoryFilter[],
+  ): SpatialMemoryNode[] {
+    return nodes.filter((node) => {
+      return filters.every((filter) => {
         const value = this.getFilterValue(node, filter.field);
-        return this.evaluateFilterCondition(value, filter.operator, filter.value);
+        return this.evaluateFilterCondition(
+          value,
+          filter.operator,
+          filter.value,
+        );
       });
     });
   }
 
   private getFilterValue(node: SpatialMemoryNode, field: string): any {
-    const fieldPath = field.split('.');
+    const fieldPath = field.split(".");
     let value: any = node;
-    
+
     for (const segment of fieldPath) {
-      if (value && typeof value === 'object') {
+      if (value && typeof value === "object") {
         value = value[segment];
       } else {
         return undefined;
       }
     }
-    
+
     return value;
   }
 
-  private evaluateFilterCondition(value: any, operator: string, filterValue: any): boolean {
+  private evaluateFilterCondition(
+    value: any,
+    operator: string,
+    filterValue: any,
+  ): boolean {
     switch (operator) {
-      case 'equals':
+      case "equals":
         return value === filterValue;
-      case 'contains':
-        return typeof value === 'string' && value.includes(filterValue);
-      case 'greater_than':
+      case "contains":
+        return typeof value === "string" && value.includes(filterValue);
+      case "greater_than":
         return value > filterValue;
-      case 'less_than':
+      case "less_than":
         return value < filterValue;
-      case 'in_range':
+      case "in_range":
         return value >= filterValue.min && value <= filterValue.max;
       default:
         return false;
     }
   }
 
-  private async propagateToDistributedMemory(operation: MemoryOperation): Promise<void> {
+  private async propagateToDistributedMemory(
+    operation: MemoryOperation,
+  ): Promise<void> {
     // Integration with base distributed memory system
     try {
       // This would trigger synchronization across the swarm
@@ -890,16 +928,16 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
         targetAgents: [],
         version: operation.vectorClock.toString(),
         operations: [operation],
-        merkleRoot: '',
+        merkleRoot: "",
         compressedData: Buffer.from(JSON.stringify(operation)),
-        checksum: '',
+        checksum: "",
         timestamp: new Date(),
-        dependencies: []
+        dependencies: [],
       });
     } catch (error) {
-      this.logger.error('Failed to propagate to distributed memory', {
+      this.logger.error("Failed to propagate to distributed memory", {
         operation: operation.type,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -908,14 +946,14 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     // Integration with Mem0 MCP for knowledge graph storage
     try {
       // This would call Mem0 MCP tools for persistent storage
-      this.logger.debug('Integrating with Mem0', {
+      this.logger.debug("Integrating with Mem0", {
         nodeId: node.id,
-        memoryType: node.memoryType
+        memoryType: node.memoryType,
       });
     } catch (error) {
-      this.logger.error('Mem0 integration failed', {
+      this.logger.error("Mem0 integration failed", {
         nodeId: node.id,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -923,12 +961,12 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
   private handleDistributedMemoryDelta(delta: any): void {
     // Handle deltas from distributed memory system
     for (const operation of delta.operations) {
-      if (operation.key.startsWith('spatial:')) {
-        const nodeId = operation.key.replace('spatial:', '');
-        
-        if (operation.type === 'set') {
+      if (operation.key.startsWith("spatial:")) {
+        const nodeId = operation.key.replace("spatial:", "");
+
+        if (operation.type === "set") {
           this.spatialMemoryNodes.set(nodeId, operation.value);
-        } else if (operation.type === 'delete') {
+        } else if (operation.type === "delete") {
           this.spatialMemoryNodes.delete(nodeId);
         }
       }
@@ -937,12 +975,12 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
   private handleConflictResolution(resolution: any): void {
     // Handle conflict resolution from base memory system
-    this.logger.debug('Handling memory conflict resolution', resolution);
+    this.logger.debug("Handling memory conflict resolution", resolution);
   }
 
   private updateQueryMetrics(startTime: number): void {
     const queryTime = Date.now() - startTime;
-    this.metrics.averageQueryTime = 
+    this.metrics.averageQueryTime =
       (this.metrics.averageQueryTime + queryTime) / 2;
   }
 
@@ -963,11 +1001,13 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       memoryTypes,
       knowledgeConnectivity: this.analyzeKnowledgeConnectivity(),
       temporalPatterns: this.analyzeTemporalPatterns(),
-      insights: await this.generateInsights()
+      insights: await this.generateInsights(),
     };
   }
 
-  private analyzeSpatialDistribution(locations: Vector3D[]): SpatialDistribution {
+  private analyzeSpatialDistribution(
+    locations: Vector3D[],
+  ): SpatialDistribution {
     // Analyze spatial clustering and coverage
     const gridSize = this.config.spatialRadius;
     const hotspots = new Map<string, { location: Vector3D; count: number }>();
@@ -977,7 +1017,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       if (!hotspots.has(gridKey)) {
         hotspots.set(gridKey, {
           location: this.snapToGrid(location, gridSize),
-          count: 0
+          count: 0,
         });
       }
       hotspots.get(gridKey)!.count++;
@@ -985,11 +1025,11 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
 
     return {
       hotspots: Array.from(hotspots.values())
-        .map(spot => ({ location: spot.location, density: spot.count }))
+        .map((spot) => ({ location: spot.location, density: spot.count }))
         .sort((a, b) => b.density - a.density)
         .slice(0, 10),
       coverage: hotspots.size * gridSize * gridSize * gridSize,
-      clustering: this.calculateClustering(locations)
+      clustering: this.calculateClustering(locations),
     };
   }
 
@@ -1003,15 +1043,19 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
       if (links.size === 0) isolatedNodes++;
     }
 
-    const averageConnections = totalNodes > 0 ? totalConnections / totalNodes : 0;
+    const averageConnections =
+      totalNodes > 0 ? totalConnections / totalNodes : 0;
     const maxPossibleConnections = totalNodes * (totalNodes - 1);
-    const networkDensity = maxPossibleConnections > 0 ? totalConnections / maxPossibleConnections : 0;
+    const networkDensity =
+      maxPossibleConnections > 0
+        ? totalConnections / maxPossibleConnections
+        : 0;
 
     return {
       averageConnections,
       networkDensity,
       stronglyConnectedComponents: 1, // Simplified
-      isolatedNodes
+      isolatedNodes,
     };
   }
 
@@ -1029,12 +1073,13 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     // Find peak hours
     const maxActivity = Math.max(...hourlyActivity);
     hourlyActivity.forEach((activity, hour) => {
-      if (activity > maxActivity * 0.7) { // 70% of peak activity
+      if (activity > maxActivity * 0.7) {
+        // 70% of peak activity
         patterns.push({
           pattern: `high_activity_hour_${hour}`,
           frequency: activity,
           timeOfDay: this.getTimeOfDay(hour),
-          confidence: activity / maxActivity
+          confidence: activity / maxActivity,
         });
       }
     });
@@ -1048,12 +1093,12 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     // Pattern detection
     if (this.spatialMemoryNodes.size > 100) {
       insights.push({
-        type: 'pattern',
-        description: 'High memory utilization detected',
+        type: "pattern",
+        description: "High memory utilization detected",
         confidence: 0.8,
         data: { nodeCount: this.spatialMemoryNodes.size },
         timestamp: new Date(),
-        relevantNodes: Array.from(this.spatialMemoryNodes.keys()).slice(0, 5)
+        relevantNodes: Array.from(this.spatialMemoryNodes.keys()).slice(0, 5),
       });
     }
 
@@ -1064,64 +1109,81 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     // Cleanup expired nodes
     const now = Date.now();
     for (const [nodeId, node] of this.spatialMemoryNodes) {
-      if (node.metadata.expirationDate && node.metadata.expirationDate.getTime() < now) {
+      if (
+        node.metadata.expirationDate &&
+        node.metadata.expirationDate.getTime() < now
+      ) {
         this.deleteMemoryNode(nodeId);
       }
     }
 
     // Optimize indexes
-    if (this.spatialMemoryNodes.size > 1000 && this.config.spatialIndexingEnabled) {
+    if (
+      this.spatialMemoryNodes.size > 1000 &&
+      this.config.spatialIndexingEnabled
+    ) {
       this.optimizeSpatialIndex();
     }
   }
 
   // Helper methods...
-  private determineRelationshipType(node1: SpatialMemoryNode, node2: SpatialMemoryNode): string {
-    if (node1.memoryType === node2.memoryType) return 'similar_type';
-    if (node1.agentId === node2.agentId) return 'same_agent';
-    return 'proximity';
+  private determineRelationshipType(
+    node1: SpatialMemoryNode,
+    node2: SpatialMemoryNode,
+  ): string {
+    if (node1.memoryType === node2.memoryType) return "similar_type";
+    if (node1.agentId === node2.agentId) return "same_agent";
+    return "proximity";
   }
 
-  private calculateRelationshipWeight(node1: SpatialMemoryNode, node2: SpatialMemoryNode): number {
+  private calculateRelationshipWeight(
+    node1: SpatialMemoryNode,
+    node2: SpatialMemoryNode,
+  ): number {
     const distance = this.calculateDistance(node1.location, node2.location);
-    return Math.max(0, 1 - (distance / this.config.spatialRadius));
+    return Math.max(0, 1 - distance / this.config.spatialRadius);
   }
 
   private calculateInteractionStrength(neighbors: ProximityNeighbor[]): number {
-    return neighbors.reduce((sum, neighbor) => sum + neighbor.weight, 0) / Math.max(neighbors.length, 1);
+    return (
+      neighbors.reduce((sum, neighbor) => sum + neighbor.weight, 0) /
+      Math.max(neighbors.length, 1)
+    );
   }
 
   private snapToGrid(point: Vector3D, gridSize: number): Vector3D {
     return {
       x: Math.floor(point.x / gridSize) * gridSize + gridSize / 2,
       y: Math.floor(point.y / gridSize) * gridSize + gridSize / 2,
-      z: Math.floor(point.z / gridSize) * gridSize + gridSize / 2
+      z: Math.floor(point.z / gridSize) * gridSize + gridSize / 2,
     };
   }
 
   private calculateClustering(locations: Vector3D[]): number {
     // Simplified clustering coefficient calculation
     if (locations.length < 2) return 0;
-    
+
     let totalDistance = 0;
     let pairs = 0;
-    
+
     for (let i = 0; i < locations.length; i++) {
       for (let j = i + 1; j < locations.length; j++) {
         totalDistance += this.calculateDistance(locations[i], locations[j]);
         pairs++;
       }
     }
-    
+
     const averageDistance = totalDistance / pairs;
     return 1 / (1 + averageDistance / this.config.spatialRadius);
   }
 
-  private getTimeOfDay(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {
-    if (hour >= 6 && hour < 12) return 'morning';
-    if (hour >= 12 && hour < 18) return 'afternoon';
-    if (hour >= 18 && hour < 22) return 'evening';
-    return 'night';
+  private getTimeOfDay(
+    hour: number,
+  ): "morning" | "afternoon" | "evening" | "night" {
+    if (hour >= 6 && hour < 12) return "morning";
+    if (hour >= 12 && hour < 18) return "afternoon";
+    if (hour >= 18 && hour < 22) return "evening";
+    return "night";
   }
 
   private optimizeSpatialIndex(): void {
@@ -1130,7 +1192,7 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     for (const node of this.spatialMemoryNodes.values()) {
       this.updateSpatialIndex(node);
     }
-    this.logger.debug('Spatial index optimized');
+    this.logger.debug("Spatial index optimized");
   }
 
   /**
@@ -1143,6 +1205,6 @@ export class EnhancedMemoryArchitecture extends EventEmitter {
     this.proximityIndex.clear();
     this.temporalIndex.clear();
 
-    this.logger.info('Enhanced Memory Architecture shutdown complete');
+    this.logger.info("Enhanced Memory Architecture shutdown complete");
   }
 }

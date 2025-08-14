@@ -1,6 +1,6 @@
 /**
  * Byzantine Spatial Consensus System
- * 
+ *
  * Extends existing Byzantine consensus for spatial coordination with:
  * - Location agreement protocols
  * - Resource allocation consensus
@@ -9,9 +9,14 @@
  * - Movement coordination
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
-import { ByzantineConsensus, Agent, ConsensusMessage, ConsensusProposal } from '../../protocols/a2a/consensus/byzantine-consensus.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
+import {
+  ByzantineConsensus,
+  Agent,
+  ConsensusMessage,
+  ConsensusProposal,
+} from "../../protocols/a2a/consensus/byzantine-consensus.js";
 import {
   SpatialConsensusProposal,
   SpatialRequirement,
@@ -23,8 +28,8 @@ import {
   Vector3D,
   BoundingBox,
   SpatialZone,
-  AgentSpaceEvent
-} from '../types/AgentSpaceTypes.js';
+  AgentSpaceEvent,
+} from "../types/AgentSpaceTypes.js";
 
 export interface SpatialConsensusConfig {
   spatialTolerance: number;
@@ -47,7 +52,7 @@ export interface SpatialAgent extends Agent {
 }
 
 export interface LocationProposal extends SpatialConsensusProposal {
-  type: 'location_change';
+  type: "location_change";
   currentLocation: Vector3D;
   targetLocation: Vector3D;
   movementPath: Vector3D[];
@@ -56,7 +61,7 @@ export interface LocationProposal extends SpatialConsensusProposal {
 }
 
 export interface ResourceAllocationProposal extends SpatialConsensusProposal {
-  type: 'resource_allocation';
+  type: "resource_allocation";
   resourceType: string;
   requiredAmount: number;
   duration: number;
@@ -65,16 +70,20 @@ export interface ResourceAllocationProposal extends SpatialConsensusProposal {
 }
 
 export interface ZoneAccessProposal extends SpatialConsensusProposal {
-  type: 'zone_access';
+  type: "zone_access";
   zoneId: string;
-  accessType: 'enter' | 'exit' | 'modify' | 'create';
+  accessType: "enter" | "exit" | "modify" | "create";
   duration?: number;
   modifications?: any;
 }
 
 export interface CollaborationProposal extends SpatialConsensusProposal {
-  type: 'collaboration_request';
-  collaborationType: 'shared_workspace' | 'resource_sharing' | 'joint_task' | 'knowledge_exchange';
+  type: "collaboration_request";
+  collaborationType:
+    | "shared_workspace"
+    | "resource_sharing"
+    | "joint_task"
+    | "knowledge_exchange";
   requiredParticipants: string[];
   spatialArrangement: SpatialArrangement;
   duration: number;
@@ -89,9 +98,13 @@ export interface SpatialArrangement {
 
 export interface SpatialConflict {
   id: string;
-  type: 'location_overlap' | 'resource_contention' | 'movement_collision' | 'zone_violation';
+  type:
+    | "location_overlap"
+    | "resource_contention"
+    | "movement_collision"
+    | "zone_violation";
   involvedAgents: string[];
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   detectedAt: Date;
   spatialData: any;
   autoResolvable: boolean;
@@ -99,7 +112,12 @@ export interface SpatialConflict {
 
 export interface ConflictResolution {
   conflictId: string;
-  strategy: 'avoidance' | 'negotiation' | 'priority_based' | 'resource_sharing' | 'temporal_separation';
+  strategy:
+    | "avoidance"
+    | "negotiation"
+    | "priority_based"
+    | "resource_sharing"
+    | "temporal_separation";
   actions: ResolutionAction[];
   expectedOutcome: any;
   implementationOrder: number[];
@@ -107,7 +125,7 @@ export interface ConflictResolution {
 
 export interface ResolutionAction {
   agentId: string;
-  actionType: 'move' | 'wait' | 'resize' | 'share_resource' | 'change_priority';
+  actionType: "move" | "wait" | "resize" | "share_resource" | "change_priority";
   parameters: any;
   timing: { start: Date; duration: number };
   conditions: string[];
@@ -145,26 +163,26 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     conflictsDetected: 0,
     conflictsResolved: 0,
     spatialEfficiency: 0.8,
-    resourceUtilization: 0.6
+    resourceUtilization: 0.6,
   };
 
   constructor(
     agentId: string,
     config: SpatialConsensusConfig,
-    totalAgents: number = 7
+    totalAgents: number = 7,
   ) {
     super();
-    this.logger = new Logger('ByzantineSpatialConsensus');
+    this.logger = new Logger("ByzantineSpatialConsensus");
     this.config = config;
-    
+
     // Initialize base Byzantine consensus
     this.baseConsensus = new ByzantineConsensus(agentId, totalAgents);
     this.setupBaseConsensusHandlers();
-    
-    this.logger.info('Byzantine Spatial Consensus initialized', {
+
+    this.logger.info("Byzantine Spatial Consensus initialized", {
       agentId,
       spatialTolerance: config.spatialTolerance,
-      quorumThreshold: config.quorumThreshold
+      quorumThreshold: config.quorumThreshold,
     });
   }
 
@@ -173,7 +191,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
    */
   registerSpatialAgent(agent: SpatialAgent): void {
     this.spatialAgents.set(agent.id, agent);
-    
+
     // Register with base consensus system
     this.baseConsensus.registerAgent({
       id: agent.id,
@@ -181,16 +199,16 @@ export class ByzantineSpatialConsensus extends EventEmitter {
       isLeader: agent.isLeader,
       isMalicious: agent.isMalicious,
       reputation: agent.reputation,
-      lastActiveTime: agent.lastActiveTime
+      lastActiveTime: agent.lastActiveTime,
     });
 
-    this.logger.debug('Spatial agent registered', {
+    this.logger.debug("Spatial agent registered", {
       agentId: agent.id,
       location: agent.location,
-      capabilities: agent.spatialCapabilities
+      capabilities: agent.spatialCapabilities,
     });
 
-    this.emit('spatial_agent_registered', agent);
+    this.emit("spatial_agent_registered", agent);
   }
 
   /**
@@ -200,7 +218,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     agentId: string,
     targetLocation: Vector3D,
     movementPath: Vector3D[] = [],
-    priority: 'low' | 'normal' | 'high' | 'critical' = 'normal'
+    priority: "low" | "normal" | "high" | "critical" = "normal",
   ): Promise<string> {
     const agent = this.spatialAgents.get(agentId);
     if (!agent) {
@@ -208,27 +226,35 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     }
 
     // Check for potential conflicts
-    const conflicts = await this.detectLocationConflicts(agentId, targetLocation);
-    
+    const conflicts = await this.detectLocationConflicts(
+      agentId,
+      targetLocation,
+    );
+
     const proposal: LocationProposal = {
       proposalId: `loc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: 'location_change',
+      type: "location_change",
       proposer: agentId,
       targetAgents: this.getAffectedAgents(targetLocation, agent.boundingBox),
-      spatialRequirements: [{
-        type: 'location',
-        constraint: { targetLocation, conflicts },
-        mandatory: true,
-        weight: 1.0
-      }],
+      spatialRequirements: [
+        {
+          type: "location",
+          constraint: { targetLocation, conflicts },
+          mandatory: true,
+          weight: 1.0,
+        },
+      ],
       resourceRequirements: agent.resourceRequirements,
       consensusDeadline: new Date(Date.now() + this.config.consensusTimeout),
       priority,
       currentLocation: agent.location,
       targetLocation,
-      movementPath: movementPath.length > 0 ? movementPath : [agent.location, targetLocation],
+      movementPath:
+        movementPath.length > 0
+          ? movementPath
+          : [agent.location, targetLocation],
       estimatedTime: this.calculateMovementTime(agent.location, targetLocation),
-      resourceImpact: this.analyzeResourceImpact(agent, targetLocation)
+      resourceImpact: this.analyzeResourceImpact(agent, targetLocation),
     };
 
     return await this.initiateConsensus(proposal);
@@ -242,7 +268,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     resourceType: string,
     amount: number,
     duration: number,
-    exclusiveAccess: boolean = false
+    exclusiveAccess: boolean = false,
   ): Promise<string> {
     const agent = this.spatialAgents.get(agentId);
     if (!agent) {
@@ -251,24 +277,26 @@ export class ByzantineSpatialConsensus extends EventEmitter {
 
     const proposal: ResourceAllocationProposal = {
       proposalId: `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: 'resource_allocation',
+      type: "resource_allocation",
       proposer: agentId,
       targetAgents: this.getResourceContenders(resourceType, amount),
       spatialRequirements: [],
-      resourceRequirements: [{
-        resourceType,
-        amount,
-        duration,
-        sharable: !exclusiveAccess,
-        fallback: this.generateResourceFallbacks(resourceType, amount)
-      }],
+      resourceRequirements: [
+        {
+          resourceType,
+          amount,
+          duration,
+          sharable: !exclusiveAccess,
+          fallback: this.generateResourceFallbacks(resourceType, amount),
+        },
+      ],
       consensusDeadline: new Date(Date.now() + this.config.consensusTimeout),
       priority: this.determineResourcePriority(resourceType, amount),
       resourceType,
       requiredAmount: amount,
       duration,
       exclusiveAccess,
-      fallbackOptions: this.generateResourceFallbacks(resourceType, amount)
+      fallbackOptions: this.generateResourceFallbacks(resourceType, amount),
     };
 
     return await this.initiateConsensus(proposal);
@@ -280,35 +308,37 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   async proposeZoneAccess(
     agentId: string,
     zoneId: string,
-    accessType: 'enter' | 'exit' | 'modify' | 'create',
+    accessType: "enter" | "exit" | "modify" | "create",
     duration?: number,
-    modifications?: any
+    modifications?: any,
   ): Promise<string> {
     const zone = this.zoneStates.get(zoneId);
     const agent = this.spatialAgents.get(agentId);
-    
+
     if (!agent) {
       throw new Error(`Agent not found: ${agentId}`);
     }
 
     const proposal: ZoneAccessProposal = {
       proposalId: `zone_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: 'zone_access',
+      type: "zone_access",
       proposer: agentId,
       targetAgents: zone ? this.getZoneStakeholders(zone) : [],
-      spatialRequirements: [{
-        type: 'location',
-        constraint: { zoneId, accessType, agent: agent.location },
-        mandatory: true,
-        weight: 1.0
-      }],
+      spatialRequirements: [
+        {
+          type: "location",
+          constraint: { zoneId, accessType, agent: agent.location },
+          mandatory: true,
+          weight: 1.0,
+        },
+      ],
       resourceRequirements: [],
       consensusDeadline: new Date(Date.now() + this.config.consensusTimeout),
       priority: this.determineZoneAccessPriority(accessType),
       zoneId,
       accessType,
       duration,
-      modifications
+      modifications,
     };
 
     return await this.initiateConsensus(proposal);
@@ -320,28 +350,37 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   async proposeCollaboration(
     initiatorId: string,
     participantIds: string[],
-    collaborationType: 'shared_workspace' | 'resource_sharing' | 'joint_task' | 'knowledge_exchange',
+    collaborationType:
+      | "shared_workspace"
+      | "resource_sharing"
+      | "joint_task"
+      | "knowledge_exchange",
     spatialArrangement: SpatialArrangement,
-    duration: number
+    duration: number,
   ): Promise<string> {
     const proposal: CollaborationProposal = {
       proposalId: `collab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: 'collaboration_request',
+      type: "collaboration_request",
       proposer: initiatorId,
       targetAgents: participantIds,
-      spatialRequirements: [{
-        type: 'proximity',
-        constraint: { arrangement: spatialArrangement },
-        mandatory: true,
-        weight: 1.0
-      }],
-      resourceRequirements: this.calculateCollaborationResources(participantIds, collaborationType),
+      spatialRequirements: [
+        {
+          type: "proximity",
+          constraint: { arrangement: spatialArrangement },
+          mandatory: true,
+          weight: 1.0,
+        },
+      ],
+      resourceRequirements: this.calculateCollaborationResources(
+        participantIds,
+        collaborationType,
+      ),
       consensusDeadline: new Date(Date.now() + this.config.consensusTimeout),
-      priority: 'normal',
+      priority: "normal",
       collaborationType,
       requiredParticipants: participantIds,
       spatialArrangement,
-      duration
+      duration,
     };
 
     return await this.initiateConsensus(proposal);
@@ -353,9 +392,9 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   async voteOnProposal(
     proposalId: string,
     voterId: string,
-    vote: 'accept' | 'reject' | 'abstain' | 'conditional',
+    vote: "accept" | "reject" | "abstain" | "conditional",
     reasoning: string,
-    conditions?: ConditionalRequirement[]
+    conditions?: ConditionalRequirement[],
   ): Promise<void> {
     const proposal = this.activeProposals.get(proposalId);
     if (!proposal) {
@@ -374,7 +413,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
       reasoning,
       conditions: conditions || [],
       timestamp: new Date(),
-      signature: this.signVote(proposalId, voterId, vote)
+      signature: this.signVote(proposalId, voterId, vote),
     };
 
     // Store vote
@@ -386,14 +425,14 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     // Check if consensus is reached
     await this.checkConsensusCompletion(proposalId);
 
-    this.logger.debug('Vote recorded', {
+    this.logger.debug("Vote recorded", {
       proposalId,
       voter: voterId,
       vote,
-      reasoning
+      reasoning,
     });
 
-    this.emit('vote_cast', spatialVote);
+    this.emit("vote_cast", spatialVote);
   }
 
   /**
@@ -425,9 +464,9 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     this.metrics.conflictsDetected += conflicts.length;
 
     if (conflicts.length > 0) {
-      this.logger.warn('Spatial conflicts detected', {
+      this.logger.warn("Spatial conflicts detected", {
         count: conflicts.length,
-        types: conflicts.map(c => c.type)
+        types: conflicts.map((c) => c.type),
       });
     }
 
@@ -449,15 +488,15 @@ export class ByzantineSpatialConsensus extends EventEmitter {
         if (resolution) {
           await this.implementResolution(resolution);
           resolutions.push(resolution);
-          
+
           // Mark conflict as resolved
           this.spatialConflicts.delete(conflictId);
           this.metrics.conflictsResolved++;
         }
       } catch (error) {
-        this.logger.error('Failed to resolve conflict', {
+        this.logger.error("Failed to resolve conflict", {
           conflictId,
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -485,7 +524,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
       activeProposals: Array.from(this.activeProposals.values()),
       conflicts: Array.from(this.spatialConflicts.values()),
       zones: Array.from(this.zoneStates.values()),
-      resourceAllocations: Array.from(this.resourceAllocations.values())
+      resourceAllocations: Array.from(this.resourceAllocations.values()),
     };
   }
 
@@ -494,20 +533,22 @@ export class ByzantineSpatialConsensus extends EventEmitter {
    */
 
   private setupBaseConsensusHandlers(): void {
-    this.baseConsensus.on('consensus-reached', (proposal) => {
+    this.baseConsensus.on("consensus-reached", (proposal) => {
       this.handleBaseConsensusResult(proposal, true);
     });
 
-    this.baseConsensus.on('consensus-error', (error) => {
-      this.logger.error('Base consensus error', error);
+    this.baseConsensus.on("consensus-error", (error) => {
+      this.logger.error("Base consensus error", error);
     });
 
-    this.baseConsensus.on('view-change-initiated', (view) => {
-      this.logger.info('Consensus view change initiated', { view });
+    this.baseConsensus.on("view-change-initiated", (view) => {
+      this.logger.info("Consensus view change initiated", { view });
     });
   }
 
-  private async initiateConsensus(proposal: SpatialConsensusProposal): Promise<string> {
+  private async initiateConsensus(
+    proposal: SpatialConsensusProposal,
+  ): Promise<string> {
     this.activeProposals.set(proposal.proposalId, proposal);
     this.metrics.totalProposals++;
 
@@ -517,35 +558,34 @@ export class ByzantineSpatialConsensus extends EventEmitter {
       content: proposal,
       proposerId: proposal.proposer,
       timestamp: new Date(),
-      hash: this.hashProposal(proposal)
+      hash: this.hashProposal(proposal),
     };
 
     try {
       // Start base consensus process
       const success = await this.baseConsensus.startConsensus(baseProposal);
-      
+
       if (!success) {
         this.activeProposals.delete(proposal.proposalId);
-        throw new Error('Failed to initiate consensus');
+        throw new Error("Failed to initiate consensus");
       }
 
-      this.logger.info('Spatial consensus initiated', {
+      this.logger.info("Spatial consensus initiated", {
         proposalId: proposal.proposalId,
         type: proposal.type,
-        proposer: proposal.proposer
+        proposer: proposal.proposer,
       });
 
-      this.emit('consensus_started', {
+      this.emit("consensus_started", {
         id: `evt_${Date.now()}`,
-        type: 'consensus_started',
-        source: 'spatial_consensus',
+        type: "consensus_started",
+        source: "spatial_consensus",
         timestamp: new Date(),
         data: proposal,
-        severity: 'info'
+        severity: "info",
       } as AgentSpaceEvent);
 
       return proposal.proposalId;
-
     } catch (error) {
       this.activeProposals.delete(proposal.proposalId);
       throw error;
@@ -555,12 +595,12 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   private async checkConsensusCompletion(proposalId: string): Promise<void> {
     const proposal = this.activeProposals.get(proposalId);
     const votes = this.votingRecords.get(proposalId);
-    
+
     if (!proposal || !votes) return;
 
     const totalAgents = this.spatialAgents.size;
     const requiredVotes = Math.ceil(totalAgents * this.config.quorumThreshold);
-    
+
     if (votes.length >= requiredVotes) {
       const result = this.calculateConsensusResult(proposal, votes);
       await this.finalizeConsensus(proposal, result);
@@ -569,30 +609,33 @@ export class ByzantineSpatialConsensus extends EventEmitter {
 
   private calculateConsensusResult(
     proposal: SpatialConsensusProposal,
-    votes: SpatialConsensusVote[]
+    votes: SpatialConsensusVote[],
   ): SpatialConsensusResult {
-    const acceptVotes = votes.filter(v => v.vote === 'accept').length;
-    const rejectVotes = votes.filter(v => v.vote === 'reject').length;
-    const conditionalVotes = votes.filter(v => v.vote === 'conditional');
+    const acceptVotes = votes.filter((v) => v.vote === "accept").length;
+    const rejectVotes = votes.filter((v) => v.vote === "reject").length;
+    const conditionalVotes = votes.filter((v) => v.vote === "conditional");
 
-    let decision: 'approved' | 'rejected' | 'timeout' | 'cancelled';
-    
+    let decision: "approved" | "rejected" | "timeout" | "cancelled";
+
     if (acceptVotes > votes.length / 2) {
-      decision = 'approved';
+      decision = "approved";
     } else if (rejectVotes > votes.length / 2) {
-      decision = 'rejected';
+      decision = "rejected";
     } else {
       // Handle conditional votes
-      decision = conditionalVotes.length > 0 ? 'approved' : 'rejected';
+      decision = conditionalVotes.length > 0 ? "approved" : "rejected";
     }
 
     const result: SpatialConsensusResult = {
       proposalId: proposal.proposalId,
       decision,
       votes,
-      finalConfiguration: this.buildFinalConfiguration(proposal, conditionalVotes),
+      finalConfiguration: this.buildFinalConfiguration(
+        proposal,
+        conditionalVotes,
+      ),
       implementationPlan: this.buildImplementationPlan(proposal, decision),
-      validUntil: new Date(Date.now() + 3600000) // Valid for 1 hour
+      validUntil: new Date(Date.now() + 3600000), // Valid for 1 hour
     };
 
     return result;
@@ -600,35 +643,37 @@ export class ByzantineSpatialConsensus extends EventEmitter {
 
   private async finalizeConsensus(
     proposal: SpatialConsensusProposal,
-    result: SpatialConsensusResult
+    result: SpatialConsensusResult,
   ): Promise<void> {
     this.consensusResults.set(proposal.proposalId, result);
     this.activeProposals.delete(proposal.proposalId);
 
-    if (result.decision === 'approved') {
+    if (result.decision === "approved") {
       this.metrics.approvedProposals++;
       await this.implementConsensusResult(result);
     } else {
       this.metrics.rejectedProposals++;
     }
 
-    this.logger.info('Spatial consensus finalized', {
+    this.logger.info("Spatial consensus finalized", {
       proposalId: proposal.proposalId,
       decision: result.decision,
-      votes: result.votes.length
+      votes: result.votes.length,
     });
 
-    this.emit('consensus_completed', {
+    this.emit("consensus_completed", {
       id: `evt_${Date.now()}`,
-      type: 'consensus_completed',
-      source: 'spatial_consensus',
+      type: "consensus_completed",
+      source: "spatial_consensus",
       timestamp: new Date(),
       data: { proposal, result },
-      severity: 'info'
+      severity: "info",
     } as AgentSpaceEvent);
   }
 
-  private async implementConsensusResult(result: SpatialConsensusResult): Promise<void> {
+  private async implementConsensusResult(
+    result: SpatialConsensusResult,
+  ): Promise<void> {
     const proposal = this.consensusResults.get(result.proposalId);
     if (!proposal) return;
 
@@ -637,24 +682,25 @@ export class ByzantineSpatialConsensus extends EventEmitter {
         await this.executeImplementationStep(step);
       }
 
-      this.logger.info('Consensus result implemented', {
+      this.logger.info("Consensus result implemented", {
         proposalId: result.proposalId,
-        steps: result.implementationPlan.length
+        steps: result.implementationPlan.length,
       });
-
     } catch (error) {
-      this.logger.error('Failed to implement consensus result', {
+      this.logger.error("Failed to implement consensus result", {
         proposalId: result.proposalId,
-        error: error.message
+        error: error.message,
       });
     }
   }
 
-  private async executeImplementationStep(step: ImplementationStep): Promise<void> {
-    this.logger.debug('Executing implementation step', {
+  private async executeImplementationStep(
+    step: ImplementationStep,
+  ): Promise<void> {
+    this.logger.debug("Executing implementation step", {
       step: step.step,
       action: step.action,
-      agents: step.targetAgents
+      agents: step.targetAgents,
     });
 
     // Implementation would execute the specific action
@@ -663,7 +709,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
 
   private async detectLocationConflicts(
     agentId: string,
-    targetLocation: Vector3D
+    targetLocation: Vector3D,
   ): Promise<SpatialConflict[]> {
     const conflicts: SpatialConflict[] = [];
     const agent = this.spatialAgents.get(agentId);
@@ -673,18 +719,21 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     for (const [otherId, otherAgent] of this.spatialAgents) {
       if (otherId === agentId) continue;
 
-      const distance = this.calculateDistance(targetLocation, otherAgent.location);
+      const distance = this.calculateDistance(
+        targetLocation,
+        otherAgent.location,
+      );
       const minDistance = this.config.spatialTolerance;
 
       if (distance < minDistance) {
         conflicts.push({
           id: `conflict_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          type: 'location_overlap',
+          type: "location_overlap",
           involvedAgents: [agentId, otherId],
-          severity: distance < minDistance / 2 ? 'high' : 'medium',
+          severity: distance < minDistance / 2 ? "high" : "medium",
           detectedAt: new Date(),
           spatialData: { distance, minDistance, targetLocation },
-          autoResolvable: true
+          autoResolvable: true,
         });
       }
     }
@@ -692,9 +741,13 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     return conflicts;
   }
 
-  private getAffectedAgents(location: Vector3D, boundingBox: BoundingBox): string[] {
+  private getAffectedAgents(
+    location: Vector3D,
+    boundingBox: BoundingBox,
+  ): string[] {
     const affected: string[] = [];
-    const influenceRadius = Math.max(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z) * 2;
+    const influenceRadius =
+      Math.max(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z) * 2;
 
     for (const [agentId, agent] of this.spatialAgents) {
       const distance = this.calculateDistance(location, agent.location);
@@ -709,32 +762,39 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   private calculateMovementTime(from: Vector3D, to: Vector3D): number {
     const distance = this.calculateDistance(from, to);
     const speed = 5; // units per second
-    return distance / speed * 1000; // milliseconds
+    return (distance / speed) * 1000; // milliseconds
   }
 
   private analyzeResourceImpact(
     agent: SpatialAgent,
-    targetLocation: Vector3D
+    targetLocation: Vector3D,
   ): ResourceRequirement[] {
     // Analyze how movement affects resource requirements
     const distance = this.calculateDistance(agent.location, targetLocation);
     const movementCost = distance * 0.1; // Energy cost per unit distance
 
-    return [{
-      resourceType: 'energy',
-      amount: movementCost,
-      duration: this.calculateMovementTime(agent.location, targetLocation),
-      sharable: false
-    }];
+    return [
+      {
+        resourceType: "energy",
+        amount: movementCost,
+        duration: this.calculateMovementTime(agent.location, targetLocation),
+        sharable: false,
+      },
+    ];
   }
 
-  private getResourceContenders(resourceType: string, amount: number): string[] {
+  private getResourceContenders(
+    resourceType: string,
+    amount: number,
+  ): string[] {
     const contenders: string[] = [];
 
     for (const [agentId, agent] of this.spatialAgents) {
       for (const requirement of agent.resourceRequirements) {
-        if (requirement.resourceType === resourceType && 
-            requirement.amount > 0) {
+        if (
+          requirement.resourceType === resourceType &&
+          requirement.amount > 0
+        ) {
           contenders.push(agentId);
           break;
         }
@@ -746,25 +806,27 @@ export class ByzantineSpatialConsensus extends EventEmitter {
 
   private determineResourcePriority(
     resourceType: string,
-    amount: number
-  ): 'low' | 'normal' | 'high' | 'critical' {
+    amount: number,
+  ): "low" | "normal" | "high" | "critical" {
     // Critical resources get high priority
-    if (resourceType === 'energy' || resourceType === 'memory') {
-      return amount > 1000 ? 'critical' : 'high';
+    if (resourceType === "energy" || resourceType === "memory") {
+      return amount > 1000 ? "critical" : "high";
     }
-    return 'normal';
+    return "normal";
   }
 
   private generateResourceFallbacks(
     resourceType: string,
-    amount: number
+    amount: number,
   ): ResourceRequirement[] {
-    return [{
-      resourceType,
-      amount: amount * 0.8, // 20% reduction as fallback
-      duration: 0,
-      sharable: true
-    }];
+    return [
+      {
+        resourceType,
+        amount: amount * 0.8, // 20% reduction as fallback
+        duration: 0,
+        sharable: true,
+      },
+    ];
   }
 
   private getZoneStakeholders(zone: SpatialZone): string[] {
@@ -781,43 +843,54 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   }
 
   private determineZoneAccessPriority(
-    accessType: 'enter' | 'exit' | 'modify' | 'create'
-  ): 'low' | 'normal' | 'high' | 'critical' {
+    accessType: "enter" | "exit" | "modify" | "create",
+  ): "low" | "normal" | "high" | "critical" {
     switch (accessType) {
-      case 'exit': return 'high'; // Exiting should be easy
-      case 'enter': return 'normal';
-      case 'modify': return 'high';
-      case 'create': return 'critical';
-      default: return 'normal';
+      case "exit":
+        return "high"; // Exiting should be easy
+      case "enter":
+        return "normal";
+      case "modify":
+        return "high";
+      case "create":
+        return "critical";
+      default:
+        return "normal";
     }
   }
 
   private calculateCollaborationResources(
     participantIds: string[],
-    collaborationType: string
+    collaborationType: string,
   ): ResourceRequirement[] {
     const baseResourceCost = participantIds.length * 10;
-    
-    return [{
-      resourceType: 'computational',
-      amount: baseResourceCost,
-      duration: 3600000, // 1 hour
-      sharable: true
-    }];
+
+    return [
+      {
+        resourceType: "computational",
+        amount: baseResourceCost,
+        duration: 3600000, // 1 hour
+        sharable: true,
+      },
+    ];
   }
 
-  private checkAgentConflict(agent1: SpatialAgent, agent2: SpatialAgent): SpatialConflict | null {
+  private checkAgentConflict(
+    agent1: SpatialAgent,
+    agent2: SpatialAgent,
+  ): SpatialConflict | null {
     const distance = this.calculateDistance(agent1.location, agent2.location);
-    
+
     if (distance < this.config.spatialTolerance) {
       return {
         id: `conflict_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        type: 'location_overlap',
+        type: "location_overlap",
         involvedAgents: [agent1.id, agent2.id],
-        severity: distance < this.config.spatialTolerance / 2 ? 'high' : 'medium',
+        severity:
+          distance < this.config.spatialTolerance / 2 ? "high" : "medium",
         detectedAt: new Date(),
         spatialData: { distance, agents: [agent1, agent2] },
-        autoResolvable: true
+        autoResolvable: true,
       };
     }
 
@@ -845,12 +918,12 @@ export class ByzantineSpatialConsensus extends EventEmitter {
       if (agentIds.length > 1) {
         conflicts.push({
           id: `res_conflict_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          type: 'resource_contention',
+          type: "resource_contention",
           involvedAgents: agentIds,
-          severity: agentIds.length > 3 ? 'high' : 'medium',
+          severity: agentIds.length > 3 ? "high" : "medium",
           detectedAt: new Date(),
           spatialData: { resourceType, demandingAgents: agentIds },
-          autoResolvable: false
+          autoResolvable: false,
         });
       }
     }
@@ -858,42 +931,51 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     return conflicts;
   }
 
-  private async generateConflictResolution(conflict: SpatialConflict): Promise<ConflictResolution | null> {
+  private async generateConflictResolution(
+    conflict: SpatialConflict,
+  ): Promise<ConflictResolution | null> {
     switch (conflict.type) {
-      case 'location_overlap':
+      case "location_overlap":
         return this.resolveLocationOverlap(conflict);
-      case 'resource_contention':
+      case "resource_contention":
         return this.resolveResourceContention(conflict);
       default:
         return null;
     }
   }
 
-  private resolveLocationOverlap(conflict: SpatialConflict): ConflictResolution {
+  private resolveLocationOverlap(
+    conflict: SpatialConflict,
+  ): ConflictResolution {
     const [agent1Id, agent2Id] = conflict.involvedAgents;
     const agent1 = this.spatialAgents.get(agent1Id)!;
     const agent2 = this.spatialAgents.get(agent2Id)!;
 
     // Lower priority agent moves
-    const movingAgent = agent1.spatialPriority >= agent2.spatialPriority ? agent2 : agent1;
+    const movingAgent =
+      agent1.spatialPriority >= agent2.spatialPriority ? agent2 : agent1;
     const newLocation = this.findNearbyFreeLocation(movingAgent.location);
 
     return {
       conflictId: conflict.id,
-      strategy: 'avoidance',
-      actions: [{
-        agentId: movingAgent.id,
-        actionType: 'move',
-        parameters: { targetLocation: newLocation },
-        timing: { start: new Date(), duration: 5000 },
-        conditions: []
-      }],
+      strategy: "avoidance",
+      actions: [
+        {
+          agentId: movingAgent.id,
+          actionType: "move",
+          parameters: { targetLocation: newLocation },
+          timing: { start: new Date(), duration: 5000 },
+          conditions: [],
+        },
+      ],
       expectedOutcome: { conflictResolved: true },
-      implementationOrder: [0]
+      implementationOrder: [0],
     };
   }
 
-  private resolveResourceContention(conflict: SpatialConflict): ConflictResolution {
+  private resolveResourceContention(
+    conflict: SpatialConflict,
+  ): ConflictResolution {
     const agentIds = conflict.involvedAgents;
     const actions: ResolutionAction[] = [];
 
@@ -901,27 +983,34 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     agentIds.forEach((agentId, index) => {
       actions.push({
         agentId,
-        actionType: 'wait',
+        actionType: "wait",
         parameters: { delay: index * 10000 }, // Stagger by 10 seconds
-        timing: { start: new Date(Date.now() + index * 10000), duration: 10000 },
-        conditions: [`other_agents_finished:${agentIds.filter((_, i) => i < index).join(',')}`]
+        timing: {
+          start: new Date(Date.now() + index * 10000),
+          duration: 10000,
+        },
+        conditions: [
+          `other_agents_finished:${agentIds.filter((_, i) => i < index).join(",")}`,
+        ],
       });
     });
 
     return {
       conflictId: conflict.id,
-      strategy: 'temporal_separation',
+      strategy: "temporal_separation",
       actions,
       expectedOutcome: { resourceSharing: true },
-      implementationOrder: Array.from({ length: actions.length }, (_, i) => i)
+      implementationOrder: Array.from({ length: actions.length }, (_, i) => i),
     };
   }
 
-  private async implementResolution(resolution: ConflictResolution): Promise<void> {
-    this.logger.info('Implementing conflict resolution', {
+  private async implementResolution(
+    resolution: ConflictResolution,
+  ): Promise<void> {
+    this.logger.info("Implementing conflict resolution", {
       conflictId: resolution.conflictId,
       strategy: resolution.strategy,
-      actions: resolution.actions.length
+      actions: resolution.actions.length,
     });
 
     // Implementation would execute the resolution actions
@@ -930,11 +1019,13 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     }
   }
 
-  private async executeResolutionAction(action: ResolutionAction): Promise<void> {
-    this.logger.debug('Executing resolution action', {
+  private async executeResolutionAction(
+    action: ResolutionAction,
+  ): Promise<void> {
+    this.logger.debug("Executing resolution action", {
       agentId: action.agentId,
       actionType: action.actionType,
-      parameters: action.parameters
+      parameters: action.parameters,
     });
 
     // Implementation would execute the specific action
@@ -950,9 +1041,12 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   private isLocationInZone(location: Vector3D, zone: SpatialZone): boolean {
     const bounds = zone.boundaries;
     return (
-      location.x >= bounds.min.x && location.x <= bounds.max.x &&
-      location.y >= bounds.min.y && location.y <= bounds.max.y &&
-      location.z >= bounds.min.z && location.z <= bounds.max.z
+      location.x >= bounds.min.x &&
+      location.x <= bounds.max.x &&
+      location.y >= bounds.min.y &&
+      location.y <= bounds.max.y &&
+      location.z >= bounds.min.z &&
+      location.z <= bounds.max.z
     );
   }
 
@@ -960,10 +1054,26 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     // Simple algorithm to find a nearby free location
     const offset = this.config.spatialTolerance * 2;
     const attempts = [
-      { x: currentLocation.x + offset, y: currentLocation.y, z: currentLocation.z },
-      { x: currentLocation.x - offset, y: currentLocation.y, z: currentLocation.z },
-      { x: currentLocation.x, y: currentLocation.y + offset, z: currentLocation.z },
-      { x: currentLocation.x, y: currentLocation.y - offset, z: currentLocation.z }
+      {
+        x: currentLocation.x + offset,
+        y: currentLocation.y,
+        z: currentLocation.z,
+      },
+      {
+        x: currentLocation.x - offset,
+        y: currentLocation.y,
+        z: currentLocation.z,
+      },
+      {
+        x: currentLocation.x,
+        y: currentLocation.y + offset,
+        z: currentLocation.z,
+      },
+      {
+        x: currentLocation.x,
+        y: currentLocation.y - offset,
+        z: currentLocation.z,
+      },
     ];
 
     for (const attempt of attempts) {
@@ -976,7 +1086,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     return {
       x: currentLocation.x + (Math.random() - 0.5) * offset * 4,
       y: currentLocation.y + (Math.random() - 0.5) * offset * 4,
-      z: currentLocation.z + (Math.random() - 0.5) * offset * 4
+      z: currentLocation.z + (Math.random() - 0.5) * offset * 4,
     };
   }
 
@@ -994,9 +1104,10 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     if (this.spatialAgents.size === 0) return 1.0;
 
     let totalConflicts = this.spatialConflicts.size;
-    let possibleConflicts = (this.spatialAgents.size * (this.spatialAgents.size - 1)) / 2;
+    let possibleConflicts =
+      (this.spatialAgents.size * (this.spatialAgents.size - 1)) / 2;
 
-    return Math.max(0, 1 - (totalConflicts / possibleConflicts));
+    return Math.max(0, 1 - totalConflicts / possibleConflicts);
   }
 
   private calculateResourceUtilization(): number {
@@ -1018,15 +1129,15 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   }
 
   private handleBaseConsensusResult(proposal: any, success: boolean): void {
-    this.logger.debug('Base consensus result received', {
+    this.logger.debug("Base consensus result received", {
       proposalId: proposal.id,
-      success
+      success,
     });
   }
 
   private buildFinalConfiguration(
     proposal: SpatialConsensusProposal,
-    conditionalVotes: SpatialConsensusVote[]
+    conditionalVotes: SpatialConsensusVote[],
   ): any {
     // Build final configuration incorporating conditional requirements
     let config = { ...proposal };
@@ -1045,32 +1156,32 @@ export class ByzantineSpatialConsensus extends EventEmitter {
 
   private buildImplementationPlan(
     proposal: SpatialConsensusProposal,
-    decision: string
+    decision: string,
   ): ImplementationStep[] {
-    if (decision !== 'approved') return [];
+    if (decision !== "approved") return [];
 
     const steps: ImplementationStep[] = [];
 
     switch (proposal.type) {
-      case 'location_change':
+      case "location_change":
         steps.push({
           step: 1,
-          action: 'move_agent',
+          action: "move_agent",
           targetAgents: [proposal.proposer],
           dependencies: [],
           estimatedDuration: 5000,
-          rollbackPlan: 'return_to_original_location'
+          rollbackPlan: "return_to_original_location",
         });
         break;
 
-      case 'resource_allocation':
+      case "resource_allocation":
         steps.push({
           step: 1,
-          action: 'allocate_resource',
+          action: "allocate_resource",
           targetAgents: proposal.targetAgents,
           dependencies: [],
           estimatedDuration: 1000,
-          rollbackPlan: 'deallocate_resource'
+          rollbackPlan: "deallocate_resource",
         });
         break;
     }
@@ -1090,7 +1201,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     this.resourceAllocations.clear();
     this.zoneStates.clear();
 
-    this.logger.info('Byzantine Spatial Consensus shutdown complete');
+    this.logger.info("Byzantine Spatial Consensus shutdown complete");
   }
 }
 

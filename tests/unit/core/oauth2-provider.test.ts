@@ -6,8 +6,8 @@
  */
 
 import { jest } from '@jest/globals';
-import { OAuth2Provider } from '../../../src/core/auth/oauth2-provider.js';
-import { OAuth2Config, AuthCredentials } from '../../../src/types/auth.js';
+import { OAuth2Provider } from '../../../src/core/auth/oauth2-provider';
+import { OAuth2Config, AuthCredentials } from '../../../src/types/auth';
 
 // Mock fetch globally
 const mockFetch = jest.fn();

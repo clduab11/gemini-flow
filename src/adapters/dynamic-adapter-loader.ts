@@ -1,13 +1,13 @@
 /**
  * Dynamic Adapter Loader
- * 
+ *
  * Loads enterprise adapters conditionally based on feature flags and dependencies
  * Provides fallback mechanisms and graceful degradation
  */
 
-import { Logger } from '../utils/logger.js';
-import { featureFlags } from '../core/feature-flags.js';
-import { EventEmitter } from 'events';
+import { Logger } from "../utils/logger.js";
+import { featureFlags } from "../core/feature-flags.js";
+import { EventEmitter } from "events";
 
 export interface AdapterSpec {
   name: string;
@@ -26,7 +26,7 @@ export interface LoadedAdapter {
   instance: any;
   loadTime: number;
   loadedAt: Date;
-  status: 'loaded' | 'failed' | 'fallback';
+  status: "loaded" | "failed" | "fallback";
   error?: string;
 }
 
@@ -34,11 +34,12 @@ export class DynamicAdapterLoader extends EventEmitter {
   private logger: Logger;
   private loadedAdapters: Map<string, LoadedAdapter> = new Map();
   private adapterSpecs: Map<string, AdapterSpec> = new Map();
-  private loadingPromises: Map<string, Promise<LoadedAdapter | null>> = new Map();
+  private loadingPromises: Map<string, Promise<LoadedAdapter | null>> =
+    new Map();
 
   constructor() {
     super();
-    this.logger = new Logger('DynamicAdapterLoader');
+    this.logger = new Logger("DynamicAdapterLoader");
     this.setupAdapterSpecs();
   }
 
@@ -49,88 +50,88 @@ export class DynamicAdapterLoader extends EventEmitter {
     const adapters: AdapterSpec[] = [
       // Gemini adapter (always available)
       {
-        name: 'Gemini Adapter',
-        key: 'gemini',
-        modulePath: './gemini-adapter.js',
-        className: 'GeminiAdapter',
-        dependencies: ['@google/generative-ai'],
-        featureFlag: 'caching', // Always enabled
-        required: true
+        name: "Gemini Adapter",
+        key: "gemini",
+        modulePath: "./gemini-adapter.js",
+        className: "GeminiAdapter",
+        dependencies: ["@google/generative-ai"],
+        featureFlag: "caching", // Always enabled
+        required: true,
       },
 
       // Vertex AI adapter
       {
-        name: 'Vertex AI Adapter',
-        key: 'vertexai',
-        modulePath: '../core/vertex-ai-connector.js',
-        className: 'VertexAIConnector',
-        dependencies: ['@google-cloud/vertexai', '@google-cloud/aiplatform'],
-        featureFlag: 'vertexAi',
+        name: "Vertex AI Adapter",
+        key: "vertexai",
+        modulePath: "../core/vertex-ai-connector.js",
+        className: "VertexAIConnector",
+        dependencies: ["@google-cloud/vertexai", "@google-cloud/aiplatform"],
+        featureFlag: "vertexAi",
         required: false,
         fallback: {
-          name: 'Vertex AI Fallback',
-          key: 'vertexai-fallback',
-          modulePath: './gemini-adapter.js',
-          className: 'GeminiAdapter',
-          dependencies: ['@google/generative-ai'],
-          featureFlag: 'caching',
-          required: false
-        }
+          name: "Vertex AI Fallback",
+          key: "vertexai-fallback",
+          modulePath: "./gemini-adapter.js",
+          className: "GeminiAdapter",
+          dependencies: ["@google/generative-ai"],
+          featureFlag: "caching",
+          required: false,
+        },
       },
 
       // DeepMind adapter
       {
-        name: 'DeepMind Adapter',
-        key: 'deepmind',
-        modulePath: './deepmind-adapter.js',
-        className: 'DeepMindAdapter',
-        dependencies: ['@deepmind/api'],
-        featureFlag: 'deepmind',
+        name: "DeepMind Adapter",
+        key: "deepmind",
+        modulePath: "./deepmind-adapter.js",
+        className: "DeepMindAdapter",
+        dependencies: ["@deepmind/api"],
+        featureFlag: "deepmind",
         required: false,
-        experimental: true
+        experimental: true,
       },
 
       // Google Workspace adapter
       {
-        name: 'Google Workspace Adapter',
-        key: 'workspace',
-        modulePath: '../workspace/google-integration.js',
-        className: 'GoogleWorkspaceIntegration',
-        dependencies: ['googleapis', 'google-auth-library'],
-        featureFlag: 'googleWorkspace',
-        required: false
+        name: "Google Workspace Adapter",
+        key: "workspace",
+        modulePath: "../workspace/google-integration.js",
+        className: "GoogleWorkspaceIntegration",
+        dependencies: ["googleapis", "google-auth-library"],
+        featureFlag: "googleWorkspace",
+        required: false,
       },
 
       // SQLite memory adapter
       {
-        name: 'SQLite Memory Adapter',
-        key: 'sqlite',
-        modulePath: '../memory/sqlite-manager.js',
-        className: 'SQLiteManager',
-        dependencies: ['sqlite3', 'better-sqlite3'],
-        featureFlag: 'sqliteAdapters',
+        name: "SQLite Memory Adapter",
+        key: "sqlite",
+        modulePath: "../memory/sqlite-manager.js",
+        className: "SQLiteManager",
+        dependencies: ["sqlite3", "better-sqlite3"],
+        featureFlag: "sqliteAdapters",
         required: false,
         fallback: {
-          name: 'In-Memory Fallback',
-          key: 'memory-fallback',
-          modulePath: '../memory/index.js',
-          className: 'MemoryManager',
+          name: "In-Memory Fallback",
+          key: "memory-fallback",
+          modulePath: "../memory/index.js",
+          className: "MemoryManager",
           dependencies: [],
-          featureFlag: 'caching',
-          required: false
-        }
+          featureFlag: "caching",
+          required: false,
+        },
       },
 
       // JULES workflow adapter
       {
-        name: 'JULES Workflow Adapter',
-        key: 'jules',
-        modulePath: './jules-workflow-adapter.js',
-        className: 'JulesWorkflowAdapter',
+        name: "JULES Workflow Adapter",
+        key: "jules",
+        modulePath: "./jules-workflow-adapter.js",
+        className: "JulesWorkflowAdapter",
         dependencies: [],
-        featureFlag: 'caching', // Always available
-        required: false
-      }
+        featureFlag: "caching", // Always available
+        required: false,
+      },
     ];
 
     for (const adapter of adapters) {
@@ -141,7 +142,10 @@ export class DynamicAdapterLoader extends EventEmitter {
   /**
    * Load an adapter by key
    */
-  async loadAdapter(key: string, forceReload = false): Promise<LoadedAdapter | null> {
+  async loadAdapter(
+    key: string,
+    forceReload = false,
+  ): Promise<LoadedAdapter | null> {
     const spec = this.adapterSpecs.get(key);
     if (!spec) {
       this.logger.error(`Unknown adapter: ${key}`);
@@ -177,35 +181,42 @@ export class DynamicAdapterLoader extends EventEmitter {
    */
   private async performLoad(spec: AdapterSpec): Promise<LoadedAdapter | null> {
     const startTime = performance.now();
-    
+
     this.logger.info(`Loading adapter: ${spec.name}...`);
 
     // Check if feature is enabled
     if (!featureFlags.isEnabled(spec.featureFlag as any)) {
-      this.logger.debug(`Adapter ${spec.name} disabled by feature flag: ${spec.featureFlag}`);
-      
+      this.logger.debug(
+        `Adapter ${spec.name} disabled by feature flag: ${spec.featureFlag}`,
+      );
+
       if (spec.required) {
         throw new Error(`Required adapter ${spec.name} is disabled`);
       }
-      
+
       return null;
     }
 
     // Check dependencies
     const dependencyCheck = this.checkDependencies(spec);
     if (!dependencyCheck.available) {
-      this.logger.warn(`Dependencies missing for ${spec.name}:`, dependencyCheck.missing);
-      
+      this.logger.warn(
+        `Dependencies missing for ${spec.name}:`,
+        dependencyCheck.missing,
+      );
+
       // Try fallback
       if (spec.fallback) {
         this.logger.info(`Attempting fallback for ${spec.name}...`);
         return await this.loadFallback(spec);
       }
-      
+
       if (spec.required) {
-        throw new Error(`Required dependencies missing for ${spec.name}: ${dependencyCheck.missing.join(', ')}`);
+        throw new Error(
+          `Required dependencies missing for ${spec.name}: ${dependencyCheck.missing.join(", ")}`,
+        );
       }
-      
+
       return null;
     }
 
@@ -213,16 +224,18 @@ export class DynamicAdapterLoader extends EventEmitter {
       // Load the module
       const module = await import(spec.modulePath);
       const AdapterClass = module[spec.className];
-      
+
       if (!AdapterClass) {
-        throw new Error(`Class ${spec.className} not found in ${spec.modulePath}`);
+        throw new Error(
+          `Class ${spec.className} not found in ${spec.modulePath}`,
+        );
       }
 
       // Create instance
       const instance = new AdapterClass();
-      
+
       // Initialize if needed
-      if (instance.initialize && typeof instance.initialize === 'function') {
+      if (instance.initialize && typeof instance.initialize === "function") {
         await instance.initialize();
       }
 
@@ -232,25 +245,24 @@ export class DynamicAdapterLoader extends EventEmitter {
         instance,
         loadTime,
         loadedAt: new Date(),
-        status: 'loaded'
+        status: "loaded",
       };
 
       this.loadedAdapters.set(spec.key, loadedAdapter);
-      
+
       this.logger.info(`Adapter loaded: ${spec.name}`, {
         loadTime: `${loadTime.toFixed(2)}ms`,
-        memoryUsage: `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`
+        memoryUsage: `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`,
       });
 
-      this.emit('adapter_loaded', {
+      this.emit("adapter_loaded", {
         key: spec.key,
         name: spec.name,
         loadTime,
-        experimental: spec.experimental
+        experimental: spec.experimental,
       });
 
       return loadedAdapter;
-
     } catch (error) {
       this.logger.error(`Failed to load adapter ${spec.name}:`, error);
 
@@ -265,8 +277,8 @@ export class DynamicAdapterLoader extends EventEmitter {
         instance: null,
         loadTime,
         loadedAt: new Date(),
-        status: 'failed',
-        error: error.message
+        status: "failed",
+        error: error.message,
       };
 
       this.loadedAdapters.set(spec.key, failedAdapter);
@@ -275,11 +287,11 @@ export class DynamicAdapterLoader extends EventEmitter {
         throw error;
       }
 
-      this.emit('adapter_failed', {
+      this.emit("adapter_failed", {
         key: spec.key,
         name: spec.name,
         error: error.message,
-        loadTime
+        loadTime,
       });
 
       return failedAdapter;
@@ -289,35 +301,41 @@ export class DynamicAdapterLoader extends EventEmitter {
   /**
    * Load fallback adapter
    */
-  private async loadFallback(originalSpec: AdapterSpec): Promise<LoadedAdapter | null> {
+  private async loadFallback(
+    originalSpec: AdapterSpec,
+  ): Promise<LoadedAdapter | null> {
     if (!originalSpec.fallback) {
       return null;
     }
 
-    this.logger.info(`Loading fallback for ${originalSpec.name}: ${originalSpec.fallback.name}`);
+    this.logger.info(
+      `Loading fallback for ${originalSpec.name}: ${originalSpec.fallback.name}`,
+    );
 
     try {
       const fallbackResult = await this.performLoad(originalSpec.fallback);
-      
-      if (fallbackResult && fallbackResult.status === 'loaded') {
+
+      if (fallbackResult && fallbackResult.status === "loaded") {
         // Mark as fallback and use original key
-        fallbackResult.status = 'fallback';
+        fallbackResult.status = "fallback";
         this.loadedAdapters.set(originalSpec.key, fallbackResult);
 
-        this.emit('adapter_fallback', {
+        this.emit("adapter_fallback", {
           originalKey: originalSpec.key,
           originalName: originalSpec.name,
           fallbackKey: originalSpec.fallback.key,
-          fallbackName: originalSpec.fallback.name
+          fallbackName: originalSpec.fallback.name,
         });
 
         return fallbackResult;
       }
 
       return null;
-
     } catch (error) {
-      this.logger.error(`Fallback loading failed for ${originalSpec.name}:`, error);
+      this.logger.error(
+        `Fallback loading failed for ${originalSpec.name}:`,
+        error,
+      );
       return null;
     }
   }
@@ -325,23 +343,26 @@ export class DynamicAdapterLoader extends EventEmitter {
   /**
    * Check if dependencies are available
    */
-  private checkDependencies(spec: AdapterSpec): { available: boolean; missing: string[] } {
+  private checkDependencies(spec: AdapterSpec): {
+    available: boolean;
+    missing: string[];
+  } {
     const missing: string[] = [];
-    
+
     for (const dep of spec.dependencies) {
       try {
         require.resolve(dep);
       } catch {
         // Check if it's available in the package.json
         try {
-          const packageJson = require(process.cwd() + '/package.json');
+          const packageJson = require(process.cwd() + "/package.json");
           const allDeps = {
             ...packageJson.dependencies,
             ...packageJson.devDependencies,
             ...packageJson.peerDependencies,
-            ...packageJson.optionalDependencies
+            ...packageJson.optionalDependencies,
           };
-          
+
           if (!allDeps[dep]) {
             missing.push(dep);
           }
@@ -353,7 +374,7 @@ export class DynamicAdapterLoader extends EventEmitter {
 
     return {
       available: missing.length === 0,
-      missing
+      missing,
     };
   }
 
@@ -362,13 +383,13 @@ export class DynamicAdapterLoader extends EventEmitter {
    */
   async loadEnabledAdapters(): Promise<Map<string, LoadedAdapter>> {
     const loaded = new Map<string, LoadedAdapter>();
-    
+
     for (const [key, spec] of this.adapterSpecs) {
       // Load if feature is enabled or adapter is required
       if (featureFlags.isEnabled(spec.featureFlag as any) || spec.required) {
         try {
           const adapter = await this.loadAdapter(key);
-          if (adapter && adapter.status !== 'failed') {
+          if (adapter && adapter.status !== "failed") {
             loaded.set(key, adapter);
           }
         } catch (error) {
@@ -379,7 +400,7 @@ export class DynamicAdapterLoader extends EventEmitter {
 
     this.logger.info(`Loaded ${loaded.size} adapters`, {
       loaded: Array.from(loaded.keys()),
-      total: this.adapterSpecs.size
+      total: this.adapterSpecs.size,
     });
 
     return loaded;
@@ -390,7 +411,7 @@ export class DynamicAdapterLoader extends EventEmitter {
    */
   getAdapter<T = any>(key: string): T | null {
     const loaded = this.loadedAdapters.get(key);
-    if (loaded && loaded.status !== 'failed') {
+    if (loaded && loaded.status !== "failed") {
       return loaded.instance;
     }
     return null;
@@ -401,7 +422,7 @@ export class DynamicAdapterLoader extends EventEmitter {
    */
   isLoaded(key: string): boolean {
     const loaded = this.loadedAdapters.get(key);
-    return loaded ? loaded.status !== 'failed' : false;
+    return loaded ? loaded.status !== "failed" : false;
   }
 
   /**
@@ -410,9 +431,9 @@ export class DynamicAdapterLoader extends EventEmitter {
   isAvailable(key: string): boolean {
     const spec = this.adapterSpecs.get(key);
     if (!spec) return false;
-    
+
     if (!featureFlags.isEnabled(spec.featureFlag as any)) return false;
-    
+
     return this.checkDependencies(spec).available;
   }
 
@@ -422,13 +443,13 @@ export class DynamicAdapterLoader extends EventEmitter {
   getAdapterStatus(key: string): any {
     const spec = this.adapterSpecs.get(key);
     const loaded = this.loadedAdapters.get(key);
-    
+
     if (!spec) {
-      return { status: 'unknown', key };
+      return { status: "unknown", key };
     }
 
     const deps = this.checkDependencies(spec);
-    
+
     return {
       key,
       name: spec.name,
@@ -437,10 +458,10 @@ export class DynamicAdapterLoader extends EventEmitter {
       featureEnabled: featureFlags.isEnabled(spec.featureFlag as any),
       dependenciesAvailable: deps.available,
       missingDependencies: deps.missing,
-      loaded: loaded ? loaded.status : 'not_loaded',
+      loaded: loaded ? loaded.status : "not_loaded",
       loadTime: loaded?.loadTime,
       loadedAt: loaded?.loadedAt,
-      error: loaded?.error
+      error: loaded?.error,
     };
   }
 
@@ -448,7 +469,9 @@ export class DynamicAdapterLoader extends EventEmitter {
    * Get all adapter statuses
    */
   getAllStatuses(): any[] {
-    return Array.from(this.adapterSpecs.keys()).map(key => this.getAdapterStatus(key));
+    return Array.from(this.adapterSpecs.keys()).map((key) =>
+      this.getAdapterStatus(key),
+    );
   }
 
   /**
@@ -457,7 +480,7 @@ export class DynamicAdapterLoader extends EventEmitter {
   async loadOnDemand(key: string): Promise<boolean> {
     try {
       const adapter = await this.loadAdapter(key);
-      return adapter ? adapter.status !== 'failed' : false;
+      return adapter ? adapter.status !== "failed" : false;
     } catch (error) {
       this.logger.error(`On-demand loading failed for ${key}:`, error);
       return false;
@@ -480,12 +503,11 @@ export class DynamicAdapterLoader extends EventEmitter {
       }
 
       this.loadedAdapters.delete(key);
-      
-      this.logger.info(`Adapter unloaded: ${loaded.spec.name}`);
-      this.emit('adapter_unloaded', { key, name: loaded.spec.name });
-      
-      return true;
 
+      this.logger.info(`Adapter unloaded: ${loaded.spec.name}`);
+      this.emit("adapter_unloaded", { key, name: loaded.spec.name });
+
+      return true;
     } catch (error) {
       this.logger.error(`Failed to unload adapter ${key}:`, error);
       return false;
@@ -505,16 +527,18 @@ export class DynamicAdapterLoader extends EventEmitter {
    */
   getStats(): any {
     const loaded = Array.from(this.loadedAdapters.values());
-    
+
     return {
       total: this.adapterSpecs.size,
-      loaded: loaded.filter(a => a.status === 'loaded').length,
-      fallback: loaded.filter(a => a.status === 'fallback').length,
-      failed: loaded.filter(a => a.status === 'failed').length,
-      experimental: loaded.filter(a => a.spec.experimental).length,
-      avgLoadTime: loaded.length > 0 ? 
-        loaded.reduce((sum, a) => sum + a.loadTime, 0) / loaded.length : 0,
-      memoryUsage: `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`
+      loaded: loaded.filter((a) => a.status === "loaded").length,
+      fallback: loaded.filter((a) => a.status === "fallback").length,
+      failed: loaded.filter((a) => a.status === "failed").length,
+      experimental: loaded.filter((a) => a.spec.experimental).length,
+      avgLoadTime:
+        loaded.length > 0
+          ? loaded.reduce((sum, a) => sum + a.loadTime, 0) / loaded.length
+          : 0,
+      memoryUsage: `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB`,
     };
   }
 
@@ -522,18 +546,18 @@ export class DynamicAdapterLoader extends EventEmitter {
    * Shutdown all adapters
    */
   async shutdown(): Promise<void> {
-    this.logger.info('Shutting down all adapters...');
-    
-    const shutdownPromises = Array.from(this.loadedAdapters.keys()).map(key => 
-      this.unloadAdapter(key)
+    this.logger.info("Shutting down all adapters...");
+
+    const shutdownPromises = Array.from(this.loadedAdapters.keys()).map((key) =>
+      this.unloadAdapter(key),
     );
-    
+
     await Promise.allSettled(shutdownPromises);
-    
+
     this.loadedAdapters.clear();
     this.loadingPromises.clear();
-    
-    this.logger.info('All adapters shut down');
+
+    this.logger.info("All adapters shut down");
   }
 }
 

@@ -1,6 +1,6 @@
 /**
  * SQLite Database Adapter Interface
- * 
+ *
  * Provides a unified interface for different SQLite implementations:
  * - better-sqlite3 (performance optimized)
  * - sqlite3 (Node.js compatible)
@@ -31,7 +31,7 @@ export interface SQLiteDatabase {
   readonly open: boolean;
 }
 
-export type SQLiteImplementation = 'better-sqlite3' | 'sqlite3' | 'sql.js';
+export type SQLiteImplementation = "better-sqlite3" | "sqlite3" | "sql.js";
 
 export interface SQLiteDetectionResult {
   available: SQLiteImplementation[];
@@ -45,44 +45,44 @@ export interface SQLiteDetectionResult {
 export async function detectSQLiteImplementations(): Promise<SQLiteDetectionResult> {
   const result: SQLiteDetectionResult = {
     available: [],
-    recommended: 'sql.js', // Default fallback
-    errors: {}
+    recommended: "sql.js", // Default fallback
+    errors: {},
   };
 
   // Test better-sqlite3 (highest performance)
   try {
     // @ts-ignore - Optional dependency
-    const betterSqlite3Module = await import('better-sqlite3');
+    const betterSqlite3Module = await import("better-sqlite3");
     const BetterSqlite3 = betterSqlite3Module.default;
     // Test basic functionality
-    const testDb = new BetterSqlite3(':memory:');
-    testDb.exec('CREATE TABLE test (id INTEGER)');
+    const testDb = new BetterSqlite3(":memory:");
+    testDb.exec("CREATE TABLE test (id INTEGER)");
     testDb.close();
-    result.available.push('better-sqlite3');
-    result.recommended = 'better-sqlite3';
+    result.available.push("better-sqlite3");
+    result.recommended = "better-sqlite3";
   } catch (error) {
-    result.errors['better-sqlite3'] = error as Error;
+    result.errors["better-sqlite3"] = error as Error;
   }
 
   // Test sqlite3 (Node.js standard)
   try {
     // @ts-ignore - Optional dependency
-    await import('sqlite3');
-    result.available.push('sqlite3');
-    if (result.recommended === 'sql.js') {
-      result.recommended = 'sqlite3';
+    await import("sqlite3");
+    result.available.push("sqlite3");
+    if (result.recommended === "sql.js") {
+      result.recommended = "sqlite3";
     }
   } catch (error) {
-    result.errors['sqlite3'] = error as Error;
+    result.errors["sqlite3"] = error as Error;
   }
 
   // Test sql.js (always available WASM)
   try {
     // @ts-ignore - Optional dependency
-    await import('sql.js');
-    result.available.push('sql.js');
+    await import("sql.js");
+    result.available.push("sql.js");
   } catch (error) {
-    result.errors['sql.js'] = error as Error;
+    result.errors["sql.js"] = error as Error;
   }
 
   return result;
@@ -92,29 +92,32 @@ export async function detectSQLiteImplementations(): Promise<SQLiteDetectionResu
  * Creates a database instance using the best available implementation
  */
 export async function createSQLiteDatabase(
-  dbPath: string, 
-  preferredImpl?: SQLiteImplementation
+  dbPath: string,
+  preferredImpl?: SQLiteImplementation,
 ): Promise<SQLiteDatabase> {
   const detection = await detectSQLiteImplementations();
-  
+
   if (detection.available.length === 0) {
-    throw new Error('No SQLite implementations available. Please install better-sqlite3, sqlite3, or sql.js');
+    throw new Error(
+      "No SQLite implementations available. Please install better-sqlite3, sqlite3, or sql.js",
+    );
   }
 
-  const implementation = preferredImpl && detection.available.includes(preferredImpl) 
-    ? preferredImpl 
-    : detection.recommended;
+  const implementation =
+    preferredImpl && detection.available.includes(preferredImpl)
+      ? preferredImpl
+      : detection.recommended;
 
   switch (implementation) {
-    case 'better-sqlite3':
+    case "better-sqlite3":
       return await createBetterSQLite3Database(dbPath);
-    
-    case 'sqlite3':
+
+    case "sqlite3":
       return await createSQLite3Database(dbPath);
-    
-    case 'sql.js':
+
+    case "sql.js":
       return await createSqlJsDatabase(dbPath);
-    
+
     default:
       throw new Error(`Unsupported SQLite implementation: ${implementation}`);
   }
@@ -123,16 +126,18 @@ export async function createSQLiteDatabase(
 /**
  * Better-SQLite3 adapter implementation
  */
-async function createBetterSQLite3Database(dbPath: string): Promise<SQLiteDatabase> {
+async function createBetterSQLite3Database(
+  dbPath: string,
+): Promise<SQLiteDatabase> {
   // @ts-ignore - Optional dependency
-  const betterSqlite3Module = await import('better-sqlite3');
+  const betterSqlite3Module = await import("better-sqlite3");
   const BetterSqlite3 = betterSqlite3Module.default;
   const db = new BetterSqlite3(dbPath);
-  
+
   return {
-    name: 'better-sqlite3',
+    name: "better-sqlite3",
     open: db.open,
-    
+
     prepare(sql: string): SQLiteStatement {
       const stmt = db.prepare(sql);
       return {
@@ -140,27 +145,28 @@ async function createBetterSQLite3Database(dbPath: string): Promise<SQLiteDataba
           const result = stmt.run(...params);
           return {
             changes: result.changes,
-            lastInsertRowid: typeof result.lastInsertRowid === 'bigint' 
-              ? Number(result.lastInsertRowid) 
-              : result.lastInsertRowid
+            lastInsertRowid:
+              typeof result.lastInsertRowid === "bigint"
+                ? Number(result.lastInsertRowid)
+                : result.lastInsertRowid,
           };
         },
         get: (...params: any[]) => stmt.get(...params),
-        all: (...params: any[]) => stmt.all(...params)
+        all: (...params: any[]) => stmt.all(...params),
       };
     },
-    
+
     exec(sql: string): void {
       db.exec(sql);
     },
-    
+
     pragma(pragma: string): any {
       return db.pragma(pragma);
     },
-    
+
     close(): void {
       db.close();
-    }
+    },
   };
 }
 
@@ -169,28 +175,29 @@ async function createBetterSQLite3Database(dbPath: string): Promise<SQLiteDataba
  */
 async function createSQLite3Database(dbPath: string): Promise<SQLiteDatabase> {
   // @ts-ignore - Optional dependency
-  const sqlite3Module = await import('sqlite3');
+  const sqlite3Module = await import("sqlite3");
   const sqlite3 = sqlite3Module.default;
   const db = new sqlite3.Database(dbPath);
-  
+
   return {
-    name: 'sqlite3',
+    name: "sqlite3",
     open: true,
-    
+
     prepare(sql: string): SQLiteStatement {
       return {
         run: (...params: any[]): SQLiteResult => {
           return new Promise((resolve, reject) => {
-            db.run(sql, params, function(this: any, err: Error) {
+            db.run(sql, params, function (this: any, err: Error) {
               if (err) reject(err);
-              else resolve({ 
-                changes: this.changes, 
-                lastInsertRowid: this.lastID 
-              });
+              else
+                resolve({
+                  changes: this.changes,
+                  lastInsertRowid: this.lastID,
+                });
             });
           }) as any;
         },
-        
+
         get: (...params: any[]): SQLiteRow | undefined => {
           return new Promise((resolve, reject) => {
             db.get(sql, params, (err: Error, row: SQLiteRow) => {
@@ -199,7 +206,7 @@ async function createSQLite3Database(dbPath: string): Promise<SQLiteDatabase> {
             });
           }) as any;
         },
-        
+
         all: (...params: any[]): SQLiteRow[] => {
           return new Promise((resolve, reject) => {
             db.all(sql, params, (err: Error, rows: SQLiteRow[]) => {
@@ -207,23 +214,23 @@ async function createSQLite3Database(dbPath: string): Promise<SQLiteDatabase> {
               else resolve(rows);
             });
           }) as any;
-        }
+        },
       };
     },
-    
+
     exec(sql: string): void {
       db.exec(sql);
     },
-    
+
     pragma(pragma: string): any {
       // SQLite3 doesn't support pragma directly, implement as exec
       this.exec(`PRAGMA ${pragma}`);
       return null;
     },
-    
+
     close(): void {
       db.close();
-    }
+    },
   };
 }
 
@@ -232,31 +239,31 @@ async function createSQLite3Database(dbPath: string): Promise<SQLiteDatabase> {
  */
 async function createSqlJsDatabase(dbPath: string): Promise<SQLiteDatabase> {
   // @ts-ignore - Optional dependency
-  const sqlJsModule = await import('sql.js');
+  const sqlJsModule = await import("sql.js");
   const initSqlJs = sqlJsModule.default;
-  const fs = await import('fs');
-  const path = await import('path');
-  
+  const fs = await import("fs");
+  const path = await import("path");
+
   const SQL = await initSqlJs();
-  
+
   // Load existing database or create new one
   let dbData: Uint8Array | undefined;
   try {
-    if (dbPath !== ':memory:' && fs.existsSync(dbPath)) {
+    if (dbPath !== ":memory:" && fs.existsSync(dbPath)) {
       dbData = fs.readFileSync(dbPath);
     }
   } catch (error) {
     // Ignore file read errors, will create new database
   }
-  
+
   const db = new SQL.Database(dbData);
-  
+
   // Auto-save functionality for persistent storage
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
   const scheduleSync = () => {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      if (dbPath !== ':memory:') {
+      if (dbPath !== ":memory:") {
         try {
           const dir = path.dirname(dbPath);
           if (!fs.existsSync(dir)) {
@@ -265,16 +272,16 @@ async function createSqlJsDatabase(dbPath: string): Promise<SQLiteDatabase> {
           const data = db.export();
           fs.writeFileSync(dbPath, data);
         } catch (error) {
-          console.warn('Failed to save SQLite database:', error);
+          console.warn("Failed to save SQLite database:", error);
         }
       }
     }, 1000);
   };
-  
+
   return {
-    name: 'sql.js',
+    name: "sql.js",
     open: true,
-    
+
     prepare(sql: string): SQLiteStatement {
       return {
         run: (...params: any[]): SQLiteResult => {
@@ -287,15 +294,15 @@ async function createSqlJsDatabase(dbPath: string): Promise<SQLiteDatabase> {
             const changes = db.getRowsModified();
             stmt.free();
             scheduleSync();
-            return { 
+            return {
               changes,
-              lastInsertRowid: undefined // SQL.js doesn't provide this easily
+              lastInsertRowid: undefined, // SQL.js doesn't provide this easily
             };
           } catch (error) {
             throw error;
           }
         },
-        
+
         get: (...params: any[]): SQLiteRow | undefined => {
           try {
             const stmt = db.prepare(sql);
@@ -310,7 +317,7 @@ async function createSqlJsDatabase(dbPath: string): Promise<SQLiteDatabase> {
             throw error;
           }
         },
-        
+
         all: (...params: any[]): SQLiteRow[] => {
           try {
             const stmt = db.prepare(sql);
@@ -326,27 +333,27 @@ async function createSqlJsDatabase(dbPath: string): Promise<SQLiteDatabase> {
           } catch (error) {
             throw error;
           }
-        }
+        },
       };
     },
-    
+
     exec(sql: string): void {
       db.exec(sql);
       scheduleSync();
     },
-    
+
     pragma(pragma: string): any {
       // Execute pragma as regular SQL
       this.exec(`PRAGMA ${pragma}`);
       return null;
     },
-    
+
     close(): void {
       if (saveTimer) {
         clearTimeout(saveTimer);
       }
       // Final sync before closing
-      if (dbPath !== ':memory:') {
+      if (dbPath !== ":memory:") {
         try {
           const dir = path.dirname(dbPath);
           if (!fs.existsSync(dir)) {
@@ -355,10 +362,10 @@ async function createSqlJsDatabase(dbPath: string): Promise<SQLiteDatabase> {
           const data = db.export();
           fs.writeFileSync(dbPath, data);
         } catch (error) {
-          console.warn('Failed to save SQLite database on close:', error);
+          console.warn("Failed to save SQLite database on close:", error);
         }
       }
       db.close();
-    }
+    },
   };
 }

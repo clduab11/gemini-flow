@@ -1,13 +1,13 @@
 /**
  * Session Manager
- * 
+ *
  * Advanced session persistence and state management for Project Mariner
  * with cross-session sharing, backup/restore, and intelligent state merging
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
-import { safeImport } from '../../utils/feature-detection.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
+import { safeImport } from "../../utils/feature-detection.js";
 
 import {
   SessionManager as ISessionManager,
@@ -15,10 +15,10 @@ import {
   TabState,
   SessionConfig,
   BrowserTab,
-  IntegrationBaseError
-} from './types.js';
+  IntegrationBaseError,
+} from "./types.js";
 
-import { BaseIntegration, HealthStatus } from '../shared/types.js';
+import { BaseIntegration, HealthStatus } from "../shared/types.js";
 
 export interface SessionManagerConfig {
   storage: SessionStorageConfig;
@@ -29,7 +29,7 @@ export interface SessionManagerConfig {
 }
 
 export interface SessionStorageConfig {
-  provider: 'memory' | 'filesystem' | 'database' | 'cloud';
+  provider: "memory" | "filesystem" | "database" | "cloud";
   path?: string;
   connectionString?: string;
   options?: Record<string, any>;
@@ -52,7 +52,7 @@ export interface SessionSharingConfig {
 
 export interface SessionPermission {
   user: string;
-  rights: ('read' | 'write' | 'delete')[];
+  rights: ("read" | "write" | "delete")[];
   expiration?: Date;
 }
 
@@ -66,8 +66,8 @@ export interface SessionBackupConfig {
 
 export interface SessionEncryptionConfig {
   enabled: boolean;
-  algorithm: 'aes-256-gcm' | 'chacha20-poly1305';
-  keyDerivation: 'pbkdf2' | 'scrypt';
+  algorithm: "aes-256-gcm" | "chacha20-poly1305";
+  keyDerivation: "pbkdf2" | "scrypt";
   keyRotation: boolean;
   rotationInterval: number;
 }
@@ -77,11 +77,11 @@ export interface SessionExportOptions {
   includePrivateData: boolean;
   compression: boolean;
   encryption: boolean;
-  format: 'json' | 'binary' | 'encrypted';
+  format: "json" | "binary" | "encrypted";
 }
 
 export interface SessionImportOptions {
-  mergeStrategy: 'replace' | 'merge' | 'preserve';
+  mergeStrategy: "replace" | "merge" | "preserve";
   validateIntegrity: boolean;
   autoDecrypt: boolean;
   preserveTimestamps: boolean;
@@ -97,7 +97,7 @@ export interface SessionAnalytics {
 }
 
 export interface SessionPattern {
-  type: 'navigation' | 'form-filling' | 'data-extraction';
+  type: "navigation" | "form-filling" | "data-extraction";
   frequency: number;
   lastSeen: Date;
   domains: string[];
@@ -108,7 +108,7 @@ export interface BackupStatus {
   lastBackup: Date;
   backupCount: number;
   totalSize: number;
-  health: 'good' | 'warning' | 'error';
+  health: "good" | "warning" | "error";
   remoteSync: boolean;
 }
 
@@ -118,11 +118,11 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
   private encryptor?: SessionEncryptor;
   private backup?: SessionBackup;
   private analytics: SessionAnalyticsEngine;
-  
+
   // Active sessions cache
   private activeSessions: Map<string, SessionState> = new Map();
   private sessionTimers: Map<string, NodeJS.Timeout> = new Map();
-  
+
   // Performance metrics
   private sessionMetrics = {
     sessionsCreated: 0,
@@ -132,21 +132,21 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
     backupsCreated: 0,
     avgLoadTime: 0,
     avgSaveTime: 0,
-    storageErrors: 0
+    storageErrors: 0,
   };
 
   constructor(config: SessionManagerConfig) {
     super({
-      id: 'session-manager',
-      name: 'Session Manager',
-      version: '1.0.0',
+      id: "session-manager",
+      name: "Session Manager",
+      version: "1.0.0",
       enabled: true,
       dependencies: [],
       features: {
         persistence: config.persistence.autoSave,
         sharing: config.sharing.enabled,
         backup: config.backup.enabled,
-        encryption: config.encryption.enabled
+        encryption: config.encryption.enabled,
       },
       performance: {
         maxConcurrentOperations: 10,
@@ -154,31 +154,31 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
         retryAttempts: 3,
         cacheEnabled: true,
         cacheTTLMs: 3600000,
-        metricsEnabled: true
+        metricsEnabled: true,
       },
       security: {
         encryption: config.encryption.enabled,
         validateOrigins: true,
         allowedHosts: [],
         tokenExpiration: 3600,
-        auditLogging: true
+        auditLogging: true,
       },
       storage: {
-        provider: 'local',
+        provider: "local",
         encryption: config.encryption.enabled,
-        compression: config.persistence.compression
-      }
+        compression: config.persistence.compression,
+      },
     });
-    
+
     this.config = config;
-    this.logger = new Logger('SessionManager');
+    this.logger = new Logger("SessionManager");
     this.storage = new SessionStorage(config.storage, this.logger);
     this.analytics = new SessionAnalyticsEngine(this.logger);
-    
+
     if (config.encryption.enabled) {
       this.encryptor = new SessionEncryptor(config.encryption, this.logger);
     }
-    
+
     if (config.backup.enabled) {
       this.backup = new SessionBackup(config.backup, this.logger);
     }
@@ -186,21 +186,21 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   async initialize(): Promise<void> {
     try {
-      this.status = 'initializing';
-      this.logger.info('Initializing Session Manager', {
+      this.status = "initializing";
+      this.logger.info("Initializing Session Manager", {
         storage: this.config.storage.provider,
         encryption: this.config.encryption.enabled,
-        backup: this.config.backup.enabled
+        backup: this.config.backup.enabled,
       });
 
       // Initialize storage
       await this.storage.initialize();
-      
+
       // Initialize encryption if enabled
       if (this.encryptor) {
         await this.encryptor.initialize();
       }
-      
+
       // Initialize backup if enabled
       if (this.backup) {
         await this.backup.initialize();
@@ -214,21 +214,20 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
       // Load existing sessions
       await this.loadExistingSessions();
 
-      this.status = 'ready';
-      this.logger.info('Session Manager initialized successfully');
-      this.emit('initialized', { timestamp: new Date() });
-
+      this.status = "ready";
+      this.logger.info("Session Manager initialized successfully");
+      this.emit("initialized", { timestamp: new Date() });
     } catch (error) {
-      this.status = 'error';
+      this.status = "error";
       const sessionError = new IntegrationBaseError(
         `Failed to initialize Session Manager: ${error.message}`,
-        'INIT_FAILED',
-        'SessionManager',
-        'critical',
+        "INIT_FAILED",
+        "SessionManager",
+        "critical",
         false,
-        { originalError: error.message }
+        { originalError: error.message },
       );
-      
+
       this.emitError(sessionError);
       throw sessionError;
     }
@@ -236,12 +235,12 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   async shutdown(): Promise<void> {
     try {
-      this.logger.info('Shutting down Session Manager');
-      this.status = 'shutdown';
+      this.logger.info("Shutting down Session Manager");
+      this.status = "shutdown";
 
       // Save all active sessions
       await this.saveAllActiveSessions();
-      
+
       // Clear timers
       for (const timer of this.sessionTimers.values()) {
         clearTimeout(timer);
@@ -254,11 +253,10 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
         await this.backup.shutdown();
       }
 
-      this.logger.info('Session Manager shutdown complete');
-      this.emit('shutdown', { timestamp: new Date() });
-
+      this.logger.info("Session Manager shutdown complete");
+      this.emit("shutdown", { timestamp: new Date() });
     } catch (error) {
-      this.logger.error('Error during Session Manager shutdown', error);
+      this.logger.error("Error during Session Manager shutdown", error);
       throw error;
     }
   }
@@ -267,31 +265,30 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
     try {
       // Check storage health
       const storageHealth = await this.storage.healthCheck();
-      if (storageHealth === 'critical') {
-        return 'critical';
+      if (storageHealth === "critical") {
+        return "critical";
       }
 
       // Check backup health if enabled
       if (this.backup) {
         const backupHealth = await this.backup.healthCheck();
-        if (backupHealth === 'critical') {
-          return 'warning'; // Backup failure is not critical
+        if (backupHealth === "critical") {
+          return "warning"; // Backup failure is not critical
         }
       }
 
       // Check encryption if enabled
       if (this.encryptor) {
         const encryptionHealth = await this.encryptor.healthCheck();
-        if (encryptionHealth === 'critical') {
-          return 'critical';
+        if (encryptionHealth === "critical") {
+          return "critical";
         }
       }
 
-      return 'healthy';
-
+      return "healthy";
     } catch (error) {
-      this.logger.error('Health check failed', error);
-      return 'critical';
+      this.logger.error("Health check failed", error);
+      return "critical";
     }
   }
 
@@ -300,7 +297,7 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
       ...this.sessionMetrics,
       activeSessions: this.activeSessions.size,
       storageSize: this.storage.getStorageSize(),
-      analyticsData: this.analytics.getMetrics()
+      analyticsData: this.analytics.getMetrics(),
     };
   }
 
@@ -308,13 +305,13 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   async saveSession(session: SessionState): Promise<void> {
     const startTime = performance.now();
-    
+
     try {
-      this.logger.info('Saving session', { sessionId: session.id });
+      this.logger.info("Saving session", { sessionId: session.id });
 
       // Validate session
       this.validateSession(session);
-      
+
       // Encrypt if configured
       let processedSession = session;
       if (this.encryptor) {
@@ -323,38 +320,37 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
       // Save to storage
       await this.storage.saveSession(processedSession);
-      
+
       // Update cache
       this.activeSessions.set(session.id, session);
-      
+
       // Update analytics
       this.analytics.recordSessionSave(session);
-      
+
       // Update metrics
       const duration = performance.now() - startTime;
       this.sessionMetrics.sessionsSaved++;
-      this.sessionMetrics.avgSaveTime = 
+      this.sessionMetrics.avgSaveTime =
         (this.sessionMetrics.avgSaveTime + duration) / 2;
 
-      this.logger.info('Session saved successfully', {
+      this.logger.info("Session saved successfully", {
         sessionId: session.id,
         duration,
-        tabs: session.tabs.size
+        tabs: session.tabs.size,
       });
 
-      this.emit('session_saved', { session, duration, timestamp: new Date() });
-
+      this.emit("session_saved", { session, duration, timestamp: new Date() });
     } catch (error) {
       this.sessionMetrics.storageErrors++;
       const saveError = new IntegrationBaseError(
         `Failed to save session: ${error.message}`,
-        'SESSION_SAVE_FAILED',
-        'SessionManager',
-        'medium',
+        "SESSION_SAVE_FAILED",
+        "SessionManager",
+        "medium",
         true,
-        { sessionId: session.id }
+        { sessionId: session.id },
       );
-      
+
       this.emitError(saveError);
       throw saveError;
     }
@@ -362,13 +358,13 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   async loadSession(sessionId: string): Promise<SessionState> {
     const startTime = performance.now();
-    
+
     try {
-      this.logger.info('Loading session', { sessionId });
+      this.logger.info("Loading session", { sessionId });
 
       // Check cache first
       if (this.activeSessions.has(sessionId)) {
-        this.logger.debug('Session found in cache', { sessionId });
+        this.logger.debug("Session found in cache", { sessionId });
         return this.activeSessions.get(sessionId)!;
       }
 
@@ -385,39 +381,38 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
       // Validate loaded session
       this.validateSession(session);
-      
+
       // Add to cache
       this.activeSessions.set(sessionId, session);
-      
+
       // Update analytics
       this.analytics.recordSessionLoad(session);
-      
+
       // Update metrics
       const duration = performance.now() - startTime;
       this.sessionMetrics.sessionsLoaded++;
-      this.sessionMetrics.avgLoadTime = 
+      this.sessionMetrics.avgLoadTime =
         (this.sessionMetrics.avgLoadTime + duration) / 2;
 
-      this.logger.info('Session loaded successfully', {
+      this.logger.info("Session loaded successfully", {
         sessionId,
         duration,
-        tabs: session.tabs.size
+        tabs: session.tabs.size,
       });
 
-      this.emit('session_loaded', { session, duration, timestamp: new Date() });
+      this.emit("session_loaded", { session, duration, timestamp: new Date() });
       return session;
-
     } catch (error) {
       this.sessionMetrics.storageErrors++;
       const loadError = new IntegrationBaseError(
         `Failed to load session: ${error.message}`,
-        'SESSION_LOAD_FAILED',
-        'SessionManager',
-        'medium',
+        "SESSION_LOAD_FAILED",
+        "SessionManager",
+        "medium",
         true,
-        { sessionId }
+        { sessionId },
       );
-      
+
       this.emitError(loadError);
       throw loadError;
     }
@@ -425,43 +420,45 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   async restoreSession(sessionId: string): Promise<void> {
     try {
-      this.logger.info('Restoring session', { sessionId });
+      this.logger.info("Restoring session", { sessionId });
 
       // Load session
       const session = await this.loadSession(sessionId);
-      
+
       // This would integrate with BrowserOrchestrator to recreate tabs
       // For now, we'll emit an event that the orchestrator can listen to
-      this.emit('session_restore_requested', { 
-        session, 
-        timestamp: new Date() 
+      this.emit("session_restore_requested", {
+        session,
+        timestamp: new Date(),
       });
 
-      this.logger.info('Session restore requested', { sessionId });
-
+      this.logger.info("Session restore requested", { sessionId });
     } catch (error) {
       const restoreError = new IntegrationBaseError(
         `Failed to restore session: ${error.message}`,
-        'SESSION_RESTORE_FAILED',
-        'SessionManager',
-        'medium',
+        "SESSION_RESTORE_FAILED",
+        "SessionManager",
+        "medium",
         true,
-        { sessionId }
+        { sessionId },
       );
-      
+
       this.emitError(restoreError);
       throw restoreError;
     }
   }
 
-  async mergeSession(sessionAId: string, sessionBId: string): Promise<SessionState> {
+  async mergeSession(
+    sessionAId: string,
+    sessionBId: string,
+  ): Promise<SessionState> {
     try {
-      this.logger.info('Merging sessions', { sessionAId, sessionBId });
+      this.logger.info("Merging sessions", { sessionAId, sessionBId });
 
       // Load both sessions
       const [sessionA, sessionB] = await Promise.all([
         this.loadSession(sessionAId),
-        this.loadSession(sessionBId)
+        this.loadSession(sessionBId),
       ]);
 
       // Create merged session
@@ -471,40 +468,42 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
         globalState: { ...sessionA.globalState, ...sessionB.globalState },
         cookies: { ...sessionA.cookies, ...sessionB.cookies },
         localStorage: { ...sessionA.localStorage, ...sessionB.localStorage },
-        sessionStorage: { ...sessionA.sessionStorage, ...sessionB.sessionStorage },
+        sessionStorage: {
+          ...sessionA.sessionStorage,
+          ...sessionB.sessionStorage,
+        },
         timestamp: new Date(),
-        version: sessionA.version
+        version: sessionA.version,
       };
 
       // Save merged session
       await this.saveSession(mergedSession);
 
-      this.logger.info('Sessions merged successfully', {
+      this.logger.info("Sessions merged successfully", {
         mergedId: mergedSession.id,
         tabsA: sessionA.tabs.size,
         tabsB: sessionB.tabs.size,
-        totalTabs: mergedSession.tabs.size
+        totalTabs: mergedSession.tabs.size,
       });
 
-      this.emit('sessions_merged', { 
-        sessionA, 
-        sessionB, 
-        mergedSession, 
-        timestamp: new Date() 
+      this.emit("sessions_merged", {
+        sessionA,
+        sessionB,
+        mergedSession,
+        timestamp: new Date(),
       });
 
       return mergedSession;
-
     } catch (error) {
       const mergeError = new IntegrationBaseError(
         `Failed to merge sessions: ${error.message}`,
-        'SESSION_MERGE_FAILED',
-        'SessionManager',
-        'medium',
+        "SESSION_MERGE_FAILED",
+        "SessionManager",
+        "medium",
         true,
-        { sessionAId, sessionBId }
+        { sessionAId, sessionBId },
       );
-      
+
       this.emitError(mergeError);
       throw mergeError;
     }
@@ -513,18 +512,17 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
   async listSessions(): Promise<string[]> {
     try {
       const sessionIds = await this.storage.listSessions();
-      this.logger.debug('Listed sessions', { count: sessionIds.length });
+      this.logger.debug("Listed sessions", { count: sessionIds.length });
       return sessionIds;
-
     } catch (error) {
       const listError = new IntegrationBaseError(
         `Failed to list sessions: ${error.message}`,
-        'SESSION_LIST_FAILED',
-        'SessionManager',
-        'low',
-        true
+        "SESSION_LIST_FAILED",
+        "SessionManager",
+        "low",
+        true,
       );
-      
+
       this.emitError(listError);
       throw listError;
     }
@@ -532,14 +530,14 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   async deleteSession(sessionId: string): Promise<void> {
     try {
-      this.logger.info('Deleting session', { sessionId });
+      this.logger.info("Deleting session", { sessionId });
 
       // Remove from storage
       await this.storage.deleteSession(sessionId);
-      
+
       // Remove from cache
       this.activeSessions.delete(sessionId);
-      
+
       // Clear timer if exists
       const timer = this.sessionTimers.get(sessionId);
       if (timer) {
@@ -549,48 +547,52 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
       this.sessionMetrics.sessionsDeleted++;
 
-      this.logger.info('Session deleted successfully', { sessionId });
-      this.emit('session_deleted', { sessionId, timestamp: new Date() });
-
+      this.logger.info("Session deleted successfully", { sessionId });
+      this.emit("session_deleted", { sessionId, timestamp: new Date() });
     } catch (error) {
       const deleteError = new IntegrationBaseError(
         `Failed to delete session: ${error.message}`,
-        'SESSION_DELETE_FAILED',
-        'SessionManager',
-        'medium',
+        "SESSION_DELETE_FAILED",
+        "SessionManager",
+        "medium",
         true,
-        { sessionId }
+        { sessionId },
       );
-      
+
       this.emitError(deleteError);
       throw deleteError;
     }
   }
 
-  async exportSession(sessionId: string, options?: SessionExportOptions): Promise<string> {
+  async exportSession(
+    sessionId: string,
+    options?: SessionExportOptions,
+  ): Promise<string> {
     try {
-      this.logger.info('Exporting session', { sessionId, options });
+      this.logger.info("Exporting session", { sessionId, options });
 
       // Load session
       const session = await this.loadSession(sessionId);
-      
+
       // Apply export options
       const exportData = this.prepareExportData(session, options);
-      
+
       // Serialize based on format
       let result: string;
-      switch (options?.format || 'json') {
-        case 'json':
+      switch (options?.format || "json") {
+        case "json":
           result = JSON.stringify(exportData, null, 2);
           break;
-        case 'binary':
-          result = Buffer.from(JSON.stringify(exportData)).toString('base64');
+        case "binary":
+          result = Buffer.from(JSON.stringify(exportData)).toString("base64");
           break;
-        case 'encrypted':
+        case "encrypted":
           if (!this.encryptor) {
-            throw new Error('Encryption not configured');
+            throw new Error("Encryption not configured");
           }
-          result = await this.encryptor.encryptString(JSON.stringify(exportData));
+          result = await this.encryptor.encryptString(
+            JSON.stringify(exportData),
+          );
           break;
         default:
           throw new Error(`Unsupported export format: ${options?.format}`);
@@ -601,33 +603,39 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
         result = await this.compressString(result);
       }
 
-      this.logger.info('Session exported successfully', {
+      this.logger.info("Session exported successfully", {
         sessionId,
-        format: options?.format || 'json',
-        size: result.length
+        format: options?.format || "json",
+        size: result.length,
       });
 
-      this.emit('session_exported', { sessionId, format: options?.format, timestamp: new Date() });
+      this.emit("session_exported", {
+        sessionId,
+        format: options?.format,
+        timestamp: new Date(),
+      });
       return result;
-
     } catch (error) {
       const exportError = new IntegrationBaseError(
         `Failed to export session: ${error.message}`,
-        'SESSION_EXPORT_FAILED',
-        'SessionManager',
-        'medium',
+        "SESSION_EXPORT_FAILED",
+        "SessionManager",
+        "medium",
         true,
-        { sessionId }
+        { sessionId },
       );
-      
+
       this.emitError(exportError);
       throw exportError;
     }
   }
 
-  async importSession(data: string, options?: SessionImportOptions): Promise<SessionState> {
+  async importSession(
+    data: string,
+    options?: SessionImportOptions,
+  ): Promise<SessionState> {
     try {
-      this.logger.info('Importing session', { options });
+      this.logger.info("Importing session", { options });
 
       let sessionData = data;
 
@@ -642,7 +650,7 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
           sessionData = await this.encryptor.decryptString(sessionData);
         } catch (error) {
           // Data might not be encrypted
-          this.logger.debug('Data not encrypted or decryption failed', error);
+          this.logger.debug("Data not encrypted or decryption failed", error);
         }
       }
 
@@ -654,10 +662,10 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
       } catch (error) {
         // Try base64 decode
         try {
-          const decoded = Buffer.from(sessionData, 'base64').toString('utf-8');
+          const decoded = Buffer.from(sessionData, "base64").toString("utf-8");
           importedData = JSON.parse(decoded);
         } catch (decodeError) {
-          throw new Error('Invalid session data format');
+          throw new Error("Invalid session data format");
         }
       }
 
@@ -670,7 +678,7 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
       const session = this.convertImportedSession(importedData, options);
 
       // Handle merge strategy
-      if (options?.mergeStrategy === 'merge') {
+      if (options?.mergeStrategy === "merge") {
         try {
           const existingSession = await this.loadSession(session.id);
           return await this.mergeSessionStates(existingSession, session);
@@ -682,23 +690,22 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
       // Save imported session
       await this.saveSession(session);
 
-      this.logger.info('Session imported successfully', {
+      this.logger.info("Session imported successfully", {
         sessionId: session.id,
-        tabs: session.tabs.size
+        tabs: session.tabs.size,
       });
 
-      this.emit('session_imported', { session, timestamp: new Date() });
+      this.emit("session_imported", { session, timestamp: new Date() });
       return session;
-
     } catch (error) {
       const importError = new IntegrationBaseError(
         `Failed to import session: ${error.message}`,
-        'SESSION_IMPORT_FAILED',
-        'SessionManager',
-        'medium',
-        true
+        "SESSION_IMPORT_FAILED",
+        "SessionManager",
+        "medium",
+        true,
       );
-      
+
       this.emitError(importError);
       throw importError;
     }
@@ -708,11 +715,11 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   private validateSession(session: SessionState): void {
     if (!session.id || !session.version || !session.timestamp) {
-      throw new Error('Invalid session format');
+      throw new Error("Invalid session format");
     }
 
     if (!(session.tabs instanceof Map)) {
-      throw new Error('Invalid session tabs format');
+      throw new Error("Invalid session tabs format");
     }
   }
 
@@ -722,16 +729,17 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
       try {
         await this.saveAllActiveSessions();
       } catch (error) {
-        this.logger.error('Auto-save failed', error);
+        this.logger.error("Auto-save failed", error);
       }
     }, interval);
   }
 
   private async saveAllActiveSessions(): Promise<void> {
-    const savePromises = Array.from(this.activeSessions.values()).map(session =>
-      this.saveSession(session).catch(error =>
-        this.logger.warn(`Failed to save session ${session.id}`, error)
-      )
+    const savePromises = Array.from(this.activeSessions.values()).map(
+      (session) =>
+        this.saveSession(session).catch((error) =>
+          this.logger.warn(`Failed to save session ${session.id}`, error),
+        ),
     );
 
     await Promise.all(savePromises);
@@ -740,7 +748,7 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
   private async loadExistingSessions(): Promise<void> {
     try {
       const sessionIds = await this.storage.listSessions();
-      this.logger.info('Found existing sessions', { count: sessionIds.length });
+      this.logger.info("Found existing sessions", { count: sessionIds.length });
 
       // Load recent sessions into cache
       const recentSessions = sessionIds.slice(0, 10); // Load last 10 sessions
@@ -752,11 +760,14 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
         }
       }
     } catch (error) {
-      this.logger.error('Failed to load existing sessions', error);
+      this.logger.error("Failed to load existing sessions", error);
     }
   }
 
-  private prepareExportData(session: SessionState, options?: SessionExportOptions): any {
+  private prepareExportData(
+    session: SessionState,
+    options?: SessionExportOptions,
+  ): any {
     const exportData = {
       id: session.id,
       tabs: Object.fromEntries(session.tabs),
@@ -765,7 +776,7 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
       localStorage: session.localStorage,
       sessionStorage: session.sessionStorage,
       timestamp: session.timestamp,
-      version: session.version
+      version: session.version,
     };
 
     // Remove sensitive data if not included
@@ -784,15 +795,18 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   private validateImportedSession(data: any): void {
     if (!data.id || !data.version || !data.timestamp) {
-      throw new Error('Invalid imported session format');
+      throw new Error("Invalid imported session format");
     }
 
-    if (!data.tabs || typeof data.tabs !== 'object') {
-      throw new Error('Invalid tabs data in imported session');
+    if (!data.tabs || typeof data.tabs !== "object") {
+      throw new Error("Invalid tabs data in imported session");
     }
   }
 
-  private convertImportedSession(data: any, options?: SessionImportOptions): SessionState {
+  private convertImportedSession(
+    data: any,
+    options?: SessionImportOptions,
+  ): SessionState {
     const session: SessionState = {
       id: data.id,
       tabs: new Map(Object.entries(data.tabs || {})),
@@ -800,23 +814,31 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
       cookies: data.cookies || {},
       localStorage: data.localStorage || {},
       sessionStorage: data.sessionStorage || {},
-      timestamp: options?.preserveTimestamps ? new Date(data.timestamp) : new Date(),
-      version: data.version || '1.0'
+      timestamp: options?.preserveTimestamps
+        ? new Date(data.timestamp)
+        : new Date(),
+      version: data.version || "1.0",
     };
 
     return session;
   }
 
-  private async mergeSessionStates(sessionA: SessionState, sessionB: SessionState): Promise<SessionState> {
+  private async mergeSessionStates(
+    sessionA: SessionState,
+    sessionB: SessionState,
+  ): Promise<SessionState> {
     return {
       id: sessionA.id, // Keep original ID
       tabs: new Map([...sessionA.tabs, ...sessionB.tabs]),
       globalState: { ...sessionA.globalState, ...sessionB.globalState },
       cookies: { ...sessionA.cookies, ...sessionB.cookies },
       localStorage: { ...sessionA.localStorage, ...sessionB.localStorage },
-      sessionStorage: { ...sessionA.sessionStorage, ...sessionB.sessionStorage },
+      sessionStorage: {
+        ...sessionA.sessionStorage,
+        ...sessionB.sessionStorage,
+      },
       timestamp: new Date(),
-      version: sessionA.version
+      version: sessionA.version,
     };
   }
 
@@ -849,7 +871,7 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   async createBackup(): Promise<void> {
     if (!this.backup) {
-      throw new Error('Backup not configured');
+      throw new Error("Backup not configured");
     }
 
     await this.backup.createBackup();
@@ -858,7 +880,7 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
 
   async restoreFromBackup(backupId: string): Promise<void> {
     if (!this.backup) {
-      throw new Error('Backup not configured');
+      throw new Error("Backup not configured");
     }
 
     await this.backup.restoreFromBackup(backupId);
@@ -870,8 +892,8 @@ export class SessionManager extends BaseIntegration implements ISessionManager {
         lastBackup: new Date(0),
         backupCount: 0,
         totalSize: 0,
-        health: 'error',
-        remoteSync: false
+        health: "error",
+        remoteSync: false,
       };
     }
 
@@ -892,15 +914,17 @@ class SessionStorage {
   }
 
   async initialize(): Promise<void> {
-    this.logger.info('Session storage initialized', { provider: this.config.provider });
+    this.logger.info("Session storage initialized", {
+      provider: this.config.provider,
+    });
   }
 
   async shutdown(): Promise<void> {
-    this.logger.info('Session storage shutdown');
+    this.logger.info("Session storage shutdown");
   }
 
   async healthCheck(): Promise<HealthStatus> {
-    return 'healthy';
+    return "healthy";
   }
 
   async saveSession(session: SessionState): Promise<void> {
@@ -937,11 +961,11 @@ class SessionEncryptor {
   }
 
   async initialize(): Promise<void> {
-    this.logger.info('Session encryptor initialized');
+    this.logger.info("Session encryptor initialized");
   }
 
   async healthCheck(): Promise<HealthStatus> {
-    return 'healthy';
+    return "healthy";
   }
 
   async encryptSession(session: SessionState): Promise<SessionState> {
@@ -975,23 +999,23 @@ class SessionBackup {
   }
 
   async initialize(): Promise<void> {
-    this.logger.info('Session backup initialized');
+    this.logger.info("Session backup initialized");
   }
 
   async shutdown(): Promise<void> {
-    this.logger.info('Session backup shutdown');
+    this.logger.info("Session backup shutdown");
   }
 
   async healthCheck(): Promise<HealthStatus> {
-    return 'healthy';
+    return "healthy";
   }
 
   async createBackup(): Promise<void> {
-    this.logger.info('Creating session backup');
+    this.logger.info("Creating session backup");
   }
 
   async restoreFromBackup(backupId: string): Promise<void> {
-    this.logger.info('Restoring from backup', { backupId });
+    this.logger.info("Restoring from backup", { backupId });
   }
 
   getStatus(): BackupStatus {
@@ -999,8 +1023,8 @@ class SessionBackup {
       lastBackup: new Date(),
       backupCount: 0,
       totalSize: 0,
-      health: 'good',
-      remoteSync: this.config.remote
+      health: "good",
+      remoteSync: this.config.remote,
     };
   }
 }
@@ -1022,9 +1046,9 @@ class SessionAnalyticsEngine {
         lastBackup: new Date(),
         backupCount: 0,
         totalSize: 0,
-        health: 'good',
-        remoteSync: false
-      }
+        health: "good",
+        remoteSync: false,
+      },
     };
   }
 

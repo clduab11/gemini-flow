@@ -1,10 +1,10 @@
 /**
  * Shared Types for Advanced Integrations
- * 
+ *
  * Common interfaces and types used across Project Mariner and Veo3 integrations
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 // === CORE INTERFACES ===
 
@@ -38,7 +38,7 @@ export interface SecurityConfig {
 }
 
 export interface StorageConfig {
-  provider: 'gcs' | 'local' | 'memory';
+  provider: "gcs" | "local" | "memory";
   bucket?: string;
   region?: string;
   credentials?: any;
@@ -64,24 +64,24 @@ export interface Task {
   estimatedDuration?: number;
 }
 
-export type TaskType = 
-  | 'browser_automation'
-  | 'video_generation'
-  | 'data_processing'
-  | 'file_upload'
-  | 'coordination'
-  | 'monitoring';
+export type TaskType =
+  | "browser_automation"
+  | "video_generation"
+  | "data_processing"
+  | "file_upload"
+  | "coordination"
+  | "monitoring";
 
-export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
+export type TaskPriority = "low" | "medium" | "high" | "critical";
 
-export type TaskStatus = 
-  | 'pending'
-  | 'queued'
-  | 'running'
-  | 'paused'
-  | 'completed'
-  | 'failed'
-  | 'cancelled';
+export type TaskStatus =
+  | "pending"
+  | "queued"
+  | "running"
+  | "paused"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 export interface TaskMetadata {
   createdAt: Date;
@@ -124,15 +124,15 @@ export interface Agent {
   metadata: AgentMetadata;
 }
 
-export type AgentType = 
-  | 'browser_orchestrator'
-  | 'web_agent'
-  | 'video_processor'
-  | 'storage_manager'
-  | 'coordinator'
-  | 'monitor';
+export type AgentType =
+  | "browser_orchestrator"
+  | "web_agent"
+  | "video_processor"
+  | "storage_manager"
+  | "coordinator"
+  | "monitor";
 
-export type AgentStatus = 'idle' | 'busy' | 'error' | 'maintenance';
+export type AgentStatus = "idle" | "busy" | "error" | "maintenance";
 
 export interface AgentPerformance {
   tasksCompleted: number;
@@ -153,7 +153,7 @@ export interface AgentMetadata {
 
 export interface StorageOperation {
   id: string;
-  type: 'upload' | 'download' | 'delete' | 'copy' | 'move';
+  type: "upload" | "download" | "delete" | "copy" | "move";
   source: string;
   destination?: string;
   size: number;
@@ -187,11 +187,11 @@ export interface MetricsSnapshot {
   alerts: Alert[];
 }
 
-export type HealthStatus = 'healthy' | 'warning' | 'critical' | 'unknown';
+export type HealthStatus = "healthy" | "warning" | "critical" | "unknown";
 
 export interface Alert {
   id: string;
-  severity: 'info' | 'warning' | 'error' | 'critical';
+  severity: "info" | "warning" | "error" | "critical";
   message: string;
   timestamp: Date;
   source: string;
@@ -234,7 +234,7 @@ export interface StreamingProgress {
 export interface IntegrationError extends Error {
   code: string;
   component: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   recoverable: boolean;
   metadata: Record<string, any>;
   timestamp: Date;
@@ -243,7 +243,7 @@ export interface IntegrationError extends Error {
 export class IntegrationBaseError extends Error implements IntegrationError {
   public code: string;
   public component: string;
-  public severity: 'low' | 'medium' | 'high' | 'critical';
+  public severity: "low" | "medium" | "high" | "critical";
   public recoverable: boolean;
   public metadata: Record<string, any>;
   public timestamp: Date;
@@ -252,12 +252,12 @@ export class IntegrationBaseError extends Error implements IntegrationError {
     message: string,
     code: string,
     component: string,
-    severity: 'low' | 'medium' | 'high' | 'critical' = 'medium',
+    severity: "low" | "medium" | "high" | "critical" = "medium",
     recoverable: boolean = true,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, any> = {},
   ) {
     super(message);
-    this.name = 'IntegrationError';
+    this.name = "IntegrationError";
     this.code = code;
     this.component = component;
     this.severity = severity;
@@ -298,7 +298,8 @@ export abstract class BaseIntegration extends EventEmitter {
   protected config: IntegrationConfig;
   protected logger: any;
   protected metrics: Map<string, number> = new Map();
-  protected status: 'initializing' | 'ready' | 'error' | 'shutdown' = 'initializing';
+  protected status: "initializing" | "ready" | "error" | "shutdown" =
+    "initializing";
 
   constructor(config: IntegrationConfig) {
     super();
@@ -312,22 +313,27 @@ export abstract class BaseIntegration extends EventEmitter {
 
   protected recordMetric(name: string, value: number): void {
     this.metrics.set(name, value);
-    this.emit('metric', { name, value, timestamp: new Date() });
+    this.emit("metric", { name, value, timestamp: new Date() });
   }
 
-  protected emitProgress(taskId: string, progress: number, stage: string, message?: string): void {
+  protected emitProgress(
+    taskId: string,
+    progress: number,
+    stage: string,
+    message?: string,
+  ): void {
     const update: ProgressUpdate = {
       taskId,
       progress,
       stage,
       message,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    this.emit('progress', update);
+    this.emit("progress", update);
   }
 
   protected emitError(error: IntegrationError): void {
-    this.emit('error', error);
+    this.emit("error", error);
   }
 
   public getStatus(): string {
@@ -335,6 +341,6 @@ export abstract class BaseIntegration extends EventEmitter {
   }
 
   public isReady(): boolean {
-    return this.status === 'ready';
+    return this.status === "ready";
   }
 }

@@ -3,15 +3,15 @@
  * Demonstrates type-safe usage of Claude Flow and RUV Swarm MCP tools
  */
 
-import { MCPToGeminiAdapter } from '../core/mcp-adapter.js';
+import { MCPToGeminiAdapter } from "../core/mcp-adapter.js";
 import type {
   MCPToolName,
   MCPToolParameters,
   MCPToolReturnType,
   SwarmConfig,
   AgentConfig,
-  TaskConfig
-} from '../types/mcp-tools.js';
+  TaskConfig,
+} from "../types/mcp-tools.js";
 
 export class MCPToolsExamples {
   private adapter: MCPToGeminiAdapter;
@@ -25,18 +25,21 @@ export class MCPToolsExamples {
    */
   async initializeSwarm(): Promise<void> {
     // Type-safe swarm initialization
-    const swarmParams: MCPToolParameters<'mcp__claude-flow__swarm_init'> = {
-      topology: 'hierarchical',
+    const swarmParams: MCPToolParameters<"mcp__claude-flow__swarm_init"> = {
+      topology: "hierarchical",
       maxAgents: 8,
-      strategy: 'balanced'
+      strategy: "balanced",
     };
 
-    const result = await this.adapter.callMCPTool('mcp__claude-flow__swarm_init', swarmParams);
-    
+    const result = await this.adapter.callMCPTool(
+      "mcp__claude-flow__swarm_init",
+      swarmParams,
+    );
+
     if (result.success) {
-      console.log('Swarm initialized successfully:', result.data);
+      console.log("Swarm initialized successfully:", result.data);
     } else {
-      console.error('Swarm initialization failed:', result.error);
+      console.error("Swarm initialization failed:", result.error);
     }
   }
 
@@ -44,23 +47,22 @@ export class MCPToolsExamples {
    * Example: Spawn agents with different types
    */
   async spawnAgents(): Promise<void> {
-    const agentTypes: Array<MCPToolParameters<'mcp__claude-flow__agent_spawn'>['type']> = [
-      'coordinator',
-      'researcher', 
-      'coder',
-      'analyst',
-      'tester'
-    ];
+    const agentTypes: Array<
+      MCPToolParameters<"mcp__claude-flow__agent_spawn">["type"]
+    > = ["coordinator", "researcher", "coder", "analyst", "tester"];
 
     for (const agentType of agentTypes) {
-      const agentParams: MCPToolParameters<'mcp__claude-flow__agent_spawn'> = {
+      const agentParams: MCPToolParameters<"mcp__claude-flow__agent_spawn"> = {
         type: agentType,
         name: `${agentType}-agent`,
-        capabilities: [`${agentType}-skills`, 'collaboration']
+        capabilities: [`${agentType}-skills`, "collaboration"],
       };
 
-      const result = await this.adapter.callMCPTool('mcp__claude-flow__agent_spawn', agentParams);
-      
+      const result = await this.adapter.callMCPTool(
+        "mcp__claude-flow__agent_spawn",
+        agentParams,
+      );
+
       if (result.success) {
         console.log(`${agentType} agent spawned:`, result.data);
       } else {
@@ -73,25 +75,32 @@ export class MCPToolsExamples {
    * Example: Orchestrate complex tasks
    */
   async orchestrateTask(): Promise<void> {
-    const taskParams: MCPToolParameters<'mcp__claude-flow__task_orchestrate'> = {
-      task: 'Build a comprehensive REST API with authentication and testing',
-      strategy: 'parallel',
-      priority: 'high',
-      dependencies: ['database-setup', 'environment-config']
-    };
-
-    const result = await this.adapter.callMCPTool('mcp__claude-flow__task_orchestrate', taskParams);
-    
-    if (result.success) {
-      console.log('Task orchestration started:', result.data);
-      
-      // Check task status
-      const statusParams: MCPToolParameters<'mcp__claude-flow__task_status'> = {
-        taskId: result.data.taskId
+    const taskParams: MCPToolParameters<"mcp__claude-flow__task_orchestrate"> =
+      {
+        task: "Build a comprehensive REST API with authentication and testing",
+        strategy: "parallel",
+        priority: "high",
+        dependencies: ["database-setup", "environment-config"],
       };
-      
-      const statusResult = await this.adapter.callMCPTool('mcp__claude-flow__task_status', statusParams);
-      console.log('Task status:', statusResult.data);
+
+    const result = await this.adapter.callMCPTool(
+      "mcp__claude-flow__task_orchestrate",
+      taskParams,
+    );
+
+    if (result.success) {
+      console.log("Task orchestration started:", result.data);
+
+      // Check task status
+      const statusParams: MCPToolParameters<"mcp__claude-flow__task_status"> = {
+        taskId: result.data.taskId,
+      };
+
+      const statusResult = await this.adapter.callMCPTool(
+        "mcp__claude-flow__task_status",
+        statusParams,
+      );
+      console.log("Task status:", statusResult.data);
     }
   }
 
@@ -100,32 +109,39 @@ export class MCPToolsExamples {
    */
   async manageMemory(): Promise<void> {
     // Store data in memory
-    const storeParams: MCPToolParameters<'mcp__claude-flow__memory_usage'> = {
-      action: 'store',
-      key: 'project-config',
+    const storeParams: MCPToolParameters<"mcp__claude-flow__memory_usage"> = {
+      action: "store",
+      key: "project-config",
       value: JSON.stringify({
-        name: 'gemini-flow',
-        version: '1.0.0',
-        agents: ['coordinator', 'coder', 'tester']
+        name: "gemini-flow",
+        version: "1.0.0",
+        agents: ["coordinator", "coder", "tester"],
       }),
-      namespace: 'project',
-      ttl: 3600 // 1 hour
+      namespace: "project",
+      ttl: 3600, // 1 hour
     };
 
-    await this.adapter.callMCPTool('mcp__claude-flow__memory_usage', storeParams);
+    await this.adapter.callMCPTool(
+      "mcp__claude-flow__memory_usage",
+      storeParams,
+    );
 
     // Retrieve data from memory
-    const retrieveParams: MCPToolParameters<'mcp__claude-flow__memory_usage'> = {
-      action: 'retrieve',
-      key: 'project-config',
-      namespace: 'project'
-    };
+    const retrieveParams: MCPToolParameters<"mcp__claude-flow__memory_usage"> =
+      {
+        action: "retrieve",
+        key: "project-config",
+        namespace: "project",
+      };
 
-    const result = await this.adapter.callMCPTool('mcp__claude-flow__memory_usage', retrieveParams);
-    
+    const result = await this.adapter.callMCPTool(
+      "mcp__claude-flow__memory_usage",
+      retrieveParams,
+    );
+
     if (result.success && result.data) {
       const projectConfig = JSON.parse(result.data.value);
-      console.log('Retrieved project config:', projectConfig);
+      console.log("Retrieved project config:", projectConfig);
     }
   }
 
@@ -133,20 +149,27 @@ export class MCPToolsExamples {
    * Example: Neural pattern training
    */
   async trainNeuralPatterns(): Promise<void> {
-    const trainingParams: MCPToolParameters<'mcp__claude-flow__neural_train'> = {
-      pattern_type: 'coordination',
-      training_data: 'Historical swarm coordination patterns and outcomes',
-      epochs: 50
-    };
+    const trainingParams: MCPToolParameters<"mcp__claude-flow__neural_train"> =
+      {
+        pattern_type: "coordination",
+        training_data: "Historical swarm coordination patterns and outcomes",
+        epochs: 50,
+      };
 
-    const result = await this.adapter.callMCPTool('mcp__claude-flow__neural_train', trainingParams);
-    
+    const result = await this.adapter.callMCPTool(
+      "mcp__claude-flow__neural_train",
+      trainingParams,
+    );
+
     if (result.success) {
-      console.log('Neural training completed:', result.data);
-      
+      console.log("Neural training completed:", result.data);
+
       // Check neural status
-      const statusResult = await this.adapter.callMCPTool('mcp__claude-flow__neural_status', {});
-      console.log('Neural network status:', statusResult.data);
+      const statusResult = await this.adapter.callMCPTool(
+        "mcp__claude-flow__neural_status",
+        {},
+      );
+      console.log("Neural network status:", statusResult.data);
     }
   }
 
@@ -154,25 +177,33 @@ export class MCPToolsExamples {
    * Example: GitHub integration
    */
   async manageGitHubRepository(): Promise<void> {
-    const repoParams: MCPToolParameters<'mcp__claude-flow__github_repo_analyze'> = {
-      repo: 'gemini-flow/gemini-flow',
-      analysis_type: 'code_quality'
-    };
-
-    const analysisResult = await this.adapter.callMCPTool('mcp__claude-flow__github_repo_analyze', repoParams);
-    
-    if (analysisResult.success) {
-      console.log('Repository analysis:', analysisResult.data);
-      
-      // Manage pull requests
-      const prParams: MCPToolParameters<'mcp__claude-flow__github_pr_manage'> = {
-        repo: 'gemini-flow/gemini-flow',
-        action: 'review',
-        pr_number: 123
+    const repoParams: MCPToolParameters<"mcp__claude-flow__github_repo_analyze"> =
+      {
+        repo: "gemini-flow/gemini-flow",
+        analysis_type: "code_quality",
       };
-      
-      const prResult = await this.adapter.callMCPTool('mcp__claude-flow__github_pr_manage', prParams);
-      console.log('PR management result:', prResult.data);
+
+    const analysisResult = await this.adapter.callMCPTool(
+      "mcp__claude-flow__github_repo_analyze",
+      repoParams,
+    );
+
+    if (analysisResult.success) {
+      console.log("Repository analysis:", analysisResult.data);
+
+      // Manage pull requests
+      const prParams: MCPToolParameters<"mcp__claude-flow__github_pr_manage"> =
+        {
+          repo: "gemini-flow/gemini-flow",
+          action: "review",
+          pr_number: 123,
+        };
+
+      const prResult = await this.adapter.callMCPTool(
+        "mcp__claude-flow__github_pr_manage",
+        prParams,
+      );
+      console.log("PR management result:", prResult.data);
     }
   }
 
@@ -181,39 +212,49 @@ export class MCPToolsExamples {
    */
   async useRuvSwarmTools(): Promise<void> {
     // Initialize RUV swarm
-    const ruvSwarmParams: MCPToolParameters<'mcp__ruv-swarm__swarm_init'> = {
-      topology: 'mesh',
+    const ruvSwarmParams: MCPToolParameters<"mcp__ruv-swarm__swarm_init"> = {
+      topology: "mesh",
       maxAgents: 5,
-      strategy: 'adaptive'
+      strategy: "adaptive",
     };
 
-    const swarmResult = await this.adapter.callMCPTool('mcp__ruv-swarm__swarm_init', ruvSwarmParams);
-    
+    const swarmResult = await this.adapter.callMCPTool(
+      "mcp__ruv-swarm__swarm_init",
+      ruvSwarmParams,
+    );
+
     if (swarmResult.success) {
       // Spawn RUV agents
-      const agentParams: MCPToolParameters<'mcp__ruv-swarm__agent_spawn'> = {
-        type: 'researcher',
-        name: 'ruv-researcher',
-        capabilities: ['data-analysis', 'pattern-recognition']
+      const agentParams: MCPToolParameters<"mcp__ruv-swarm__agent_spawn"> = {
+        type: "researcher",
+        name: "ruv-researcher",
+        capabilities: ["data-analysis", "pattern-recognition"],
       };
-      
-      const agentResult = await this.adapter.callMCPTool('mcp__ruv-swarm__agent_spawn', agentParams);
-      console.log('RUV agent spawned:', agentResult.data);
-      
+
+      const agentResult = await this.adapter.callMCPTool(
+        "mcp__ruv-swarm__agent_spawn",
+        agentParams,
+      );
+      console.log("RUV agent spawned:", agentResult.data);
+
       // DAA workflow creation
-      const workflowParams: MCPToolParameters<'mcp__ruv-swarm__daa_workflow_create'> = {
-        id: 'research-workflow',
-        name: 'Autonomous Research Workflow',
-        steps: [
-          { action: 'gather-data', priority: 'high' },
-          { action: 'analyze-patterns', priority: 'medium' },
-          { action: 'generate-insights', priority: 'high' }
-        ],
-        strategy: 'adaptive'
-      };
-      
-      const workflowResult = await this.adapter.callMCPTool('mcp__ruv-swarm__daa_workflow_create', workflowParams);
-      console.log('DAA workflow created:', workflowResult.data);
+      const workflowParams: MCPToolParameters<"mcp__ruv-swarm__daa_workflow_create"> =
+        {
+          id: "research-workflow",
+          name: "Autonomous Research Workflow",
+          steps: [
+            { action: "gather-data", priority: "high" },
+            { action: "analyze-patterns", priority: "medium" },
+            { action: "generate-insights", priority: "high" },
+          ],
+          strategy: "adaptive",
+        };
+
+      const workflowResult = await this.adapter.callMCPTool(
+        "mcp__ruv-swarm__daa_workflow_create",
+        workflowParams,
+      );
+      console.log("DAA workflow created:", workflowResult.data);
     }
   }
 
@@ -222,32 +263,44 @@ export class MCPToolsExamples {
    */
   async monitorPerformance(): Promise<void> {
     // Run benchmarks
-    const benchmarkParams: MCPToolParameters<'mcp__claude-flow__benchmark_run'> = {
-      suite: 'comprehensive'
-    };
+    const benchmarkParams: MCPToolParameters<"mcp__claude-flow__benchmark_run"> =
+      {
+        suite: "comprehensive",
+      };
 
-    const benchmarkResult = await this.adapter.callMCPTool('mcp__claude-flow__benchmark_run', benchmarkParams);
-    
+    const benchmarkResult = await this.adapter.callMCPTool(
+      "mcp__claude-flow__benchmark_run",
+      benchmarkParams,
+    );
+
     if (benchmarkResult.success) {
-      console.log('Benchmark results:', benchmarkResult.data);
-      
+      console.log("Benchmark results:", benchmarkResult.data);
+
       // Analyze bottlenecks
-      const bottleneckParams: MCPToolParameters<'mcp__claude-flow__bottleneck_analyze'> = {
-        component: 'swarm-coordination',
-        metrics: ['latency', 'throughput', 'error-rate']
-      };
-      
-      const bottleneckResult = await this.adapter.callMCPTool('mcp__claude-flow__bottleneck_analyze', bottleneckParams);
-      console.log('Bottleneck analysis:', bottleneckResult.data);
-      
+      const bottleneckParams: MCPToolParameters<"mcp__claude-flow__bottleneck_analyze"> =
+        {
+          component: "swarm-coordination",
+          metrics: ["latency", "throughput", "error-rate"],
+        };
+
+      const bottleneckResult = await this.adapter.callMCPTool(
+        "mcp__claude-flow__bottleneck_analyze",
+        bottleneckParams,
+      );
+      console.log("Bottleneck analysis:", bottleneckResult.data);
+
       // Generate performance report
-      const reportParams: MCPToolParameters<'mcp__claude-flow__performance_report'> = {
-        format: 'detailed',
-        timeframe: '24h'
-      };
-      
-      const reportResult = await this.adapter.callMCPTool('mcp__claude-flow__performance_report', reportParams);
-      console.log('Performance report:', reportResult.data);
+      const reportParams: MCPToolParameters<"mcp__claude-flow__performance_report"> =
+        {
+          format: "detailed",
+          timeframe: "24h",
+        };
+
+      const reportResult = await this.adapter.callMCPTool(
+        "mcp__claude-flow__performance_report",
+        reportParams,
+      );
+      console.log("Performance report:", reportResult.data);
     }
   }
 
@@ -256,37 +309,61 @@ export class MCPToolsExamples {
    */
   async automateWorkflow(): Promise<void> {
     // Create a custom workflow
-    const workflowParams: MCPToolParameters<'mcp__claude-flow__workflow_create'> = {
-      name: 'Full-Stack Development Workflow',
-      steps: [
-        { id: 'requirements', action: 'analyze-requirements', agents: ['analyst'] },
-        { id: 'architecture', action: 'design-architecture', agents: ['architect'] },
-        { id: 'implementation', action: 'implement-features', agents: ['coder'] },
-        { id: 'testing', action: 'run-tests', agents: ['tester'] },
-        { id: 'deployment', action: 'deploy-application', agents: ['coordinator'] }
-      ],
-      triggers: [
-        { event: 'git-push', branch: 'main' },
-        { event: 'schedule', cron: '0 9 * * 1' } // Every Monday at 9 AM
-      ]
-    };
-
-    const workflowResult = await this.adapter.callMCPTool('mcp__claude-flow__workflow_create', workflowParams);
-    
-    if (workflowResult.success) {
-      console.log('Workflow created:', workflowResult.data);
-      
-      // Execute the workflow
-      const executeParams: MCPToolParameters<'mcp__claude-flow__workflow_execute'> = {
-        workflowId: workflowResult.data.workflowId,
-        params: {
-          projectName: 'gemini-flow',
-          environment: 'production'
-        }
+    const workflowParams: MCPToolParameters<"mcp__claude-flow__workflow_create"> =
+      {
+        name: "Full-Stack Development Workflow",
+        steps: [
+          {
+            id: "requirements",
+            action: "analyze-requirements",
+            agents: ["analyst"],
+          },
+          {
+            id: "architecture",
+            action: "design-architecture",
+            agents: ["architect"],
+          },
+          {
+            id: "implementation",
+            action: "implement-features",
+            agents: ["coder"],
+          },
+          { id: "testing", action: "run-tests", agents: ["tester"] },
+          {
+            id: "deployment",
+            action: "deploy-application",
+            agents: ["coordinator"],
+          },
+        ],
+        triggers: [
+          { event: "git-push", branch: "main" },
+          { event: "schedule", cron: "0 9 * * 1" }, // Every Monday at 9 AM
+        ],
       };
-      
-      const executeResult = await this.adapter.callMCPTool('mcp__claude-flow__workflow_execute', executeParams);
-      console.log('Workflow execution started:', executeResult.data);
+
+    const workflowResult = await this.adapter.callMCPTool(
+      "mcp__claude-flow__workflow_create",
+      workflowParams,
+    );
+
+    if (workflowResult.success) {
+      console.log("Workflow created:", workflowResult.data);
+
+      // Execute the workflow
+      const executeParams: MCPToolParameters<"mcp__claude-flow__workflow_execute"> =
+        {
+          workflowId: workflowResult.data.workflowId,
+          params: {
+            projectName: "gemini-flow",
+            environment: "production",
+          },
+        };
+
+      const executeResult = await this.adapter.callMCPTool(
+        "mcp__claude-flow__workflow_execute",
+        executeParams,
+      );
+      console.log("Workflow execution started:", executeResult.data);
     }
   }
 

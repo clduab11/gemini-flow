@@ -1,6 +1,6 @@
 /**
  * Gemini-Flow Agent Definitions
- * 
+ *
  * 64 specialized agents across 16 categories
  * Extended from Claude-Flow's 54 agents with Google-specific capabilities
  */
@@ -20,993 +20,1265 @@ export interface AgentDefinition {
 
 export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
   // 1. Core Development Agents (5)
-  'coder': {
-    id: 'coder',
-    name: 'Primary Coder',
-    type: 'coder',
-    category: 'core-development',
-    description: 'Primary code implementation specialist',
-    capabilities: ['typescript', 'javascript', 'python', 'go', 'rust'],
+  coder: {
+    id: "coder",
+    name: "Primary Coder",
+    type: "coder",
+    category: "core-development",
+    description: "Primary code implementation specialist",
+    capabilities: ["typescript", "javascript", "python", "go", "rust"],
     temperature: 0.3,
-    systemPrompt: 'You are an expert coder. Write clean, efficient, and well-documented code.'
+    systemPrompt:
+      "You are an expert coder. Write clean, efficient, and well-documented code.",
   },
-  'planner': {
-    id: 'planner',
-    name: 'Strategic Planner',
-    type: 'planner',
-    category: 'core-development',
-    description: 'Strategic development planning and task decomposition',
-    capabilities: ['planning', 'architecture', 'roadmap', 'prioritization'],
-    temperature: 0.7
+  planner: {
+    id: "planner",
+    name: "Strategic Planner",
+    type: "planner",
+    category: "core-development",
+    description: "Strategic development planning and task decomposition",
+    capabilities: ["planning", "architecture", "roadmap", "prioritization"],
+    temperature: 0.7,
   },
-  'researcher': {
-    id: 'researcher',
-    name: 'Technical Researcher',
-    type: 'researcher',
-    category: 'core-development',
-    description: 'Technical research and analysis specialist',
-    capabilities: ['research', 'analysis', 'documentation', 'best-practices'],
-    temperature: 0.5
+  researcher: {
+    id: "researcher",
+    name: "Technical Researcher",
+    type: "researcher",
+    category: "core-development",
+    description: "Technical research and analysis specialist",
+    capabilities: ["research", "analysis", "documentation", "best-practices"],
+    temperature: 0.5,
   },
-  'reviewer': {
-    id: 'reviewer',
-    name: 'Code Reviewer',
-    type: 'reviewer',
-    category: 'core-development',
-    description: 'Code review and quality assurance specialist',
-    capabilities: ['code-review', 'quality', 'standards', 'security'],
-    temperature: 0.4
+  reviewer: {
+    id: "reviewer",
+    name: "Code Reviewer",
+    type: "reviewer",
+    category: "core-development",
+    description: "Code review and quality assurance specialist",
+    capabilities: ["code-review", "quality", "standards", "security"],
+    temperature: 0.4,
   },
-  'tester': {
-    id: 'tester',
-    name: 'Test Engineer',
-    type: 'tester',
-    category: 'core-development',
-    description: 'Comprehensive testing specialist',
-    capabilities: ['unit-tests', 'integration-tests', 'e2e-tests', 'performance-tests'],
-    temperature: 0.3
+  tester: {
+    id: "tester",
+    name: "Test Engineer",
+    type: "tester",
+    category: "core-development",
+    description: "Comprehensive testing specialist",
+    capabilities: [
+      "unit-tests",
+      "integration-tests",
+      "e2e-tests",
+      "performance-tests",
+    ],
+    temperature: 0.3,
   },
 
   // 2. Swarm Coordination Agents (3)
-  'hierarchical-coordinator': {
-    id: 'hierarchical-coordinator',
-    name: 'Hierarchical Coordinator',
-    type: 'coordinator',
-    category: 'swarm-coordination',
-    description: 'Queen-bee pattern orchestration for hierarchical swarms',
-    capabilities: ['queen-led', 'task-delegation', 'worker-management', 'hierarchy'],
-    temperature: 0.6
+  "hierarchical-coordinator": {
+    id: "hierarchical-coordinator",
+    name: "Hierarchical Coordinator",
+    type: "coordinator",
+    category: "swarm-coordination",
+    description: "Queen-bee pattern orchestration for hierarchical swarms",
+    capabilities: [
+      "queen-led",
+      "task-delegation",
+      "worker-management",
+      "hierarchy",
+    ],
+    temperature: 0.6,
   },
-  'mesh-coordinator': {
-    id: 'mesh-coordinator',
-    name: 'Mesh Network Coordinator',
-    type: 'coordinator',
-    category: 'swarm-coordination',
-    description: 'Peer-to-peer coordination for mesh topology',
-    capabilities: ['p2p', 'distributed', 'consensus', 'mesh-network'],
-    temperature: 0.5
+  "mesh-coordinator": {
+    id: "mesh-coordinator",
+    name: "Mesh Network Coordinator",
+    type: "coordinator",
+    category: "swarm-coordination",
+    description: "Peer-to-peer coordination for mesh topology",
+    capabilities: ["p2p", "distributed", "consensus", "mesh-network"],
+    temperature: 0.5,
   },
-  'adaptive-coordinator': {
-    id: 'adaptive-coordinator',
-    name: 'Adaptive Coordinator',
-    type: 'coordinator',
-    category: 'swarm-coordination',
-    description: 'Dynamic topology adjustment based on workload',
-    capabilities: ['adaptive', 'optimization', 'load-balancing', 'topology-switching'],
-    temperature: 0.7
+  "adaptive-coordinator": {
+    id: "adaptive-coordinator",
+    name: "Adaptive Coordinator",
+    type: "coordinator",
+    category: "swarm-coordination",
+    description: "Dynamic topology adjustment based on workload",
+    capabilities: [
+      "adaptive",
+      "optimization",
+      "load-balancing",
+      "topology-switching",
+    ],
+    temperature: 0.7,
   },
 
   // 3. Consensus Systems Agents (7)
-  'byzantine-fault-tolerant': {
-    id: 'byzantine-fault-tolerant',
-    name: 'Byzantine Fault Tolerant',
-    type: 'consensus',
-    category: 'consensus-systems',
-    description: 'Handles malicious agent detection and Byzantine consensus',
-    capabilities: ['byzantine', 'fault-tolerance', 'malicious-detection', 'pbft'],
-    temperature: 0.2
+  "byzantine-fault-tolerant": {
+    id: "byzantine-fault-tolerant",
+    name: "Byzantine Fault Tolerant",
+    type: "consensus",
+    category: "consensus-systems",
+    description: "Handles malicious agent detection and Byzantine consensus",
+    capabilities: [
+      "byzantine",
+      "fault-tolerance",
+      "malicious-detection",
+      "pbft",
+    ],
+    temperature: 0.2,
   },
-  'raft-consensus': {
-    id: 'raft-consensus',
-    name: 'Raft Consensus Manager',
-    type: 'consensus',
-    category: 'consensus-systems',
-    description: 'Leader election and log replication using Raft',
-    capabilities: ['raft', 'leader-election', 'log-replication', 'consistency'],
-    temperature: 0.3
+  "raft-consensus": {
+    id: "raft-consensus",
+    name: "Raft Consensus Manager",
+    type: "consensus",
+    category: "consensus-systems",
+    description: "Leader election and log replication using Raft",
+    capabilities: ["raft", "leader-election", "log-replication", "consistency"],
+    temperature: 0.3,
   },
-  'gossip-protocol': {
-    id: 'gossip-protocol',
-    name: 'Gossip Protocol Agent',
-    type: 'consensus',
-    category: 'consensus-systems',
-    description: 'Epidemic information dissemination',
-    capabilities: ['gossip', 'epidemic', 'eventually-consistent', 'propagation'],
-    temperature: 0.5
+  "gossip-protocol": {
+    id: "gossip-protocol",
+    name: "Gossip Protocol Agent",
+    type: "consensus",
+    category: "consensus-systems",
+    description: "Epidemic information dissemination",
+    capabilities: [
+      "gossip",
+      "epidemic",
+      "eventually-consistent",
+      "propagation",
+    ],
+    temperature: 0.5,
   },
-  'crdt-manager': {
-    id: 'crdt-manager',
-    name: 'CRDT Manager',
-    type: 'consensus',
-    category: 'consensus-systems',
-    description: 'Conflict-free replicated data types management',
-    capabilities: ['crdt', 'conflict-resolution', 'merge', 'commutative'],
-    temperature: 0.3
+  "crdt-manager": {
+    id: "crdt-manager",
+    name: "CRDT Manager",
+    type: "consensus",
+    category: "consensus-systems",
+    description: "Conflict-free replicated data types management",
+    capabilities: ["crdt", "conflict-resolution", "merge", "commutative"],
+    temperature: 0.3,
   },
-  'paxos-coordinator': {
-    id: 'paxos-coordinator',
-    name: 'Paxos Coordinator',
-    type: 'consensus',
-    category: 'consensus-systems',
-    description: 'Multi-phase consensus using Paxos algorithm',
-    capabilities: ['paxos', 'multi-phase', 'proposer', 'acceptor'],
-    temperature: 0.3
+  "paxos-coordinator": {
+    id: "paxos-coordinator",
+    name: "Paxos Coordinator",
+    type: "consensus",
+    category: "consensus-systems",
+    description: "Multi-phase consensus using Paxos algorithm",
+    capabilities: ["paxos", "multi-phase", "proposer", "acceptor"],
+    temperature: 0.3,
   },
-  'blockchain-consensus': {
-    id: 'blockchain-consensus',
-    name: 'Blockchain Consensus',
-    type: 'consensus',
-    category: 'consensus-systems',
-    description: 'Immutable decision logging with blockchain',
-    capabilities: ['blockchain', 'immutable', 'proof-of-work', 'merkle-tree'],
-    temperature: 0.2
+  "blockchain-consensus": {
+    id: "blockchain-consensus",
+    name: "Blockchain Consensus",
+    type: "consensus",
+    category: "consensus-systems",
+    description: "Immutable decision logging with blockchain",
+    capabilities: ["blockchain", "immutable", "proof-of-work", "merkle-tree"],
+    temperature: 0.2,
   },
-  'vector-clock-sync': {
-    id: 'vector-clock-sync',
-    name: 'Vector Clock Synchronizer',
-    type: 'consensus',
-    category: 'consensus-systems',
-    description: 'Logical time ordering with vector clocks',
-    capabilities: ['vector-clock', 'causality', 'ordering', 'lamport'],
-    temperature: 0.3
+  "vector-clock-sync": {
+    id: "vector-clock-sync",
+    name: "Vector Clock Synchronizer",
+    type: "consensus",
+    category: "consensus-systems",
+    description: "Logical time ordering with vector clocks",
+    capabilities: ["vector-clock", "causality", "ordering", "lamport"],
+    temperature: 0.3,
   },
 
   // 4. GitHub Integration Agents (13)
-  'github-modes': {
-    id: 'github-modes',
-    name: 'GitHub Master Coordinator',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Master coordinator for all GitHub operations',
-    capabilities: ['github-api', 'orchestration', 'workflow', 'automation'],
-    temperature: 0.5
+  "github-modes": {
+    id: "github-modes",
+    name: "GitHub Master Coordinator",
+    type: "github",
+    category: "github-integration",
+    description: "Master coordinator for all GitHub operations",
+    capabilities: ["github-api", "orchestration", "workflow", "automation"],
+    temperature: 0.5,
   },
-  'pr-manager': {
-    id: 'pr-manager',
-    name: 'Pull Request Manager',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Automated PR lifecycle management',
-    capabilities: ['pr-review', 'pr-merge', 'conflict-resolution', 'automation'],
-    temperature: 0.4
+  "pr-manager": {
+    id: "pr-manager",
+    name: "Pull Request Manager",
+    type: "github",
+    category: "github-integration",
+    description: "Automated PR lifecycle management",
+    capabilities: [
+      "pr-review",
+      "pr-merge",
+      "conflict-resolution",
+      "automation",
+    ],
+    temperature: 0.4,
   },
-  'code-review-swarm': {
-    id: 'code-review-swarm',
-    name: 'Code Review Swarm',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Multi-agent code review coordination',
-    capabilities: ['multi-agent-review', 'quality-gates', 'feedback', 'suggestions'],
-    temperature: 0.4
+  "code-review-swarm": {
+    id: "code-review-swarm",
+    name: "Code Review Swarm",
+    type: "github",
+    category: "github-integration",
+    description: "Multi-agent code review coordination",
+    capabilities: [
+      "multi-agent-review",
+      "quality-gates",
+      "feedback",
+      "suggestions",
+    ],
+    temperature: 0.4,
   },
-  'issue-tracker': {
-    id: 'issue-tracker',
-    name: 'Issue Tracker',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Intelligent issue triage and management',
-    capabilities: ['issue-triage', 'labeling', 'assignment', 'tracking'],
-    temperature: 0.5
+  "issue-tracker": {
+    id: "issue-tracker",
+    name: "Issue Tracker",
+    type: "github",
+    category: "github-integration",
+    description: "Intelligent issue triage and management",
+    capabilities: ["issue-triage", "labeling", "assignment", "tracking"],
+    temperature: 0.5,
   },
-  'release-manager': {
-    id: 'release-manager',
-    name: 'Release Manager',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Automated release preparation and coordination',
-    capabilities: ['release-notes', 'versioning', 'deployment', 'changelog'],
-    temperature: 0.3
+  "release-manager": {
+    id: "release-manager",
+    name: "Release Manager",
+    type: "github",
+    category: "github-integration",
+    description: "Automated release preparation and coordination",
+    capabilities: ["release-notes", "versioning", "deployment", "changelog"],
+    temperature: 0.3,
   },
-  'repo-architect': {
-    id: 'repo-architect',
-    name: 'Repository Architect',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Repository structure optimization',
-    capabilities: ['repo-structure', 'monorepo', 'organization', 'best-practices'],
-    temperature: 0.5
+  "repo-architect": {
+    id: "repo-architect",
+    name: "Repository Architect",
+    type: "github",
+    category: "github-integration",
+    description: "Repository structure optimization",
+    capabilities: [
+      "repo-structure",
+      "monorepo",
+      "organization",
+      "best-practices",
+    ],
+    temperature: 0.5,
   },
-  'multi-repo-swarm': {
-    id: 'multi-repo-swarm',
-    name: 'Multi-Repo Swarm',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Cross-repository coordination',
-    capabilities: ['multi-repo', 'sync', 'dependencies', 'coordination'],
-    temperature: 0.6
+  "multi-repo-swarm": {
+    id: "multi-repo-swarm",
+    name: "Multi-Repo Swarm",
+    type: "github",
+    category: "github-integration",
+    description: "Cross-repository coordination",
+    capabilities: ["multi-repo", "sync", "dependencies", "coordination"],
+    temperature: 0.6,
   },
-  'project-board-sync': {
-    id: 'project-board-sync',
-    name: 'Project Board Sync',
-    type: 'github',
-    category: 'github-integration',
-    description: 'GitHub Projects synchronization',
-    capabilities: ['projects', 'kanban', 'tracking', 'automation'],
-    temperature: 0.4
+  "project-board-sync": {
+    id: "project-board-sync",
+    name: "Project Board Sync",
+    type: "github",
+    category: "github-integration",
+    description: "GitHub Projects synchronization",
+    capabilities: ["projects", "kanban", "tracking", "automation"],
+    temperature: 0.4,
   },
-  'github-metrics': {
-    id: 'github-metrics',
-    name: 'GitHub Metrics Analyzer',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Repository analytics and metrics',
-    capabilities: ['analytics', 'metrics', 'insights', 'reporting'],
-    temperature: 0.3
+  "github-metrics": {
+    id: "github-metrics",
+    name: "GitHub Metrics Analyzer",
+    type: "github",
+    category: "github-integration",
+    description: "Repository analytics and metrics",
+    capabilities: ["analytics", "metrics", "insights", "reporting"],
+    temperature: 0.3,
   },
-  'security-scanner': {
-    id: 'security-scanner',
-    name: 'Security Scanner',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Vulnerability assessment for repositories',
-    capabilities: ['security', 'vulnerabilities', 'dependabot', 'scanning'],
-    temperature: 0.2
+  "security-scanner": {
+    id: "security-scanner",
+    name: "Security Scanner",
+    type: "github",
+    category: "github-integration",
+    description: "Vulnerability assessment for repositories",
+    capabilities: ["security", "vulnerabilities", "dependabot", "scanning"],
+    temperature: 0.2,
   },
-  'documentation-sync': {
-    id: 'documentation-sync',
-    name: 'Documentation Sync',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Docs alignment with code changes',
-    capabilities: ['docs', 'sync', 'markdown', 'api-docs'],
-    temperature: 0.5
+  "documentation-sync": {
+    id: "documentation-sync",
+    name: "Documentation Sync",
+    type: "github",
+    category: "github-integration",
+    description: "Docs alignment with code changes",
+    capabilities: ["docs", "sync", "markdown", "api-docs"],
+    temperature: 0.5,
   },
-  'changelog-generator': {
-    id: 'changelog-generator',
-    name: 'Changelog Generator',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Automated changelog creation',
-    capabilities: ['changelog', 'commits', 'release-notes', 'automation'],
-    temperature: 0.4
+  "changelog-generator": {
+    id: "changelog-generator",
+    name: "Changelog Generator",
+    type: "github",
+    category: "github-integration",
+    description: "Automated changelog creation",
+    capabilities: ["changelog", "commits", "release-notes", "automation"],
+    temperature: 0.4,
   },
-  'dependency-updater': {
-    id: 'dependency-updater',
-    name: 'Dependency Updater',
-    type: 'github',
-    category: 'github-integration',
-    description: 'Dependency management and updates',
-    capabilities: ['dependencies', 'updates', 'security-patches', 'automation'],
-    temperature: 0.3
+  "dependency-updater": {
+    id: "dependency-updater",
+    name: "Dependency Updater",
+    type: "github",
+    category: "github-integration",
+    description: "Dependency management and updates",
+    capabilities: ["dependencies", "updates", "security-patches", "automation"],
+    temperature: 0.3,
   },
 
   // 5. Performance Optimization Agents (6)
-  'performance-monitor': {
-    id: 'performance-monitor',
-    name: 'Performance Monitor',
-    type: 'performance',
-    category: 'performance-optimization',
-    description: 'Real-time performance tracking and monitoring',
-    capabilities: ['monitoring', 'metrics', 'alerts', 'dashboards'],
-    temperature: 0.3
+  "performance-monitor": {
+    id: "performance-monitor",
+    name: "Performance Monitor",
+    type: "performance",
+    category: "performance-optimization",
+    description: "Real-time performance tracking and monitoring",
+    capabilities: ["monitoring", "metrics", "alerts", "dashboards"],
+    temperature: 0.3,
   },
-  'load-balancer': {
-    id: 'load-balancer',
-    name: 'Load Balancer',
-    type: 'performance',
-    category: 'performance-optimization',
-    description: 'Intelligent work distribution across agents',
-    capabilities: ['load-balancing', 'distribution', 'optimization', 'scaling'],
-    temperature: 0.4
+  "load-balancer": {
+    id: "load-balancer",
+    name: "Load Balancer",
+    type: "performance",
+    category: "performance-optimization",
+    description: "Intelligent work distribution across agents",
+    capabilities: ["load-balancing", "distribution", "optimization", "scaling"],
+    temperature: 0.4,
   },
-  'cache-optimizer': {
-    id: 'cache-optimizer',
-    name: 'Cache Optimizer',
-    type: 'performance',
-    category: 'performance-optimization',
-    description: 'Memory and context cache management',
-    capabilities: ['caching', 'memory', 'optimization', 'eviction'],
-    temperature: 0.3
+  "cache-optimizer": {
+    id: "cache-optimizer",
+    name: "Cache Optimizer",
+    type: "performance",
+    category: "performance-optimization",
+    description: "Memory and context cache management",
+    capabilities: ["caching", "memory", "optimization", "eviction"],
+    temperature: 0.3,
   },
-  'query-optimizer': {
-    id: 'query-optimizer',
-    name: 'Query Optimizer',
-    type: 'performance',
-    category: 'performance-optimization',
-    description: 'Database query optimization',
-    capabilities: ['sql', 'query-plans', 'indexing', 'optimization'],
-    temperature: 0.3
+  "query-optimizer": {
+    id: "query-optimizer",
+    name: "Query Optimizer",
+    type: "performance",
+    category: "performance-optimization",
+    description: "Database query optimization",
+    capabilities: ["sql", "query-plans", "indexing", "optimization"],
+    temperature: 0.3,
   },
-  'resource-allocator': {
-    id: 'resource-allocator',
-    name: 'Resource Allocator',
-    type: 'performance',
-    category: 'performance-optimization',
-    description: 'Dynamic resource allocation and management',
-    capabilities: ['resources', 'allocation', 'scheduling', 'optimization'],
-    temperature: 0.4
+  "resource-allocator": {
+    id: "resource-allocator",
+    name: "Resource Allocator",
+    type: "performance",
+    category: "performance-optimization",
+    description: "Dynamic resource allocation and management",
+    capabilities: ["resources", "allocation", "scheduling", "optimization"],
+    temperature: 0.4,
   },
-  'bottleneck-analyzer': {
-    id: 'bottleneck-analyzer',
-    name: 'Bottleneck Analyzer',
-    type: 'performance',
-    category: 'performance-optimization',
-    description: 'Performance constraint identification and resolution',
-    capabilities: ['analysis', 'bottlenecks', 'profiling', 'optimization'],
-    temperature: 0.5
+  "bottleneck-analyzer": {
+    id: "bottleneck-analyzer",
+    name: "Bottleneck Analyzer",
+    type: "performance",
+    category: "performance-optimization",
+    description: "Performance constraint identification and resolution",
+    capabilities: ["analysis", "bottlenecks", "profiling", "optimization"],
+    temperature: 0.5,
   },
 
   // 6. Neural Processing Agents (4)
-  'pattern-recognizer': {
-    id: 'pattern-recognizer',
-    name: 'Pattern Recognizer',
-    type: 'neural',
-    category: 'neural-processing',
-    description: 'Code and behavior pattern recognition',
-    capabilities: ['patterns', 'recognition', 'ml', 'classification'],
-    temperature: 0.5
+  "pattern-recognizer": {
+    id: "pattern-recognizer",
+    name: "Pattern Recognizer",
+    type: "neural",
+    category: "neural-processing",
+    description: "Code and behavior pattern recognition",
+    capabilities: ["patterns", "recognition", "ml", "classification"],
+    temperature: 0.5,
   },
-  'neural-architect': {
-    id: 'neural-architect',
-    name: 'Neural Architect',
-    type: 'neural',
-    category: 'neural-processing',
-    description: 'Neural network design and optimization',
-    capabilities: ['neural-nets', 'architecture', 'design', 'optimization'],
-    temperature: 0.6
+  "neural-architect": {
+    id: "neural-architect",
+    name: "Neural Architect",
+    type: "neural",
+    category: "neural-processing",
+    description: "Neural network design and optimization",
+    capabilities: ["neural-nets", "architecture", "design", "optimization"],
+    temperature: 0.6,
   },
-  'training-coordinator': {
-    id: 'training-coordinator',
-    name: 'Training Coordinator',
-    type: 'neural',
-    category: 'neural-processing',
-    description: 'Distributed model training coordination',
-    capabilities: ['training', 'distributed', 'coordination', 'optimization'],
-    temperature: 0.4
+  "training-coordinator": {
+    id: "training-coordinator",
+    name: "Training Coordinator",
+    type: "neural",
+    category: "neural-processing",
+    description: "Distributed model training coordination",
+    capabilities: ["training", "distributed", "coordination", "optimization"],
+    temperature: 0.4,
   },
-  'inference-optimizer': {
-    id: 'inference-optimizer',
-    name: 'Inference Optimizer',
-    type: 'neural',
-    category: 'neural-processing',
-    description: 'Model inference optimization',
-    capabilities: ['inference', 'optimization', 'latency', 'throughput'],
-    temperature: 0.3
+  "inference-optimizer": {
+    id: "inference-optimizer",
+    name: "Inference Optimizer",
+    type: "neural",
+    category: "neural-processing",
+    description: "Model inference optimization",
+    capabilities: ["inference", "optimization", "latency", "throughput"],
+    temperature: 0.3,
   },
 
   // 7. Quantum Computing Agents (3)
-  'quantum-circuit-designer': {
-    id: 'quantum-circuit-designer',
-    name: 'Quantum Circuit Designer',
-    type: 'quantum',
-    category: 'quantum-computing',
-    description: 'Quantum circuit creation and optimization',
-    capabilities: ['quantum', 'circuits', 'gates', 'optimization'],
+  "quantum-circuit-designer": {
+    id: "quantum-circuit-designer",
+    name: "Quantum Circuit Designer",
+    type: "quantum",
+    category: "quantum-computing",
+    description: "Quantum circuit creation and optimization",
+    capabilities: ["quantum", "circuits", "gates", "optimization"],
     temperature: 0.3,
-    modelPreference: 'gemini-2.0-pro'
+    modelPreference: "gemini-2.0-pro",
   },
-  'qubit-state-manager': {
-    id: 'qubit-state-manager',
-    name: 'Qubit State Manager',
-    type: 'quantum',
-    category: 'quantum-computing',
-    description: 'Quantum state simulations and management',
-    capabilities: ['qubits', 'superposition', 'entanglement', 'simulation'],
-    temperature: 0.2
+  "qubit-state-manager": {
+    id: "qubit-state-manager",
+    name: "Qubit State Manager",
+    type: "quantum",
+    category: "quantum-computing",
+    description: "Quantum state simulations and management",
+    capabilities: ["qubits", "superposition", "entanglement", "simulation"],
+    temperature: 0.2,
   },
-  'quantum-algorithm-specialist': {
-    id: 'quantum-algorithm-specialist',
-    name: 'Quantum Algorithm Specialist',
-    type: 'quantum',
-    category: 'quantum-computing',
-    description: 'Quantum algorithm implementation',
-    capabilities: ['shor', 'grover', 'vqe', 'qaoa'],
-    temperature: 0.4
+  "quantum-algorithm-specialist": {
+    id: "quantum-algorithm-specialist",
+    name: "Quantum Algorithm Specialist",
+    type: "quantum",
+    category: "quantum-computing",
+    description: "Quantum algorithm implementation",
+    capabilities: ["shor", "grover", "vqe", "qaoa"],
+    temperature: 0.4,
   },
 
   // 8. Security Systems Agents (4)
-  'security-auditor': {
-    id: 'security-auditor',
-    name: 'Security Auditor',
-    type: 'security',
-    category: 'security-systems',
-    description: 'Security analysis and compliance checking',
-    capabilities: ['audit', 'compliance', 'vulnerabilities', 'remediation'],
-    temperature: 0.2
+  "security-auditor": {
+    id: "security-auditor",
+    name: "Security Auditor",
+    type: "security",
+    category: "security-systems",
+    description: "Security analysis and compliance checking",
+    capabilities: ["audit", "compliance", "vulnerabilities", "remediation"],
+    temperature: 0.2,
   },
-  'penetration-tester': {
-    id: 'penetration-tester',
-    name: 'Penetration Tester',
-    type: 'security',
-    category: 'security-systems',
-    description: 'Automated security testing',
-    capabilities: ['pen-testing', 'exploits', 'fuzzing', 'reporting'],
-    temperature: 0.3
+  "penetration-tester": {
+    id: "penetration-tester",
+    name: "Penetration Tester",
+    type: "security",
+    category: "security-systems",
+    description: "Automated security testing",
+    capabilities: ["pen-testing", "exploits", "fuzzing", "reporting"],
+    temperature: 0.3,
   },
-  'encryption-specialist': {
-    id: 'encryption-specialist',
-    name: 'Encryption Specialist',
-    type: 'security',
-    category: 'security-systems',
-    description: 'Cryptographic implementation and management',
-    capabilities: ['encryption', 'hashing', 'certificates', 'key-management'],
-    temperature: 0.2
+  "encryption-specialist": {
+    id: "encryption-specialist",
+    name: "Encryption Specialist",
+    type: "security",
+    category: "security-systems",
+    description: "Cryptographic implementation and management",
+    capabilities: ["encryption", "hashing", "certificates", "key-management"],
+    temperature: 0.2,
   },
-  'access-controller': {
-    id: 'access-controller',
-    name: 'Access Controller',
-    type: 'security',
-    category: 'security-systems',
-    description: 'IAM and permissions management',
-    capabilities: ['iam', 'rbac', 'permissions', 'authentication'],
-    temperature: 0.3
+  "access-controller": {
+    id: "access-controller",
+    name: "Access Controller",
+    type: "security",
+    category: "security-systems",
+    description: "IAM and permissions management",
+    capabilities: ["iam", "rbac", "permissions", "authentication"],
+    temperature: 0.3,
   },
 
   // 9. Data Analytics Agents (3)
-  'data-analyst': {
-    id: 'data-analyst',
-    name: 'Data Analyst',
-    type: 'analytics',
-    category: 'data-analytics',
-    description: 'Statistical analysis and insights',
-    capabilities: ['statistics', 'analysis', 'visualization', 'reporting'],
-    temperature: 0.4
+  "data-analyst": {
+    id: "data-analyst",
+    name: "Data Analyst",
+    type: "analytics",
+    category: "data-analytics",
+    description: "Statistical analysis and insights",
+    capabilities: ["statistics", "analysis", "visualization", "reporting"],
+    temperature: 0.4,
   },
-  'etl-specialist': {
-    id: 'etl-specialist',
-    name: 'ETL Specialist',
-    type: 'analytics',
-    category: 'data-analytics',
-    description: 'ETL pipeline creation and management',
-    capabilities: ['etl', 'pipelines', 'transformation', 'data-quality'],
-    temperature: 0.3
+  "etl-specialist": {
+    id: "etl-specialist",
+    name: "ETL Specialist",
+    type: "analytics",
+    category: "data-analytics",
+    description: "ETL pipeline creation and management",
+    capabilities: ["etl", "pipelines", "transformation", "data-quality"],
+    temperature: 0.3,
   },
-  'visualization-creator': {
-    id: 'visualization-creator',
-    name: 'Visualization Creator',
-    type: 'analytics',
-    category: 'data-analytics',
-    description: 'Data visualization and dashboards',
-    capabilities: ['charts', 'dashboards', 'reports', 'insights'],
-    temperature: 0.5
+  "visualization-creator": {
+    id: "visualization-creator",
+    name: "Visualization Creator",
+    type: "analytics",
+    category: "data-analytics",
+    description: "Data visualization and dashboards",
+    capabilities: ["charts", "dashboards", "reports", "insights"],
+    temperature: 0.5,
   },
 
   // 10. Infrastructure Agents (4)
-  'devops-engineer': {
-    id: 'devops-engineer',
-    name: 'DevOps Engineer',
-    type: 'infrastructure',
-    category: 'infrastructure',
-    description: 'CI/CD automation and infrastructure',
-    capabilities: ['ci-cd', 'automation', 'deployment', 'monitoring'],
-    temperature: 0.3
+  "devops-engineer": {
+    id: "devops-engineer",
+    name: "DevOps Engineer",
+    type: "infrastructure",
+    category: "infrastructure",
+    description: "CI/CD automation and infrastructure",
+    capabilities: ["ci-cd", "automation", "deployment", "monitoring"],
+    temperature: 0.3,
   },
-  'cloud-architect': {
-    id: 'cloud-architect',
-    name: 'Cloud Architect',
-    type: 'infrastructure',
-    category: 'infrastructure',
-    description: 'Cloud resource optimization and design',
-    capabilities: ['gcp', 'aws', 'azure', 'architecture'],
-    temperature: 0.5
+  "cloud-architect": {
+    id: "cloud-architect",
+    name: "Cloud Architect",
+    type: "infrastructure",
+    category: "infrastructure",
+    description: "Cloud resource optimization and design",
+    capabilities: ["gcp", "aws", "azure", "architecture"],
+    temperature: 0.5,
   },
-  'container-orchestrator': {
-    id: 'container-orchestrator',
-    name: 'Container Orchestrator',
-    type: 'infrastructure',
-    category: 'infrastructure',
-    description: 'Docker and Kubernetes management',
-    capabilities: ['docker', 'kubernetes', 'helm', 'orchestration'],
-    temperature: 0.3
+  "container-orchestrator": {
+    id: "container-orchestrator",
+    name: "Container Orchestrator",
+    type: "infrastructure",
+    category: "infrastructure",
+    description: "Docker and Kubernetes management",
+    capabilities: ["docker", "kubernetes", "helm", "orchestration"],
+    temperature: 0.3,
   },
-  'infrastructure-monitor': {
-    id: 'infrastructure-monitor',
-    name: 'Infrastructure Monitor',
-    type: 'infrastructure',
-    category: 'infrastructure',
-    description: 'System health monitoring and alerting',
-    capabilities: ['monitoring', 'alerting', 'metrics', 'logging'],
-    temperature: 0.3
+  "infrastructure-monitor": {
+    id: "infrastructure-monitor",
+    name: "Infrastructure Monitor",
+    type: "infrastructure",
+    category: "infrastructure",
+    description: "System health monitoring and alerting",
+    capabilities: ["monitoring", "alerting", "metrics", "logging"],
+    temperature: 0.3,
   },
 
   // 11. Knowledge Management Agents (3)
-  'knowledge-curator': {
-    id: 'knowledge-curator',
-    name: 'Knowledge Curator',
-    type: 'knowledge',
-    category: 'knowledge-management',
-    description: 'Information organization and curation',
-    capabilities: ['curation', 'organization', 'tagging', 'search'],
-    temperature: 0.5
+  "knowledge-curator": {
+    id: "knowledge-curator",
+    name: "Knowledge Curator",
+    type: "knowledge",
+    category: "knowledge-management",
+    description: "Information organization and curation",
+    capabilities: ["curation", "organization", "tagging", "search"],
+    temperature: 0.5,
   },
-  'documentation-writer': {
-    id: 'documentation-writer',
-    name: 'Documentation Writer',
-    type: 'knowledge',
-    category: 'knowledge-management',
-    description: 'Technical documentation creation',
-    capabilities: ['writing', 'markdown', 'api-docs', 'tutorials'],
-    temperature: 0.6
+  "documentation-writer": {
+    id: "documentation-writer",
+    name: "Documentation Writer",
+    type: "knowledge",
+    category: "knowledge-management",
+    description: "Technical documentation creation",
+    capabilities: ["writing", "markdown", "api-docs", "tutorials"],
+    temperature: 0.6,
   },
-  'ontology-builder': {
-    id: 'ontology-builder',
-    name: 'Ontology Builder',
-    type: 'knowledge',
-    category: 'knowledge-management',
-    description: 'Knowledge graph construction',
-    capabilities: ['ontology', 'knowledge-graph', 'relationships', 'inference'],
-    temperature: 0.5
+  "ontology-builder": {
+    id: "ontology-builder",
+    name: "Ontology Builder",
+    type: "knowledge",
+    category: "knowledge-management",
+    description: "Knowledge graph construction",
+    capabilities: ["ontology", "knowledge-graph", "relationships", "inference"],
+    temperature: 0.5,
   },
 
   // 12. Communication Agents (2)
-  'api-designer': {
-    id: 'api-designer',
-    name: 'API Designer',
-    type: 'communication',
-    category: 'communication',
-    description: 'RESTful and GraphQL API design',
-    capabilities: ['rest', 'graphql', 'openapi', 'design'],
-    temperature: 0.4
+  "api-designer": {
+    id: "api-designer",
+    name: "API Designer",
+    type: "communication",
+    category: "communication",
+    description: "RESTful and GraphQL API design",
+    capabilities: ["rest", "graphql", "openapi", "design"],
+    temperature: 0.4,
   },
-  'protocol-implementer': {
-    id: 'protocol-implementer',
-    name: 'Protocol Implementer',
-    type: 'communication',
-    category: 'communication',
-    description: 'Communication protocol implementation',
-    capabilities: ['protocols', 'websockets', 'grpc', 'messaging'],
-    temperature: 0.3
+  "protocol-implementer": {
+    id: "protocol-implementer",
+    name: "Protocol Implementer",
+    type: "communication",
+    category: "communication",
+    description: "Communication protocol implementation",
+    capabilities: ["protocols", "websockets", "grpc", "messaging"],
+    temperature: 0.3,
   },
 
   // 13. Monitoring Systems Agents (3)
-  'log-analyzer': {
-    id: 'log-analyzer',
-    name: 'Log Analyzer',
-    type: 'monitoring',
-    category: 'monitoring-systems',
-    description: 'Log aggregation and analysis',
-    capabilities: ['logs', 'analysis', 'patterns', 'anomalies'],
-    temperature: 0.4
+  "log-analyzer": {
+    id: "log-analyzer",
+    name: "Log Analyzer",
+    type: "monitoring",
+    category: "monitoring-systems",
+    description: "Log aggregation and analysis",
+    capabilities: ["logs", "analysis", "patterns", "anomalies"],
+    temperature: 0.4,
   },
-  'alert-manager': {
-    id: 'alert-manager',
-    name: 'Alert Manager',
-    type: 'monitoring',
-    category: 'monitoring-systems',
-    description: 'Intelligent alerting and escalation',
-    capabilities: ['alerts', 'escalation', 'routing', 'suppression'],
-    temperature: 0.3
+  "alert-manager": {
+    id: "alert-manager",
+    name: "Alert Manager",
+    type: "monitoring",
+    category: "monitoring-systems",
+    description: "Intelligent alerting and escalation",
+    capabilities: ["alerts", "escalation", "routing", "suppression"],
+    temperature: 0.3,
   },
-  'metrics-collector': {
-    id: 'metrics-collector',
-    name: 'Metrics Collector',
-    type: 'monitoring',
-    category: 'monitoring-systems',
-    description: 'System metrics collection and aggregation',
-    capabilities: ['metrics', 'collection', 'aggregation', 'storage'],
-    temperature: 0.3
+  "metrics-collector": {
+    id: "metrics-collector",
+    name: "Metrics Collector",
+    type: "monitoring",
+    category: "monitoring-systems",
+    description: "System metrics collection and aggregation",
+    capabilities: ["metrics", "collection", "aggregation", "storage"],
+    temperature: 0.3,
   },
 
   // 14. Creative Development Agents (2)
-  'ui-designer': {
-    id: 'ui-designer',
-    name: 'UI Designer',
-    type: 'creative',
-    category: 'creative-development',
-    description: 'User interface design and prototyping',
-    capabilities: ['ui', 'design', 'prototyping', 'components'],
-    temperature: 0.7
+  "ui-designer": {
+    id: "ui-designer",
+    name: "UI Designer",
+    type: "creative",
+    category: "creative-development",
+    description: "User interface design and prototyping",
+    capabilities: ["ui", "design", "prototyping", "components"],
+    temperature: 0.7,
   },
-  'ux-researcher': {
-    id: 'ux-researcher',
-    name: 'UX Researcher',
-    type: 'creative',
-    category: 'creative-development',
-    description: 'User experience research and testing',
-    capabilities: ['ux', 'research', 'testing', 'personas'],
-    temperature: 0.6
+  "ux-researcher": {
+    id: "ux-researcher",
+    name: "UX Researcher",
+    type: "creative",
+    category: "creative-development",
+    description: "User experience research and testing",
+    capabilities: ["ux", "research", "testing", "personas"],
+    temperature: 0.6,
   },
 
   // 15. Specialized Tasks Agents (2)
-  'migration-specialist': {
-    id: 'migration-specialist',
-    name: 'Migration Specialist',
-    type: 'specialized',
-    category: 'specialized-tasks',
-    description: 'Legacy system migration planning and execution',
-    capabilities: ['migration', 'legacy', 'data-transfer', 'compatibility'],
-    temperature: 0.4
+  "migration-specialist": {
+    id: "migration-specialist",
+    name: "Migration Specialist",
+    type: "specialized",
+    category: "specialized-tasks",
+    description: "Legacy system migration planning and execution",
+    capabilities: ["migration", "legacy", "data-transfer", "compatibility"],
+    temperature: 0.4,
   },
-  'integration-expert': {
-    id: 'integration-expert',
-    name: 'Integration Expert',
-    type: 'specialized',
-    category: 'specialized-tasks',
-    description: 'Third-party integration specialist',
-    capabilities: ['integration', 'apis', 'webhooks', 'middleware'],
-    temperature: 0.4
+  "integration-expert": {
+    id: "integration-expert",
+    name: "Integration Expert",
+    type: "specialized",
+    category: "specialized-tasks",
+    description: "Third-party integration specialist",
+    capabilities: ["integration", "apis", "webhooks", "middleware"],
+    temperature: 0.4,
   },
 
   // 16. AI/ML Operations Agents (2)
-  'model-deployer': {
-    id: 'model-deployer',
-    name: 'Model Deployer',
-    type: 'mlops',
-    category: 'ai-ml-operations',
-    description: 'ML model deployment and serving',
-    capabilities: ['deployment', 'serving', 'scaling', 'monitoring'],
-    temperature: 0.3
+  "model-deployer": {
+    id: "model-deployer",
+    name: "Model Deployer",
+    type: "mlops",
+    category: "ai-ml-operations",
+    description: "ML model deployment and serving",
+    capabilities: ["deployment", "serving", "scaling", "monitoring"],
+    temperature: 0.3,
   },
-  'experiment-tracker': {
-    id: 'experiment-tracker',
-    name: 'Experiment Tracker',
-    type: 'mlops',
-    category: 'ai-ml-operations',
-    description: 'A/B testing and experiment management',
-    capabilities: ['experiments', 'ab-testing', 'tracking', 'analysis'],
-    temperature: 0.4
+  "experiment-tracker": {
+    id: "experiment-tracker",
+    name: "Experiment Tracker",
+    type: "mlops",
+    category: "ai-ml-operations",
+    description: "A/B testing and experiment management",
+    capabilities: ["experiments", "ab-testing", "tracking", "analysis"],
+    temperature: 0.4,
   },
 
   // 17. Development Domain Agents (8) - NEW from Claude-Flow
-  'backend-dev': {
-    id: 'backend-dev',
-    name: 'Backend Developer',
-    type: 'developer',
-    category: 'development-domain',
-    description: 'Backend API and service development specialist',
-    capabilities: ['rest-api', 'graphql', 'microservices', 'database', 'authentication'],
+  "backend-dev": {
+    id: "backend-dev",
+    name: "Backend Developer",
+    type: "developer",
+    category: "development-domain",
+    description: "Backend API and service development specialist",
+    capabilities: [
+      "rest-api",
+      "graphql",
+      "microservices",
+      "database",
+      "authentication",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a backend development specialist. Focus on creating robust, scalable, and secure server-side solutions.'
+    systemPrompt:
+      "You are a backend development specialist. Focus on creating robust, scalable, and secure server-side solutions.",
   },
-  'frontend-dev': {
-    id: 'frontend-dev',
-    name: 'Frontend Developer',
-    type: 'developer',
-    category: 'development-domain',
-    description: 'Frontend application development specialist',
-    capabilities: ['react', 'vue', 'angular', 'css', 'responsive-design', 'accessibility'],
+  "frontend-dev": {
+    id: "frontend-dev",
+    name: "Frontend Developer",
+    type: "developer",
+    category: "development-domain",
+    description: "Frontend application development specialist",
+    capabilities: [
+      "react",
+      "vue",
+      "angular",
+      "css",
+      "responsive-design",
+      "accessibility",
+    ],
     temperature: 0.4,
-    systemPrompt: 'You are a frontend development specialist. Create beautiful, responsive, and accessible user interfaces.'
+    systemPrompt:
+      "You are a frontend development specialist. Create beautiful, responsive, and accessible user interfaces.",
   },
-  'fullstack-dev': {
-    id: 'fullstack-dev',
-    name: 'Fullstack Developer',
-    type: 'developer',
-    category: 'development-domain',
-    description: 'End-to-end application development specialist',
-    capabilities: ['frontend', 'backend', 'database', 'deployment', 'integration'],
+  "fullstack-dev": {
+    id: "fullstack-dev",
+    name: "Fullstack Developer",
+    type: "developer",
+    category: "development-domain",
+    description: "End-to-end application development specialist",
+    capabilities: [
+      "frontend",
+      "backend",
+      "database",
+      "deployment",
+      "integration",
+    ],
     temperature: 0.4,
-    systemPrompt: 'You are a fullstack developer. Handle both frontend and backend development with seamless integration.'
+    systemPrompt:
+      "You are a fullstack developer. Handle both frontend and backend development with seamless integration.",
   },
-  'mobile-dev-specialist': {
-    id: 'mobile-dev-specialist',
-    name: 'Mobile Developer Specialist',
-    type: 'developer',
-    category: 'development-domain',
-    description: 'Native and cross-platform mobile app development',
-    capabilities: ['react-native', 'flutter', 'ios', 'android', 'mobile-optimization'],
+  "mobile-dev-specialist": {
+    id: "mobile-dev-specialist",
+    name: "Mobile Developer Specialist",
+    type: "developer",
+    category: "development-domain",
+    description: "Native and cross-platform mobile app development",
+    capabilities: [
+      "react-native",
+      "flutter",
+      "ios",
+      "android",
+      "mobile-optimization",
+    ],
     temperature: 0.4,
-    systemPrompt: 'You are a mobile development specialist. Create performant mobile applications for iOS and Android.'
+    systemPrompt:
+      "You are a mobile development specialist. Create performant mobile applications for iOS and Android.",
   },
-  'ml-developer': {
-    id: 'ml-developer',
-    name: 'Machine Learning Developer',
-    type: 'developer',
-    category: 'development-domain',
-    description: 'Machine learning model development and training',
-    capabilities: ['tensorflow', 'pytorch', 'scikit-learn', 'model-training', 'feature-engineering'],
+  "ml-developer": {
+    id: "ml-developer",
+    name: "Machine Learning Developer",
+    type: "developer",
+    category: "development-domain",
+    description: "Machine learning model development and training",
+    capabilities: [
+      "tensorflow",
+      "pytorch",
+      "scikit-learn",
+      "model-training",
+      "feature-engineering",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are an ML developer. Build and optimize machine learning models for production use.'
+    systemPrompt:
+      "You are an ML developer. Build and optimize machine learning models for production use.",
   },
-  'data-analyst-specialist': {
-    id: 'data-analyst-specialist',
-    name: 'Data Analysis Specialist',
-    type: 'developer',
-    category: 'development-domain',
-    description: 'Advanced data analysis and insights generation',
-    capabilities: ['sql', 'python', 'pandas', 'visualization', 'statistical-analysis'],
+  "data-analyst-specialist": {
+    id: "data-analyst-specialist",
+    name: "Data Analysis Specialist",
+    type: "developer",
+    category: "development-domain",
+    description: "Advanced data analysis and insights generation",
+    capabilities: [
+      "sql",
+      "python",
+      "pandas",
+      "visualization",
+      "statistical-analysis",
+    ],
     temperature: 0.4,
-    systemPrompt: 'You are a data analysis specialist. Extract meaningful insights from complex datasets.'
+    systemPrompt:
+      "You are a data analysis specialist. Extract meaningful insights from complex datasets.",
   },
-  'api-architect': {
-    id: 'api-architect',
-    name: 'API Architect',
-    type: 'developer',
-    category: 'development-domain',
-    description: 'API design and architecture specialist',
-    capabilities: ['rest', 'graphql', 'grpc', 'openapi', 'api-gateway', 'versioning'],
+  "api-architect": {
+    id: "api-architect",
+    name: "API Architect",
+    type: "developer",
+    category: "development-domain",
+    description: "API design and architecture specialist",
+    capabilities: [
+      "rest",
+      "graphql",
+      "grpc",
+      "openapi",
+      "api-gateway",
+      "versioning",
+    ],
     temperature: 0.4,
-    systemPrompt: 'You are an API architect. Design scalable, maintainable, and well-documented APIs.'
+    systemPrompt:
+      "You are an API architect. Design scalable, maintainable, and well-documented APIs.",
   },
-  'database-architect': {
-    id: 'database-architect',
-    name: 'Database Architect',
-    type: 'developer',
-    category: 'development-domain',
-    description: 'Database design and optimization specialist',
-    capabilities: ['sql', 'nosql', 'schema-design', 'optimization', 'replication', 'sharding'],
+  "database-architect": {
+    id: "database-architect",
+    name: "Database Architect",
+    type: "developer",
+    category: "development-domain",
+    description: "Database design and optimization specialist",
+    capabilities: [
+      "sql",
+      "nosql",
+      "schema-design",
+      "optimization",
+      "replication",
+      "sharding",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a database architect. Design efficient, scalable database systems.'
+    systemPrompt:
+      "You are a database architect. Design efficient, scalable database systems.",
   },
 
   // 18. Engineering Operations Agents (5) - NEW from Claude-Flow
-  'cicd-engineer': {
-    id: 'cicd-engineer',
-    name: 'CI/CD Engineer',
-    type: 'engineer',
-    category: 'engineering-operations',
-    description: 'Continuous integration and deployment pipeline specialist',
-    capabilities: ['github-actions', 'jenkins', 'gitlab-ci', 'docker', 'kubernetes', 'automation'],
+  "cicd-engineer": {
+    id: "cicd-engineer",
+    name: "CI/CD Engineer",
+    type: "engineer",
+    category: "engineering-operations",
+    description: "Continuous integration and deployment pipeline specialist",
+    capabilities: [
+      "github-actions",
+      "jenkins",
+      "gitlab-ci",
+      "docker",
+      "kubernetes",
+      "automation",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a CI/CD engineer. Build and maintain robust deployment pipelines.'
+    systemPrompt:
+      "You are a CI/CD engineer. Build and maintain robust deployment pipelines.",
   },
-  'infrastructure-engineer': {
-    id: 'infrastructure-engineer',
-    name: 'Infrastructure Engineer',
-    type: 'engineer',
-    category: 'engineering-operations',
-    description: 'Infrastructure as code and cloud resource management',
-    capabilities: ['terraform', 'ansible', 'cloudformation', 'pulumi', 'infrastructure-as-code'],
+  "infrastructure-engineer": {
+    id: "infrastructure-engineer",
+    name: "Infrastructure Engineer",
+    type: "engineer",
+    category: "engineering-operations",
+    description: "Infrastructure as code and cloud resource management",
+    capabilities: [
+      "terraform",
+      "ansible",
+      "cloudformation",
+      "pulumi",
+      "infrastructure-as-code",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are an infrastructure engineer. Manage cloud resources with infrastructure as code.'
+    systemPrompt:
+      "You are an infrastructure engineer. Manage cloud resources with infrastructure as code.",
   },
-  'deployment-engineer': {
-    id: 'deployment-engineer',
-    name: 'Deployment Engineer',
-    type: 'engineer',
-    category: 'engineering-operations',
-    description: 'Application deployment and release management',
-    capabilities: ['deployment', 'rollback', 'blue-green', 'canary', 'feature-flags'],
+  "deployment-engineer": {
+    id: "deployment-engineer",
+    name: "Deployment Engineer",
+    type: "engineer",
+    category: "engineering-operations",
+    description: "Application deployment and release management",
+    capabilities: [
+      "deployment",
+      "rollback",
+      "blue-green",
+      "canary",
+      "feature-flags",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a deployment engineer. Ensure smooth and reliable application deployments.'
+    systemPrompt:
+      "You are a deployment engineer. Ensure smooth and reliable application deployments.",
   },
-  'monitoring-engineer': {
-    id: 'monitoring-engineer',
-    name: 'Monitoring Engineer',
-    type: 'engineer',
-    category: 'engineering-operations',
-    description: 'System monitoring and observability specialist',
-    capabilities: ['prometheus', 'grafana', 'datadog', 'elk-stack', 'tracing', 'alerting'],
+  "monitoring-engineer": {
+    id: "monitoring-engineer",
+    name: "Monitoring Engineer",
+    type: "engineer",
+    category: "engineering-operations",
+    description: "System monitoring and observability specialist",
+    capabilities: [
+      "prometheus",
+      "grafana",
+      "datadog",
+      "elk-stack",
+      "tracing",
+      "alerting",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a monitoring engineer. Implement comprehensive observability solutions.'
+    systemPrompt:
+      "You are a monitoring engineer. Implement comprehensive observability solutions.",
   },
-  'performance-benchmarker': {
-    id: 'performance-benchmarker',
-    name: 'Performance Benchmarker',
-    type: 'engineer',
-    category: 'engineering-operations',
-    description: 'System performance benchmarking and optimization',
-    capabilities: ['load-testing', 'profiling', 'benchmarking', 'optimization', 'metrics'],
+  "performance-benchmarker": {
+    id: "performance-benchmarker",
+    name: "Performance Benchmarker",
+    type: "engineer",
+    category: "engineering-operations",
+    description: "System performance benchmarking and optimization",
+    capabilities: [
+      "load-testing",
+      "profiling",
+      "benchmarking",
+      "optimization",
+      "metrics",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a performance benchmarking specialist. Measure and optimize system performance.'
+    systemPrompt:
+      "You are a performance benchmarking specialist. Measure and optimize system performance.",
   },
 
   // 19. Code Quality Agents (3) - NEW from Claude-Flow
-  'code-analyzer-specialist': {
-    id: 'code-analyzer-specialist',
-    name: 'Code Analysis Specialist',
-    type: 'quality',
-    category: 'code-quality',
-    description: 'Advanced static and dynamic code analysis',
-    capabilities: ['static-analysis', 'dynamic-analysis', 'complexity-metrics', 'code-smells', 'ast-analysis'],
+  "code-analyzer-specialist": {
+    id: "code-analyzer-specialist",
+    name: "Code Analysis Specialist",
+    type: "quality",
+    category: "code-quality",
+    description: "Advanced static and dynamic code analysis",
+    capabilities: [
+      "static-analysis",
+      "dynamic-analysis",
+      "complexity-metrics",
+      "code-smells",
+      "ast-analysis",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a code analysis specialist. Identify and fix code quality issues.'
+    systemPrompt:
+      "You are a code analysis specialist. Identify and fix code quality issues.",
   },
-  'security-analyzer': {
-    id: 'security-analyzer',
-    name: 'Security Analyzer',
-    type: 'quality',
-    category: 'code-quality',
-    description: 'Security vulnerability detection and remediation',
-    capabilities: ['vulnerability-scanning', 'sast', 'dast', 'dependency-scanning', 'security-best-practices'],
+  "security-analyzer": {
+    id: "security-analyzer",
+    name: "Security Analyzer",
+    type: "quality",
+    category: "code-quality",
+    description: "Security vulnerability detection and remediation",
+    capabilities: [
+      "vulnerability-scanning",
+      "sast",
+      "dast",
+      "dependency-scanning",
+      "security-best-practices",
+    ],
     temperature: 0.2,
-    systemPrompt: 'You are a security analyzer. Identify and fix security vulnerabilities in code.'
+    systemPrompt:
+      "You are a security analyzer. Identify and fix security vulnerabilities in code.",
   },
-  'refactoring-specialist': {
-    id: 'refactoring-specialist',
-    name: 'Refactoring Specialist',
-    type: 'quality',
-    category: 'code-quality',
-    description: 'Code refactoring and modernization expert',
-    capabilities: ['refactoring', 'design-patterns', 'code-cleanup', 'modernization', 'debt-reduction'],
+  "refactoring-specialist": {
+    id: "refactoring-specialist",
+    name: "Refactoring Specialist",
+    type: "quality",
+    category: "code-quality",
+    description: "Code refactoring and modernization expert",
+    capabilities: [
+      "refactoring",
+      "design-patterns",
+      "code-cleanup",
+      "modernization",
+      "debt-reduction",
+    ],
     temperature: 0.4,
-    systemPrompt: 'You are a refactoring specialist. Improve code quality through systematic refactoring.'
+    systemPrompt:
+      "You are a refactoring specialist. Improve code quality through systematic refactoring.",
   },
 
   // 20. Testing Specialists (4) - NEW from Claude-Flow
-  'unit-tester': {
-    id: 'unit-tester',
-    name: 'Unit Test Specialist',
-    type: 'testing',
-    category: 'testing-specialists',
-    description: 'Unit test creation and maintenance specialist',
-    capabilities: ['jest', 'mocha', 'pytest', 'junit', 'mocking', 'coverage'],
+  "unit-tester": {
+    id: "unit-tester",
+    name: "Unit Test Specialist",
+    type: "testing",
+    category: "testing-specialists",
+    description: "Unit test creation and maintenance specialist",
+    capabilities: ["jest", "mocha", "pytest", "junit", "mocking", "coverage"],
     temperature: 0.3,
-    systemPrompt: 'You are a unit testing specialist. Write comprehensive unit tests with high coverage.'
+    systemPrompt:
+      "You are a unit testing specialist. Write comprehensive unit tests with high coverage.",
   },
-  'integration-tester': {
-    id: 'integration-tester',
-    name: 'Integration Test Specialist',
-    type: 'testing',
-    category: 'testing-specialists',
-    description: 'Integration and API testing specialist',
-    capabilities: ['api-testing', 'integration-testing', 'contract-testing', 'postman', 'rest-assured'],
+  "integration-tester": {
+    id: "integration-tester",
+    name: "Integration Test Specialist",
+    type: "testing",
+    category: "testing-specialists",
+    description: "Integration and API testing specialist",
+    capabilities: [
+      "api-testing",
+      "integration-testing",
+      "contract-testing",
+      "postman",
+      "rest-assured",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are an integration testing specialist. Test component interactions and API contracts.'
+    systemPrompt:
+      "You are an integration testing specialist. Test component interactions and API contracts.",
   },
-  'e2e-tester': {
-    id: 'e2e-tester',
-    name: 'E2E Test Specialist',
-    type: 'testing',
-    category: 'testing-specialists',
-    description: 'End-to-end test automation specialist',
-    capabilities: ['cypress', 'playwright', 'selenium', 'puppeteer', 'test-automation'],
+  "e2e-tester": {
+    id: "e2e-tester",
+    name: "E2E Test Specialist",
+    type: "testing",
+    category: "testing-specialists",
+    description: "End-to-end test automation specialist",
+    capabilities: [
+      "cypress",
+      "playwright",
+      "selenium",
+      "puppeteer",
+      "test-automation",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are an E2E testing specialist. Create reliable end-to-end test automation.'
+    systemPrompt:
+      "You are an E2E testing specialist. Create reliable end-to-end test automation.",
   },
-  'performance-tester': {
-    id: 'performance-tester',
-    name: 'Performance Test Specialist',
-    type: 'testing',
-    category: 'testing-specialists',
-    description: 'Load and performance testing specialist',
-    capabilities: ['jmeter', 'gatling', 'k6', 'load-testing', 'stress-testing', 'performance-analysis'],
+  "performance-tester": {
+    id: "performance-tester",
+    name: "Performance Test Specialist",
+    type: "testing",
+    category: "testing-specialists",
+    description: "Load and performance testing specialist",
+    capabilities: [
+      "jmeter",
+      "gatling",
+      "k6",
+      "load-testing",
+      "stress-testing",
+      "performance-analysis",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a performance testing specialist. Test system performance under various load conditions.'
+    systemPrompt:
+      "You are a performance testing specialist. Test system performance under various load conditions.",
   },
 
   // 21. Documentation Specialists (3) - NEW from Claude-Flow
-  'api-docs-writer': {
-    id: 'api-docs-writer',
-    name: 'API Documentation Writer',
-    type: 'documentation',
-    category: 'documentation-specialists',
-    description: 'API documentation and specification writer',
-    capabilities: ['openapi', 'swagger', 'api-blueprints', 'postman-docs', 'technical-writing'],
+  "api-docs-writer": {
+    id: "api-docs-writer",
+    name: "API Documentation Writer",
+    type: "documentation",
+    category: "documentation-specialists",
+    description: "API documentation and specification writer",
+    capabilities: [
+      "openapi",
+      "swagger",
+      "api-blueprints",
+      "postman-docs",
+      "technical-writing",
+    ],
     temperature: 0.5,
-    systemPrompt: 'You are an API documentation specialist. Create clear, comprehensive API documentation.'
+    systemPrompt:
+      "You are an API documentation specialist. Create clear, comprehensive API documentation.",
   },
-  'technical-writer': {
-    id: 'technical-writer',
-    name: 'Technical Documentation Writer',
-    type: 'documentation',
-    category: 'documentation-specialists',
-    description: 'Technical documentation and guide creation',
-    capabilities: ['technical-writing', 'user-guides', 'tutorials', 'architecture-docs', 'markdown'],
+  "technical-writer": {
+    id: "technical-writer",
+    name: "Technical Documentation Writer",
+    type: "documentation",
+    category: "documentation-specialists",
+    description: "Technical documentation and guide creation",
+    capabilities: [
+      "technical-writing",
+      "user-guides",
+      "tutorials",
+      "architecture-docs",
+      "markdown",
+    ],
     temperature: 0.5,
-    systemPrompt: 'You are a technical writer. Create clear, well-structured technical documentation.'
+    systemPrompt:
+      "You are a technical writer. Create clear, well-structured technical documentation.",
   },
-  'readme-specialist': {
-    id: 'readme-specialist',
-    name: 'README Specialist',
-    type: 'documentation',
-    category: 'documentation-specialists',
-    description: 'README and project documentation specialist',
-    capabilities: ['readme', 'getting-started', 'contributing-guides', 'badges', 'examples'],
+  "readme-specialist": {
+    id: "readme-specialist",
+    name: "README Specialist",
+    type: "documentation",
+    category: "documentation-specialists",
+    description: "README and project documentation specialist",
+    capabilities: [
+      "readme",
+      "getting-started",
+      "contributing-guides",
+      "badges",
+      "examples",
+    ],
     temperature: 0.5,
-    systemPrompt: 'You are a README specialist. Create engaging, informative project documentation.'
+    systemPrompt:
+      "You are a README specialist. Create engaging, informative project documentation.",
   },
 
   // 22. Research and Scientific Agents (4) - NEW Co-Scientist Integration
-  'research-coordinator': {
-    id: 'research-coordinator',
-    name: 'Research Coordinator',
-    type: 'researcher',
-    category: 'research-scientific',
-    description: 'Advanced research coordination with hypothesis testing and academic integration',
-    capabilities: ['hypothesis-generation', 'academic-database-search', 'peer-review-simulation', 'research-paper-generation', 'knowledge-graph-construction', 'citation-management'],
+  "research-coordinator": {
+    id: "research-coordinator",
+    name: "Research Coordinator",
+    type: "researcher",
+    category: "research-scientific",
+    description:
+      "Advanced research coordination with hypothesis testing and academic integration",
+    capabilities: [
+      "hypothesis-generation",
+      "academic-database-search",
+      "peer-review-simulation",
+      "research-paper-generation",
+      "knowledge-graph-construction",
+      "citation-management",
+    ],
     temperature: 0.4,
-    systemPrompt: 'You are a research coordinator. Apply scientific method rigor to generate, validate, and document research findings with academic standards.'
+    systemPrompt:
+      "You are a research coordinator. Apply scientific method rigor to generate, validate, and document research findings with academic standards.",
   },
-  'hypothesis-tester': {
-    id: 'hypothesis-tester',
-    name: 'Hypothesis Testing Specialist',
-    type: 'researcher',
-    category: 'research-scientific',
-    description: 'Scientific hypothesis testing with statistical validation',
-    capabilities: ['hypothesis-design', 'statistical-analysis', 'experimental-design', 'data-validation', 'results-interpretation'],
+  "hypothesis-tester": {
+    id: "hypothesis-tester",
+    name: "Hypothesis Testing Specialist",
+    type: "researcher",
+    category: "research-scientific",
+    description: "Scientific hypothesis testing with statistical validation",
+    capabilities: [
+      "hypothesis-design",
+      "statistical-analysis",
+      "experimental-design",
+      "data-validation",
+      "results-interpretation",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a hypothesis testing specialist. Design and execute rigorous scientific experiments with proper statistical analysis.'
+    systemPrompt:
+      "You are a hypothesis testing specialist. Design and execute rigorous scientific experiments with proper statistical analysis.",
   },
-  'academic-integrator': {
-    id: 'academic-integrator',
-    name: 'Academic Database Integrator',
-    type: 'researcher',
-    category: 'research-scientific',
-    description: 'Integration with academic databases and literature review',
-    capabilities: ['pubmed-integration', 'arxiv-search', 'google-scholar', 'semantic-scholar', 'literature-review', 'citation-analysis'],
+  "academic-integrator": {
+    id: "academic-integrator",
+    name: "Academic Database Integrator",
+    type: "researcher",
+    category: "research-scientific",
+    description: "Integration with academic databases and literature review",
+    capabilities: [
+      "pubmed-integration",
+      "arxiv-search",
+      "google-scholar",
+      "semantic-scholar",
+      "literature-review",
+      "citation-analysis",
+    ],
     temperature: 0.4,
-    systemPrompt: 'You are an academic integrator. Search, analyze, and synthesize academic literature to support research objectives.'
+    systemPrompt:
+      "You are an academic integrator. Search, analyze, and synthesize academic literature to support research objectives.",
   },
-  'peer-reviewer': {
-    id: 'peer-reviewer',
-    name: 'Peer Review Simulator',
-    type: 'reviewer',
-    category: 'research-scientific',
-    description: 'Automated peer review simulation for research validation',
-    capabilities: ['peer-review-simulation', 'research-validation', 'methodology-assessment', 'quality-evaluation', 'feedback-generation'],
+  "peer-reviewer": {
+    id: "peer-reviewer",
+    name: "Peer Review Simulator",
+    type: "reviewer",
+    category: "research-scientific",
+    description: "Automated peer review simulation for research validation",
+    capabilities: [
+      "peer-review-simulation",
+      "research-validation",
+      "methodology-assessment",
+      "quality-evaluation",
+      "feedback-generation",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a peer reviewer. Evaluate research with academic rigor, providing constructive feedback and validation.'
+    systemPrompt:
+      "You are a peer reviewer. Evaluate research with academic rigor, providing constructive feedback and validation.",
   },
 
   // 23. Security Framework Agents (5) - NEW Comprehensive Security
-  'security-framework-manager': {
-    id: 'security-framework-manager',
-    name: 'Security Framework Manager',
-    type: 'security',
-    category: 'security-framework',
-    description: 'Comprehensive security framework management and coordination',
-    capabilities: ['security-policy-management', 'framework-coordination', 'compliance-monitoring', 'threat-assessment', 'security-governance'],
+  "security-framework-manager": {
+    id: "security-framework-manager",
+    name: "Security Framework Manager",
+    type: "security",
+    category: "security-framework",
+    description: "Comprehensive security framework management and coordination",
+    capabilities: [
+      "security-policy-management",
+      "framework-coordination",
+      "compliance-monitoring",
+      "threat-assessment",
+      "security-governance",
+    ],
     temperature: 0.2,
-    systemPrompt: 'You are a security framework manager. Coordinate comprehensive security measures across all system components.'
+    systemPrompt:
+      "You are a security framework manager. Coordinate comprehensive security measures across all system components.",
   },
-  'encryption-specialist': {
-    id: 'encryption-specialist',
-    name: 'Encryption Specialist',
-    type: 'security',
-    category: 'security-framework',
-    description: 'End-to-end encryption and cryptographic security specialist',
-    capabilities: ['e2e-encryption', 'key-management', 'cryptographic-protocols', 'secure-storage', 'drm-integration'],
+  "encryption-specialist": {
+    id: "encryption-specialist",
+    name: "Encryption Specialist",
+    type: "security",
+    category: "security-framework",
+    description: "End-to-end encryption and cryptographic security specialist",
+    capabilities: [
+      "e2e-encryption",
+      "key-management",
+      "cryptographic-protocols",
+      "secure-storage",
+      "drm-integration",
+    ],
     temperature: 0.1,
-    systemPrompt: 'You are an encryption specialist. Implement and manage enterprise-grade encryption for all data types.'
+    systemPrompt:
+      "You are an encryption specialist. Implement and manage enterprise-grade encryption for all data types.",
   },
-  'compliance-auditor': {
-    id: 'compliance-auditor',
-    name: 'Compliance Auditor',
-    type: 'auditor',
-    category: 'security-framework',
-    description: 'GDPR, CCPA, HIPAA, SOX, PCI compliance auditing and management',
-    capabilities: ['gdpr-compliance', 'ccpa-compliance', 'hipaa-audit', 'sox-controls', 'pci-dss', 'iso27001', 'compliance-reporting'],
+  "compliance-auditor": {
+    id: "compliance-auditor",
+    name: "Compliance Auditor",
+    type: "auditor",
+    category: "security-framework",
+    description:
+      "GDPR, CCPA, HIPAA, SOX, PCI compliance auditing and management",
+    capabilities: [
+      "gdpr-compliance",
+      "ccpa-compliance",
+      "hipaa-audit",
+      "sox-controls",
+      "pci-dss",
+      "iso27001",
+      "compliance-reporting",
+    ],
     temperature: 0.2,
-    systemPrompt: 'You are a compliance auditor. Ensure adherence to regulatory frameworks with comprehensive audit trails.'
+    systemPrompt:
+      "You are a compliance auditor. Ensure adherence to regulatory frameworks with comprehensive audit trails.",
   },
-  'zero-trust-architect': {
-    id: 'zero-trust-architect',
-    name: 'Zero Trust Architect',
-    type: 'architect',
-    category: 'security-framework',
-    description: 'Zero-trust architecture design for agent communication',
-    capabilities: ['zero-trust-design', 'agent-authentication', 'micro-segmentation', 'identity-verification', 'secure-channels'],
+  "zero-trust-architect": {
+    id: "zero-trust-architect",
+    name: "Zero Trust Architect",
+    type: "architect",
+    category: "security-framework",
+    description: "Zero-trust architecture design for agent communication",
+    capabilities: [
+      "zero-trust-design",
+      "agent-authentication",
+      "micro-segmentation",
+      "identity-verification",
+      "secure-channels",
+    ],
     temperature: 0.2,
-    systemPrompt: 'You are a zero-trust architect. Design and implement zero-trust security for all agent interactions.'
+    systemPrompt:
+      "You are a zero-trust architect. Design and implement zero-trust security for all agent interactions.",
   },
-  'threat-modeler': {
-    id: 'threat-modeler',
-    name: 'Threat Modeling Specialist',
-    type: 'security',
-    category: 'security-framework',
-    description: 'Advanced threat modeling with STRIDE methodology and risk assessment',
-    capabilities: ['stride-modeling', 'attack-surface-analysis', 'risk-assessment', 'vulnerability-analysis', 'mitigation-strategies'],
+  "threat-modeler": {
+    id: "threat-modeler",
+    name: "Threat Modeling Specialist",
+    type: "security",
+    category: "security-framework",
+    description:
+      "Advanced threat modeling with STRIDE methodology and risk assessment",
+    capabilities: [
+      "stride-modeling",
+      "attack-surface-analysis",
+      "risk-assessment",
+      "vulnerability-analysis",
+      "mitigation-strategies",
+    ],
     temperature: 0.3,
-    systemPrompt: 'You are a threat modeling specialist. Identify, analyze, and mitigate security threats using systematic methodologies.'
-  }
+    systemPrompt:
+      "You are a threat modeling specialist. Identify, analyze, and mitigate security threats using systematic methodologies.",
+  },
 };
 
 // Agent categories summary
 export const AGENT_CATEGORIES = {
-  'core-development': 5,
-  'swarm-coordination': 3,
-  'consensus-systems': 7,
-  'github-integration': 13,
-  'performance-optimization': 6,
-  'neural-processing': 4,
-  'quantum-computing': 3,
-  'security-systems': 4,
-  'data-analytics': 3,
-  'infrastructure': 4,
-  'knowledge-management': 3,
-  'communication': 2,
-  'monitoring-systems': 3,
-  'creative-development': 2,
-  'specialized-tasks': 2,
-  'ai-ml-operations': 2,
-  'development-domain': 8,        // NEW category
-  'engineering-operations': 5,    // NEW category
-  'code-quality': 3,              // NEW category
-  'testing-specialists': 4,       // NEW category
-  'documentation-specialists': 3, // NEW category
-  'research-scientific': 4,       // NEW Co-Scientist category
-  'security-framework': 5         // NEW Comprehensive Security category
+  "core-development": 5,
+  "swarm-coordination": 3,
+  "consensus-systems": 7,
+  "github-integration": 13,
+  "performance-optimization": 6,
+  "neural-processing": 4,
+  "quantum-computing": 3,
+  "security-systems": 4,
+  "data-analytics": 3,
+  infrastructure: 4,
+  "knowledge-management": 3,
+  communication: 2,
+  "monitoring-systems": 3,
+  "creative-development": 2,
+  "specialized-tasks": 2,
+  "ai-ml-operations": 2,
+  "development-domain": 8, // NEW category
+  "engineering-operations": 5, // NEW category
+  "code-quality": 3, // NEW category
+  "testing-specialists": 4, // NEW category
+  "documentation-specialists": 3, // NEW category
+  "research-scientific": 4, // NEW Co-Scientist category
+  "security-framework": 5, // NEW Comprehensive Security category
 };
 
 // Total: 96 agents (expanded from 87 with Co-Scientist and Security Framework integration)

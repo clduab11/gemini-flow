@@ -1,6 +1,6 @@
 /**
  * Quantum Computing Type Definitions
- * 
+ *
  * Comprehensive type definitions for quantum computing operations,
  * algorithms, and data structures used throughout the quantum computing module.
  */
@@ -27,7 +27,7 @@ export interface QuantumRegister {
 
 export interface QuantumGateDefinition {
   name: string;
-  type: 'single' | 'two' | 'multi';
+  type: "single" | "two" | "multi";
   matrix: Complex[][];
   parameters?: number[];
   description: string;
@@ -43,7 +43,7 @@ export interface QuantumCircuitInstruction {
 
 export interface QuantumMeasurement {
   qubitIndex: number;
-  basis: 'computational' | 'hadamard' | 'pauli_x' | 'pauli_y' | 'pauli_z';
+  basis: "computational" | "hadamard" | "pauli_x" | "pauli_y" | "pauli_z";
   result: 0 | 1;
   probability: number;
   timestamp: number;
@@ -52,30 +52,30 @@ export interface QuantumMeasurement {
 // Quantum Algorithm Types
 export interface QAOAParameters {
   layers: number;
-  gamma: number[];  // Cost Hamiltonian parameters
-  beta: number[];   // Mixer Hamiltonian parameters
+  gamma: number[]; // Cost Hamiltonian parameters
+  beta: number[]; // Mixer Hamiltonian parameters
   costFunction: (solution: number[]) => number;
-  mixerType: 'x_mixer' | 'xy_mixer' | 'custom';
+  mixerType: "x_mixer" | "xy_mixer" | "custom";
 }
 
 export interface VQEParameters {
-  ansatz: 'hardware_efficient' | 'uccsd' | 'custom';
-  optimizer: 'gradient_descent' | 'spsa' | 'cobyla' | 'l_bfgs_b';
+  ansatz: "hardware_efficient" | "uccsd" | "custom";
+  optimizer: "gradient_descent" | "spsa" | "cobyla" | "l_bfgs_b";
   maxIterations: number;
   tolerance: number;
   hamiltonian: Complex[][];
 }
 
 export interface QuantumNeuralNetworkLayer {
-  type: 'variational' | 'data_encoding' | 'measurement';
+  type: "variational" | "data_encoding" | "measurement";
   qubits: number[];
   gates: QuantumCircuitInstruction[];
   trainableParameters: number[];
-  activation?: 'linear' | 'sigmoid' | 'relu' | 'quantum_activation';
+  activation?: "linear" | "sigmoid" | "relu" | "quantum_activation";
 }
 
 export interface QuantumSVMKernel {
-  type: 'rbf' | 'polynomial' | 'linear' | 'quantum_kernel';
+  type: "rbf" | "polynomial" | "linear" | "quantum_kernel";
   parameters: Record<string, number>;
   featureMap: QuantumCircuitInstruction[];
   kernelMatrix?: number[][];
@@ -83,7 +83,12 @@ export interface QuantumSVMKernel {
 
 // Quantum Error Types
 export interface QuantumError {
-  type: 'bit_flip' | 'phase_flip' | 'depolarizing' | 'amplitude_damping' | 'dephasing';
+  type:
+    | "bit_flip"
+    | "phase_flip"
+    | "depolarizing"
+    | "amplitude_damping"
+    | "dephasing";
   probability: number;
   affectedQubits: number[];
   timestamp: number;
@@ -91,7 +96,7 @@ export interface QuantumError {
 }
 
 export interface QuantumErrorCorrection {
-  code: 'surface' | 'steane' | 'shor' | 'color' | 'topological';
+  code: "surface" | "steane" | "shor" | "color" | "topological";
   logicalQubits: number;
   physicalQubits: number;
   codeDistance: number;
@@ -104,8 +109,8 @@ export interface NoiseModelParameters {
   gateErrorRates: Record<string, number>;
   measurementErrorRate: number;
   decoherenceTime: {
-    t1: number;  // Relaxation time
-    t2: number;  // Dephasing time
+    t1: number; // Relaxation time
+    t2: number; // Dephasing time
   };
   thermalNoise: number;
   crosstalk: number[][];
@@ -113,7 +118,7 @@ export interface NoiseModelParameters {
 
 // Quantum Simulation Types
 export interface QuantumSystemHamiltonian {
-  type: 'ising' | 'heisenberg' | 'hubbard' | 'molecular' | 'custom';
+  type: "ising" | "heisenberg" | "hubbard" | "molecular" | "custom";
   dimension: number;
   matrix: Complex[][];
   eigenvalues?: number[];
@@ -143,23 +148,23 @@ export interface TimeEvolutionParameters {
   hamiltonian: Complex[][];
   timeStep: number;
   totalTime: number;
-  method: 'trotter' | 'exact' | 'lanczos' | 'chebyshev';
+  method: "trotter" | "exact" | "lanczos" | "chebyshev";
   order?: number;
 }
 
 // Quantum Machine Learning Types
 export interface QuantumDataEncoding {
-  method: 'amplitude' | 'angle' | 'basis' | 'displacement' | 'squeezing';
+  method: "amplitude" | "angle" | "basis" | "displacement" | "squeezing";
   normalization: boolean;
   entanglement: boolean;
   redundancy: number;
 }
 
 export interface QuantumFeatureMap {
-  type: 'pauli' | 'zz' | 'polynomial' | 'fourier' | 'custom';
+  type: "pauli" | "zz" | "polynomial" | "fourier" | "custom";
   repetitions: number;
-  pauliGates: ('I' | 'X' | 'Y' | 'Z')[];
-  entanglementPattern: 'linear' | 'circular' | 'full' | 'custom';
+  pauliGates: ("I" | "X" | "Y" | "Z")[];
+  entanglementPattern: "linear" | "circular" | "full" | "custom";
   parameters: number[];
 }
 
@@ -187,7 +192,7 @@ export interface QuantumClusteringResult {
 
 // Quantum Optimization Types
 export interface QuantumOptimizationProblem {
-  type: 'quadratic' | 'combinatorial' | 'constraint' | 'multi_objective';
+  type: "quadratic" | "combinatorial" | "constraint" | "multi_objective";
   variables: number;
   objective: {
     linear: number[];
@@ -195,7 +200,7 @@ export interface QuantumOptimizationProblem {
     constant?: number;
   };
   constraints: Array<{
-    type: 'equality' | 'inequality' | 'box';
+    type: "equality" | "inequality" | "box";
     coefficients: number[];
     bound: number;
   }>;
@@ -238,7 +243,12 @@ export interface QuantumOptimizationResult {
 // Quantum Hardware Types
 export interface QuantumDevice {
   name: string;
-  type: 'superconducting' | 'trapped_ion' | 'photonic' | 'neutral_atom' | 'simulator';
+  type:
+    | "superconducting"
+    | "trapped_ion"
+    | "photonic"
+    | "neutral_atom"
+    | "simulator";
   qubits: number;
   connectivity: number[][];
   gateSet: string[];
@@ -248,7 +258,7 @@ export interface QuantumDevice {
     t1: number;
     t2: number;
   };
-  topology: 'linear' | 'grid' | 'heavy_hex' | 'all_to_all' | 'custom';
+  topology: "linear" | "grid" | "heavy_hex" | "all_to_all" | "custom";
 }
 
 export interface QuantumJob {
@@ -257,7 +267,7 @@ export interface QuantumJob {
   measurements: QuantumMeasurement[];
   shots: number;
   device: string;
-  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
   submitTime: Date;
   startTime?: Date;
   endTime?: Date;
@@ -331,13 +341,13 @@ export interface QuantumComplexityAnalysis {
 export interface HybridAlgorithmConfig {
   quantumLayers: QuantumNeuralNetworkLayer[];
   classicalLayers: Array<{
-    type: 'dense' | 'conv' | 'lstm' | 'attention';
+    type: "dense" | "conv" | "lstm" | "attention";
     parameters: Record<string, any>;
   }>;
   coordination: {
-    strategy: 'sequential' | 'parallel' | 'interleaved' | 'adaptive';
-    synchronization: 'synchronous' | 'asynchronous';
-    dataFlow: 'quantum_to_classical' | 'classical_to_quantum' | 'bidirectional';
+    strategy: "sequential" | "parallel" | "interleaved" | "adaptive";
+    synchronization: "synchronous" | "asynchronous";
+    dataFlow: "quantum_to_classical" | "classical_to_quantum" | "bidirectional";
   };
 }
 
@@ -364,7 +374,7 @@ export interface MolecularHamiltonian {
     position: [number, number, number];
   }>;
   basisSet: string;
-  method: 'hartree_fock' | 'dft' | 'mp2' | 'ccsd' | 'custom';
+  method: "hartree_fock" | "dft" | "mp2" | "ccsd" | "custom";
   charge: number;
   multiplicity: number;
   oneBodyIntegrals: number[][];
@@ -387,7 +397,11 @@ export interface QuantumChemistryResult {
 
 // Quantum Cryptography Types
 export interface QuantumKeyDistribution {
-  protocol: 'bb84' | 'sarg04' | 'decoy_state' | 'measurement_device_independent';
+  protocol:
+    | "bb84"
+    | "sarg04"
+    | "decoy_state"
+    | "measurement_device_independent";
   keyLength: number;
   securityParameter: number;
   errorRate: number;
@@ -396,20 +410,23 @@ export interface QuantumKeyDistribution {
 }
 
 export interface QuantumRandomNumberGenerator {
-  source: 'measurement' | 'vacuum_fluctuations' | 'spontaneous_emission';
+  source: "measurement" | "vacuum_fluctuations" | "spontaneous_emission";
   bitRate: number;
   entropy: number;
   statisticalTests: string[];
-  certification: 'device_independent' | 'semi_device_independent' | 'device_dependent';
+  certification:
+    | "device_independent"
+    | "semi_device_independent"
+    | "device_dependent";
 }
 
 // Quantum Sensing and Metrology Types
 export interface QuantumSensorConfig {
-  type: 'magnetometer' | 'gravimeter' | 'clock' | 'accelerometer' | 'gyroscope';
+  type: "magnetometer" | "gravimeter" | "clock" | "accelerometer" | "gyroscope";
   sensitivity: number;
   bandwidth: number;
   dynamicRange: number;
-  probeState: 'coherent' | 'squeezed' | 'spin_squeezed' | 'ghz';
+  probeState: "coherent" | "squeezed" | "spin_squeezed" | "ghz";
   entanglement: boolean;
 }
 
@@ -423,17 +440,51 @@ export interface QuantumMetrologyResult {
 }
 
 // Export utility types
-export type QuantumGateType = 'I' | 'X' | 'Y' | 'Z' | 'H' | 'S' | 'T' | 'RX' | 'RY' | 'RZ' | 'CNOT' | 'CZ' | 'SWAP' | 'Toffoli' | 'Fredkin';
+export type QuantumGateType =
+  | "I"
+  | "X"
+  | "Y"
+  | "Z"
+  | "H"
+  | "S"
+  | "T"
+  | "RX"
+  | "RY"
+  | "RZ"
+  | "CNOT"
+  | "CZ"
+  | "SWAP"
+  | "Toffoli"
+  | "Fredkin";
 
-export type QuantumAlgorithmType = 'grover' | 'shor' | 'simon' | 'deutsch_jozsa' | 'bernstein_vazirani' | 'qaoa' | 'vqe' | 'qnn' | 'qsvm' | 'quantum_walk';
+export type QuantumAlgorithmType =
+  | "grover"
+  | "shor"
+  | "simon"
+  | "deutsch_jozsa"
+  | "bernstein_vazirani"
+  | "qaoa"
+  | "vqe"
+  | "qnn"
+  | "qsvm"
+  | "quantum_walk";
 
-export type QuantumBackend = 'simulator' | 'hardware' | 'cloud' | 'hybrid';
+export type QuantumBackend = "simulator" | "hardware" | "cloud" | "hybrid";
 
-export type QuantumNoiseType = 'none' | 'depolarizing' | 'amplitude_damping' | 'phase_damping' | 'bit_flip' | 'phase_flip' | 'pauli' | 'coherent' | 'incoherent';
+export type QuantumNoiseType =
+  | "none"
+  | "depolarizing"
+  | "amplitude_damping"
+  | "phase_damping"
+  | "bit_flip"
+  | "phase_flip"
+  | "pauli"
+  | "coherent"
+  | "incoherent";
 
 // Advanced quantum types for research applications
 export interface QuantumFieldTheorySimulation {
-  fieldType: 'scalar' | 'fermion' | 'gauge' | 'yang_mills';
+  fieldType: "scalar" | "fermion" | "gauge" | "yang_mills";
   latticeSize: number[];
   couplingConstants: number[];
   symmetryGroup: string;

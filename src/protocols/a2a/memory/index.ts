@@ -1,12 +1,12 @@
 /**
  * A2A Memory Coordination System
- * 
+ *
  * Comprehensive distributed memory management for Agent-to-Agent communication
  * providing eventual consistency with strong guarantees for critical state.
  */
 
 // Core distributed memory manager
-export { 
+export {
   DistributedMemoryManager,
   type MemoryTopology,
   type AgentNode,
@@ -14,8 +14,8 @@ export {
   type MemoryDelta,
   type MemoryOperation,
   type SynchronizationStats,
-  type MemoryMetrics
-} from './distributed-memory-manager.js';
+  type MemoryMetrics,
+} from "./distributed-memory-manager.js";
 
 // CRDT-based state synchronization
 export {
@@ -29,8 +29,8 @@ export {
   type CRDT,
   type CRDTType,
   type CRDTOperation,
-  type SyncState
-} from './crdt-sync.js';
+  type SyncState,
+} from "./crdt-sync.js";
 
 // Vector clock management
 export {
@@ -39,8 +39,8 @@ export {
   type ClockComparison,
   type VectorClockState,
   type ClockDelta,
-  type ClockPruningConfig
-} from './vector-clocks.js';
+  type ClockPruningConfig,
+} from "./vector-clocks.js";
 
 // Gossip protocol for memory propagation
 export {
@@ -48,8 +48,8 @@ export {
   type GossipMessage,
   type GossipNode,
   type GossipConfig,
-  type GossipStats
-} from './gossip-protocol.js';
+  type GossipStats,
+} from "./gossip-protocol.js";
 
 // Memory sharding and partitioning
 export {
@@ -59,8 +59,8 @@ export {
   type ShardMap,
   type ShardingConfig,
   type MigrationTask,
-  type ShardingMetrics
-} from './memory-sharding.js';
+  type ShardingMetrics,
+} from "./memory-sharding.js";
 
 // Conflict resolution mechanisms
 export {
@@ -72,8 +72,8 @@ export {
   type OperationalTransform,
   type ConflictRule,
   type ConflictCondition,
-  type ConflictStats
-} from './conflict-resolver.js';
+  type ConflictStats,
+} from "./conflict-resolver.js";
 
 // Memory compression and optimization
 export {
@@ -84,8 +84,8 @@ export {
   type DecompressionResult,
   type DataFingerprint,
   type CompressionStats,
-  type OptimizationRule
-} from './memory-compressor.js';
+  type OptimizationRule,
+} from "./memory-compressor.js";
 
 /**
  * Factory function to create a complete A2A memory coordination system
@@ -101,29 +101,28 @@ export function createA2AMemorySystem(config: {
   const {
     agentId,
     topology = {},
-    shardingStrategy = 'consistent_hash',
+    shardingStrategy = "consistent_hash",
     compressionEnabled = true,
     gossipConfig = {},
-    conflictResolutionStrategy = 'lww'
+    conflictResolutionStrategy = "lww",
   } = config;
 
   // Initialize core components
   const vectorClock = new VectorClock(agentId);
   const crdtSync = new CRDTSynchronizer(agentId, vectorClock);
-  const conflictResolver = new ConflictResolver(vectorClock, conflictResolutionStrategy);
+  const conflictResolver = new ConflictResolver(
+    vectorClock,
+    conflictResolutionStrategy,
+  );
   const memoryCompressor = new MemoryCompressor(compressionEnabled);
   const memorySharding = new MemorySharding(shardingStrategy);
-  
+
   // Initialize distributed memory manager
-  const memoryManager = new DistributedMemoryManager(
-    agentId,
-    topology,
-    {
-      enableCompression: compressionEnabled,
-      enableSharding: true,
-      enableGossip: true
-    }
-  );
+  const memoryManager = new DistributedMemoryManager(agentId, topology, {
+    enableCompression: compressionEnabled,
+    enableSharding: true,
+    enableGossip: true,
+  });
 
   return {
     memoryManager,
@@ -132,31 +131,35 @@ export function createA2AMemorySystem(config: {
     conflictResolver,
     memoryCompressor,
     memorySharding,
-    
+
     // Convenience methods
-    async initialize(nodes: Array<{ agentId: string; address: string; capacity: any }>) {
+    async initialize(
+      nodes: Array<{ agentId: string; address: string; capacity: any }>,
+    ) {
       // Initialize sharding with nodes
-      memorySharding.initializeNodes(nodes.map(node => ({
-        agentId: node.agentId,
-        capacity: node.capacity?.memory || 100
-      })));
-      
+      memorySharding.initializeNodes(
+        nodes.map((node) => ({
+          agentId: node.agentId,
+          capacity: node.capacity?.memory || 100,
+        })),
+      );
+
       // Add nodes to memory manager
       for (const node of nodes) {
         if (node.agentId !== agentId) {
           await memoryManager.addAgent(node);
         }
       }
-      
+
       return this;
     },
-    
+
     async shutdown() {
       // Graceful shutdown of all components
-      await memoryManager.emergencyCleanup('system_shutdown');
+      await memoryManager.emergencyCleanup("system_shutdown");
       vectorClock.destroy();
     },
-    
+
     getStats() {
       return {
         memory: memoryManager.getMemoryMetrics(),
@@ -164,9 +167,9 @@ export function createA2AMemorySystem(config: {
         conflicts: conflictResolver.getStats(),
         compression: memoryCompressor.getStats(),
         sharding: memorySharding.getMetrics(),
-        vectorClock: vectorClock.getPruningStats()
+        vectorClock: vectorClock.getPruningStats(),
       };
-    }
+    },
   };
 }
 
@@ -175,20 +178,20 @@ export function createA2AMemorySystem(config: {
  */
 export const DEFAULT_A2A_MEMORY_CONFIG = {
   topology: {
-    type: 'mesh' as const,
+    type: "mesh" as const,
     replicationFactor: 3,
-    partitionStrategy: 'consistent_hash' as const,
-    consistencyLevel: 'eventual' as const
+    partitionStrategy: "consistent_hash" as const,
+    consistencyLevel: "eventual" as const,
   },
-  shardingStrategy: 'consistent_hash' as const,
+  shardingStrategy: "consistent_hash" as const,
   compressionEnabled: true,
   gossipConfig: {
     fanout: 3,
     gossipInterval: 5000,
     maxTTL: 10,
-    syncInterval: 30000
+    syncInterval: 30000,
   },
-  conflictResolutionStrategy: 'lww' as ConflictResolutionStrategy
+  conflictResolutionStrategy: "lww" as ConflictResolutionStrategy,
 };
 
 /**
@@ -196,12 +199,12 @@ export const DEFAULT_A2A_MEMORY_CONFIG = {
  */
 export const PRODUCTION_A2A_MEMORY_CONFIG = {
   topology: {
-    type: 'hierarchical' as const,
+    type: "hierarchical" as const,
     replicationFactor: 5,
-    partitionStrategy: 'consistent_hash' as const,
-    consistencyLevel: 'bounded_staleness' as const
+    partitionStrategy: "consistent_hash" as const,
+    consistencyLevel: "bounded_staleness" as const,
   },
-  shardingStrategy: 'hybrid' as const,
+  shardingStrategy: "hybrid" as const,
   compressionEnabled: true,
   gossipConfig: {
     fanout: 5,
@@ -209,7 +212,7 @@ export const PRODUCTION_A2A_MEMORY_CONFIG = {
     maxTTL: 15,
     syncInterval: 20000,
     compressionThreshold: 512,
-    adaptiveGossip: true
+    adaptiveGossip: true,
   },
-  conflictResolutionStrategy: 'semantic' as ConflictResolutionStrategy
+  conflictResolutionStrategy: "semantic" as ConflictResolutionStrategy,
 };

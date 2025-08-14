@@ -1,10 +1,10 @@
 /**
  * Performance Monitor
- * 
+ *
  * Monitors and tracks performance metrics for parallel operations
  */
 
-import { Logger } from '../utils/logger.js';
+import { Logger } from "../utils/logger.js";
 
 interface MetricData {
   value: number;
@@ -17,7 +17,7 @@ export class PerformanceMonitor {
   private logger: Logger;
 
   constructor() {
-    this.logger = new Logger('PerformanceMonitor');
+    this.logger = new Logger("PerformanceMonitor");
   }
 
   recordMetric(name: string, value: number, metadata?: any): void {
@@ -28,7 +28,7 @@ export class PerformanceMonitor {
     this.metrics.get(name)!.push({
       value,
       timestamp: Date.now(),
-      metadata
+      metadata,
     });
 
     // Keep only last 1000 entries per metric
@@ -49,7 +49,7 @@ export class PerformanceMonitor {
     let filteredEntries = entries;
     if (windowMs) {
       const cutoff = Date.now() - windowMs;
-      filteredEntries = entries.filter(entry => entry.timestamp >= cutoff);
+      filteredEntries = entries.filter((entry) => entry.timestamp >= cutoff);
     }
 
     if (filteredEntries.length === 0) return 0;
@@ -62,7 +62,7 @@ export class PerformanceMonitor {
     const entries = this.getMetric(name);
     if (entries.length === 0) return 0;
 
-    const values = entries.map(entry => entry.value).sort((a, b) => a - b);
+    const values = entries.map((entry) => entry.value).sort((a, b) => a - b);
     const index = Math.ceil((percentile / 100) * values.length) - 1;
     return values[Math.max(0, index)];
   }
@@ -73,7 +73,7 @@ export class PerformanceMonitor {
 
   getAllMetrics(): Record<string, any> {
     const result: Record<string, any> = {};
-    
+
     for (const [name, entries] of this.metrics.entries()) {
       if (entries.length > 0) {
         result[name] = {
@@ -81,7 +81,7 @@ export class PerformanceMonitor {
           average: this.getAverageMetric(name),
           p95: this.getPercentileMetric(name, 95),
           p99: this.getPercentileMetric(name, 99),
-          count: entries.length
+          count: entries.length,
         };
       }
     }

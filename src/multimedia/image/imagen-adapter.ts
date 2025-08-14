@@ -1,14 +1,18 @@
 /**
  * Imagen 4 Adapter
- * 
+ *
  * Integration with Google's Imagen 4 through Vertex AI
  * Supports advanced image generation with style transfer and artistic controls
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
-import { PerformanceMonitor } from '../../core/performance-monitor.js';
-import { VertexAIConnector, VertexRequest, VertexResponse } from '../../core/vertex-ai-connector.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
+import { PerformanceMonitor } from "../../core/performance-monitor.js";
+import {
+  VertexAIConnector,
+  VertexRequest,
+  VertexResponse,
+} from "../../core/vertex-ai-connector.js";
 import {
   ImageGenerationRequest,
   ImageGenerationResponse,
@@ -18,8 +22,8 @@ import {
   ArtisticControls,
   StyleTransferConfig,
   SafetyRating,
-  MultimediaMetadata
-} from '../../types/multimedia.js';
+  MultimediaMetadata,
+} from "../../types/multimedia.js";
 
 export interface ImagenModel {
   name: string;
@@ -39,17 +43,20 @@ export class ImagenAdapter extends EventEmitter {
   private config: ImageGenerationConfig;
   private vertexConnector: VertexAIConnector;
   private performance: PerformanceMonitor;
-  
+
   // Model registry
   private availableModels: Map<string, ImagenModel> = new Map();
-  
+
   // Active requests tracking
-  private activeRequests: Map<string, {
-    startTime: number;
-    request: ImageGenerationRequest;
-    promise: Promise<ImageGenerationResponse>;
-  }> = new Map();
-  
+  private activeRequests: Map<
+    string,
+    {
+      startTime: number;
+      request: ImageGenerationRequest;
+      promise: Promise<ImageGenerationResponse>;
+    }
+  > = new Map();
+
   // Metrics
   private metrics = {
     totalRequests: 0,
@@ -59,14 +66,17 @@ export class ImagenAdapter extends EventEmitter {
     totalLatency: 0,
     totalCost: 0,
     styleTransferRequests: 0,
-    batchRequests: 0
+    batchRequests: 0,
   };
 
-  constructor(config: ImageGenerationConfig, vertexConnector: VertexAIConnector) {
+  constructor(
+    config: ImageGenerationConfig,
+    vertexConnector: VertexAIConnector,
+  ) {
     super();
     this.config = config;
     this.vertexConnector = vertexConnector;
-    this.logger = new Logger('ImagenAdapter');
+    this.logger = new Logger("ImagenAdapter");
     this.performance = new PerformanceMonitor();
 
     this.initializeModels();
@@ -78,60 +88,62 @@ export class ImagenAdapter extends EventEmitter {
   private initializeModels(): void {
     const models: ImagenModel[] = [
       {
-        name: 'imagen-4',
-        displayName: 'Imagen 4',
-        version: '004',
-        maxImageSize: { width: 2048, height: 2048, label: '2048x2048' },
-        supportedFormats: ['png', 'jpg', 'webp'],
+        name: "imagen-4",
+        displayName: "Imagen 4",
+        version: "004",
+        maxImageSize: { width: 2048, height: 2048, label: "2048x2048" },
+        supportedFormats: ["png", "jpg", "webp"],
         supportsStyleTransfer: true,
         supportsBatchGeneration: true,
         maxBatchSize: 8,
         estimatedLatency: 8000, // 8 seconds
-        costPerImage: 0.04 // $0.04 per image
+        costPerImage: 0.04, // $0.04 per image
       },
       {
-        name: 'imagen-3-5',
-        displayName: 'Imagen 3.5',
-        version: '002',
-        maxImageSize: { width: 1536, height: 1536, label: '1536x1536' },
-        supportedFormats: ['png', 'jpg'],
+        name: "imagen-3-5",
+        displayName: "Imagen 3.5",
+        version: "002",
+        maxImageSize: { width: 1536, height: 1536, label: "1536x1536" },
+        supportedFormats: ["png", "jpg"],
         supportsStyleTransfer: true,
         supportsBatchGeneration: true,
         maxBatchSize: 4,
         estimatedLatency: 6000, // 6 seconds
-        costPerImage: 0.02 // $0.02 per image
+        costPerImage: 0.02, // $0.02 per image
       },
       {
-        name: 'imagen-2',
-        displayName: 'Imagen 2',
-        version: '001',
-        maxImageSize: { width: 1024, height: 1024, label: '1024x1024' },
-        supportedFormats: ['png', 'jpg'],
+        name: "imagen-2",
+        displayName: "Imagen 2",
+        version: "001",
+        maxImageSize: { width: 1024, height: 1024, label: "1024x1024" },
+        supportedFormats: ["png", "jpg"],
         supportsStyleTransfer: false,
         supportsBatchGeneration: true,
         maxBatchSize: 10,
         estimatedLatency: 4000, // 4 seconds
-        costPerImage: 0.01 // $0.01 per image
-      }
+        costPerImage: 0.01, // $0.01 per image
+      },
     ];
 
     for (const model of models) {
       this.availableModels.set(model.name, model);
     }
 
-    this.logger.info('Imagen models initialized', {
+    this.logger.info("Imagen models initialized", {
       modelCount: this.availableModels.size,
-      models: Array.from(this.availableModels.keys())
+      models: Array.from(this.availableModels.keys()),
     });
   }
 
   /**
    * Generate image using Imagen
    */
-  async generateImage(request: ImageGenerationRequest): Promise<ImageGenerationResponse> {
+  async generateImage(
+    request: ImageGenerationRequest,
+  ): Promise<ImageGenerationResponse> {
     const startTime = performance.now();
     const requestId = request.context?.requestId || this.generateRequestId();
-    
+
     this.metrics.totalRequests++;
 
     try {
@@ -142,12 +154,12 @@ export class ImagenAdapter extends EventEmitter {
       const modelName = this.selectOptimalModel(request);
       const model = this.availableModels.get(modelName)!;
 
-      this.logger.info('Starting image generation', {
+      this.logger.info("Starting image generation", {
         requestId,
         model: modelName,
-        prompt: request.prompt.substring(0, 100) + '...',
+        prompt: request.prompt.substring(0, 100) + "...",
         size: request.size,
-        numberOfImages: request.numberOfImages || 1
+        numberOfImages: request.numberOfImages || 1,
       });
 
       // Track active request
@@ -155,7 +167,7 @@ export class ImagenAdapter extends EventEmitter {
       this.activeRequests.set(requestId, {
         startTime,
         request,
-        promise
+        promise,
       });
 
       const response = await promise;
@@ -172,41 +184,46 @@ export class ImagenAdapter extends EventEmitter {
       }
 
       // Record performance
-      this.performance.recordMetric('imagen_generation_latency', latency);
-      this.performance.recordMetric('imagen_generation_cost', response.metadata.cost);
-      this.performance.recordMetric('imagen_images_generated', response.images.length);
+      this.performance.recordMetric("imagen_generation_latency", latency);
+      this.performance.recordMetric(
+        "imagen_generation_cost",
+        response.metadata.cost,
+      );
+      this.performance.recordMetric(
+        "imagen_images_generated",
+        response.images.length,
+      );
 
-      this.logger.info('Image generation completed', {
+      this.logger.info("Image generation completed", {
         requestId,
         model: modelName,
         latency,
         cost: response.metadata.cost,
-        imageCount: response.images.length
+        imageCount: response.images.length,
       });
 
-      this.emit('generation_completed', {
+      this.emit("generation_completed", {
         requestId,
         response,
         latency,
-        model: modelName
+        model: modelName,
       });
 
       return response;
-
     } catch (error) {
       this.metrics.failedRequests++;
-      
+
       const latency = performance.now() - startTime;
-      this.logger.error('Image generation failed', {
+      this.logger.error("Image generation failed", {
         requestId,
         latency,
-        error: error.message
+        error: error.message,
       });
 
-      this.emit('generation_failed', {
+      this.emit("generation_failed", {
         requestId,
         error: error.message,
-        latency
+        latency,
       });
 
       throw error;
@@ -221,22 +238,27 @@ export class ImagenAdapter extends EventEmitter {
   private async processImageGeneration(
     request: ImageGenerationRequest,
     model: ImagenModel,
-    requestId: string
+    requestId: string,
   ): Promise<ImageGenerationResponse> {
     // Prepare Vertex AI request
     const vertexRequest = this.prepareVertexRequest(request, model);
-    
+
     // Execute generation
     const vertexResponse = await this.vertexConnector.predict(vertexRequest);
-    
+
     // Process response
-    const response = await this.processVertexResponse(vertexResponse, request, model, requestId);
-    
+    const response = await this.processVertexResponse(
+      vertexResponse,
+      request,
+      model,
+      requestId,
+    );
+
     // Apply post-processing
     if (request.styleTransfer?.enabled) {
       return await this.applyStyleTransfer(response, request.styleTransfer);
     }
-    
+
     return response;
   }
 
@@ -245,24 +267,24 @@ export class ImagenAdapter extends EventEmitter {
    */
   private prepareVertexRequest(
     request: ImageGenerationRequest,
-    model: ImagenModel
+    model: ImagenModel,
   ): VertexRequest {
     // Build the prompt with artistic controls
     const enhancedPrompt = this.buildEnhancedPrompt(request);
-    
+
     // Prepare image generation parameters
     const parameters = {
       prompt: enhancedPrompt,
       negativePrompt: request.negativePrompt,
       numberOfImages: request.numberOfImages || 1,
-      aspectRatio: request.aspectRatio || '1:1',
+      aspectRatio: request.aspectRatio || "1:1",
       seed: request.seed,
       guidanceScale: request.guidanceScale || 7.5,
       inferenceSteps: request.inferenceSteps || 50,
-      outputFormat: 'png',
-      safetyFilterLevel: this.config.safetyFiltering ? 'high' : 'medium',
+      outputFormat: "png",
+      safetyFilterLevel: this.config.safetyFiltering ? "high" : "medium",
       ...this.buildSizeParameters(request.size, model),
-      ...this.buildQualityParameters(request)
+      ...this.buildQualityParameters(request),
     };
 
     return {
@@ -270,8 +292,8 @@ export class ImagenAdapter extends EventEmitter {
       instances: [parameters],
       parameters: {
         maxOutputTokens: 1024,
-        temperature: 0.1
-      }
+        temperature: 0.1,
+      },
     };
   }
 
@@ -280,7 +302,7 @@ export class ImagenAdapter extends EventEmitter {
    */
   private buildEnhancedPrompt(request: ImageGenerationRequest): string {
     let prompt = request.prompt;
-    
+
     if (!request.artisticControls) {
       return prompt;
     }
@@ -295,7 +317,9 @@ export class ImagenAdapter extends EventEmitter {
 
     // Add composition enhancements
     if (controls.composition) {
-      enhancements.push(...this.getCompositionEnhancements(controls.composition));
+      enhancements.push(
+        ...this.getCompositionEnhancements(controls.composition),
+      );
     }
 
     // Add lighting enhancements
@@ -325,7 +349,7 @@ export class ImagenAdapter extends EventEmitter {
 
     // Combine prompt with enhancements
     if (enhancements.length > 0) {
-      prompt += '. ' + enhancements.join(', ');
+      prompt += ". " + enhancements.join(", ");
     }
 
     return prompt;
@@ -336,16 +360,16 @@ export class ImagenAdapter extends EventEmitter {
    */
   private getStylePromptEnhancement(preset: string): string {
     const styleEnhancements = {
-      photorealistic: 'photorealistic, high detail, professional photography',
-      artistic: 'artistic style, expressive, creative interpretation',
-      anime: 'anime style, manga aesthetic, vibrant colors',
-      cartoon: 'cartoon style, stylized, colorful illustration',
-      sketch: 'pencil sketch, hand-drawn, artistic linework',
-      painting: 'oil painting style, brushstrokes, artistic texture',
-      digital_art: 'digital art, modern illustration, clean lines'
+      photorealistic: "photorealistic, high detail, professional photography",
+      artistic: "artistic style, expressive, creative interpretation",
+      anime: "anime style, manga aesthetic, vibrant colors",
+      cartoon: "cartoon style, stylized, colorful illustration",
+      sketch: "pencil sketch, hand-drawn, artistic linework",
+      painting: "oil painting style, brushstrokes, artistic texture",
+      digital_art: "digital art, modern illustration, clean lines",
     };
 
-    return styleEnhancements[preset as keyof typeof styleEnhancements] || '';
+    return styleEnhancements[preset as keyof typeof styleEnhancements] || "";
   }
 
   /**
@@ -356,13 +380,16 @@ export class ImagenAdapter extends EventEmitter {
 
     if (composition.rule) {
       const ruleEnhancements = {
-        rule_of_thirds: 'rule of thirds composition',
-        golden_ratio: 'golden ratio composition',
-        center: 'centered composition',
-        symmetrical: 'symmetrical composition',
-        dynamic: 'dynamic composition'
+        rule_of_thirds: "rule of thirds composition",
+        golden_ratio: "golden ratio composition",
+        center: "centered composition",
+        symmetrical: "symmetrical composition",
+        dynamic: "dynamic composition",
       };
-      enhancements.push(ruleEnhancements[composition.rule as keyof typeof ruleEnhancements] || '');
+      enhancements.push(
+        ruleEnhancements[composition.rule as keyof typeof ruleEnhancements] ||
+          "",
+      );
     }
 
     if (composition.framing) {
@@ -370,7 +397,9 @@ export class ImagenAdapter extends EventEmitter {
     }
 
     if (composition.perspective) {
-      enhancements.push(`${composition.perspective.replace('_', ' ')} perspective`);
+      enhancements.push(
+        `${composition.perspective.replace("_", " ")} perspective`,
+      );
     }
 
     return enhancements.filter(Boolean);
@@ -424,7 +453,7 @@ export class ImagenAdapter extends EventEmitter {
     }
 
     if (color.dominantColors && color.dominantColors.length > 0) {
-      enhancements.push(`dominant colors: ${color.dominantColors.join(', ')}`);
+      enhancements.push(`dominant colors: ${color.dominantColors.join(", ")}`);
     }
 
     return enhancements.filter(Boolean);
@@ -479,15 +508,15 @@ export class ImagenAdapter extends EventEmitter {
     const enhancements: string[] = [];
 
     if (camera.lens) {
-      enhancements.push(`${camera.lens.replace('_', ' ')} lens`);
+      enhancements.push(`${camera.lens.replace("_", " ")} lens`);
     }
 
     if (camera.aperture) {
-      enhancements.push(`${camera.aperture.replace('_', ' ')}`);
+      enhancements.push(`${camera.aperture.replace("_", " ")}`);
     }
 
     if (camera.focusPoint) {
-      enhancements.push(`focus on ${camera.focusPoint.replace('_', ' ')}`);
+      enhancements.push(`focus on ${camera.focusPoint.replace("_", " ")}`);
     }
 
     return enhancements.filter(Boolean);
@@ -496,19 +525,22 @@ export class ImagenAdapter extends EventEmitter {
   /**
    * Build size parameters
    */
-  private buildSizeParameters(size: ImageSize | undefined, model: ImagenModel): any {
+  private buildSizeParameters(
+    size: ImageSize | undefined,
+    model: ImagenModel,
+  ): any {
     const targetSize = size || this.config.defaultImageSize;
-    
+
     // Ensure size doesn't exceed model limits
     const maxSize = model.maxImageSize;
     const finalSize = {
       width: Math.min(targetSize.width, maxSize.width),
-      height: Math.min(targetSize.height, maxSize.height)
+      height: Math.min(targetSize.height, maxSize.height),
     };
 
     return {
       width: finalSize.width,
-      height: finalSize.height
+      height: finalSize.height,
     };
   }
 
@@ -517,10 +549,10 @@ export class ImagenAdapter extends EventEmitter {
    */
   private buildQualityParameters(request: ImageGenerationRequest): any {
     return {
-      quality: 'high',
+      quality: "high",
       enableSafetyFilter: this.config.safetyFiltering,
       enhanceDetails: true,
-      reduceArtifacts: true
+      reduceArtifacts: true,
     };
   }
 
@@ -531,21 +563,21 @@ export class ImagenAdapter extends EventEmitter {
     vertexResponse: VertexResponse,
     request: ImageGenerationRequest,
     model: ImagenModel,
-    requestId: string
+    requestId: string,
   ): Promise<ImageGenerationResponse> {
     const images: GeneratedImage[] = [];
 
     for (let i = 0; i < vertexResponse.predictions.length; i++) {
       const prediction = vertexResponse.predictions[i];
-      
+
       if (prediction.image || prediction.imageData) {
         const imageData = prediction.image || prediction.imageData;
         const imageId = `${requestId}_${i}`;
-        
+
         const generatedImage: GeneratedImage = {
           id: imageId,
           data: imageData,
-          format: 'png',
+          format: "png",
           size: request.size || this.config.defaultImageSize,
           seed: request.seed || Math.floor(Math.random() * 1000000),
           safety: this.extractSafetyRatings(prediction),
@@ -555,8 +587,8 @@ export class ImagenAdapter extends EventEmitter {
             compression: 0,
             colorDepth: 24,
             hasTransparency: true,
-            dominantColors: await this.extractDominantColors(imageData)
-          }
+            dominantColors: await this.extractDominantColors(imageData),
+          },
         };
 
         images.push(generatedImage);
@@ -572,13 +604,13 @@ export class ImagenAdapter extends EventEmitter {
       usage: {
         computeUnits: images.length,
         storageBytes: this.calculateStorageSize(images),
-        bandwidth: 0
+        bandwidth: 0,
       },
       quality: {
         score: this.calculateOverallQuality(images),
         artifacts: this.aggregateArtifacts(images),
-        safety: this.aggregateSafetyRatings(images)
-      }
+        safety: this.aggregateSafetyRatings(images),
+      },
     };
 
     return {
@@ -586,7 +618,7 @@ export class ImagenAdapter extends EventEmitter {
       images,
       metadata,
       prompt: request.prompt,
-      originalRequest: request
+      originalRequest: request,
     };
   }
 
@@ -595,16 +627,16 @@ export class ImagenAdapter extends EventEmitter {
    */
   private async applyStyleTransfer(
     response: ImageGenerationResponse,
-    styleConfig: StyleTransferConfig
+    styleConfig: StyleTransferConfig,
   ): Promise<ImageGenerationResponse> {
     if (!styleConfig.enabled || !styleConfig.styleImage) {
       return response;
     }
 
-    this.logger.info('Applying style transfer', {
+    this.logger.info("Applying style transfer", {
       requestId: response.id,
       strength: styleConfig.strength,
-      preserveContent: styleConfig.preserveContent
+      preserveContent: styleConfig.preserveContent,
     });
 
     try {
@@ -618,15 +650,14 @@ export class ImagenAdapter extends EventEmitter {
 
       return {
         ...response,
-        images: styledImages
+        images: styledImages,
       };
-
     } catch (error) {
-      this.logger.error('Style transfer failed', {
+      this.logger.error("Style transfer failed", {
         requestId: response.id,
-        error: error.message
+        error: error.message,
       });
-      
+
       // Return original images if style transfer fails
       return response;
     }
@@ -637,24 +668,29 @@ export class ImagenAdapter extends EventEmitter {
    */
   private async performStyleTransfer(
     image: GeneratedImage,
-    styleConfig: StyleTransferConfig
+    styleConfig: StyleTransferConfig,
   ): Promise<GeneratedImage> {
     // Prepare style transfer request
     const styleRequest: VertexRequest = {
-      model: 'imagen-style-transfer',
-      instances: [{
-        contentImage: image.data,
-        styleImage: styleConfig.styleImage,
-        strength: styleConfig.strength || 0.7,
-        preserveContent: styleConfig.preserveContent || 0.8,
-        blendMode: styleConfig.blendMode || 'overlay'
-      }]
+      model: "imagen-style-transfer",
+      instances: [
+        {
+          contentImage: image.data,
+          styleImage: styleConfig.styleImage,
+          strength: styleConfig.strength || 0.7,
+          preserveContent: styleConfig.preserveContent || 0.8,
+          blendMode: styleConfig.blendMode || "overlay",
+        },
+      ],
     };
 
     // Execute style transfer
     const styleResponse = await this.vertexConnector.predict(styleRequest);
-    
-    if (styleResponse.predictions && styleResponse.predictions[0]?.styledImage) {
+
+    if (
+      styleResponse.predictions &&
+      styleResponse.predictions[0]?.styledImage
+    ) {
       return {
         ...image,
         data: styleResponse.predictions[0].styledImage,
@@ -662,8 +698,8 @@ export class ImagenAdapter extends EventEmitter {
         metadata: {
           ...image.metadata,
           styleTransferApplied: true,
-          styleStrength: styleConfig.strength || 0.7
-        }
+          styleStrength: styleConfig.strength || 0.7,
+        },
       };
     }
 
@@ -681,7 +717,7 @@ export class ImagenAdapter extends EventEmitter {
         ratings.push({
           category: rating.category,
           probability: rating.probability,
-          blocked: rating.blocked || false
+          blocked: rating.blocked || false,
         });
       }
     }
@@ -728,13 +764,13 @@ export class ImagenAdapter extends EventEmitter {
     // Add common artifact detection logic
     if (prediction.qualityMetrics) {
       if (prediction.qualityMetrics.blurriness > 0.3) {
-        artifacts.push('blur');
+        artifacts.push("blur");
       }
       if (prediction.qualityMetrics.noise > 0.3) {
-        artifacts.push('noise');
+        artifacts.push("noise");
       }
       if (prediction.qualityMetrics.distortion > 0.3) {
-        artifacts.push('distortion');
+        artifacts.push("distortion");
       }
     }
 
@@ -747,7 +783,7 @@ export class ImagenAdapter extends EventEmitter {
   private async extractDominantColors(imageData: string): Promise<string[]> {
     // This would typically use image analysis to extract dominant colors
     // For now, return placeholder colors
-    return ['#FF5733', '#33FF57', '#3357FF'];
+    return ["#FF5733", "#33FF57", "#3357FF"];
   }
 
   /**
@@ -764,8 +800,8 @@ export class ImagenAdapter extends EventEmitter {
     return images.reduce((total, image) => {
       // Estimate size based on image dimensions and format
       const pixels = image.size.width * image.size.height;
-      const bytesPerPixel = image.format === 'png' ? 4 : 3;
-      return total + (pixels * bytesPerPixel);
+      const bytesPerPixel = image.format === "png" ? 4 : 3;
+      return total + pixels * bytesPerPixel;
     }, 0);
   }
 
@@ -774,8 +810,11 @@ export class ImagenAdapter extends EventEmitter {
    */
   private calculateOverallQuality(images: GeneratedImage[]): number {
     if (images.length === 0) return 0;
-    
-    const totalQuality = images.reduce((sum, image) => sum + image.qualityScore, 0);
+
+    const totalQuality = images.reduce(
+      (sum, image) => sum + image.qualityScore,
+      0,
+    );
     return totalQuality / images.length;
   }
 
@@ -784,13 +823,13 @@ export class ImagenAdapter extends EventEmitter {
    */
   private aggregateArtifacts(images: GeneratedImage[]): string[] {
     const allArtifacts = new Set<string>();
-    
+
     for (const image of images) {
       for (const artifact of image.artifacts) {
         allArtifacts.add(artifact);
       }
     }
-    
+
     return Array.from(allArtifacts);
   }
 
@@ -799,16 +838,22 @@ export class ImagenAdapter extends EventEmitter {
    */
   private aggregateSafetyRatings(images: GeneratedImage[]): SafetyRating[] {
     const categoryMap = new Map<string, SafetyRating>();
-    
+
     for (const image of images) {
       for (const rating of image.safety) {
         const existing = categoryMap.get(rating.category);
-        if (!existing || this.compareSafetyProbability(rating.probability, existing.probability) > 0) {
+        if (
+          !existing ||
+          this.compareSafetyProbability(
+            rating.probability,
+            existing.probability,
+          ) > 0
+        ) {
           categoryMap.set(rating.category, rating);
         }
       }
     }
-    
+
     return Array.from(categoryMap.values());
   }
 
@@ -816,8 +861,11 @@ export class ImagenAdapter extends EventEmitter {
    * Compare safety probability levels
    */
   private compareSafetyProbability(a: string, b: string): number {
-    const levels = { 'NEGLIGIBLE': 0, 'LOW': 1, 'MEDIUM': 2, 'HIGH': 3 };
-    return (levels[a as keyof typeof levels] || 0) - (levels[b as keyof typeof levels] || 0);
+    const levels = { NEGLIGIBLE: 0, LOW: 1, MEDIUM: 2, HIGH: 3 };
+    return (
+      (levels[a as keyof typeof levels] || 0) -
+      (levels[b as keyof typeof levels] || 0)
+    );
   }
 
   /**
@@ -831,18 +879,21 @@ export class ImagenAdapter extends EventEmitter {
 
     // Select based on requirements
     const needsStyleTransfer = request.styleTransfer?.enabled;
-    const hasComplexControls = this.hasComplexArtisticControls(request.artisticControls);
-    const needsHighRes = request.size && (request.size.width > 1024 || request.size.height > 1024);
+    const hasComplexControls = this.hasComplexArtisticControls(
+      request.artisticControls,
+    );
+    const needsHighRes =
+      request.size && (request.size.width > 1024 || request.size.height > 1024);
 
     if (needsHighRes || needsStyleTransfer || hasComplexControls) {
-      return 'imagen-4';
+      return "imagen-4";
     }
 
     if (request.numberOfImages && request.numberOfImages > 4) {
-      return 'imagen-2';
+      return "imagen-2";
     }
 
-    return 'imagen-3-5'; // Default to balanced option
+    return "imagen-3-5"; // Default to balanced option
   }
 
   /**
@@ -865,24 +916,33 @@ export class ImagenAdapter extends EventEmitter {
    * Validate request
    */
   async validateRequest(request: ImageGenerationRequest): Promise<void> {
-    if (!request.prompt || typeof request.prompt !== 'string') {
-      throw new Error('Prompt is required and must be a string');
+    if (!request.prompt || typeof request.prompt !== "string") {
+      throw new Error("Prompt is required and must be a string");
     }
 
     if (request.prompt.length > 1000) {
-      throw new Error('Prompt is too long (max 1000 characters)');
+      throw new Error("Prompt is too long (max 1000 characters)");
     }
 
-    if (request.numberOfImages && (request.numberOfImages < 1 || request.numberOfImages > 8)) {
-      throw new Error('Number of images must be between 1 and 8');
+    if (
+      request.numberOfImages &&
+      (request.numberOfImages < 1 || request.numberOfImages > 8)
+    ) {
+      throw new Error("Number of images must be between 1 and 8");
     }
 
-    if (request.guidanceScale && (request.guidanceScale < 1 || request.guidanceScale > 20)) {
-      throw new Error('Guidance scale must be between 1 and 20');
+    if (
+      request.guidanceScale &&
+      (request.guidanceScale < 1 || request.guidanceScale > 20)
+    ) {
+      throw new Error("Guidance scale must be between 1 and 20");
     }
 
-    if (request.inferenceSteps && (request.inferenceSteps < 10 || request.inferenceSteps > 100)) {
-      throw new Error('Inference steps must be between 10 and 100');
+    if (
+      request.inferenceSteps &&
+      (request.inferenceSteps < 10 || request.inferenceSteps > 100)
+    ) {
+      throw new Error("Inference steps must be between 10 and 100");
     }
 
     // Validate size constraints
@@ -893,13 +953,13 @@ export class ImagenAdapter extends EventEmitter {
       }
 
       if (request.size.width < 256 || request.size.height < 256) {
-        throw new Error('Image size cannot be smaller than 256x256');
+        throw new Error("Image size cannot be smaller than 256x256");
       }
     }
 
     // Validate style transfer
     if (request.styleTransfer?.enabled && !request.styleTransfer.styleImage) {
-      throw new Error('Style image is required when style transfer is enabled');
+      throw new Error("Style image is required when style transfer is enabled");
     }
   }
 
@@ -910,14 +970,14 @@ export class ImagenAdapter extends EventEmitter {
     const modelName = this.selectOptimalModel(request);
     const model = this.availableModels.get(modelName)!;
     const imageCount = request.numberOfImages || 1;
-    
+
     let cost = imageCount * model.costPerImage;
-    
+
     // Add style transfer cost
     if (request.styleTransfer?.enabled) {
       cost += imageCount * 0.01; // $0.01 per style transfer
     }
-    
+
     return cost;
   }
 
@@ -926,16 +986,16 @@ export class ImagenAdapter extends EventEmitter {
    */
   async cancelRequest(requestId: string): Promise<boolean> {
     const activeRequest = this.activeRequests.get(requestId);
-    
+
     if (activeRequest) {
       // Note: Vertex AI doesn't support request cancellation directly
       // We can only mark it as cancelled locally
       this.activeRequests.delete(requestId);
-      
-      this.emit('request_cancelled', { requestId });
+
+      this.emit("request_cancelled", { requestId });
       return true;
     }
-    
+
     return false;
   }
 
@@ -956,40 +1016,43 @@ export class ImagenAdapter extends EventEmitter {
   /**
    * Health check
    */
-  async healthCheck(): Promise<{ status: string; latency: number; error?: string }> {
+  async healthCheck(): Promise<{
+    status: string;
+    latency: number;
+    error?: string;
+  }> {
     const startTime = performance.now();
-    
+
     try {
       // Simple test generation
       const testRequest: ImageGenerationRequest = {
-        prompt: 'A simple test image',
+        prompt: "A simple test image",
         numberOfImages: 1,
-        size: { width: 256, height: 256, label: '256x256' },
+        size: { width: 256, height: 256, label: "256x256" },
         context: {
-          requestId: 'health_check',
-          priority: 'low',
-          userTier: 'free',
+          requestId: "health_check",
+          priority: "low",
+          userTier: "free",
           latencyTarget: 10000,
-          qualityTarget: 'draft'
-        }
+          qualityTarget: "draft",
+        },
       };
 
       await this.generateImage(testRequest);
-      
-      const latency = performance.now() - startTime;
-      
-      return {
-        status: 'healthy',
-        latency
-      };
 
+      const latency = performance.now() - startTime;
+
+      return {
+        status: "healthy",
+        latency,
+      };
     } catch (error) {
       const latency = performance.now() - startTime;
-      
+
       return {
-        status: 'unhealthy',
+        status: "unhealthy",
         latency,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -1000,11 +1063,20 @@ export class ImagenAdapter extends EventEmitter {
   getMetrics() {
     return {
       ...this.metrics,
-      avgLatency: this.metrics.totalRequests > 0 ? this.metrics.totalLatency / this.metrics.totalRequests : 0,
-      successRate: this.metrics.totalRequests > 0 ? this.metrics.successfulRequests / this.metrics.totalRequests : 0,
-      avgCostPerImage: this.metrics.totalImages > 0 ? this.metrics.totalCost / this.metrics.totalImages : 0,
+      avgLatency:
+        this.metrics.totalRequests > 0
+          ? this.metrics.totalLatency / this.metrics.totalRequests
+          : 0,
+      successRate:
+        this.metrics.totalRequests > 0
+          ? this.metrics.successfulRequests / this.metrics.totalRequests
+          : 0,
+      avgCostPerImage:
+        this.metrics.totalImages > 0
+          ? this.metrics.totalCost / this.metrics.totalImages
+          : 0,
       activeRequests: this.activeRequests.size,
-      availableModels: this.availableModels.size
+      availableModels: this.availableModels.size,
     };
   }
 
@@ -1012,8 +1084,8 @@ export class ImagenAdapter extends EventEmitter {
    * Shutdown adapter
    */
   async shutdown(): Promise<void> {
-    this.logger.info('Shutting down Imagen adapter...');
+    this.logger.info("Shutting down Imagen adapter...");
     this.activeRequests.clear();
-    this.logger.info('Imagen adapter shutdown complete');
+    this.logger.info("Imagen adapter shutdown complete");
   }
 }

@@ -13,7 +13,7 @@ import {
   AgentId,
   TLSConfig,
   AuthConfig
-} from '../../../src/types/a2a.js';
+} from '../../../src/types/a2a';
 
 // Mock transport implementations will be created later
 interface TransportConnection {

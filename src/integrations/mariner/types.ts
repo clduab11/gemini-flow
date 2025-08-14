@@ -1,10 +1,16 @@
 /**
  * Project Mariner Browser Automation Types
- * 
+ *
  * Advanced browser automation with intelligent coordination and multi-tab orchestration
  */
 
-import { BaseIntegration, Task, Agent, CoordinationEvent, IntegrationConfig } from '../shared/types.js';
+import {
+  BaseIntegration,
+  Task,
+  Agent,
+  CoordinationEvent,
+  IntegrationConfig,
+} from "../shared/types.js";
 
 // === BROWSER AUTOMATION CORE ===
 
@@ -35,7 +41,7 @@ export interface PuppeteerConfig {
 export interface CoordinationConfig {
   maxTabs: number;
   tabPoolSize: number;
-  coordinationStrategy: 'sequential' | 'parallel' | 'adaptive';
+  coordinationStrategy: "sequential" | "parallel" | "adaptive";
   crossTabCommunication: boolean;
   globalStateManagement: boolean;
   eventSynchronization: boolean;
@@ -81,7 +87,7 @@ export interface BrowserTab {
   coordination: TabCoordination;
 }
 
-export type TabStatus = 'loading' | 'ready' | 'navigating' | 'error' | 'closed';
+export type TabStatus = "loading" | "ready" | "navigating" | "error" | "closed";
 
 export interface TabContext {
   cookies: Record<string, any>;
@@ -123,7 +129,10 @@ export interface TabConfig {
 export interface WebAgentCoordinator extends BaseIntegration {
   navigateSite(navigation: SiteNavigation): Promise<NavigationResult>;
   executeWorkflow(workflow: WebWorkflow): Promise<WorkflowResult>;
-  coordiateMultiSite(sites: string[], action: MultiSiteAction): Promise<MultiSiteResult>;
+  coordiateMultiSite(
+    sites: string[],
+    action: MultiSiteAction,
+  ): Promise<MultiSiteResult>;
   optimizeNavigation(pattern: NavigationPattern): Promise<OptimizationResult>;
   learnSiteStructure(url: string): Promise<SiteStructure>;
 }
@@ -137,11 +146,15 @@ export interface SiteNavigation {
   timeout: number;
 }
 
-export type NavigationStrategy = 'direct' | 'progressive' | 'intelligent' | 'adaptive';
+export type NavigationStrategy =
+  | "direct"
+  | "progressive"
+  | "intelligent"
+  | "adaptive";
 
 export interface NavigationCheckpoint {
   selector: string;
-  action: 'wait' | 'click' | 'verify' | 'extract';
+  action: "wait" | "click" | "verify" | "extract";
   timeout: number;
   required: boolean;
   fallback?: string;
@@ -169,14 +182,14 @@ export interface FormFillingConfig {
 
 export interface ValidationRule {
   field: string;
-  type: 'email' | 'phone' | 'date' | 'number' | 'text' | 'regex';
+  type: "email" | "phone" | "date" | "number" | "text" | "regex";
   pattern?: string;
   required: boolean;
   custom?: (value: string) => boolean;
 }
 
 export interface ElementDetectionConfig {
-  strategy: 'css' | 'xpath' | 'ai' | 'hybrid';
+  strategy: "css" | "xpath" | "ai" | "hybrid";
   confidence: number;
   retryAttempts: number;
   smartFallback: boolean;
@@ -185,7 +198,7 @@ export interface ElementDetectionConfig {
 
 export interface CaptchaSolvingConfig {
   enabled: boolean;
-  provider: 'twocaptcha' | 'anticaptcha' | 'deathbycaptcha' | 'custom';
+  provider: "twocaptcha" | "anticaptcha" | "deathbycaptcha" | "custom";
   apiKey?: string;
   timeout: number;
   retryAttempts: number;
@@ -203,7 +216,7 @@ export interface AntiDetectionConfig {
 // === BROWSER TASKS ===
 
 export interface BrowserTask extends Task {
-  type: 'browser_automation';
+  type: "browser_automation";
   browser: BrowserTaskConfig;
 }
 
@@ -222,18 +235,18 @@ export interface BrowserAction {
   retryPolicy: RetryPolicy;
 }
 
-export type ActionType = 
-  | 'navigate'
-  | 'click'
-  | 'type'
-  | 'scroll'
-  | 'extract'
-  | 'wait'
-  | 'screenshot'
-  | 'pdf'
-  | 'form_fill'
-  | 'multi_tab'
-  | 'coordinate';
+export type ActionType =
+  | "navigate"
+  | "click"
+  | "type"
+  | "scroll"
+  | "extract"
+  | "wait"
+  | "screenshot"
+  | "pdf"
+  | "form_fill"
+  | "multi_tab"
+  | "coordinate";
 
 export interface ActionStep {
   action: ActionType;
@@ -277,7 +290,7 @@ export interface RetryPolicy {
   maxAttempts: number;
   backoffMs: number;
   conditions: string[];
-  escalationStrategy: 'abort' | 'fallback' | 'notify';
+  escalationStrategy: "abort" | "fallback" | "notify";
 }
 
 // === CROSS-TAB COORDINATION ===
@@ -291,12 +304,12 @@ export interface CrossTabAction {
   synchronization: SynchronizationConfig;
 }
 
-export type CrossTabActionType = 
-  | 'state_sync'
-  | 'data_sharing'
-  | 'coordinated_navigation'
-  | 'parallel_execution'
-  | 'sequential_workflow';
+export type CrossTabActionType =
+  | "state_sync"
+  | "data_sharing"
+  | "coordinated_navigation"
+  | "parallel_execution"
+  | "sequential_workflow";
 
 export interface CrossTabStep {
   tabId: string;
@@ -307,10 +320,10 @@ export interface CrossTabStep {
 }
 
 export interface SynchronizationConfig {
-  strategy: 'barrier' | 'consensus' | 'leader' | 'eventual';
+  strategy: "barrier" | "consensus" | "leader" | "eventual";
   timeout: number;
   requiredParticipants: number;
-  failureHandling: 'abort' | 'continue' | 'retry';
+  failureHandling: "abort" | "continue" | "retry";
 }
 
 export interface ActionResult {
@@ -338,7 +351,7 @@ export interface WebWorkflow {
 export interface WorkflowStep {
   id: string;
   name: string;
-  type: 'action' | 'decision' | 'loop' | 'parallel' | 'sync';
+  type: "action" | "decision" | "loop" | "parallel" | "sync";
   config: any;
   dependencies: string[];
   timeout: number;
@@ -346,7 +359,7 @@ export interface WorkflowStep {
 }
 
 export interface WorkflowCoordination {
-  strategy: 'sequential' | 'parallel' | 'hybrid';
+  strategy: "sequential" | "parallel" | "hybrid";
   maxConcurrency: number;
   syncPoints: string[];
   sharedContext: boolean;
@@ -360,7 +373,7 @@ export interface WorkflowValidation {
 
 export interface WorkflowRecovery {
   savepoints: string[];
-  recoveryStrategy: 'restart' | 'resume' | 'skip';
+  recoveryStrategy: "restart" | "resume" | "skip";
   maxRecoveryAttempts: number;
 }
 
@@ -391,14 +404,14 @@ export interface SiteConfig {
 }
 
 export interface MultiSiteCoordination {
-  strategy: 'parallel' | 'sequential' | 'adaptive';
+  strategy: "parallel" | "sequential" | "adaptive";
   dependencies: Map<string, string[]>;
   synchronization: SynchronizationConfig;
   loadBalancing: boolean;
 }
 
 export interface ResultAggregation {
-  strategy: 'merge' | 'compare' | 'validate' | 'transform';
+  strategy: "merge" | "compare" | "validate" | "transform";
   reducer: (results: Map<string, any>) => any;
   validation: (aggregated: any) => boolean;
 }
@@ -455,13 +468,13 @@ export interface ElementNode {
 
 export interface DynamicElement {
   selector: string;
-  behavior: 'lazy-load' | 'infinite-scroll' | 'modal' | 'tooltip';
+  behavior: "lazy-load" | "infinite-scroll" | "modal" | "tooltip";
   trigger: string;
   timeout: number;
 }
 
 export interface LoadingPattern {
-  type: 'spinner' | 'skeleton' | 'progress' | 'placeholder';
+  type: "spinner" | "skeleton" | "progress" | "placeholder";
   selector: string;
   duration: number;
 }
@@ -499,7 +512,7 @@ export interface SearchFormInfo {
 }
 
 export interface FilterInfo {
-  type: 'dropdown' | 'checkbox' | 'radio' | 'range';
+  type: "dropdown" | "checkbox" | "radio" | "range";
   selector: string;
   options: string[];
 }
@@ -532,7 +545,7 @@ export interface FormValidation {
 
 export interface SubmissionInfo {
   selector: string;
-  method: 'click' | 'submit' | 'enter';
+  method: "click" | "submit" | "enter";
   confirmationSelector?: string;
   redirectPattern?: string;
 }
@@ -546,8 +559,8 @@ export interface ApiEndpoint {
 }
 
 export interface AuthInfo {
-  type: 'none' | 'basic' | 'bearer' | 'oauth' | 'api-key';
-  location: 'header' | 'query' | 'body';
+  type: "none" | "basic" | "bearer" | "oauth" | "api-key";
+  location: "header" | "query" | "body";
   key?: string;
 }
 
@@ -559,7 +572,7 @@ export interface RateLimitInfo {
 
 export interface InteractionPattern {
   name: string;
-  type: 'click-sequence' | 'form-flow' | 'navigation' | 'data-extraction';
+  type: "click-sequence" | "form-flow" | "navigation" | "data-extraction";
   steps: PatternStep[];
   frequency: number;
   success_rate: number;

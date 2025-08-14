@@ -1,8 +1,4 @@
-const { pathsToModuleNameMapper } = require('ts-jest');
-
 module.exports = {
-  preset: 'ts-jest/presets/default-esm',
-  extensionsToTreatAsEsm: ['.ts'],
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: [
@@ -10,13 +6,21 @@ module.exports = {
     '**/*.(test|spec).+(ts|tsx|js)'
   ],
   transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      useESM: true,
-      tsconfig: {
-        module: 'esnext'
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        useESM: true,
+        tsconfig: {
+          module: 'esnext',
+          target: 'es2022',
+          moduleResolution: 'node'
+        }
       }
-    }]
+    ],
+    '^.+\\.(js|jsx)$': 'babel-jest'
   },
+  preset: 'ts-jest/presets/default-esm',
+  extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/tests/(.*)$': '<rootDir>/tests/$1'
@@ -52,34 +56,34 @@ module.exports = {
     {
       displayName: 'integration',
       testMatch: ['<rootDir>/tests/integration/**/*.test.ts'],
-      testEnvironment: 'node',
-      testTimeout: 60000
+      testEnvironment: 'node'
     },
     {
       displayName: 'a2a-compliance',
       testMatch: ['<rootDir>/tests/a2a/**/*.test.ts'],
-      testEnvironment: 'node',
-      testTimeout: 120000
+      testEnvironment: 'node'
     },
     {
       displayName: 'streaming',
       testMatch: ['<rootDir>/tests/streaming/**/*.test.ts'],
-      testEnvironment: 'node',
-      testTimeout: 180000
+      testEnvironment: 'node'
     },
     {
       displayName: 'performance',
       testMatch: ['<rootDir>/tests/**/*benchmark*.test.ts'],
-      testEnvironment: 'node',
-      testTimeout: 300000
+      testEnvironment: 'node'
     }
   ],
   globalSetup: '<rootDir>/tests/global-setup.ts',
   globalTeardown: '<rootDir>/tests/global-teardown.ts',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(.*\.mjs$))'
+  ],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   globals: {
     'ts-jest': {
-      useESM: true
+      useESM: true,
+      isolatedModules: true
     }
   }
 };

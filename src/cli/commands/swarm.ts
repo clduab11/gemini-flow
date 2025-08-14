@@ -3,22 +3,22 @@
  * Advanced swarm management with intelligent coordination
  */
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import inquirer from 'inquirer';
-import { Logger } from '../../utils/logger.js';
-import { ConfigManager } from '../config/config-manager.js';
+import { Command } from "commander";
+import chalk from "chalk";
+import ora from "ora";
+import inquirer from "inquirer";
+import { Logger } from "../../utils/logger.js";
+import { ConfigManager } from "../config/config-manager.js";
 
 export interface SwarmConfig {
   id: string;
   name: string;
-  topology: 'hierarchical' | 'mesh' | 'ring' | 'star';
+  topology: "hierarchical" | "mesh" | "ring" | "star";
   maxAgents: number;
   queenType?: string;
   consensus: string;
   createdAt: Date;
-  status: 'active' | 'idle' | 'error' | 'initializing';
+  status: "active" | "idle" | "error" | "initializing";
 }
 
 export interface SwarmStatus {
@@ -41,12 +41,11 @@ export class SwarmCommand extends Command {
   private configManager: ConfigManager;
 
   constructor(configManager: ConfigManager) {
-    super('swarm');
+    super("swarm");
     this.configManager = configManager;
-    this.logger = new Logger('SwarmCommand');
-    
-    this
-      .description('Manage AI agent swarms with intelligent coordination')
+    this.logger = new Logger("SwarmCommand");
+
+    this.description("Manage AI agent swarms with intelligent coordination")
       .addCommand(this.createInitCommand())
       .addCommand(this.createStatusCommand())
       .addCommand(this.createMonitorCommand())
@@ -57,79 +56,92 @@ export class SwarmCommand extends Command {
   }
 
   private createInitCommand(): Command {
-    const init = new Command('init');
-    
+    const init = new Command("init");
+
     init
-      .description('Initialize a new intelligent swarm')
-      .option('-t, --topology <type>', 'Swarm topology (hierarchical|mesh|ring|star)', 'hierarchical')
-      .option('-a, --agents <number>', 'Number of agents to spawn', '8')
-      .option('-n, --name <name>', 'Swarm name')
-      .option('-q, --queen <type>', 'Queen type for hierarchical topology', 'strategic')
-      .option('--consensus <algorithm>', 'Consensus algorithm (majority|byzantine|raft)', 'majority')
-      .option('--interactive', 'Interactive swarm configuration')
-      .option('--auto-optimize', 'Enable automatic topology optimization')
-      .option('--memory-size <mb>', 'Collective memory size in MB', '1024')
+      .description("Initialize a new intelligent swarm")
+      .option(
+        "-t, --topology <type>",
+        "Swarm topology (hierarchical|mesh|ring|star)",
+        "hierarchical",
+      )
+      .option("-a, --agents <number>", "Number of agents to spawn", "8")
+      .option("-n, --name <name>", "Swarm name")
+      .option(
+        "-q, --queen <type>",
+        "Queen type for hierarchical topology",
+        "strategic",
+      )
+      .option(
+        "--consensus <algorithm>",
+        "Consensus algorithm (majority|byzantine|raft)",
+        "majority",
+      )
+      .option("--interactive", "Interactive swarm configuration")
+      .option("--auto-optimize", "Enable automatic topology optimization")
+      .option("--memory-size <mb>", "Collective memory size in MB", "1024")
       .action(async (options) => {
-        const spinner = ora('Initializing intelligent swarm...').start();
-        
+        const spinner = ora("Initializing intelligent swarm...").start();
+
         try {
           let swarmConfig;
-          
+
           if (options.interactive) {
             spinner.stop();
             swarmConfig = await this.interactiveSwarmConfig(options);
-            spinner.start('Creating swarm with configuration...');
+            spinner.start("Creating swarm with configuration...");
           } else {
             swarmConfig = this.buildSwarmConfig(options);
           }
-          
+
           // Validate configuration
           await this.validateSwarmConfig(swarmConfig);
-          
+
           // Create swarm
-          spinner.text = 'Initializing swarm topology...';
+          spinner.text = "Initializing swarm topology...";
           const swarm = await this.createSwarm(swarmConfig);
-          
+
           // Setup collective memory
-          spinner.text = 'Setting up collective memory system...';
+          spinner.text = "Setting up collective memory system...";
           await this.setupCollectiveMemory(swarm.id, options.memorySize);
-          
+
           // Initialize coordination protocols
-          spinner.text = 'Establishing coordination protocols...';
+          spinner.text = "Establishing coordination protocols...";
           await this.initializeCoordination(swarm);
-          
-          spinner.succeed(chalk.green('Intelligent swarm initialized successfully!'));
-          
+
+          spinner.succeed(
+            chalk.green("Intelligent swarm initialized successfully!"),
+          );
+
           // Display swarm information
           this.displaySwarmInfo(swarm);
-          
+
           // Auto-optimize if requested
           if (options.autoOptimize) {
-            console.log(chalk.cyan('\n🔧 Auto-optimization enabled'));
+            console.log(chalk.cyan("\n🔧 Auto-optimization enabled"));
             await this.scheduleOptimization(swarm.id);
           }
-          
         } catch (error: any) {
-          spinner.fail(chalk.red('Failed to initialize swarm'));
-          this.logger.error('Swarm initialization failed:', error);
-          console.error(chalk.red('Error:'), error.message);
+          spinner.fail(chalk.red("Failed to initialize swarm"));
+          this.logger.error("Swarm initialization failed:", error);
+          console.error(chalk.red("Error:"), error.message);
           process.exit(1);
         }
       });
-    
+
     return init;
   }
 
   private createStatusCommand(): Command {
-    const status = new Command('status');
-    
+    const status = new Command("status");
+
     status
-      .description('Get comprehensive swarm status')
-      .option('-i, --id <swarmId>', 'Swarm ID')
-      .option('-d, --detailed', 'Show detailed information')
-      .option('-r, --real-time', 'Real-time status updates')
-      .option('--metrics', 'Include performance metrics')
-      .option('--agents', 'Include agent details')
+      .description("Get comprehensive swarm status")
+      .option("-i, --id <swarmId>", "Swarm ID")
+      .option("-d, --detailed", "Show detailed information")
+      .option("-r, --real-time", "Real-time status updates")
+      .option("--metrics", "Include performance metrics")
+      .option("--agents", "Include agent details")
       .action(async (options) => {
         try {
           if (options.realTime) {
@@ -138,232 +150,250 @@ export class SwarmCommand extends Command {
             await this.singleStatus(options);
           }
         } catch (error: any) {
-          this.logger.error('Failed to get swarm status:', error);
-          console.error(chalk.red('Error:'), error.message);
+          this.logger.error("Failed to get swarm status:", error);
+          console.error(chalk.red("Error:"), error.message);
           process.exit(1);
         }
       });
-    
+
     return status;
   }
 
   private createMonitorCommand(): Command {
-    const monitor = new Command('monitor');
-    
+    const monitor = new Command("monitor");
+
     monitor
-      .description('Advanced swarm monitoring with analytics')
-      .option('-i, --id <swarmId>', 'Swarm ID')
-      .option('-d, --duration <seconds>', 'Monitoring duration', '60')
-      .option('-r, --refresh <seconds>', 'Refresh interval', '1')
-      .option('--export <format>', 'Export metrics (json|csv|html)')
-      .option('--alert-threshold <value>', 'Performance alert threshold', '0.8')
-      .option('--save-logs', 'Save monitoring logs')
+      .description("Advanced swarm monitoring with analytics")
+      .option("-i, --id <swarmId>", "Swarm ID")
+      .option("-d, --duration <seconds>", "Monitoring duration", "60")
+      .option("-r, --refresh <seconds>", "Refresh interval", "1")
+      .option("--export <format>", "Export metrics (json|csv|html)")
+      .option("--alert-threshold <value>", "Performance alert threshold", "0.8")
+      .option("--save-logs", "Save monitoring logs")
       .action(async (options) => {
-        console.log(chalk.cyan('📊 Starting advanced swarm monitoring...\n'));
-        
+        console.log(chalk.cyan("📊 Starting advanced swarm monitoring...\n"));
+
         try {
           await this.advancedMonitoring(options);
         } catch (error: any) {
-          this.logger.error('Monitoring failed:', error);
-          console.error(chalk.red('Error:'), error.message);
+          this.logger.error("Monitoring failed:", error);
+          console.error(chalk.red("Error:"), error.message);
           process.exit(1);
         }
       });
-    
+
     return monitor;
   }
 
   private createScaleCommand(): Command {
-    const scale = new Command('scale');
-    
+    const scale = new Command("scale");
+
     scale
-      .description('Intelligent swarm scaling with optimization')
-      .option('-i, --id <swarmId>', 'Swarm ID', 'default')
-      .option('-c, --count <number>', 'Target agent count')
-      .option('--type <agentType>', 'Specific agent type to scale')
-      .option('--strategy <strategy>', 'Scaling strategy (gradual|immediate|optimal)', 'optimal')
-      .option('--preserve-memory', 'Preserve agent memory during scaling')
-      .option('--dry-run', 'Simulate scaling without changes')
+      .description("Intelligent swarm scaling with optimization")
+      .option("-i, --id <swarmId>", "Swarm ID", "default")
+      .option("-c, --count <number>", "Target agent count")
+      .option("--type <agentType>", "Specific agent type to scale")
+      .option(
+        "--strategy <strategy>",
+        "Scaling strategy (gradual|immediate|optimal)",
+        "optimal",
+      )
+      .option("--preserve-memory", "Preserve agent memory during scaling")
+      .option("--dry-run", "Simulate scaling without changes")
       .action(async (options) => {
-        const spinner = ora('Analyzing optimal scaling strategy...').start();
-        
+        const spinner = ora("Analyzing optimal scaling strategy...").start();
+
         try {
           // Analyze current performance
-          spinner.text = 'Analyzing current swarm performance...';
+          spinner.text = "Analyzing current swarm performance...";
           const analysis = await this.analyzeSwarmPerformance(options.id);
-          
+
           // Calculate optimal scaling
-          spinner.text = 'Calculating optimal scaling strategy...';
+          spinner.text = "Calculating optimal scaling strategy...";
           const scalingPlan = await this.calculateOptimalScaling(
-            options.id, 
-            parseInt(options.count), 
+            options.id,
+            parseInt(options.count),
             options.strategy,
-            analysis
+            analysis,
           );
-          
+
           if (options.dryRun) {
-            spinner.succeed('Scaling simulation completed');
+            spinner.succeed("Scaling simulation completed");
             this.displayScalingPlan(scalingPlan);
             return;
           }
-          
+
           // Execute scaling
-          spinner.text = 'Executing intelligent scaling...';
+          spinner.text = "Executing intelligent scaling...";
           const result = await this.executeScaling(scalingPlan, options);
-          
-          spinner.succeed(chalk.green('Swarm scaled successfully!'));
+
+          spinner.succeed(chalk.green("Swarm scaled successfully!"));
           this.displayScalingResults(result);
-          
         } catch (error: any) {
-          spinner.fail(chalk.red('Scaling failed'));
-          this.logger.error('Scaling error:', error);
-          console.error(chalk.red('Error:'), error.message);
+          spinner.fail(chalk.red("Scaling failed"));
+          this.logger.error("Scaling error:", error);
+          console.error(chalk.red("Error:"), error.message);
           process.exit(1);
         }
       });
-    
+
     return scale;
   }
 
   private createListCommand(): Command {
-    const list = new Command('list');
-    
+    const list = new Command("list");
+
     list
-      .description('List all swarms with filtering and sorting')
-      .option('--status <status>', 'Filter by status (active|idle|error)')
-      .option('--topology <type>', 'Filter by topology')
-      .option('--sort <field>', 'Sort by field (name|created|agents|performance)', 'created')
-      .option('--format <format>', 'Output format (table|json|yaml)', 'table')
+      .description("List all swarms with filtering and sorting")
+      .option("--status <status>", "Filter by status (active|idle|error)")
+      .option("--topology <type>", "Filter by topology")
+      .option(
+        "--sort <field>",
+        "Sort by field (name|created|agents|performance)",
+        "created",
+      )
+      .option("--format <format>", "Output format (table|json|yaml)", "table")
       .action(async (options) => {
         try {
           const swarms = await this.listSwarms(options);
           this.displaySwarmList(swarms, options.format);
         } catch (error: any) {
-          this.logger.error('Failed to list swarms:', error);
-          console.error(chalk.red('Error:'), error.message);
+          this.logger.error("Failed to list swarms:", error);
+          console.error(chalk.red("Error:"), error.message);
           process.exit(1);
         }
       });
-    
+
     return list;
   }
 
   private createOptimizeCommand(): Command {
-    const optimize = new Command('optimize');
-    
+    const optimize = new Command("optimize");
+
     optimize
-      .description('Optimize swarm performance and topology')
-      .option('-i, --id <swarmId>', 'Swarm ID', 'default')
-      .option('--performance', 'Optimize for performance')
-      .option('--cost', 'Optimize for cost efficiency')
-      .option('--memory', 'Optimize memory usage')
-      .option('--topology', 'Optimize topology structure')
-      .option('--all', 'Comprehensive optimization')
-      .option('--aggressive', 'Aggressive optimization (may cause temporary disruption)')
+      .description("Optimize swarm performance and topology")
+      .option("-i, --id <swarmId>", "Swarm ID", "default")
+      .option("--performance", "Optimize for performance")
+      .option("--cost", "Optimize for cost efficiency")
+      .option("--memory", "Optimize memory usage")
+      .option("--topology", "Optimize topology structure")
+      .option("--all", "Comprehensive optimization")
+      .option(
+        "--aggressive",
+        "Aggressive optimization (may cause temporary disruption)",
+      )
       .action(async (options) => {
-        const spinner = ora('Running swarm optimization analysis...').start();
-        
+        const spinner = ora("Running swarm optimization analysis...").start();
+
         try {
           // Analyze current state
-          spinner.text = 'Analyzing swarm performance patterns...';
+          spinner.text = "Analyzing swarm performance patterns...";
           const analysis = await this.comprehensiveSwarmAnalysis(options.id);
-          
+
           // Generate optimization recommendations
-          spinner.text = 'Generating optimization recommendations...';
-          const recommendations = await this.generateOptimizationPlan(analysis, options);
-          
+          spinner.text = "Generating optimization recommendations...";
+          const recommendations = await this.generateOptimizationPlan(
+            analysis,
+            options,
+          );
+
           // Display recommendations
           spinner.stop();
-          console.log(chalk.cyan('\n🔧 Optimization Recommendations:\n'));
+          console.log(chalk.cyan("\n🔧 Optimization Recommendations:\n"));
           this.displayOptimizationPlan(recommendations);
-          
+
           // Confirm execution
-          const { confirm } = await inquirer.prompt([{
-            type: 'confirm',
-            name: 'confirm',
-            message: 'Apply these optimizations?',
-            default: false
-          }]);
-          
+          const { confirm } = await inquirer.prompt([
+            {
+              type: "confirm",
+              name: "confirm",
+              message: "Apply these optimizations?",
+              default: false,
+            },
+          ]);
+
           if (confirm) {
-            spinner.start('Applying optimizations...');
-            const results = await this.applyOptimizations(options.id, recommendations);
-            spinner.succeed('Optimization completed successfully!');
+            spinner.start("Applying optimizations...");
+            const results = await this.applyOptimizations(
+              options.id,
+              recommendations,
+            );
+            spinner.succeed("Optimization completed successfully!");
             this.displayOptimizationResults(results);
           } else {
-            console.log(chalk.yellow('Optimization cancelled'));
+            console.log(chalk.yellow("Optimization cancelled"));
           }
-          
         } catch (error: any) {
-          spinner.fail(chalk.red('Optimization failed'));
-          this.logger.error('Optimization error:', error);
-          console.error(chalk.red('Error:'), error.message);
+          spinner.fail(chalk.red("Optimization failed"));
+          this.logger.error("Optimization error:", error);
+          console.error(chalk.red("Error:"), error.message);
           process.exit(1);
         }
       });
-    
+
     return optimize;
   }
 
   private createDestroyCommand(): Command {
-    const destroy = new Command('destroy');
-    
+    const destroy = new Command("destroy");
+
     destroy
-      .description('Safely destroy swarm with cleanup')
-      .option('-i, --id <swarmId>', 'Swarm ID')
-      .option('-f, --force', 'Force destroy without confirmation')
-      .option('--preserve-memory', 'Preserve collective memory')
-      .option('--export-logs', 'Export logs before destruction')
-      .option('--graceful', 'Graceful shutdown with agent cleanup')
+      .description("Safely destroy swarm with cleanup")
+      .option("-i, --id <swarmId>", "Swarm ID")
+      .option("-f, --force", "Force destroy without confirmation")
+      .option("--preserve-memory", "Preserve collective memory")
+      .option("--export-logs", "Export logs before destruction")
+      .option("--graceful", "Graceful shutdown with agent cleanup")
       .action(async (options) => {
         try {
           if (!options.force) {
-            const { confirm } = await inquirer.prompt([{
-              type: 'confirm',
-              name: 'confirm',
-              message: `⚠️  This will destroy swarm '${options.id}' and all resources. Continue?`,
-              default: false
-            }]);
-            
+            const { confirm } = await inquirer.prompt([
+              {
+                type: "confirm",
+                name: "confirm",
+                message: `⚠️  This will destroy swarm '${options.id}' and all resources. Continue?`,
+                default: false,
+              },
+            ]);
+
             if (!confirm) {
-              console.log(chalk.yellow('Destruction cancelled'));
+              console.log(chalk.yellow("Destruction cancelled"));
               return;
             }
           }
-          
-          const spinner = ora('Initiating graceful swarm shutdown...').start();
-          
+
+          const spinner = ora("Initiating graceful swarm shutdown...").start();
+
           // Export logs if requested
           if (options.exportLogs) {
-            spinner.text = 'Exporting swarm logs...';
+            spinner.text = "Exporting swarm logs...";
             await this.exportSwarmLogs(options.id);
           }
-          
+
           // Graceful agent shutdown
           if (options.graceful) {
-            spinner.text = 'Performing graceful agent shutdown...';
+            spinner.text = "Performing graceful agent shutdown...";
             await this.gracefulAgentShutdown(options.id);
           }
-          
+
           // Preserve memory if requested
           if (options.preserveMemory) {
-            spinner.text = 'Preserving collective memory...';
+            spinner.text = "Preserving collective memory...";
             await this.preserveCollectiveMemory(options.id);
           }
-          
+
           // Final cleanup
-          spinner.text = 'Cleaning up resources...';
+          spinner.text = "Cleaning up resources...";
           await this.destroySwarm(options.id);
-          
-          spinner.succeed(chalk.green('Swarm destroyed successfully'));
-          
+
+          spinner.succeed(chalk.green("Swarm destroyed successfully"));
         } catch (error: any) {
-          console.error(chalk.red('Destruction failed:'), error.message);
-          this.logger.error('Destroy error:', error);
+          console.error(chalk.red("Destruction failed:"), error.message);
+          this.logger.error("Destroy error:", error);
           process.exit(1);
         }
       });
-    
+
     return destroy;
   }
 
@@ -371,46 +401,49 @@ export class SwarmCommand extends Command {
   private async interactiveSwarmConfig(baseOptions: any): Promise<any> {
     const questions = [
       {
-        type: 'input',
-        name: 'name',
-        message: 'Swarm name:',
-        default: baseOptions.name || `swarm-${Date.now()}`
+        type: "input",
+        name: "name",
+        message: "Swarm name:",
+        default: baseOptions.name || `swarm-${Date.now()}`,
       },
       {
-        type: 'list',
-        name: 'topology',
-        message: 'Choose swarm topology:',
+        type: "list",
+        name: "topology",
+        message: "Choose swarm topology:",
         choices: [
-          { name: 'Hierarchical - Queen-led coordination', value: 'hierarchical' },
-          { name: 'Mesh - Peer-to-peer network', value: 'mesh' },
-          { name: 'Ring - Circular communication', value: 'ring' },
-          { name: 'Star - Central hub model', value: 'star' }
+          {
+            name: "Hierarchical - Queen-led coordination",
+            value: "hierarchical",
+          },
+          { name: "Mesh - Peer-to-peer network", value: "mesh" },
+          { name: "Ring - Circular communication", value: "ring" },
+          { name: "Star - Central hub model", value: "star" },
         ],
-        default: baseOptions.topology
+        default: baseOptions.topology,
       },
       {
-        type: 'number',
-        name: 'maxAgents',
-        message: 'Maximum number of agents:',
+        type: "number",
+        name: "maxAgents",
+        message: "Maximum number of agents:",
         default: parseInt(baseOptions.agents),
-        validate: (input) => input > 0 && input <= 64
+        validate: (input) => input > 0 && input <= 64,
       },
       {
-        type: 'list',
-        name: 'consensus',
-        message: 'Consensus algorithm:',
-        choices: ['majority', 'byzantine', 'raft'],
-        default: baseOptions.consensus
-      }
+        type: "list",
+        name: "consensus",
+        message: "Consensus algorithm:",
+        choices: ["majority", "byzantine", "raft"],
+        default: baseOptions.consensus,
+      },
     ];
 
-    if (baseOptions.topology === 'hierarchical') {
+    if (baseOptions.topology === "hierarchical") {
       questions.push({
-        type: 'list',
-        name: 'queenType',
-        message: 'Queen agent type:',
-        choices: ['strategic', 'tactical', 'adaptive', 'specialized'],
-        default: baseOptions.queen
+        type: "list",
+        name: "queenType",
+        message: "Queen agent type:",
+        choices: ["strategic", "tactical", "adaptive", "specialized"],
+        default: baseOptions.queen,
       } as any);
     }
 
@@ -425,24 +458,24 @@ export class SwarmCommand extends Command {
       queenType: options.queen,
       consensus: options.consensus,
       autoOptimize: options.autoOptimize || false,
-      memorySize: parseInt(options.memorySize) || 1024
+      memorySize: parseInt(options.memorySize) || 1024,
     };
   }
 
   private async validateSwarmConfig(config: any): Promise<void> {
-    const validTopologies = ['hierarchical', 'mesh', 'ring', 'star'];
-    const validConsensus = ['majority', 'byzantine', 'raft'];
-    
+    const validTopologies = ["hierarchical", "mesh", "ring", "star"];
+    const validConsensus = ["majority", "byzantine", "raft"];
+
     if (!validTopologies.includes(config.topology)) {
       throw new Error(`Invalid topology: ${config.topology}`);
     }
-    
+
     if (!validConsensus.includes(config.consensus)) {
       throw new Error(`Invalid consensus algorithm: ${config.consensus}`);
     }
-    
+
     if (config.maxAgents < 1 || config.maxAgents > 64) {
-      throw new Error('Agent count must be between 1 and 64');
+      throw new Error("Agent count must be between 1 and 64");
     }
   }
 
@@ -456,43 +489,62 @@ export class SwarmCommand extends Command {
       queenType: config.queenType,
       consensus: config.consensus,
       createdAt: new Date(),
-      status: 'initializing'
+      status: "initializing",
     };
 
     // Store swarm configuration
     await this.storeSwarmConfig(swarm);
-    
+
     return swarm;
   }
 
-  private async setupCollectiveMemory(swarmId: string, memorySize: string): Promise<void> {
+  private async setupCollectiveMemory(
+    swarmId: string,
+    memorySize: string,
+  ): Promise<void> {
     // Initialize collective memory system
-    this.logger.info(`Setting up collective memory for swarm ${swarmId} with ${memorySize}MB`);
+    this.logger.info(
+      `Setting up collective memory for swarm ${swarmId} with ${memorySize}MB`,
+    );
     // Implementation would setup distributed memory system
   }
 
   private async initializeCoordination(swarm: SwarmConfig): Promise<void> {
     // Initialize coordination protocols based on topology
-    this.logger.info(`Initializing ${swarm.topology} coordination for swarm ${swarm.id}`);
+    this.logger.info(
+      `Initializing ${swarm.topology} coordination for swarm ${swarm.id}`,
+    );
     // Implementation would setup coordination mechanisms
   }
 
   private displaySwarmInfo(swarm: SwarmConfig): void {
-    console.log('\n' + chalk.cyan('🐝 Swarm Details:'));
+    console.log("\n" + chalk.cyan("🐝 Swarm Details:"));
     console.log(chalk.white(`   ID: ${swarm.id}`));
     console.log(chalk.white(`   Name: ${swarm.name}`));
     console.log(chalk.white(`   Topology: ${swarm.topology}`));
     console.log(chalk.white(`   Max Agents: ${swarm.maxAgents}`));
     console.log(chalk.white(`   Consensus: ${swarm.consensus}`));
-    
+
     if (swarm.queenType) {
       console.log(chalk.white(`   Queen Type: ${swarm.queenType}`));
     }
-    
-    console.log('\n' + chalk.yellow('Next steps:'));
-    console.log(chalk.gray(`   1. Spawn agents: gemini-flow agent spawn --swarm ${swarm.id} --count 5`));
-    console.log(chalk.gray(`   2. Monitor swarm: gemini-flow swarm monitor --id ${swarm.id}`));
-    console.log(chalk.gray(`   3. Optimize performance: gemini-flow swarm optimize --id ${swarm.id}`));
+
+    console.log("\n" + chalk.yellow("Next steps:"));
+    console.log(
+      chalk.gray(
+        `   1. Spawn agents: gemini-flow agent spawn --swarm ${swarm.id} --count 5`,
+      ),
+    );
+    console.log(
+      chalk.gray(
+        `   2. Monitor swarm: gemini-flow swarm monitor --id ${swarm.id}`,
+      ),
+    );
+    console.log(
+      chalk.gray(
+        `   3. Optimize performance: gemini-flow swarm optimize --id ${swarm.id}`,
+      ),
+    );
   }
 
   private async scheduleOptimization(swarmId: string): Promise<void> {
@@ -502,28 +554,33 @@ export class SwarmCommand extends Command {
 
   private async storeSwarmConfig(swarm: SwarmConfig): Promise<void> {
     // Store swarm configuration in persistent storage
-    this.logger.debug('Storing swarm configuration:', swarm.id);
+    this.logger.debug("Storing swarm configuration:", swarm.id);
   }
 
   // Placeholder methods for complex operations
   private async singleStatus(options: any): Promise<void> {
-    console.log(chalk.cyan('🐝 Swarm Status: Active'));
+    console.log(chalk.cyan("🐝 Swarm Status: Active"));
   }
 
   private async realTimeStatus(options: any): Promise<void> {
-    console.log(chalk.cyan('📊 Real-time monitoring started...'));
+    console.log(chalk.cyan("📊 Real-time monitoring started..."));
   }
 
   private async advancedMonitoring(options: any): Promise<void> {
-    console.log(chalk.cyan('🔍 Advanced monitoring active...'));
+    console.log(chalk.cyan("🔍 Advanced monitoring active..."));
   }
 
   private async analyzeSwarmPerformance(swarmId: string): Promise<any> {
     return { performance: 0.85, efficiency: 0.92 };
   }
 
-  private async calculateOptimalScaling(swarmId: string, targetCount: number, strategy: string, analysis: any): Promise<any> {
-    return { currentCount: 5, targetCount, strategy: 'gradual' };
+  private async calculateOptimalScaling(
+    swarmId: string,
+    targetCount: number,
+    strategy: string,
+    analysis: any,
+  ): Promise<any> {
+    return { currentCount: 5, targetCount, strategy: "gradual" };
   }
 
   private async executeScaling(plan: any, options: any): Promise<any> {
@@ -531,14 +588,14 @@ export class SwarmCommand extends Command {
   }
 
   private displayScalingPlan(plan: any): void {
-    console.log(chalk.cyan('\n📊 Scaling Plan:'));
+    console.log(chalk.cyan("\n📊 Scaling Plan:"));
     console.log(`   Current: ${plan.currentCount} agents`);
     console.log(`   Target: ${plan.targetCount} agents`);
     console.log(`   Strategy: ${plan.strategy}`);
   }
 
   private displayScalingResults(result: any): void {
-    console.log(chalk.green('\n✅ Scaling Results:'));
+    console.log(chalk.green("\n✅ Scaling Results:"));
     console.log(`   Agents scaled: ${result.scaled}`);
   }
 
@@ -547,9 +604,9 @@ export class SwarmCommand extends Command {
   }
 
   private displaySwarmList(swarms: any[], format: string): void {
-    console.log(chalk.cyan('📋 Swarm List:'));
+    console.log(chalk.cyan("📋 Swarm List:"));
     if (swarms.length === 0) {
-      console.log(chalk.gray('   No swarms found'));
+      console.log(chalk.gray("   No swarms found"));
     }
   }
 
@@ -557,12 +614,15 @@ export class SwarmCommand extends Command {
     return { recommendations: [] };
   }
 
-  private async generateOptimizationPlan(analysis: any, options: any): Promise<any> {
+  private async generateOptimizationPlan(
+    analysis: any,
+    options: any,
+  ): Promise<any> {
     return { optimizations: [] };
   }
 
   private displayOptimizationPlan(plan: any): void {
-    console.log(chalk.yellow('No optimizations needed'));
+    console.log(chalk.yellow("No optimizations needed"));
   }
 
   private async applyOptimizations(swarmId: string, plan: any): Promise<any> {

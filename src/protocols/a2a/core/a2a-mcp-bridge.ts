@@ -1,26 +1,22 @@
 /**
  * A2A MCP Bridge
- * 
+ *
  * Seamless translation bridge between MCP (Model Context Protocol) and A2A (Agent-to-Agent) protocols.
  * Provides bidirectional translation with parameter transformation and response mapping.
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 import {
   A2AMessage,
   A2AResponse,
   MCPToA2AMapping,
   ParameterMapping,
   ResponseMapping,
-  TransformFunction
-} from '../../../types/a2a.js';
-import {
-  MCPRequest,
-  MCPResponse,
-  MCPTool
-} from '../../../types/mcp.js';
-import { Logger } from '../../../utils/logger.js';
-import { TopologyType } from '../../protocol-activator.js';
+  TransformFunction,
+} from "../../../types/a2a.js";
+import { MCPRequest, MCPResponse, MCPTool } from "../../../types/mcp.js";
+import { Logger } from "../../../utils/logger.js";
+import { TopologyType } from "../../protocol-activator.js";
 
 /**
  * Bridge metrics
@@ -77,7 +73,7 @@ export class A2AMCPBridge extends EventEmitter {
     translationFailures: 0,
     cacheHits: 0,
     errorsByType: new Map(),
-    startTime: Date.now()
+    startTime: Date.now(),
   };
 
   // Configuration
@@ -87,7 +83,7 @@ export class A2AMCPBridge extends EventEmitter {
 
   constructor(options?: { topology: TopologyType }) {
     super();
-    this.logger = new Logger('A2AMCPBridge');
+    this.logger = new Logger("A2AMCPBridge");
     this.topology = options?.topology;
 
     // Set up periodic cache cleanup
@@ -99,7 +95,7 @@ export class A2AMCPBridge extends EventEmitter {
    */
   async initialize(): Promise<void> {
     try {
-      this.logger.info('Initializing A2A MCP Bridge');
+      this.logger.info("Initializing A2A MCP Bridge");
 
       // Register default mappings
       this.registerDefaultMappings();
@@ -107,15 +103,14 @@ export class A2AMCPBridge extends EventEmitter {
       this.isInitialized = true;
       this.metrics.startTime = Date.now();
 
-      this.logger.info('A2A MCP Bridge initialized successfully', {
+      this.logger.info("A2A MCP Bridge initialized successfully", {
         mappings: this.mappings.size,
-        topology: this.topology || 'none'
+        topology: this.topology || "none",
       });
 
-      this.emit('initialized');
-
+      this.emit("initialized");
     } catch (error) {
-      this.logger.error('Failed to initialize A2A MCP Bridge:', error);
+      this.logger.error("Failed to initialize A2A MCP Bridge:", error);
       throw error;
     }
   }
@@ -124,15 +119,15 @@ export class A2AMCPBridge extends EventEmitter {
    * Shutdown the MCP bridge
    */
   async shutdown(): Promise<void> {
-    this.logger.info('Shutting down A2A MCP Bridge');
+    this.logger.info("Shutting down A2A MCP Bridge");
 
     this.isInitialized = false;
     this.mappings.clear();
     this.reverseMappings.clear();
     this.transformationCache.clear();
 
-    this.logger.info('A2A MCP Bridge shutdown complete');
-    this.emit('shutdown');
+    this.logger.info("A2A MCP Bridge shutdown complete");
+    this.emit("shutdown");
   }
 
   /**
@@ -140,7 +135,7 @@ export class A2AMCPBridge extends EventEmitter {
    */
   async translateMCPToA2A(mcpRequest: MCPRequest): Promise<A2AMessage> {
     if (!this.isInitialized) {
-      throw new Error('Bridge not initialized');
+      throw new Error("Bridge not initialized");
     }
 
     const startTime = Date.now();
@@ -152,44 +147,47 @@ export class A2AMCPBridge extends EventEmitter {
       // Find appropriate mapping
       const mapping = this.findMCPMapping(mcpRequest);
       if (!mapping) {
-        throw new Error(`No A2A mapping found for MCP method: ${this.extractMCPMethod(mcpRequest)}`);
+        throw new Error(
+          `No A2A mapping found for MCP method: ${this.extractMCPMethod(mcpRequest)}`,
+        );
       }
 
       // Transform parameters
       const transformedParams = await this.transformParameters(
         mcpRequest,
         mapping.parameterMapping,
-        'mcp-to-a2a'
+        "mcp-to-a2a",
       );
 
       // Create A2A message
       const a2aMessage: A2AMessage = {
-        jsonrpc: '2.0',
+        jsonrpc: "2.0",
         method: mapping.a2aMethod,
         params: transformedParams,
-        id: mcpRequest.id || `bridge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        from: 'mcp-bridge-agent',
+        id:
+          mcpRequest.id ||
+          `bridge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        from: "mcp-bridge-agent",
         to: this.determineTargetAgent(mapping, mcpRequest),
         timestamp: Date.now(),
-        messageType: 'request',
+        messageType: "request",
         priority: this.determinePriority(mcpRequest),
-        context: this.createA2AContext(mcpRequest)
+        context: this.createA2AContext(mcpRequest),
       };
 
       // Track success
       const translationTime = Date.now() - startTime;
       this.trackTranslationSuccess(translationTime);
 
-      this.logger.debug('MCP to A2A translation successful', {
+      this.logger.debug("MCP to A2A translation successful", {
         mcpMethod: this.extractMCPMethod(mcpRequest),
         a2aMethod: mapping.a2aMethod,
-        translationTime
+        translationTime,
       });
 
       return a2aMessage;
-
     } catch (error: any) {
-      this.trackTranslationError('mcp_to_a2a_error', error);
+      this.trackTranslationError("mcp_to_a2a_error", error);
       throw error;
     }
   }
@@ -199,7 +197,7 @@ export class A2AMCPBridge extends EventEmitter {
    */
   async translateA2AToMCP(a2aMessage: A2AMessage): Promise<MCPRequest> {
     if (!this.isInitialized) {
-      throw new Error('Bridge not initialized');
+      throw new Error("Bridge not initialized");
     }
 
     const startTime = Date.now();
@@ -214,30 +212,36 @@ export class A2AMCPBridge extends EventEmitter {
       // Find reverse mapping
       const mapping = this.reverseMappings.get(a2aMessage.method);
       if (!mapping) {
-        throw new Error(`No MCP mapping found for A2A method: ${a2aMessage.method}`);
+        throw new Error(
+          `No MCP mapping found for A2A method: ${a2aMessage.method}`,
+        );
       }
 
       // Reverse transform parameters
       const transformedParams = await this.reverseTransformParameters(
         a2aMessage.params,
-        mapping.parameterMapping
+        mapping.parameterMapping,
       );
 
       // Create MCP request
       const mcpRequest: MCPRequest = {
         id: a2aMessage.id?.toString() || `bridge_${Date.now()}`,
         prompt: this.generateMCPPrompt(a2aMessage),
-        tools: [{
-          name: mapping.mcpMethod,
-          description: `Execute ${mapping.mcpMethod} with A2A parameters`,
-          parameters: {
-            type: 'object',
-            properties: this.generateParameterSchema(transformedParams),
-            required: this.extractRequiredParameters(mapping)
-          }
-        }],
+        tools: [
+          {
+            name: mapping.mcpMethod,
+            description: `Execute ${mapping.mcpMethod} with A2A parameters`,
+            parameters: {
+              type: "object",
+              properties: this.generateParameterSchema(transformedParams),
+              required: this.extractRequiredParameters(mapping),
+            },
+          },
+        ],
         temperature: 0.1, // Low temperature for tool execution
-        cacheTTL: a2aMessage.context?.timeout ? Math.floor(a2aMessage.context.timeout / 1000) : 300
+        cacheTTL: a2aMessage.context?.timeout
+          ? Math.floor(a2aMessage.context.timeout / 1000)
+          : 300,
       };
 
       // Add transformed parameters to request (mock field for testing)
@@ -252,16 +256,15 @@ export class A2AMCPBridge extends EventEmitter {
       const translationTime = Date.now() - startTime;
       this.trackTranslationSuccess(translationTime);
 
-      this.logger.debug('A2A to MCP translation successful', {
+      this.logger.debug("A2A to MCP translation successful", {
         a2aMethod: a2aMessage.method,
         mcpMethod: mapping.mcpMethod,
-        translationTime
+        translationTime,
       });
 
       return mcpRequest;
-
     } catch (error: any) {
-      this.trackTranslationError('a2a_to_mcp_error', error);
+      this.trackTranslationError("a2a_to_mcp_error", error);
       throw error;
     }
   }
@@ -269,14 +272,16 @@ export class A2AMCPBridge extends EventEmitter {
   /**
    * Translate MCP response to A2A response
    */
-  async translateMCPResponseToA2A(mcpResponse: MCPResponse): Promise<A2AResponse> {
+  async translateMCPResponseToA2A(
+    mcpResponse: MCPResponse,
+  ): Promise<A2AResponse> {
     const startTime = Date.now();
 
     try {
       // Find mapping for the function call
       const functionCall = mcpResponse.functionCalls?.[0];
       if (!functionCall) {
-        throw new Error('No function call found in MCP response');
+        throw new Error("No function call found in MCP response");
       }
 
       const mapping = this.mappings.get(functionCall.name);
@@ -287,27 +292,26 @@ export class A2AMCPBridge extends EventEmitter {
       // Transform response using response mapping
       const transformedResult = await this.transformResponse(
         functionCall.arguments,
-        mapping.responseMapping
+        mapping.responseMapping,
       );
 
       // Create A2A response
       const a2aResponse: A2AResponse = {
-        jsonrpc: '2.0',
+        jsonrpc: "2.0",
         result: transformedResult,
         id: mcpResponse.id,
-        from: 'mcp-bridge-response',
-        to: 'requesting-agent',
+        from: "mcp-bridge-response",
+        to: "requesting-agent",
         timestamp: Date.now(),
-        messageType: 'response'
+        messageType: "response",
       };
 
       const translationTime = Date.now() - startTime;
       this.trackTranslationSuccess(translationTime);
 
       return a2aResponse;
-
     } catch (error: any) {
-      this.trackTranslationError('mcp_response_to_a2a_error', error);
+      this.trackTranslationError("mcp_response_to_a2a_error", error);
       throw error;
     }
   }
@@ -315,38 +319,41 @@ export class A2AMCPBridge extends EventEmitter {
   /**
    * Translate A2A response to MCP response
    */
-  async translateA2AResponseToMCP(a2aResponse: A2AResponse): Promise<MCPResponse> {
+  async translateA2AResponseToMCP(
+    a2aResponse: A2AResponse,
+  ): Promise<MCPResponse> {
     const startTime = Date.now();
 
     try {
       // For simplicity, we'll create a generic MCP response
       // In a real implementation, this would use the reverse response mapping
       const mcpResponse: MCPResponse = {
-        id: a2aResponse.id?.toString() || 'unknown',
-        model: 'a2a-bridge-model',
-        content: 'A2A response translated to MCP format',
-        functionCalls: [{
-          name: 'a2a_bridge_function',
-          arguments: this.reverseTransformResponseData(a2aResponse.result)
-        }],
+        id: a2aResponse.id?.toString() || "unknown",
+        model: "a2a-bridge-model",
+        content: "A2A response translated to MCP format",
+        functionCalls: [
+          {
+            name: "a2a_bridge_function",
+            arguments: this.reverseTransformResponseData(a2aResponse.result),
+          },
+        ],
         usage: {
           promptTokens: 50,
           completionTokens: 25,
-          totalTokens: 75
+          totalTokens: 75,
         },
         metadata: {
           cached: false,
-          finishReason: 'stop'
-        }
+          finishReason: "stop",
+        },
       };
 
       const translationTime = Date.now() - startTime;
       this.trackTranslationSuccess(translationTime);
 
       return mcpResponse;
-
     } catch (error: any) {
-      this.trackTranslationError('a2a_response_to_mcp_error', error);
+      this.trackTranslationError("a2a_response_to_mcp_error", error);
       throw error;
     }
   }
@@ -356,15 +363,17 @@ export class A2AMCPBridge extends EventEmitter {
    */
   registerMapping(mapping: MCPToA2AMapping): void {
     if (this.mappings.has(mapping.mcpMethod)) {
-      throw new Error(`Mapping already exists for method: ${mapping.mcpMethod}`);
+      throw new Error(
+        `Mapping already exists for method: ${mapping.mcpMethod}`,
+      );
     }
 
     this.mappings.set(mapping.mcpMethod, mapping);
     this.reverseMappings.set(mapping.a2aMethod, mapping);
 
-    this.logger.debug('Mapping registered', {
+    this.logger.debug("Mapping registered", {
       mcpMethod: mapping.mcpMethod,
-      a2aMethod: mapping.a2aMethod
+      a2aMethod: mapping.a2aMethod,
     });
   }
 
@@ -380,7 +389,7 @@ export class A2AMCPBridge extends EventEmitter {
     this.mappings.delete(mcpMethod);
     this.reverseMappings.delete(mapping.a2aMethod);
 
-    this.logger.debug('Mapping unregistered', { mcpMethod });
+    this.logger.debug("Mapping unregistered", { mcpMethod });
   }
 
   /**
@@ -394,9 +403,11 @@ export class A2AMCPBridge extends EventEmitter {
    * Get bridge metrics
    */
   getBridgeMetrics(): BridgeMetrics {
-    const avgTranslationTime = this.metrics.translationTimes.length > 0
-      ? this.metrics.translationTimes.reduce((a, b) => a + b, 0) / this.metrics.translationTimes.length
-      : 0;
+    const avgTranslationTime =
+      this.metrics.translationTimes.length > 0
+        ? this.metrics.translationTimes.reduce((a, b) => a + b, 0) /
+          this.metrics.translationTimes.length
+        : 0;
 
     const errorsByType: { [errorType: string]: number } = {};
     this.metrics.errorsByType.forEach((count, type) => {
@@ -408,15 +419,17 @@ export class A2AMCPBridge extends EventEmitter {
       mcpToA2ATranslations: this.metrics.mcpToA2ATranslations,
       a2aToMCPTranslations: this.metrics.a2aToMCPTranslations,
       avgTranslationTime,
-      successRate: this.metrics.totalTranslations > 0
-        ? this.metrics.translationSuccesses / this.metrics.totalTranslations
-        : 0,
-      errorRate: this.metrics.totalTranslations > 0
-        ? this.metrics.translationFailures / this.metrics.totalTranslations
-        : 0,
+      successRate:
+        this.metrics.totalTranslations > 0
+          ? this.metrics.translationSuccesses / this.metrics.totalTranslations
+          : 0,
+      errorRate:
+        this.metrics.totalTranslations > 0
+          ? this.metrics.translationFailures / this.metrics.totalTranslations
+          : 0,
       mappingsCount: this.mappings.size,
       transformationCacheHits: this.metrics.cacheHits,
-      errorsByType
+      errorsByType,
     };
   }
 
@@ -426,68 +439,66 @@ export class A2AMCPBridge extends EventEmitter {
   private registerDefaultMappings(): void {
     // Claude Flow mappings
     this.registerMapping({
-      mcpMethod: 'mcp__claude-flow__neural_status',
-      a2aMethod: 'neural.status',
-      parameterMapping: [
-        { mcpParam: 'modelId', a2aParam: 'modelId' }
-      ],
+      mcpMethod: "mcp__claude-flow__neural_status",
+      a2aMethod: "neural.status",
+      parameterMapping: [{ mcpParam: "modelId", a2aParam: "modelId" }],
       responseMapping: [
-        { mcpField: 'status', a2aField: 'result.status' },
-        { mcpField: 'metrics', a2aField: 'result.metrics' }
-      ]
+        { mcpField: "status", a2aField: "result.status" },
+        { mcpField: "metrics", a2aField: "result.metrics" },
+      ],
     });
 
     this.registerMapping({
-      mcpMethod: 'mcp__claude-flow__task_orchestrate',
-      a2aMethod: 'task.orchestrate',
+      mcpMethod: "mcp__claude-flow__task_orchestrate",
+      a2aMethod: "task.orchestrate",
       parameterMapping: [
-        { mcpParam: 'task', a2aParam: 'taskDescription' },
-        { 
-          mcpParam: 'priority', 
-          a2aParam: 'priority',
-          transform: (value: string) => value.toLowerCase()
+        { mcpParam: "task", a2aParam: "taskDescription" },
+        {
+          mcpParam: "priority",
+          a2aParam: "priority",
+          transform: (value: string) => value.toLowerCase(),
         },
         {
-          mcpParam: 'strategy',
-          a2aParam: 'executionStrategy',
+          mcpParam: "strategy",
+          a2aParam: "executionStrategy",
           transform: (value: string) => {
             const strategyMap: { [key: string]: string } = {
-              'parallel': 'concurrent',
-              'sequential': 'ordered',
-              'adaptive': 'dynamic'
+              parallel: "concurrent",
+              sequential: "ordered",
+              adaptive: "dynamic",
             };
             return strategyMap[value] || value;
-          }
-        }
+          },
+        },
       ],
       responseMapping: [
-        { mcpField: 'taskId', a2aField: 'result.taskId' },
-        { mcpField: 'status', a2aField: 'result.status' },
+        { mcpField: "taskId", a2aField: "result.taskId" },
+        { mcpField: "status", a2aField: "result.status" },
         {
-          mcpField: 'agents',
-          a2aField: 'result.assignedAgents',
-          transform: (agents: any[]) => agents.map(a => a.id)
-        }
-      ]
+          mcpField: "agents",
+          a2aField: "result.assignedAgents",
+          transform: (agents: any[]) => agents.map((a) => a.id),
+        },
+      ],
     });
 
     // RUV Swarm mappings
     this.registerMapping({
-      mcpMethod: 'mcp__ruv-swarm__swarm_init',
-      a2aMethod: 'swarm.initialize',
+      mcpMethod: "mcp__ruv-swarm__swarm_init",
+      a2aMethod: "swarm.initialize",
       parameterMapping: [
-        { mcpParam: 'topology', a2aParam: 'networkTopology' },
-        { mcpParam: 'maxAgents', a2aParam: 'maxAgentCount' },
-        { mcpParam: 'strategy', a2aParam: 'distributionStrategy' }
+        { mcpParam: "topology", a2aParam: "networkTopology" },
+        { mcpParam: "maxAgents", a2aParam: "maxAgentCount" },
+        { mcpParam: "strategy", a2aParam: "distributionStrategy" },
       ],
       responseMapping: [
-        { mcpField: 'swarmId', a2aField: 'result.swarmId' },
-        { mcpField: 'agents', a2aField: 'result.initialAgents' }
-      ]
+        { mcpField: "swarmId", a2aField: "result.swarmId" },
+        { mcpField: "agents", a2aField: "result.initialAgents" },
+      ],
     });
 
-    this.logger.info('Default mappings registered', {
-      count: this.mappings.size
+    this.logger.info("Default mappings registered", {
+      count: this.mappings.size,
     });
   }
 
@@ -504,7 +515,7 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private extractMCPMethod(mcpRequest: MCPRequest): string {
     // Get the first tool name as the method
-    return mcpRequest.tools?.[0]?.name || 'unknown';
+    return mcpRequest.tools?.[0]?.name || "unknown";
   }
 
   /**
@@ -513,21 +524,24 @@ export class A2AMCPBridge extends EventEmitter {
   private async transformParameters(
     mcpRequest: MCPRequest,
     parameterMappings: ParameterMapping[],
-    direction: 'mcp-to-a2a' | 'a2a-to-mcp'
+    direction: "mcp-to-a2a" | "a2a-to-mcp",
   ): Promise<any> {
     const sourceParams = (mcpRequest as any).toolParams || {};
     const transformedParams: any = {};
 
     for (const mapping of parameterMappings) {
       const sourceValue = this.getNestedValue(sourceParams, mapping.mcpParam);
-      
+
       if (sourceValue !== undefined) {
         let transformedValue = sourceValue;
 
         // Apply transformation if provided
         if (mapping.transform) {
           try {
-            const cacheKey = this.generateCacheKey(mapping.mcpParam, sourceValue);
+            const cacheKey = this.generateCacheKey(
+              mapping.mcpParam,
+              sourceValue,
+            );
             const cachedResult = this.getCachedTransformation(cacheKey);
 
             if (cachedResult) {
@@ -539,11 +553,17 @@ export class A2AMCPBridge extends EventEmitter {
               this.cacheTransformation(cacheKey, transformedValue);
             }
           } catch (error) {
-            throw new Error(`Parameter transformation failed for ${mapping.mcpParam}: ${(error as Error).message}`);
+            throw new Error(
+              `Parameter transformation failed for ${mapping.mcpParam}: ${(error as Error).message}`,
+            );
           }
         }
 
-        this.setNestedValue(transformedParams, mapping.a2aParam, transformedValue);
+        this.setNestedValue(
+          transformedParams,
+          mapping.a2aParam,
+          transformedValue,
+        );
       } else if (this.isRequiredParameter(mapping.mcpParam, mcpRequest)) {
         throw new Error(`Required parameter missing: ${mapping.mcpParam}`);
       }
@@ -557,29 +577,39 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private async reverseTransformParameters(
     a2aParams: any,
-    parameterMappings: ParameterMapping[]
+    parameterMappings: ParameterMapping[],
   ): Promise<any> {
     const transformedParams: any = {};
 
     for (const mapping of parameterMappings) {
       const sourceValue = this.getNestedValue(a2aParams, mapping.a2aParam);
-      
+
       if (sourceValue !== undefined) {
         let transformedValue = sourceValue;
 
         // Apply reverse transformation
         if (mapping.transform) {
           try {
-            transformedValue = this.reverseTransform(mapping.transform, sourceValue);
+            transformedValue = this.reverseTransform(
+              mapping.transform,
+              sourceValue,
+            );
           } catch (error) {
-            this.logger.warn('Reverse transformation failed, using original value', {
-              param: mapping.a2aParam,
-              error: (error as Error).message
-            });
+            this.logger.warn(
+              "Reverse transformation failed, using original value",
+              {
+                param: mapping.a2aParam,
+                error: (error as Error).message,
+              },
+            );
           }
         }
 
-        this.setNestedValue(transformedParams, mapping.mcpParam, transformedValue);
+        this.setNestedValue(
+          transformedParams,
+          mapping.mcpParam,
+          transformedValue,
+        );
       }
     }
 
@@ -591,13 +621,13 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private async transformResponse(
     mcpResult: any,
-    responseMappings: ResponseMapping[]
+    responseMappings: ResponseMapping[],
   ): Promise<any> {
     const transformedResult: any = {};
 
     for (const mapping of responseMappings) {
       const sourceValue = this.getNestedValue(mcpResult, mapping.mcpField);
-      
+
       if (sourceValue !== undefined) {
         let transformedValue = sourceValue;
 
@@ -606,14 +636,21 @@ export class A2AMCPBridge extends EventEmitter {
           try {
             transformedValue = mapping.transform(sourceValue);
           } catch (error) {
-            this.logger.warn('Response transformation failed, using original value', {
-              field: mapping.mcpField,
-              error: (error as Error).message
-            });
+            this.logger.warn(
+              "Response transformation failed, using original value",
+              {
+                field: mapping.mcpField,
+                error: (error as Error).message,
+              },
+            );
           }
         }
 
-        this.setNestedValue(transformedResult, mapping.a2aField, transformedValue);
+        this.setNestedValue(
+          transformedResult,
+          mapping.a2aField,
+          transformedValue,
+        );
       }
     }
 
@@ -625,9 +662,9 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private reverseTransformResponseData(a2aResult: any): any {
     // Simple reverse transformation - in practice this would use proper reverse mappings
-    if (a2aResult && typeof a2aResult === 'object') {
+    if (a2aResult && typeof a2aResult === "object") {
       const transformed: any = {};
-      
+
       if (a2aResult.taskId) {
         transformed.taskId = a2aResult.taskId;
       }
@@ -635,47 +672,54 @@ export class A2AMCPBridge extends EventEmitter {
         transformed.status = a2aResult.status;
       }
       if (a2aResult.assignedAgents) {
-        transformed.agents = a2aResult.assignedAgents.map((id: string) => ({ id }));
+        transformed.agents = a2aResult.assignedAgents.map((id: string) => ({
+          id,
+        }));
       }
-      
+
       return transformed;
     }
-    
+
     return a2aResult;
   }
 
   /**
    * Determine target agent for A2A message
    */
-  private determineTargetAgent(mapping: MCPToA2AMapping, mcpRequest: MCPRequest): string {
+  private determineTargetAgent(
+    mapping: MCPToA2AMapping,
+    mcpRequest: MCPRequest,
+  ): string {
     // Simple heuristic based on method name
-    if (mapping.a2aMethod.startsWith('neural.')) {
-      return 'neural-agent-001';
-    } else if (mapping.a2aMethod.startsWith('task.')) {
-      return 'task-coordinator-001';
-    } else if (mapping.a2aMethod.startsWith('swarm.')) {
-      return 'swarm-manager-001';
+    if (mapping.a2aMethod.startsWith("neural.")) {
+      return "neural-agent-001";
+    } else if (mapping.a2aMethod.startsWith("task.")) {
+      return "task-coordinator-001";
+    } else if (mapping.a2aMethod.startsWith("swarm.")) {
+      return "swarm-manager-001";
     }
-    
-    return 'default-agent-001';
+
+    return "default-agent-001";
   }
 
   /**
    * Determine message priority from MCP request
    */
-  private determinePriority(mcpRequest: MCPRequest): 'low' | 'normal' | 'high' | 'critical' {
+  private determinePriority(
+    mcpRequest: MCPRequest,
+  ): "low" | "normal" | "high" | "critical" {
     // Check for priority hints in the request
     const context = (mcpRequest as any).context;
     if (context?.priority) {
       return context.priority;
     }
-    
+
     // Check temperature - higher temperature might indicate more exploratory/lower priority
     if (mcpRequest.temperature && mcpRequest.temperature > 0.8) {
-      return 'low';
+      return "low";
     }
-    
-    return 'normal';
+
+    return "normal";
   }
 
   /**
@@ -683,15 +727,15 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private createA2AContext(mcpRequest: MCPRequest): any {
     const context: any = {};
-    
+
     if (mcpRequest.cacheTTL) {
       context.timeout = mcpRequest.cacheTTL * 1000; // Convert to milliseconds
     }
-    
+
     if (mcpRequest.maxTokens) {
       context.maxCost = Math.floor(mcpRequest.maxTokens / 100); // Rough cost estimate
     }
-    
+
     return Object.keys(context).length > 0 ? context : undefined;
   }
 
@@ -707,16 +751,16 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private generateParameterSchema(params: any): any {
     const schema: any = {};
-    
-    if (params && typeof params === 'object') {
+
+    if (params && typeof params === "object") {
       for (const [key, value] of Object.entries(params)) {
         schema[key] = {
           type: typeof value,
-          description: `Parameter: ${key}`
+          description: `Parameter: ${key}`,
         };
       }
     }
-    
+
     return schema;
   }
 
@@ -725,27 +769,33 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private extractRequiredParameters(mapping: MCPToA2AMapping): string[] {
     return mapping.parameterMapping
-      .filter(pm => pm.mcpParam.includes('required') || pm.a2aParam.includes('required'))
-      .map(pm => pm.mcpParam);
+      .filter(
+        (pm) =>
+          pm.mcpParam.includes("required") || pm.a2aParam.includes("required"),
+      )
+      .map((pm) => pm.mcpParam);
   }
 
   /**
    * Validate A2A message format
    */
   private validateA2AMessage(message: A2AMessage): void {
-    if (message.jsonrpc !== '2.0') {
-      throw new Error('Invalid JSON-RPC 2.0 message format');
+    if (message.jsonrpc !== "2.0") {
+      throw new Error("Invalid JSON-RPC 2.0 message format");
     }
-    
+
     if (!message.method) {
-      throw new Error('Missing method in A2A message');
+      throw new Error("Missing method in A2A message");
     }
   }
 
   /**
    * Check if parameter is required
    */
-  private isRequiredParameter(paramName: string, mcpRequest: MCPRequest): boolean {
+  private isRequiredParameter(
+    paramName: string,
+    mcpRequest: MCPRequest,
+  ): boolean {
     const tool = mcpRequest.tools?.[0];
     return tool?.parameters?.required?.includes(paramName) || false;
   }
@@ -754,21 +804,21 @@ export class A2AMCPBridge extends EventEmitter {
    * Get nested value from object
    */
   private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
+    return path.split(".").reduce((current, key) => current?.[key], obj);
   }
 
   /**
    * Set nested value in object
    */
   private setNestedValue(obj: any, path: string, value: any): void {
-    const keys = path.split('.');
+    const keys = path.split(".");
     const lastKey = keys.pop()!;
-    
+
     const target = keys.reduce((current, key) => {
       if (!current[key]) current[key] = {};
       return current[key];
     }, obj);
-    
+
     target[lastKey] = value;
   }
 
@@ -778,17 +828,17 @@ export class A2AMCPBridge extends EventEmitter {
   private reverseTransform(transform: TransformFunction, value: any): any {
     // This is a simplified reverse transformation
     // In practice, each transform would need its own reverse function
-    
-    if (typeof value === 'string') {
+
+    if (typeof value === "string") {
       // Common string transformations
-      if (value === 'concurrent') return 'parallel';
-      if (value === 'ordered') return 'sequential';
-      if (value === 'dynamic') return 'adaptive';
-      
+      if (value === "concurrent") return "parallel";
+      if (value === "ordered") return "sequential";
+      if (value === "dynamic") return "adaptive";
+
       // Case transformations
       if (value === value.toLowerCase()) return value.toUpperCase();
     }
-    
+
     return value;
   }
 
@@ -804,17 +854,17 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private getCachedTransformation(key: string): any {
     if (!this.cacheEnabled) return null;
-    
+
     const entry = this.transformationCache.get(key);
     if (!entry) return null;
-    
+
     // Check TTL
     const now = Date.now();
     if (now - entry.timestamp > this.cacheTTL) {
       this.transformationCache.delete(key);
       return null;
     }
-    
+
     return entry.output;
   }
 
@@ -823,24 +873,24 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private cacheTransformation(key: string, value: any): void {
     if (!this.cacheEnabled) return;
-    
+
     // Check cache size limit
     if (this.transformationCache.size >= this.maxCacheSize) {
       // Remove oldest entries
       const entries = Array.from(this.transformationCache.entries());
       entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-      
+
       // Remove oldest 10%
       const removeCount = Math.floor(this.maxCacheSize * 0.1);
       for (let i = 0; i < removeCount; i++) {
         this.transformationCache.delete(entries[i][0]);
       }
     }
-    
+
     this.transformationCache.set(key, {
       input: key,
       output: value,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -849,22 +899,22 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private cleanupCache(): void {
     if (!this.cacheEnabled) return;
-    
+
     const now = Date.now();
     const expiredKeys: string[] = [];
-    
+
     this.transformationCache.forEach((entry, key) => {
       if (now - entry.timestamp > this.cacheTTL) {
         expiredKeys.push(key);
       }
     });
-    
-    expiredKeys.forEach(key => this.transformationCache.delete(key));
-    
+
+    expiredKeys.forEach((key) => this.transformationCache.delete(key));
+
     if (expiredKeys.length > 0) {
-      this.logger.debug('Cleaned up expired cache entries', {
+      this.logger.debug("Cleaned up expired cache entries", {
         expired: expiredKeys.length,
-        remaining: this.transformationCache.size
+        remaining: this.transformationCache.size,
       });
     }
   }
@@ -875,7 +925,7 @@ export class A2AMCPBridge extends EventEmitter {
   private trackTranslationSuccess(translationTime: number): void {
     this.metrics.translationSuccesses++;
     this.metrics.translationTimes.push(translationTime);
-    
+
     // Keep only last 1000 entries
     if (this.metrics.translationTimes.length > 1000) {
       this.metrics.translationTimes.splice(0, 100);
@@ -887,13 +937,13 @@ export class A2AMCPBridge extends EventEmitter {
    */
   private trackTranslationError(errorType: string, error: any): void {
     this.metrics.translationFailures++;
-    
+
     const currentCount = this.metrics.errorsByType.get(errorType) || 0;
     this.metrics.errorsByType.set(errorType, currentCount + 1);
-    
-    this.logger.error('Translation error', {
+
+    this.logger.error("Translation error", {
       errorType,
-      message: error.message
+      message: error.message,
     });
   }
 }

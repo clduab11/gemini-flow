@@ -5,6 +5,7 @@ A comprehensive system for wrapping MCP (Model Context Protocol) tools with A2A 
 ## Overview
 
 The A2A Tool Capability Wrappers transform MCP tools into intelligent, composable capabilities that can be:
+
 - Dynamically discovered and orchestrated
 - Optimized for performance and resource usage
 - Cached and connection-pooled for efficiency
@@ -45,15 +46,16 @@ The foundation class that wraps MCP tools with A2A capabilities:
 ```typescript
 // Basic usage
 const wrapper = new GenericMCPToolWrapper(
-  'mcp__claude-flow__swarm_init',
+  "mcp__claude-flow__swarm_init",
   capability,
-  transformationEngine
+  transformationEngine,
 );
 
 const response = await wrapper.invoke(invocation);
 ```
 
 **Features:**
+
 - Security context validation
 - Rate limiting enforcement
 - Performance monitoring
@@ -72,20 +74,21 @@ await manager.registerCapability(id, capability, wrapper, metadata);
 
 // Query capabilities
 const results = await manager.queryCapabilities({
-  minTrustLevel: 'verified',
+  minTrustLevel: "verified",
   maxLatency: 1000,
-  tags: ['swarm', 'management']
+  tags: ["swarm", "management"],
 });
 
 // Create composition
 await manager.createComposition({
-  id: 'swarm-setup',
-  capabilities: ['swarm.init', 'agent.spawn', 'task.orchestrate'],
-  executionStrategy: 'sequential'
+  id: "swarm-setup",
+  capabilities: ["swarm.init", "agent.spawn", "task.orchestrate"],
+  executionStrategy: "sequential",
 });
 ```
 
 **Features:**
+
 - Dynamic capability discovery
 - Dependency resolution
 - Security policy enforcement
@@ -101,19 +104,17 @@ const engine = new ToolTransformationEngine();
 
 // Transform MCP to A2A
 const a2aResult = await engine.transformMCPToA2A(
-  'mcp__claude-flow__swarm_init',
+  "mcp__claude-flow__swarm_init",
   mcpParameters,
-  a2aContext
+  a2aContext,
 );
 
 // Transform A2A to MCP
-const mcpResult = await engine.transformA2AToMCP(
-  a2aResponse,
-  originalToolName
-);
+const mcpResult = await engine.transformA2AToMCP(a2aResponse, originalToolName);
 ```
 
 **Features:**
+
 - Intelligent parameter mapping
 - Type validation and coercion
 - Error transformation
@@ -129,12 +130,12 @@ const composer = new DynamicCapabilityComposer(capabilityManager);
 
 // Create composition plan
 const plan = await composer.createCompositionPlan({
-  name: 'AI Agent Deployment',
+  name: "AI Agent Deployment",
   requirements: {
-    capabilities: ['swarm.init', 'agent.spawn', 'neural.train'],
-    constraints: { maxLatency: 5000 }
+    capabilities: ["swarm.init", "agent.spawn", "neural.train"],
+    constraints: { maxLatency: 5000 },
   },
-  context: agentContext
+  context: agentContext,
 });
 
 // Execute plan
@@ -142,6 +143,7 @@ const result = await composer.executeCompositionPlan(plan.id);
 ```
 
 **Features:**
+
 - Intelligent capability selection
 - Execution graph optimization
 - Parallel and sequential execution
@@ -158,16 +160,19 @@ await registry.initialize();
 
 // Search tools
 const tools = await registry.searchTools({
-  capabilities: ['swarm.management'],
+  capabilities: ["swarm.management"],
   maxLatency: 1000,
-  minTrustLevel: 'verified'
+  minTrustLevel: "verified",
 });
 
 // Get tool registration
-const registration = registry.getToolRegistration('mcp__claude-flow__swarm_init');
+const registration = registry.getToolRegistration(
+  "mcp__claude-flow__swarm_init",
+);
 ```
 
 **Tool Categories:**
+
 - **Swarm Management** (5 tools): Initialize, monitor, scale swarms
 - **Agent Lifecycle** (8 tools): Create, manage, monitor agents
 - **Task Orchestration** (12 tools): Distribute and execute tasks
@@ -184,12 +189,16 @@ const registration = registry.getToolRegistration('mcp__claude-flow__swarm_init'
 Intelligent performance optimization for tool invocations:
 
 ```typescript
-const optimizer = new PerformanceOptimizationLayer(toolRegistry, performanceMonitor);
+const optimizer = new PerformanceOptimizationLayer(
+  toolRegistry,
+  performanceMonitor,
+);
 
 const optimizedResult = await optimizer.optimizeInvocation(invocation);
 ```
 
 **Optimization Strategies:**
+
 - **Intelligent Caching**: Context-aware result caching
 - **Circuit Breaker**: Prevent cascading failures
 - **Load Balancing**: Distribute across instances
@@ -207,11 +216,12 @@ const response = await service.executeWithOptimizations(
   invocation,
   async (connection) => {
     return await executeTool(connection, invocation);
-  }
+  },
 );
 ```
 
 **Features:**
+
 - **Intelligent Caching**: LRU, LFU, TTL, and adaptive strategies
 - **Connection Pooling**: Lifecycle management with health checks
 - **Compression**: Automatic data compression
@@ -223,34 +233,34 @@ const response = await service.executeWithOptimizations(
 ### Basic Tool Execution
 
 ```typescript
-import { A2AToolSystemFactory } from './protocols/a2a/tools';
+import { A2AToolSystemFactory } from "./protocols/a2a/tools";
 
 // Create A2A tool system
 const system = await A2AToolSystemFactory.createSystem({
   enablePerformanceOptimization: true,
-  enableDynamicComposition: true
+  enableDynamicComposition: true,
 });
 
 // Execute a tool
 const invocation = {
-  toolId: 'mcp__claude-flow__swarm_init',
-  capabilityName: 'swarm.init',
+  toolId: "mcp__claude-flow__swarm_init",
+  capabilityName: "swarm.init",
   parameters: {
-    topology: 'hierarchical',
-    maxAgents: 10
+    topology: "hierarchical",
+    maxAgents: 10,
   },
   context: {
-    agentId: 'agent-001',
-    agentType: 'coordinator',
-    sessionId: 'session-123',
-    trustLevel: 'verified',
-    capabilities: ['swarm.init', 'swarm.monitor'],
+    agentId: "agent-001",
+    agentType: "coordinator",
+    sessionId: "session-123",
+    trustLevel: "verified",
+    capabilities: ["swarm.init", "swarm.monitor"],
     metadata: {},
-    timestamp: Date.now()
+    timestamp: Date.now(),
   },
-  requestId: 'req-456',
+  requestId: "req-456",
   timestamp: Date.now(),
-  priority: 'high'
+  priority: "high",
 };
 
 const response = await system.executeInvocation(invocation);
@@ -261,33 +271,33 @@ const response = await system.executeInvocation(invocation);
 ```typescript
 // Create a complex workflow composition
 const compositionRequest = {
-  name: 'AI Development Pipeline',
-  description: 'Complete AI agent development and deployment',
+  name: "AI Development Pipeline",
+  description: "Complete AI agent development and deployment",
   requirements: {
     capabilities: [
-      'github.repo.analyze',
-      'neural.train',
-      'agent.spawn',
-      'task.orchestrate',
-      'performance.monitor'
+      "github.repo.analyze",
+      "neural.train",
+      "agent.spawn",
+      "task.orchestrate",
+      "performance.monitor",
     ],
     constraints: {
       maxLatency: 30000,
-      minTrustLevel: 'verified'
+      minTrustLevel: "verified",
     },
     preferences: {
-      strategy: 'performance',
+      strategy: "performance",
       parallelization: true,
       caching: true,
-      faultTolerance: 'retry'
-    }
+      faultTolerance: "retry",
+    },
   },
   context: agentContext,
   parameters: {
-    repositoryUrl: 'https://github.com/org/project',
-    trainingData: 'dataset.json',
-    targetAccuracy: 0.95
-  }
+    repositoryUrl: "https://github.com/org/project",
+    trainingData: "dataset.json",
+    targetAccuracy: 0.95,
+  },
 };
 
 const plan = await system.createComposition(compositionRequest);
@@ -300,11 +310,15 @@ const result = await system.executeComposition(plan.id);
 // Get system metrics
 const metrics = system.getSystemMetrics();
 console.log(`Cache Hit Rate: ${metrics.cache.hitRate * 100}%`);
-console.log(`Connection Utilization: ${metrics.connectionPool.connectionUtilization * 100}%`);
+console.log(
+  `Connection Utilization: ${metrics.connectionPool.connectionUtilization * 100}%`,
+);
 console.log(`Average Latency: ${metrics.cache.averageRetrievalTime}ms`);
 
 // Tool-specific metrics
-const toolMetrics = system.toolRegistry.getToolRegistration('mcp__claude-flow__swarm_init')?.wrapper.getMetrics();
+const toolMetrics = system.toolRegistry
+  .getToolRegistration("mcp__claude-flow__swarm_init")
+  ?.wrapper.getMetrics();
 console.log(`Tool Success Rate: ${toolMetrics?.successRate * 100}%`);
 ```
 
@@ -314,29 +328,29 @@ console.log(`Tool Success Rate: ${toolMetrics?.successRate * 100}%`);
 
 ```typescript
 const cacheConfig = {
-  strategy: 'intelligent',
+  strategy: "intelligent",
   maxSize: 100 * 1024 * 1024, // 100MB
   defaultTTL: 300000, // 5 minutes
   maxTTL: 3600000, // 1 hour
   compressionEnabled: true,
-  serializationFormat: 'json',
+  serializationFormat: "json",
   invalidationRules: [
     {
-      id: 'time-based',
-      trigger: 'time',
+      id: "time-based",
+      trigger: "time",
       condition: { maxAge: 600000 },
-      action: 'delete',
-      priority: 1
-    }
+      action: "delete",
+      priority: 1,
+    },
   ],
   warmupRules: [
     {
-      id: 'common-tools',
-      schedule: '0 */15 * * * *', // Every 15 minutes
-      targetKeys: ['swarm.*', 'agent.*'],
-      preloadStrategy: 'predictive'
-    }
-  ]
+      id: "common-tools",
+      schedule: "0 */15 * * * *", // Every 15 minutes
+      targetKeys: ["swarm.*", "agent.*"],
+      preloadStrategy: "predictive",
+    },
+  ],
 };
 ```
 
@@ -350,8 +364,8 @@ const poolConfig = {
   idleTimeout: 60000,
   maxRetries: 3,
   healthCheckInterval: 30000,
-  reconnectStrategy: 'exponential',
-  loadBalancing: 'adaptive'
+  reconnectStrategy: "exponential",
+  loadBalancing: "adaptive",
 };
 ```
 

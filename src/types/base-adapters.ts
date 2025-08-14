@@ -13,8 +13,8 @@ export interface ModelRequest {
 
 export interface RequestContext {
   latencyTarget?: number;
-  priority?: 'low' | 'medium' | 'high';
-  userTier?: 'free' | 'pro' | 'enterprise';
+  priority?: "low" | "medium" | "high";
+  userTier?: "free" | "pro" | "enterprise";
   retryCount?: number;
   streaming?: boolean;
 }
@@ -58,7 +58,7 @@ export interface AdapterError extends Error {
 }
 
 export interface HealthCheck {
-  status: 'healthy' | 'unhealthy' | 'degraded';
+  status: "healthy" | "unhealthy" | "degraded";
   latency: number;
   lastChecked: Date;
   errors: string[];

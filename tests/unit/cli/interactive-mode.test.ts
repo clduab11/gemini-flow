@@ -6,9 +6,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { InteractiveMode } from '../../../src/cli/interactive-mode.js';
-import { GoogleAIAuth } from '../../../src/core/google-ai-auth.js';
-import { ContextWindowManager } from '../../../src/core/context-window-manager.js';
+import { InteractiveMode } from '../../../src/cli/interactive-mode';
+import { GoogleAIAuth } from '../../../src/core/google-ai-auth';
+import { ContextWindowManager } from '../../../src/core/context-window-manager';
 
 // Mock dependencies
 jest.mock('../../../src/core/google-ai-auth.js');

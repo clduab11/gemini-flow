@@ -1,5 +1,5 @@
 {
-  "name": "gemini-flow",
+  "name": "@clduab11/gemini-flow",
   "version": "1.3.0",
   "description": "Revolutionary AI agent swarm coordination platform with Google Services integration, multimedia processing, and production-ready monitoring. Features 8 Google AI services, quantum computing capabilities, and enterprise-grade security.",
   "main": "index.js",
@@ -18,10 +18,10 @@
     "test:integration": "jest --config jest.config.cjs --testPathPattern=integration",
     "test:performance": "jest --config jest.config.cjs --testPathPattern=performance --detectOpenHandles",
     "test:google-services": "npm run test:google-services:unit && npm run test:google-services:integration",
-    "test:google-services:unit": "jest --config jest.config.js --testPathPattern=google-services.*unit",
-    "test:google-services:integration": "jest --config jest.config.js --testPathPattern=google-services.*integration --detectOpenHandles",
-    "test:protocols": "jest --config jest.config.js --testPathPattern=protocols --testTimeout=300000",
-    "test:integration:live": "jest --config jest.config.js --testPathPattern=live-integration --testTimeout=600000",
+    "test:google-services:unit": "jest --config jest.config.cjs --testPathPattern=google-services.*unit",
+    "test:google-services:integration": "jest --config jest.config.cjs --testPathPattern=google-services.*integration --detectOpenHandles",
+    "test:protocols": "jest --config jest.config.cjs --testPathPattern=protocols --testTimeout=300000",
+    "test:integration:live": "jest --config jest.config.cjs --testPathPattern=live-integration --testTimeout=600000",
     "test:performance:google-services": "node src/benchmarks/google-services-performance.js",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -59,7 +59,7 @@
     "docker:build": "docker build -t gemini-flow:latest .",
     "docker:run": "docker run -p 3000:3000 -p 8080:8080 gemini-flow:latest",
     "kubernetes:deploy": "kubectl apply -f k8s/",
-    "postinstall": "husky install && npm run build"
+    "postinstall": "husky install"
   },
   "keywords": [
     "ai",
@@ -99,7 +99,7 @@
     "redis": "^4.6.10",
     "mongodb": "^6.2.0",
     "kafka-node": "^5.0.0",
-    "prometheus-client": "^15.0.0",
+    "prom-client": "^15.0.0",
     "pino": "^8.16.1",
     "pino-pretty": "^10.2.3",
     "joi": "^17.11.0",
@@ -138,7 +138,7 @@
     "zod": "^3.22.4",
     "dotenv": "^16.3.1",
     "config": "^3.3.9",
-    "node-config-ts": "^4.2.0"
+    "@types/config": "^3.3.3"
   },
   "devDependencies": {
     "@types/node": "^20.8.9",
@@ -162,6 +162,10 @@
     "prettier": "^3.0.3",
     "typescript": "^5.2.2",
     "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "@babel/preset-env": "^7.23.0",
+    "@babel/preset-typescript": "^7.23.0",
+    "babel-jest": "^29.7.0",
     "jest-environment-node": "^29.7.0",
     "supertest": "^6.3.3",
     "nock": "^13.3.8",
@@ -174,7 +178,7 @@
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.1",
     "@rollup/plugin-typescript": "^11.1.5",
-    "rollup-plugin-terser": "^7.0.2",
+    "@rollup/plugin-terser": "^0.4.4",
     "rollup-plugin-visualizer": "^5.9.2",
     "husky": "^8.0.3",
     "lint-staged": "^15.0.2",
@@ -189,14 +193,7 @@
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3"
   },
-  "peerDependencies": {
-    "grafana": "^10.0.0",
-    "prometheus": "^2.45.0",
-    "jmeter": "^5.6.0",
-    "gatling": "^3.9.0",
-    "kubernetes": "^1.28.0",
-    "docker": "^24.0.0"
-  },
+  "peerDependencies": {},
   "optionalDependencies": {
     "sharp": "^0.33.0",
     "canvas": "^2.11.2",

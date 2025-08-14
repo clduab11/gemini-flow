@@ -1,8 +1,8 @@
 /**
  * Consensus Protocols for Agent-to-Agent Communication
- * 
+ *
  * This module provides comprehensive consensus protocols for distributed systems:
- * 
+ *
  * Features:
  * - PBFT (Practical Byzantine Fault Tolerance) consensus algorithm
  * - Raft consensus protocol for leader-based consensus
@@ -13,13 +13,13 @@
  * - Performance optimizations (batching, pipelining, speculation)
  * - Integration with A2A security framework
  * - Comprehensive fault injection testing
- * 
+ *
  * Quorum Requirements:
  * - Byzantine: Math.floor(2*n/3) + 1 (handles up to 33% malicious nodes)
  * - Raft: Math.floor(n/2) + 1 (majority consensus)
  * - Gossip: Configurable threshold (default 51%)
  * - CRDT: No quorum needed (eventual consistency)
- * 
+ *
  * @author AI Assistant
  * @version 1.0.0
  */
@@ -31,8 +31,8 @@ export {
   ConsensusMessage,
   ConsensusProposal,
   ConsensusState,
-  default as ByzantineConsensusDefault
-} from './byzantine-consensus';
+  default as ByzantineConsensusDefault,
+} from "./byzantine-consensus";
 
 export {
   RaftConsensus,
@@ -40,8 +40,8 @@ export {
   LogEntry,
   RaftMessage,
   RaftState,
-  default as RaftConsensusDefault
-} from './raft-consensus';
+  default as RaftConsensusDefault,
+} from "./raft-consensus";
 
 export {
   VotingMechanisms,
@@ -50,8 +50,8 @@ export {
   VotingResult,
   Voter,
   VotingType,
-  default as VotingMechanismsDefault
-} from './voting-mechanisms';
+  default as VotingMechanismsDefault,
+} from "./voting-mechanisms";
 
 export {
   MaliciousDetection,
@@ -60,8 +60,8 @@ export {
   DetectionRule,
   DetectionContext,
   SecurityAlert,
-  default as MaliciousDetectionDefault
-} from './malicious-detection';
+  default as MaliciousDetectionDefault,
+} from "./malicious-detection";
 
 export {
   StateMachineReplication,
@@ -70,8 +70,8 @@ export {
   ReplicationNode,
   StateMachineConfig,
   ConflictResolution,
-  default as StateMachineReplicationDefault
-} from './state-machine-replication';
+  default as StateMachineReplicationDefault,
+} from "./state-machine-replication";
 
 export {
   ViewChangeLeaderElection,
@@ -82,8 +82,8 @@ export {
   LeaderCandidate,
   ElectionConfiguration,
   ViewState,
-  default as ViewChangeLeaderElectionDefault
-} from './view-change-leader-election';
+  default as ViewChangeLeaderElectionDefault,
+} from "./view-change-leader-election";
 
 export {
   PerformanceOptimizer,
@@ -94,8 +94,8 @@ export {
   SpeculativeExecution,
   AdaptiveThreshold,
   OptimizedResult,
-  default as PerformanceOptimizerDefault
-} from './performance-optimizer';
+  default as PerformanceOptimizerDefault,
+} from "./performance-optimizer";
 
 // Security integration
 export {
@@ -103,8 +103,8 @@ export {
   SecureConsensusConfig,
   SecureConsensusSession,
   SecuredConsensusProposal,
-  default as ConsensusSecurityIntegrationDefault
-} from './consensus-security-integration';
+  default as ConsensusSecurityIntegrationDefault,
+} from "./consensus-security-integration";
 
 // Utility types and constants
 export const QUORUM_CALCULATIONS = {
@@ -132,7 +132,10 @@ export const QUORUM_CALCULATIONS = {
    * @param threshold Percentage threshold (0-1, default 0.51)
    * @returns Minimum quorum size for gossip consensus
    */
-  calculateGossipQuorum: (totalAgents: number, threshold: number = 0.51): number => {
+  calculateGossipQuorum: (
+    totalAgents: number,
+    threshold: number = 0.51,
+  ): number => {
     return Math.ceil(totalAgents * threshold);
   },
 
@@ -142,7 +145,7 @@ export const QUORUM_CALCULATIONS = {
    */
   calculateCRDTQuorum: (): number => {
     return 1;
-  }
+  },
 };
 
 export const BYZANTINE_FAULT_TOLERANCE = {
@@ -172,8 +175,10 @@ export const BYZANTINE_FAULT_TOLERANCE = {
    */
   canReachConsensus: (totalAgents: number, faultyAgents: number): boolean => {
     const faultThreshold = Math.floor((totalAgents - 1) / 3);
-    return faultyAgents <= faultThreshold && totalAgents >= 3 * faultyAgents + 1;
-  }
+    return (
+      faultyAgents <= faultThreshold && totalAgents >= 3 * faultyAgents + 1
+    );
+  },
 };
 
 export const CONSENSUS_TIMEOUTS = {
@@ -181,36 +186,36 @@ export const CONSENSUS_TIMEOUTS = {
   DEFAULT_VIEW_CHANGE_TIMEOUT: 15000, // 15 seconds
   DEFAULT_HEARTBEAT_INTERVAL: 5000, // 5 seconds
   DEFAULT_BATCH_TIMEOUT: 100, // 100ms
-  DEFAULT_PERFORMANCE_MONITOR_INTERVAL: 5000 // 5 seconds
+  DEFAULT_PERFORMANCE_MONITOR_INTERVAL: 5000, // 5 seconds
 };
 
 export const SECURITY_LEVELS = {
-  LOW: 'low' as const,
-  MEDIUM: 'medium' as const,
-  HIGH: 'high' as const,
-  CRITICAL: 'critical' as const
+  LOW: "low" as const,
+  MEDIUM: "medium" as const,
+  HIGH: "high" as const,
+  CRITICAL: "critical" as const,
 };
 
 export const MALICIOUS_BEHAVIOR_TYPES = {
-  DOUBLE_VOTING: 'double-voting' as const,
-  CONFLICTING_MESSAGES: 'conflicting-messages' as const,
-  TIMING_MANIPULATION: 'timing-manipulation' as const,
-  FAKE_SIGNATURES: 'fake-signatures' as const,
-  SPAM_FLOODING: 'spam-flooding' as const,
-  COLLUSION: 'collusion' as const,
-  VIEW_CHANGE_ABUSE: 'view-change-abuse' as const,
-  CONSENSUS_DISRUPTION: 'consensus-disruption' as const,
-  SYBIL_ATTACK: 'sybil-attack' as const,
-  ECLIPSE_ATTACK: 'eclipse-attack' as const
+  DOUBLE_VOTING: "double-voting" as const,
+  CONFLICTING_MESSAGES: "conflicting-messages" as const,
+  TIMING_MANIPULATION: "timing-manipulation" as const,
+  FAKE_SIGNATURES: "fake-signatures" as const,
+  SPAM_FLOODING: "spam-flooding" as const,
+  COLLUSION: "collusion" as const,
+  VIEW_CHANGE_ABUSE: "view-change-abuse" as const,
+  CONSENSUS_DISRUPTION: "consensus-disruption" as const,
+  SYBIL_ATTACK: "sybil-attack" as const,
+  ECLIPSE_ATTACK: "eclipse-attack" as const,
 };
 
 export const VOTING_TYPES = {
-  SIMPLE_MAJORITY: 'simple-majority' as const,
-  WEIGHTED: 'weighted' as const,
-  QUADRATIC: 'quadratic' as const,
-  APPROVAL: 'approval' as const,
-  LIQUID_DEMOCRACY: 'liquid-democracy' as const,
-  STAKE_WEIGHTED: 'stake-weighted' as const
+  SIMPLE_MAJORITY: "simple-majority" as const,
+  WEIGHTED: "weighted" as const,
+  QUADRATIC: "quadratic" as const,
+  APPROVAL: "approval" as const,
+  LIQUID_DEMOCRACY: "liquid-democracy" as const,
+  STAKE_WEIGHTED: "stake-weighted" as const,
 };
 
 /**
@@ -218,7 +223,7 @@ export const VOTING_TYPES = {
  */
 export function createRaftConsensusSystem(
   nodeId: string,
-  totalNodes: number = 3
+  totalNodes: number = 3,
 ): {
   consensus: RaftConsensus;
   quorumSize: number;
@@ -231,7 +236,7 @@ export function createRaftConsensusSystem(
   return {
     consensus,
     quorumSize,
-    hasQuorum
+    hasQuorum,
   };
 }
 
@@ -247,8 +252,8 @@ export function createByzantineConsensusSystem(
     enableSecurity?: boolean;
     enableOptimization?: boolean;
     enableMaliciousDetection?: boolean;
-    securityLevel?: 'low' | 'medium' | 'high' | 'critical';
-  } = {}
+    securityLevel?: "low" | "medium" | "high" | "critical";
+  } = {},
 ): {
   consensus: ByzantineConsensus;
   voting: VotingMechanisms;
@@ -264,16 +269,22 @@ export function createByzantineConsensusSystem(
     enableSecurity = true,
     enableOptimization = true,
     enableMaliciousDetection = true,
-    securityLevel = 'medium'
+    securityLevel = "medium",
   } = options;
 
-  const faultThreshold = BYZANTINE_FAULT_TOLERANCE.calculateFaultThreshold(totalAgents);
-  const canTolerateFailures = BYZANTINE_FAULT_TOLERANCE.canReachConsensus(totalAgents, faultThreshold);
+  const faultThreshold =
+    BYZANTINE_FAULT_TOLERANCE.calculateFaultThreshold(totalAgents);
+  const canTolerateFailures = BYZANTINE_FAULT_TOLERANCE.canReachConsensus(
+    totalAgents,
+    faultThreshold,
+  );
 
   // Create core consensus components
   const consensus = new ByzantineConsensus(nodeId, totalAgents);
   const voting = new VotingMechanisms(`consensus-${nodeId}`);
-  const maliciousDetection = enableMaliciousDetection ? new MaliciousDetection() : null;
+  const maliciousDetection = enableMaliciousDetection
+    ? new MaliciousDetection()
+    : null;
   const stateMachine = new StateMachineReplication(nodeId);
   const leaderElection = new ViewChangeLeaderElection(nodeId, totalAgents);
   const optimizer = enableOptimization ? new PerformanceOptimizer() : null;
@@ -281,21 +292,29 @@ export function createByzantineConsensusSystem(
   // Create security integration if enabled and security manager is provided
   let securityIntegration: ConsensusSecurityIntegration | undefined;
   if (enableSecurity && securityManager) {
-    securityIntegration = new ConsensusSecurityIntegration(nodeId, securityManager, {
-      totalAgents,
-      faultThreshold,
-      requireAuthentication: true,
-      requireEncryption: securityLevel !== 'low',
-      enableMaliciousDetection,
-      enablePerformanceOptimization: enableOptimization,
-      securityPolicies: {
-        minTrustLevel: securityLevel === 'critical' ? 'trusted' : 
-                      securityLevel === 'high' ? 'verified' : 'basic',
-        requiredCapabilities: ['consensus', 'voting'],
-        enableAuditLogging: true,
-        enableBehaviorAnalysis: true
-      }
-    });
+    securityIntegration = new ConsensusSecurityIntegration(
+      nodeId,
+      securityManager,
+      {
+        totalAgents,
+        faultThreshold,
+        requireAuthentication: true,
+        requireEncryption: securityLevel !== "low",
+        enableMaliciousDetection,
+        enablePerformanceOptimization: enableOptimization,
+        securityPolicies: {
+          minTrustLevel:
+            securityLevel === "critical"
+              ? "trusted"
+              : securityLevel === "high"
+                ? "verified"
+                : "basic",
+          requiredCapabilities: ["consensus", "voting"],
+          enableAuditLogging: true,
+          enableBehaviorAnalysis: true,
+        },
+      },
+    );
   }
 
   return {
@@ -307,7 +326,7 @@ export function createByzantineConsensusSystem(
     optimizer: optimizer!,
     securityIntegration,
     faultThreshold,
-    canTolerateFailures
+    canTolerateFailures,
   };
 }
 
@@ -316,41 +335,56 @@ export function createByzantineConsensusSystem(
  */
 export function validateConsensusConfig(
   totalAgents: number,
-  expectedFaultyAgents: number
+  expectedFaultyAgents: number,
 ): {
   isValid: boolean;
   faultThreshold: number;
   minimumRequiredAgents: number;
   recommendations: string[];
 } {
-  const faultThreshold = BYZANTINE_FAULT_TOLERANCE.calculateFaultThreshold(totalAgents);
-  const minimumRequiredAgents = BYZANTINE_FAULT_TOLERANCE.calculateMinimumAgents(expectedFaultyAgents);
-  const canReachConsensus = BYZANTINE_FAULT_TOLERANCE.canReachConsensus(totalAgents, expectedFaultyAgents);
+  const faultThreshold =
+    BYZANTINE_FAULT_TOLERANCE.calculateFaultThreshold(totalAgents);
+  const minimumRequiredAgents =
+    BYZANTINE_FAULT_TOLERANCE.calculateMinimumAgents(expectedFaultyAgents);
+  const canReachConsensus = BYZANTINE_FAULT_TOLERANCE.canReachConsensus(
+    totalAgents,
+    expectedFaultyAgents,
+  );
 
   const recommendations: string[] = [];
 
   if (!canReachConsensus) {
-    recommendations.push(`Cannot tolerate ${expectedFaultyAgents} faulty agents with ${totalAgents} total agents`);
-    recommendations.push(`Need at least ${minimumRequiredAgents} agents to tolerate ${expectedFaultyAgents} faulty agents`);
+    recommendations.push(
+      `Cannot tolerate ${expectedFaultyAgents} faulty agents with ${totalAgents} total agents`,
+    );
+    recommendations.push(
+      `Need at least ${minimumRequiredAgents} agents to tolerate ${expectedFaultyAgents} faulty agents`,
+    );
   }
 
   if (totalAgents < 4) {
-    recommendations.push('Minimum of 4 agents recommended for meaningful Byzantine consensus');
+    recommendations.push(
+      "Minimum of 4 agents recommended for meaningful Byzantine consensus",
+    );
   }
 
   if (totalAgents > 100) {
-    recommendations.push('Large number of agents may impact performance - consider optimization strategies');
+    recommendations.push(
+      "Large number of agents may impact performance - consider optimization strategies",
+    );
   }
 
   if (expectedFaultyAgents > faultThreshold) {
-    recommendations.push(`Can only tolerate up to ${faultThreshold} faulty agents with ${totalAgents} total agents`);
+    recommendations.push(
+      `Can only tolerate up to ${faultThreshold} faulty agents with ${totalAgents} total agents`,
+    );
   }
 
   return {
     isValid: canReachConsensus,
     faultThreshold,
     minimumRequiredAgents,
-    recommendations
+    recommendations,
   };
 }
 
@@ -363,7 +397,7 @@ export const PERFORMANCE_BENCHMARKS = {
    */
   measureConsensusLatency: async (
     consensus: ByzantineConsensus,
-    proposal: ConsensusProposal
+    proposal: ConsensusProposal,
   ): Promise<{ latency: number; success: boolean }> => {
     const startTime = Date.now();
     try {
@@ -381,7 +415,11 @@ export const PERFORMANCE_BENCHMARKS = {
    */
   measureVotingThroughput: async (
     voting: VotingMechanisms,
-    votes: Array<{ voterId: string; proposalId: string; decision: 'approve' | 'reject' | 'abstain' }>
+    votes: Array<{
+      voterId: string;
+      proposalId: string;
+      decision: "approve" | "reject" | "abstain";
+    }>,
   ): Promise<{ throughput: number; successRate: number }> => {
     const startTime = Date.now();
     let successful = 0;
@@ -391,7 +429,7 @@ export const PERFORMANCE_BENCHMARKS = {
         const result = await voting.castVote({
           ...vote,
           weight: 1,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
         if (result) successful++;
       } catch (error) {
@@ -404,7 +442,7 @@ export const PERFORMANCE_BENCHMARKS = {
     const successRate = successful / votes.length;
 
     return { throughput, successRate };
-  }
+  },
 };
 
 // Export default as the factory function

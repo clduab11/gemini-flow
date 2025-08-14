@@ -7,10 +7,10 @@
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Command } from 'commander';
-import { GeminiCLI } from '../../../src/cli/gemini-cli.js';
-import { GoogleAIAuth } from '../../../src/core/google-ai-auth.js';
-import { InteractiveMode } from '../../../src/cli/interactive-mode.js';
-import { ContextWindowManager } from '../../../src/core/context-window-manager.js';
+import { GeminiCLI } from '../../../src/cli/gemini-cli';
+import { GoogleAIAuth } from '../../../src/core/google-ai-auth';
+import { InteractiveMode } from '../../../src/cli/interactive-mode';
+import { ContextWindowManager } from '../../../src/core/context-window-manager';
 
 // Mock dependencies
 jest.mock('commander');

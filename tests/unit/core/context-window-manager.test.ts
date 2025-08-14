@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { ContextWindowManager } from '../../../src/core/context-window-manager.js';
+import { ContextWindowManager } from '../../../src/core/context-window-manager';
 import * as fs from 'fs';
 import * as path from 'path';
 

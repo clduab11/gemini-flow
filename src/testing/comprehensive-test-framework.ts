@@ -3,14 +3,22 @@
  * Supports 8 service integration testing with automated generation and validation
  */
 
-import { EventEmitter } from 'events';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import { EventEmitter } from "events";
+import * as fs from "fs/promises";
+import * as path from "path";
 
 export interface TestService {
   id: string;
   name: string;
-  type: 'api' | 'database' | 'queue' | 'cache' | 'auth' | 'storage' | 'ml' | 'streaming';
+  type:
+    | "api"
+    | "database"
+    | "queue"
+    | "cache"
+    | "auth"
+    | "storage"
+    | "ml"
+    | "streaming";
   endpoint: string;
   healthCheck: string;
   dependencies: string[];
@@ -25,7 +33,7 @@ export interface TestScenario {
   id: string;
   name: string;
   description: string;
-  type: 'integration' | 'performance' | 'chaos' | 'load' | 'e2e';
+  type: "integration" | "performance" | "chaos" | "load" | "e2e";
   services: string[];
   steps: TestStep[];
   assertions: TestAssertion[];
@@ -37,17 +45,17 @@ export interface TestScenario {
     duration: number;
   };
   metrics: {
-    responseTime: { min: number; max: number; target: number; };
-    throughput: { min: number; max: number; target: number; };
-    errorRate: { max: number; };
-    availability: { min: number; };
+    responseTime: { min: number; max: number; target: number };
+    throughput: { min: number; max: number; target: number };
+    errorRate: { max: number };
+    availability: { min: number };
   };
 }
 
 export interface TestStep {
   id: string;
   name: string;
-  action: 'request' | 'validate' | 'wait' | 'setup' | 'teardown';
+  action: "request" | "validate" | "wait" | "setup" | "teardown";
   target: string;
   parameters: Record<string, any>;
   expectedResponse?: any;
@@ -56,16 +64,16 @@ export interface TestStep {
 }
 
 export interface TestAssertion {
-  type: 'response_time' | 'status_code' | 'content' | 'header' | 'metric';
+  type: "response_time" | "status_code" | "content" | "header" | "metric";
   field: string;
-  operator: 'equals' | 'contains' | 'less_than' | 'greater_than' | 'between';
+  operator: "equals" | "contains" | "less_than" | "greater_than" | "between";
   value: any;
   tolerance?: number;
 }
 
 export interface TestResult {
   scenarioId: string;
-  status: 'passed' | 'failed' | 'error' | 'timeout';
+  status: "passed" | "failed" | "error" | "timeout";
   startTime: number;
   endTime: number;
   duration: number;
@@ -77,7 +85,7 @@ export interface TestResult {
 
 export interface StepResult {
   stepId: string;
-  status: 'passed' | 'failed' | 'skipped';
+  status: "passed" | "failed" | "skipped";
   duration: number;
   response?: any;
   error?: string;
@@ -132,7 +140,10 @@ export class ComprehensiveTestFramework extends EventEmitter {
    */
   registerService(service: TestService): void {
     this.services.set(service.id, service);
-    this.emit('serviceRegistered', { serviceId: service.id, name: service.name });
+    this.emit("serviceRegistered", {
+      serviceId: service.id,
+      name: service.name,
+    });
     console.log(`Registered service: ${service.name} (${service.type})`);
   }
 
@@ -142,12 +153,18 @@ export class ComprehensiveTestFramework extends EventEmitter {
   createTestScenario(scenario: TestScenario): void {
     // Validate scenario
     this.validateScenario(scenario);
-    
+
     // Generate additional test steps if needed
-    const enhancedScenario = this.testGenerator.enhanceScenario(scenario, this.services);
-    
+    const enhancedScenario = this.testGenerator.enhanceScenario(
+      scenario,
+      this.services,
+    );
+
     this.scenarios.set(scenario.id, enhancedScenario);
-    this.emit('scenarioCreated', { scenarioId: scenario.id, name: scenario.name });
+    this.emit("scenarioCreated", {
+      scenarioId: scenario.id,
+      name: scenario.name,
+    });
   }
 
   /**
@@ -162,62 +179,61 @@ export class ComprehensiveTestFramework extends EventEmitter {
     const startTime = Date.now();
     const result: TestResult = {
       scenarioId,
-      status: 'passed',
+      status: "passed",
       startTime,
       endTime: 0,
       duration: 0,
       stepResults: [],
       metrics: this.initializeMetrics(),
       errors: [],
-      artifacts: []
+      artifacts: [],
     };
 
-    this.emit('scenarioStarted', { scenarioId, scenario: scenario.name });
+    this.emit("scenarioStarted", { scenarioId, scenario: scenario.name });
 
     try {
       // Setup test environment
       await this.setupTestEnvironment(scenario);
-      
+
       // Start performance monitoring
       this.performanceMonitor.startMonitoring(scenarioId);
-      
+
       // Execute test steps
       for (const step of scenario.steps) {
         const stepResult = await this.executeStep(step, scenario);
         result.stepResults.push(stepResult);
-        
-        if (stepResult.status === 'failed') {
-          result.status = 'failed';
+
+        if (stepResult.status === "failed") {
+          result.status = "failed";
           result.errors.push(`Step ${step.name} failed: ${stepResult.error}`);
         }
       }
-      
+
       // Validate assertions
       await this.validateAssertions(scenario, result);
-      
+
       // Collect final metrics
       result.metrics = await this.performanceMonitor.getMetrics(scenarioId);
-      
     } catch (error) {
-      result.status = 'error';
+      result.status = "error";
       result.errors.push(error.message);
-      this.emit('scenarioError', { scenarioId, error: error.message });
+      this.emit("scenarioError", { scenarioId, error: error.message });
     } finally {
       // Cleanup
       await this.cleanupTestEnvironment(scenario);
       this.performanceMonitor.stopMonitoring(scenarioId);
-      
+
       result.endTime = Date.now();
       result.duration = result.endTime - result.startTime;
-      
+
       // Store results
       this.storeResult(scenarioId, result);
     }
 
-    this.emit('scenarioCompleted', { 
-      scenarioId, 
-      status: result.status, 
-      duration: result.duration 
+    this.emit("scenarioCompleted", {
+      scenarioId,
+      status: result.status,
+      duration: result.duration,
     });
 
     return result;
@@ -238,18 +254,18 @@ export class ComprehensiveTestFramework extends EventEmitter {
       throw new Error(`Scenario ${config.scenarioId} not found`);
     }
 
-    this.emit('loadTestStarted', { 
-      scenarioId: config.scenarioId, 
-      targetRPS: config.targetRPS 
+    this.emit("loadTestStarted", {
+      scenarioId: config.scenarioId,
+      targetRPS: config.targetRPS,
     });
 
     const loadTester = new LoadTestExecutor(this);
     const result = await loadTester.execute(scenario, config);
 
-    this.emit('loadTestCompleted', { 
-      scenarioId: config.scenarioId, 
+    this.emit("loadTestCompleted", {
+      scenarioId: config.scenarioId,
       actualRPS: result.metrics.throughput,
-      success: result.status === 'passed'
+      success: result.status === "passed",
     });
 
     return result;
@@ -260,7 +276,7 @@ export class ComprehensiveTestFramework extends EventEmitter {
    */
   async executeChaosTest(config: {
     scenarioId: string;
-    chaosType: 'network' | 'service' | 'resource' | 'latency' | 'error';
+    chaosType: "network" | "service" | "resource" | "latency" | "error";
     intensity: number;
     duration: number;
   }): Promise<TestResult> {
@@ -269,31 +285,30 @@ export class ComprehensiveTestFramework extends EventEmitter {
       throw new Error(`Scenario ${config.scenarioId} not found`);
     }
 
-    this.emit('chaosTestStarted', { 
-      scenarioId: config.scenarioId, 
-      chaosType: config.chaosType 
+    this.emit("chaosTestStarted", {
+      scenarioId: config.scenarioId,
+      chaosType: config.chaosType,
     });
 
     // Start chaos injection
     await this.chaosEngineer.startChaos(config);
-    
+
     try {
       // Execute scenario under chaos conditions
       const result = await this.executeScenario(config.scenarioId);
-      
+
       // Validate resilience
       const resilienceScore = this.calculateResilienceScore(result, config);
       result.metrics.resourceUsage.network = resilienceScore;
-      
+
       return result;
-      
     } finally {
       // Stop chaos injection
       await this.chaosEngineer.stopChaos(config.chaosType);
-      
-      this.emit('chaosTestCompleted', { 
-        scenarioId: config.scenarioId, 
-        chaosType: config.chaosType 
+
+      this.emit("chaosTestCompleted", {
+        scenarioId: config.scenarioId,
+        chaosType: config.chaosType,
       });
     }
   }
@@ -306,9 +321,10 @@ export class ComprehensiveTestFramework extends EventEmitter {
     coverage: number;
     estimatedRuntime: number;
   }> {
-    const generatedScenarios = await this.testGenerator.generateComprehensiveSuite(
-      Array.from(this.services.values())
-    );
+    const generatedScenarios =
+      await this.testGenerator.generateComprehensiveSuite(
+        Array.from(this.services.values()),
+      );
 
     for (const scenario of generatedScenarios) {
       this.createTestScenario(scenario);
@@ -317,16 +333,16 @@ export class ComprehensiveTestFramework extends EventEmitter {
     const coverage = this.calculateTestCoverage();
     const estimatedRuntime = this.estimateTestRuntime(generatedScenarios);
 
-    this.emit('testSuiteGenerated', { 
-      scenarioCount: generatedScenarios.length, 
+    this.emit("testSuiteGenerated", {
+      scenarioCount: generatedScenarios.length,
       coverage,
-      estimatedRuntime 
+      estimatedRuntime,
     });
 
     return {
       scenarios: generatedScenarios,
       coverage,
-      estimatedRuntime
+      estimatedRuntime,
     };
   }
 
@@ -335,27 +351,30 @@ export class ComprehensiveTestFramework extends EventEmitter {
    */
   async createMockServices(serviceIds: string[]): Promise<Map<string, string>> {
     const mockEndpoints = new Map<string, string>();
-    
+
     for (const serviceId of serviceIds) {
       const service = this.services.get(serviceId);
       if (service) {
-        const mockEndpoint = await this.mockGenerator.createMockService(service);
+        const mockEndpoint =
+          await this.mockGenerator.createMockService(service);
         mockEndpoints.set(serviceId, mockEndpoint);
       }
     }
-    
-    this.emit('mockServicesCreated', { serviceIds, endpoints: mockEndpoints });
+
+    this.emit("mockServicesCreated", { serviceIds, endpoints: mockEndpoints });
     return mockEndpoints;
   }
 
   /**
    * Generate comprehensive test report
    */
-  async generateReport(format: 'html' | 'json' | 'pdf' = 'html'): Promise<string> {
+  async generateReport(
+    format: "html" | "json" | "pdf" = "html",
+  ): Promise<string> {
     const allResults = Array.from(this.results.values()).flat();
     const reportPath = await this.reportGenerator.generate(allResults, format);
-    
-    this.emit('reportGenerated', { path: reportPath, format });
+
+    this.emit("reportGenerated", { path: reportPath, format });
     return reportPath;
   }
 
@@ -372,21 +391,28 @@ export class ComprehensiveTestFramework extends EventEmitter {
     overallHealthScore: number;
   } {
     const allResults = Array.from(this.results.values()).flat();
-    
-    const passedResults = allResults.filter(r => r.status === 'passed');
-    const failedResults = allResults.filter(r => r.status === 'failed');
-    
-    const avgResponseTime = allResults.length > 0 
-      ? allResults.reduce((sum, r) => sum + r.metrics.averageResponseTime, 0) / allResults.length
-      : 0;
-      
-    const avgThroughput = allResults.length > 0 
-      ? allResults.reduce((sum, r) => sum + r.metrics.throughput, 0) / allResults.length
-      : 0;
-    
-    const healthScore = allResults.length > 0 
-      ? (passedResults.length / allResults.length) * 100
-      : 100;
+
+    const passedResults = allResults.filter((r) => r.status === "passed");
+    const failedResults = allResults.filter((r) => r.status === "failed");
+
+    const avgResponseTime =
+      allResults.length > 0
+        ? allResults.reduce(
+            (sum, r) => sum + r.metrics.averageResponseTime,
+            0,
+          ) / allResults.length
+        : 0;
+
+    const avgThroughput =
+      allResults.length > 0
+        ? allResults.reduce((sum, r) => sum + r.metrics.throughput, 0) /
+          allResults.length
+        : 0;
+
+    const healthScore =
+      allResults.length > 0
+        ? (passedResults.length / allResults.length) * 100
+        : 100;
 
     return {
       totalScenarios: this.scenarios.size,
@@ -395,7 +421,7 @@ export class ComprehensiveTestFramework extends EventEmitter {
       failedScenarios: failedResults.length,
       averageResponseTime: avgResponseTime,
       averageThroughput: avgThroughput,
-      overallHealthScore: healthScore
+      overallHealthScore: healthScore,
     };
   }
 
@@ -404,87 +430,87 @@ export class ComprehensiveTestFramework extends EventEmitter {
   private async initializeFramework(): Promise<void> {
     // Initialize the 8 core services
     this.registerCoreServices();
-    
+
     // Setup test data directory
     await this.setupTestDataDirectory();
-    
-    this.emit('frameworkInitialized');
+
+    this.emit("frameworkInitialized");
   }
 
   private registerCoreServices(): void {
     const coreServices: TestService[] = [
       {
-        id: 'auth-service',
-        name: 'Authentication Service',
-        type: 'auth',
-        endpoint: 'http://localhost:3001',
-        healthCheck: '/health',
+        id: "auth-service",
+        name: "Authentication Service",
+        type: "auth",
+        endpoint: "http://localhost:3001",
+        healthCheck: "/health",
         dependencies: [],
-        config: { timeout: 5000, retries: 3, rateLimit: 1000 }
+        config: { timeout: 5000, retries: 3, rateLimit: 1000 },
       },
       {
-        id: 'api-gateway',
-        name: 'API Gateway',
-        type: 'api',
-        endpoint: 'http://localhost:3002',
-        healthCheck: '/health',
-        dependencies: ['auth-service'],
-        config: { timeout: 3000, retries: 2, rateLimit: 5000 }
+        id: "api-gateway",
+        name: "API Gateway",
+        type: "api",
+        endpoint: "http://localhost:3002",
+        healthCheck: "/health",
+        dependencies: ["auth-service"],
+        config: { timeout: 3000, retries: 2, rateLimit: 5000 },
       },
       {
-        id: 'user-service',
-        name: 'User Management Service',
-        type: 'api',
-        endpoint: 'http://localhost:3003',
-        healthCheck: '/health',
-        dependencies: ['auth-service', 'database-service'],
-        config: { timeout: 4000, retries: 3, rateLimit: 2000 }
+        id: "user-service",
+        name: "User Management Service",
+        type: "api",
+        endpoint: "http://localhost:3003",
+        healthCheck: "/health",
+        dependencies: ["auth-service", "database-service"],
+        config: { timeout: 4000, retries: 3, rateLimit: 2000 },
       },
       {
-        id: 'database-service',
-        name: 'Database Service',
-        type: 'database',
-        endpoint: 'http://localhost:3004',
-        healthCheck: '/health',
+        id: "database-service",
+        name: "Database Service",
+        type: "database",
+        endpoint: "http://localhost:3004",
+        healthCheck: "/health",
         dependencies: [],
-        config: { timeout: 10000, retries: 5, rateLimit: 500 }
+        config: { timeout: 10000, retries: 5, rateLimit: 500 },
       },
       {
-        id: 'queue-service',
-        name: 'Message Queue Service',
-        type: 'queue',
-        endpoint: 'http://localhost:3005',
-        healthCheck: '/health',
+        id: "queue-service",
+        name: "Message Queue Service",
+        type: "queue",
+        endpoint: "http://localhost:3005",
+        healthCheck: "/health",
         dependencies: [],
-        config: { timeout: 5000, retries: 3, rateLimit: 10000 }
+        config: { timeout: 5000, retries: 3, rateLimit: 10000 },
       },
       {
-        id: 'cache-service',
-        name: 'Cache Service',
-        type: 'cache',
-        endpoint: 'http://localhost:3006',
-        healthCheck: '/health',
+        id: "cache-service",
+        name: "Cache Service",
+        type: "cache",
+        endpoint: "http://localhost:3006",
+        healthCheck: "/health",
         dependencies: [],
-        config: { timeout: 2000, retries: 2, rateLimit: 50000 }
+        config: { timeout: 2000, retries: 2, rateLimit: 50000 },
       },
       {
-        id: 'ml-service',
-        name: 'Machine Learning Service',
-        type: 'ml',
-        endpoint: 'http://localhost:3007',
-        healthCheck: '/health',
-        dependencies: ['database-service', 'queue-service'],
-        config: { timeout: 30000, retries: 2, rateLimit: 100 }
+        id: "ml-service",
+        name: "Machine Learning Service",
+        type: "ml",
+        endpoint: "http://localhost:3007",
+        healthCheck: "/health",
+        dependencies: ["database-service", "queue-service"],
+        config: { timeout: 30000, retries: 2, rateLimit: 100 },
       },
       {
-        id: 'streaming-service',
-        name: 'Streaming Service',
-        type: 'streaming',
-        endpoint: 'http://localhost:3008',
-        healthCheck: '/health',
-        dependencies: ['cache-service', 'queue-service'],
-        config: { timeout: 15000, retries: 3, rateLimit: 1000 }
-      }
+        id: "streaming-service",
+        name: "Streaming Service",
+        type: "streaming",
+        endpoint: "http://localhost:3008",
+        healthCheck: "/health",
+        dependencies: ["cache-service", "queue-service"],
+        config: { timeout: 15000, retries: 3, rateLimit: 1000 },
+      },
     ];
 
     for (const service of coreServices) {
@@ -493,16 +519,16 @@ export class ComprehensiveTestFramework extends EventEmitter {
   }
 
   private async setupTestDataDirectory(): Promise<void> {
-    const testDataDir = path.join(process.cwd(), 'test-data');
+    const testDataDir = path.join(process.cwd(), "test-data");
     await fs.mkdir(testDataDir, { recursive: true });
   }
 
   private validateScenario(scenario: TestScenario): void {
     // Validate required fields
     if (!scenario.id || !scenario.name || !scenario.steps) {
-      throw new Error('Invalid scenario: missing required fields');
+      throw new Error("Invalid scenario: missing required fields");
     }
-    
+
     // Validate service dependencies
     for (const serviceId of scenario.services) {
       if (!this.services.has(serviceId)) {
@@ -533,44 +559,46 @@ export class ComprehensiveTestFramework extends EventEmitter {
     }
   }
 
-  private async executeStep(step: TestStep, scenario: TestScenario): Promise<StepResult> {
+  private async executeStep(
+    step: TestStep,
+    scenario: TestScenario,
+  ): Promise<StepResult> {
     const startTime = Date.now();
     const result: StepResult = {
       stepId: step.id,
-      status: 'passed',
+      status: "passed",
       duration: 0,
       metrics: {
         responseTime: 0,
         dataTransferred: 0,
         cpuUsage: 0,
-        memoryUsage: 0
-      }
+        memoryUsage: 0,
+      },
     };
 
     try {
       switch (step.action) {
-        case 'request':
+        case "request":
           result.response = await this.executeRequest(step);
           break;
-        case 'validate':
+        case "validate":
           await this.executeValidation(step);
           break;
-        case 'wait':
+        case "wait":
           await this.executeWait(step);
           break;
-        case 'setup':
+        case "setup":
           await this.executeSetup(step);
           break;
-        case 'teardown':
+        case "teardown":
           await this.executeTeardown(step);
           break;
       }
-      
+
       result.metrics.responseTime = Date.now() - startTime;
       result.duration = result.metrics.responseTime;
-      
     } catch (error) {
-      result.status = 'failed';
+      result.status = "failed";
       result.error = error.message;
       result.duration = Date.now() - startTime;
     }
@@ -584,11 +612,13 @@ export class ComprehensiveTestFramework extends EventEmitter {
       throw new Error(`Service ${step.target} not found`);
     }
 
-    const url = `${service.endpoint}${step.parameters.path || ''}`;
+    const url = `${service.endpoint}${step.parameters.path || ""}`;
     const options = {
-      method: step.parameters.method || 'GET',
+      method: step.parameters.method || "GET",
       headers: step.parameters.headers || {},
-      body: step.parameters.body ? JSON.stringify(step.parameters.body) : undefined
+      body: step.parameters.body
+        ? JSON.stringify(step.parameters.body)
+        : undefined,
     };
 
     const response = await fetch(url, options);
@@ -601,7 +631,7 @@ export class ComprehensiveTestFramework extends EventEmitter {
 
   private async executeWait(step: TestStep): Promise<void> {
     const duration = step.parameters.duration || 1000;
-    await new Promise(resolve => setTimeout(resolve, duration));
+    await new Promise((resolve) => setTimeout(resolve, duration));
   }
 
   private async executeSetup(step: TestStep): Promise<void> {
@@ -612,17 +642,25 @@ export class ComprehensiveTestFramework extends EventEmitter {
     // Implementation for teardown step
   }
 
-  private async validateAssertions(scenario: TestScenario, result: TestResult): Promise<void> {
+  private async validateAssertions(
+    scenario: TestScenario,
+    result: TestResult,
+  ): Promise<void> {
     for (const assertion of scenario.assertions) {
       const isValid = await this.validateAssertion(assertion, result);
       if (!isValid) {
-        result.status = 'failed';
-        result.errors.push(`Assertion failed: ${assertion.field} ${assertion.operator} ${assertion.value}`);
+        result.status = "failed";
+        result.errors.push(
+          `Assertion failed: ${assertion.field} ${assertion.operator} ${assertion.value}`,
+        );
       }
     }
   }
 
-  private async validateAssertion(assertion: TestAssertion, result: TestResult): Promise<boolean> {
+  private async validateAssertion(
+    assertion: TestAssertion,
+    result: TestResult,
+  ): Promise<boolean> {
     // Implementation for assertion validation
     return true; // Simplified
   }
@@ -646,8 +684,8 @@ export class ComprehensiveTestFramework extends EventEmitter {
         cpu: 0,
         memory: 0,
         network: 0,
-        disk: 0
-      }
+        disk: 0,
+      },
     };
   }
 
@@ -660,10 +698,13 @@ export class ComprehensiveTestFramework extends EventEmitter {
 
   private calculateResilienceScore(result: TestResult, config: any): number {
     // Calculate resilience score based on performance under chaos
-    const baseScore = result.status === 'passed' ? 100 : 0;
-    const responseTimeImpact = Math.max(0, 100 - (result.metrics.averageResponseTime / 1000));
-    const errorRateImpact = Math.max(0, 100 - (result.metrics.errorRate * 100));
-    
+    const baseScore = result.status === "passed" ? 100 : 0;
+    const responseTimeImpact = Math.max(
+      0,
+      100 - result.metrics.averageResponseTime / 1000,
+    );
+    const errorRateImpact = Math.max(0, 100 - result.metrics.errorRate * 100);
+
     return (baseScore + responseTimeImpact + errorRateImpact) / 3;
   }
 
@@ -671,13 +712,13 @@ export class ComprehensiveTestFramework extends EventEmitter {
     // Calculate test coverage across services
     const serviceCount = this.services.size;
     const coveredServices = new Set();
-    
+
     for (const scenario of this.scenarios.values()) {
       for (const serviceId of scenario.services) {
         coveredServices.add(serviceId);
       }
     }
-    
+
     return (coveredServices.size / serviceCount) * 100;
   }
 
@@ -690,12 +731,17 @@ export class ComprehensiveTestFramework extends EventEmitter {
 
 // Supporting classes
 class TestGenerator {
-  enhanceScenario(scenario: TestScenario, services: Map<string, TestService>): TestScenario {
+  enhanceScenario(
+    scenario: TestScenario,
+    services: Map<string, TestService>,
+  ): TestScenario {
     // Enhance scenario with additional test steps
     return scenario;
   }
 
-  async generateComprehensiveSuite(services: TestService[]): Promise<TestScenario[]> {
+  async generateComprehensiveSuite(
+    services: TestService[],
+  ): Promise<TestScenario[]> {
     // Generate comprehensive test suite
     return [];
   }
@@ -736,8 +782,8 @@ class PerformanceMonitor {
         cpu: 50,
         memory: 60,
         network: 30,
-        disk: 20
-      }
+        disk: 20,
+      },
     };
   }
 }
@@ -752,20 +798,24 @@ class MockServiceGenerator {
 class TestReportGenerator {
   async generate(results: TestResult[], format: string): Promise<string> {
     // Generate test report
-    const reportPath = path.join(process.cwd(), 'test-reports', `report-${Date.now()}.${format}`);
+    const reportPath = path.join(
+      process.cwd(),
+      "test-reports",
+      `report-${Date.now()}.${format}`,
+    );
     await fs.mkdir(path.dirname(reportPath), { recursive: true });
-    
+
     const reportContent = this.formatReport(results, format);
     await fs.writeFile(reportPath, reportContent);
-    
+
     return reportPath;
   }
 
   private formatReport(results: TestResult[], format: string): string {
-    if (format === 'json') {
+    if (format === "json") {
       return JSON.stringify(results, null, 2);
     }
-    
+
     // HTML report generation
     return `
 <!DOCTYPE html>
@@ -785,11 +835,13 @@ class TestReportGenerator {
     <div class="summary">
         <h2>Summary</h2>
         <p>Total Scenarios: ${results.length}</p>
-        <p>Passed: ${results.filter(r => r.status === 'passed').length}</p>
-        <p>Failed: ${results.filter(r => r.status === 'failed').length}</p>
+        <p>Passed: ${results.filter((r) => r.status === "passed").length}</p>
+        <p>Failed: ${results.filter((r) => r.status === "failed").length}</p>
     </div>
     <div class="scenarios">
-        ${results.map(result => `
+        ${results
+          .map(
+            (result) => `
             <div class="scenario ${result.status}">
                 <h3>Scenario: ${result.scenarioId}</h3>
                 <p>Status: ${result.status}</p>
@@ -797,7 +849,9 @@ class TestReportGenerator {
                 <p>Average Response Time: ${result.metrics.averageResponseTime}ms</p>
                 <p>Throughput: ${result.metrics.throughput} req/s</p>
             </div>
-        `).join('')}
+        `,
+          )
+          .join("")}
     </div>
 </body>
 </html>
@@ -811,10 +865,10 @@ class LoadTestExecutor {
   async execute(scenario: TestScenario, config: any): Promise<TestResult> {
     // Execute load test
     const result = await this.framework.executeScenario(scenario.id);
-    
+
     // Enhance with load test specific metrics
     result.metrics.throughput = config.targetRPS;
-    
+
     return result;
   }
 }
@@ -825,5 +879,5 @@ export {
   PerformanceMonitor,
   MockServiceGenerator,
   TestReportGenerator,
-  LoadTestExecutor
+  LoadTestExecutor,
 };

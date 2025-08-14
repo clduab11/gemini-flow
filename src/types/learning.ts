@@ -24,18 +24,18 @@ export interface StyleProfile {
   language: string;
   framework?: string;
   indentation: {
-    type: 'spaces' | 'tabs';
+    type: "spaces" | "tabs";
     size: number;
   };
   lineLength: number;
-  quotes: 'single' | 'double' | 'mixed';
+  quotes: "single" | "double" | "mixed";
   semicolons: boolean;
   trailingCommas: boolean;
   naming: {
-    variables: 'camelCase' | 'snake_case' | 'PascalCase';
-    functions: 'camelCase' | 'snake_case' | 'PascalCase';
-    classes: 'PascalCase' | 'snake_case';
-    constants: 'UPPER_CASE' | 'camelCase';
+    variables: "camelCase" | "snake_case" | "PascalCase";
+    functions: "camelCase" | "snake_case" | "PascalCase";
+    classes: "PascalCase" | "snake_case";
+    constants: "UPPER_CASE" | "camelCase";
   };
   imports: {
     order: string[];
@@ -53,7 +53,7 @@ export interface LearningSession {
   sourcePath: string;
   startTime: Date;
   endTime?: Date;
-  status: 'running' | 'completed' | 'failed';
+  status: "running" | "completed" | "failed";
   patterns: CodePattern[];
   styleProfile?: StyleProfile;
   statistics: {
@@ -83,7 +83,7 @@ export interface GenerationOptions {
   useStrictMode?: boolean;
   optimizeForPerformance?: boolean;
   targetES?: string;
-  outputFormat?: 'files' | 'single' | 'streaming';
+  outputFormat?: "files" | "single" | "streaming";
   dryRun?: boolean;
   interactive?: boolean;
 }
@@ -91,7 +91,7 @@ export interface GenerationOptions {
 export interface GeneratedFile {
   path: string;
   content: string;
-  type: 'source' | 'test' | 'config' | 'documentation';
+  type: "source" | "test" | "config" | "documentation";
   language: string;
   size: number;
   complexity: number;
@@ -106,7 +106,7 @@ export interface GenerationResult {
   suggestions: string[];
   dependencies: string[];
   created: Date;
-  status: 'success' | 'partial' | 'failed';
+  status: "success" | "partial" | "failed";
   error?: string;
 }
 
@@ -119,7 +119,7 @@ export interface GenerationMetadata {
   generationTime: number;
   aiModel: string;
   confidence: number;
-  approach: 'template' | 'pattern' | 'ai' | 'hybrid';
+  approach: "template" | "pattern" | "ai" | "hybrid";
 }
 
 export interface Template {
@@ -142,7 +142,7 @@ export interface Template {
 
 export interface TemplateVariable {
   name: string;
-  type: 'string' | 'boolean' | 'array' | 'object' | 'number';
+  type: "string" | "boolean" | "array" | "object" | "number";
   description: string;
   default?: any;
   required?: boolean;
@@ -153,7 +153,7 @@ export interface TemplateVariable {
 export interface TemplateFile {
   path: string;
   content: string;
-  type: 'source' | 'test' | 'config' | 'documentation';
+  type: "source" | "test" | "config" | "documentation";
   conditions?: Record<string, any>;
 }
 
@@ -170,7 +170,14 @@ export interface FrameworkSignature {
 export interface ArchitecturalPattern {
   name: string;
   description: string;
-  type: 'mvc' | 'mvvm' | 'layered' | 'microservices' | 'event-driven' | 'clean' | 'hexagonal';
+  type:
+    | "mvc"
+    | "mvvm"
+    | "layered"
+    | "microservices"
+    | "event-driven"
+    | "clean"
+    | "hexagonal";
   indicators: string[];
   confidence: number;
   files: string[];
@@ -251,14 +258,14 @@ export interface LearningMemory {
   configuration: LearningConfiguration;
 }
 
-export type LearningEventType = 
-  | 'pattern_learned'
-  | 'style_extracted'
-  | 'code_generated'
-  | 'template_created'
-  | 'session_started'
-  | 'session_completed'
-  | 'error_occurred';
+export type LearningEventType =
+  | "pattern_learned"
+  | "style_extracted"
+  | "code_generated"
+  | "template_created"
+  | "session_started"
+  | "session_completed"
+  | "error_occurred";
 
 export interface LearningEvent {
   type: LearningEventType;
@@ -268,75 +275,62 @@ export interface LearningEvent {
 }
 
 // Utility types
-export type PatternType = 
-  | 'function'
-  | 'class'
-  | 'interface'
-  | 'component'
-  | 'hook'
-  | 'module'
-  | 'import'
-  | 'export'
-  | 'async-pattern'
-  | 'error-handling'
-  | 'testing-pattern'
-  | 'architecture'
-  | 'crud'
-  | 'repository'
-  | 'service'
-  | 'controller'
-  | 'middleware'
-  | 'route';
+export type PatternType =
+  | "function"
+  | "class"
+  | "interface"
+  | "component"
+  | "hook"
+  | "module"
+  | "import"
+  | "export"
+  | "async-pattern"
+  | "error-handling"
+  | "testing-pattern"
+  | "architecture"
+  | "crud"
+  | "repository"
+  | "service"
+  | "controller"
+  | "middleware"
+  | "route";
 
-export type GenerationApproach = 
-  | 'template'
-  | 'pattern'
-  | 'ai'
-  | 'hybrid';
+export type GenerationApproach = "template" | "pattern" | "ai" | "hybrid";
 
-export type FileType = 
-  | 'source'
-  | 'test'
-  | 'config'
-  | 'documentation';
+export type FileType = "source" | "test" | "config" | "documentation";
 
-export type FrameworkType = 
-  | 'react'
-  | 'vue'
-  | 'angular'
-  | 'svelte'
-  | 'node'
-  | 'express'
-  | 'fastify'
-  | 'nestjs'
-  | 'next'
-  | 'nuxt'
-  | 'typescript'
-  | 'javascript';
+export type FrameworkType =
+  | "react"
+  | "vue"
+  | "angular"
+  | "svelte"
+  | "node"
+  | "express"
+  | "fastify"
+  | "nestjs"
+  | "next"
+  | "nuxt"
+  | "typescript"
+  | "javascript";
 
-export type LanguageType = 
-  | 'typescript'
-  | 'javascript'
-  | 'python'
-  | 'go'
-  | 'rust'
-  | 'java'
-  | 'c#'
-  | 'php'
-  | 'ruby';
+export type LanguageType =
+  | "typescript"
+  | "javascript"
+  | "python"
+  | "go"
+  | "rust"
+  | "java"
+  | "c#"
+  | "php"
+  | "ruby";
 
-export type NamingConvention = 
-  | 'camelCase'
-  | 'snake_case'
-  | 'PascalCase'
-  | 'kebab-case'
-  | 'UPPER_CASE';
+export type NamingConvention =
+  | "camelCase"
+  | "snake_case"
+  | "PascalCase"
+  | "kebab-case"
+  | "UPPER_CASE";
 
-export type IndentationType = 
-  | 'spaces'
-  | 'tabs';
+export type IndentationType = "spaces" | "tabs";
 
-export type QuoteStyle = 
-  | 'single'
-  | 'double'
-  | 'mixed';
+export type QuoteStyle = "single" | "double" | "mixed";

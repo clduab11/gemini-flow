@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { GoogleAIAuth } from '../../../src/core/google-ai-auth.js';
+import { GoogleAIAuth } from '../../../src/core/google-ai-auth';
 import * as fs from 'fs';
 import * as path from 'path';
 

@@ -3,10 +3,10 @@
  * Ensures 99.9% uptime SLA compliance with comprehensive monitoring and reporting
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger';
-import { CustomMetricsCollector } from './custom-metrics-dashboard';
-import { SyntheticMonitor } from './synthetic-monitoring';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger";
+import { CustomMetricsCollector } from "./custom-metrics-dashboard";
+import { SyntheticMonitor } from "./synthetic-monitoring";
 
 interface SLAConfig {
   targets: {
@@ -21,7 +21,7 @@ interface SLAConfig {
     retention: number; // data retention in days
   };
   reporting: {
-    intervals: ('hourly' | 'daily' | 'weekly' | 'monthly')[];
+    intervals: ("hourly" | "daily" | "weekly" | "monthly")[];
     recipients: string[];
     dashboard: boolean;
   };
@@ -48,7 +48,7 @@ interface EscalationLevel {
 }
 
 interface EscalationAction {
-  type: 'alert' | 'auto_scale' | 'failover' | 'incident';
+  type: "alert" | "auto_scale" | "failover" | "incident";
   config: Record<string, any>;
 }
 
@@ -91,7 +91,7 @@ interface SLAReport {
   period: {
     start: Date;
     end: Date;
-    type: 'hourly' | 'daily' | 'weekly' | 'monthly';
+    type: "hourly" | "daily" | "weekly" | "monthly";
   };
   summary: {
     overallCompliance: number;
@@ -108,10 +108,10 @@ interface SLAReport {
 interface SLAViolation {
   timestamp: number;
   duration: number; // minutes
-  type: 'availability' | 'response_time' | 'error_rate' | 'throughput';
+  type: "availability" | "response_time" | "error_rate" | "throughput";
   actual: number;
   target: number;
-  impact: 'low' | 'medium' | 'high' | 'critical';
+  impact: "low" | "medium" | "high" | "critical";
   rootCause?: string;
   resolution?: string;
 }
@@ -126,7 +126,7 @@ interface SLACredit {
 
 interface HealthCheckResult {
   endpoint: string;
-  status: 'up' | 'down' | 'degraded';
+  status: "up" | "down" | "degraded";
   responseTime: number;
   statusCode?: number;
   error?: string;
@@ -155,19 +155,19 @@ export class SLAComplianceMonitor extends EventEmitter {
     responseTimes: [] as number[],
     downtime: 0, // milliseconds
     lastHealthCheck: Date.now(),
-    activeIncidents: new Map<string, any>()
+    activeIncidents: new Map<string, any>(),
   };
 
   constructor(
     config: SLAConfig,
     metricsCollector: CustomMetricsCollector,
-    syntheticMonitor: SyntheticMonitor
+    syntheticMonitor: SyntheticMonitor,
   ) {
     super();
     this.config = config;
     this.metricsCollector = metricsCollector;
     this.syntheticMonitor = syntheticMonitor;
-    this.logger = new Logger('SLAComplianceMonitor');
+    this.logger = new Logger("SLAComplianceMonitor");
   }
 
   /**
@@ -175,12 +175,12 @@ export class SLAComplianceMonitor extends EventEmitter {
    */
   async start(): Promise<void> {
     if (this.isRunning) {
-      this.logger.warn('SLA compliance monitoring already running');
+      this.logger.warn("SLA compliance monitoring already running");
       return;
     }
 
     try {
-      this.logger.info('Starting SLA compliance monitoring...');
+      this.logger.info("Starting SLA compliance monitoring...");
 
       // Initialize baseline metrics
       this.realTimeMetrics.startTime = Date.now();
@@ -201,10 +201,9 @@ export class SLAComplianceMonitor extends EventEmitter {
       this.setupMetricsCollectorListeners();
 
       this.isRunning = true;
-      this.logger.info('SLA compliance monitoring started');
-
+      this.logger.info("SLA compliance monitoring started");
     } catch (error) {
-      this.logger.error('Failed to start SLA compliance monitoring:', error);
+      this.logger.error("Failed to start SLA compliance monitoring:", error);
       throw error;
     }
   }
@@ -215,7 +214,7 @@ export class SLAComplianceMonitor extends EventEmitter {
   async stop(): Promise<void> {
     if (!this.isRunning) return;
 
-    this.logger.info('Stopping SLA compliance monitoring...');
+    this.logger.info("Stopping SLA compliance monitoring...");
 
     if (this.monitoringTimer) {
       clearInterval(this.monitoringTimer);
@@ -231,7 +230,7 @@ export class SLAComplianceMonitor extends EventEmitter {
     await this.generateFinalReport();
 
     this.isRunning = false;
-    this.logger.info('SLA compliance monitoring stopped');
+    this.logger.info("SLA compliance monitoring stopped");
   }
 
   /**
@@ -253,7 +252,7 @@ export class SLAComplianceMonitor extends EventEmitter {
   private async performSLAMeasurement(): Promise<void> {
     try {
       const now = Date.now();
-      const windowStart = now - (this.config.measurement.window * 60 * 1000);
+      const windowStart = now - this.config.measurement.window * 60 * 1000;
 
       // Calculate availability
       const availability = this.calculateAvailability(windowStart, now);
@@ -268,28 +267,36 @@ export class SLAComplianceMonitor extends EventEmitter {
       const throughput = this.calculateThroughputMetrics(windowStart, now);
 
       // Check compliance
-      const compliance = this.checkCompliance(availability, performance, reliability, throughput);
+      const compliance = this.checkCompliance(
+        availability,
+        performance,
+        reliability,
+        throughput,
+      );
 
       const measurement: SLAMeasurement = {
         timestamp: now,
         window: {
           start: windowStart,
           end: now,
-          duration: this.config.measurement.window
+          duration: this.config.measurement.window,
         },
         availability,
         performance,
         reliability,
         throughput,
-        compliance
+        compliance,
       };
 
       // Store measurement
       this.measurements.push(measurement);
 
       // Keep only recent measurements (based on retention policy)
-      const retentionCutoff = now - (this.config.measurement.retention * 24 * 60 * 60 * 1000);
-      this.measurements = this.measurements.filter(m => m.timestamp > retentionCutoff);
+      const retentionCutoff =
+        now - this.config.measurement.retention * 24 * 60 * 60 * 1000;
+      this.measurements = this.measurements.filter(
+        (m) => m.timestamp > retentionCutoff,
+      );
 
       // Check for violations
       await this.checkForViolations(measurement);
@@ -298,19 +305,23 @@ export class SLAComplianceMonitor extends EventEmitter {
       this.recordSLAMetrics(measurement);
 
       // Emit measurement event
-      this.emit('measurement', measurement);
+      this.emit("measurement", measurement);
 
-      this.logger.debug(`SLA measurement completed: ${JSON.stringify(compliance)}`);
-
+      this.logger.debug(
+        `SLA measurement completed: ${JSON.stringify(compliance)}`,
+      );
     } catch (error) {
-      this.logger.error('Error performing SLA measurement:', error);
+      this.logger.error("Error performing SLA measurement:", error);
     }
   }
 
   /**
    * Calculate availability percentage
    */
-  private calculateAvailability(windowStart: number, windowEnd: number): SLAMeasurement['availability'] {
+  private calculateAvailability(
+    windowStart: number,
+    windowEnd: number,
+  ): SLAMeasurement["availability"] {
     const windowDuration = windowEnd - windowStart;
     const windowMinutes = windowDuration / (60 * 1000);
 
@@ -319,7 +330,7 @@ export class SLAComplianceMonitor extends EventEmitter {
 
     // Add current downtime if system is down
     const latestHealthCheck = Array.from(this.healthChecks.values()).pop();
-    if (latestHealthCheck && latestHealthCheck.status === 'down') {
+    if (latestHealthCheck && latestHealthCheck.status === "down") {
       const currentDowntime = Date.now() - latestHealthCheck.timestamp;
       totalDowntime += currentDowntime;
     }
@@ -327,9 +338,9 @@ export class SLAComplianceMonitor extends EventEmitter {
     // Add tracked incidents within the window
     for (const [_, incident] of this.realTimeMetrics.activeIncidents) {
       if (incident.startTime >= windowStart) {
-        const incidentDuration = incident.endTime ? 
-          (incident.endTime - incident.startTime) : 
-          (Date.now() - incident.startTime);
+        const incidentDuration = incident.endTime
+          ? incident.endTime - incident.startTime
+          : Date.now() - incident.startTime;
         totalDowntime += incidentDuration;
       }
     }
@@ -341,69 +352,84 @@ export class SLAComplianceMonitor extends EventEmitter {
     return {
       uptime: uptimeMinutes,
       downtime: downtimeMinutes,
-      percentage: Math.max(0, Math.min(100, availability))
+      percentage: Math.max(0, Math.min(100, availability)),
     };
   }
 
   /**
    * Calculate performance metrics
    */
-  private calculatePerformanceMetrics(windowStart: number, windowEnd: number): SLAMeasurement['performance'] {
+  private calculatePerformanceMetrics(
+    windowStart: number,
+    windowEnd: number,
+  ): SLAMeasurement["performance"] {
     // Filter response times within the window
-    const windowResponseTimes = this.realTimeMetrics.responseTimes.filter(time => {
-      // In real implementation, we'd need timestamps for each response time
-      return true; // Simplified for example
-    });
+    const windowResponseTimes = this.realTimeMetrics.responseTimes.filter(
+      (time) => {
+        // In real implementation, we'd need timestamps for each response time
+        return true; // Simplified for example
+      },
+    );
 
     if (windowResponseTimes.length === 0) {
       return {
         avgResponseTime: 0,
         p95ResponseTime: 0,
-        p99ResponseTime: 0
+        p99ResponseTime: 0,
       };
     }
 
     const sortedTimes = [...windowResponseTimes].sort((a, b) => a - b);
-    const avg = sortedTimes.reduce((sum, time) => sum + time, 0) / sortedTimes.length;
+    const avg =
+      sortedTimes.reduce((sum, time) => sum + time, 0) / sortedTimes.length;
     const p95Index = Math.floor(sortedTimes.length * 0.95);
     const p99Index = Math.floor(sortedTimes.length * 0.99);
 
     return {
       avgResponseTime: avg,
       p95ResponseTime: sortedTimes[p95Index] || 0,
-      p99ResponseTime: sortedTimes[p99Index] || 0
+      p99ResponseTime: sortedTimes[p99Index] || 0,
     };
   }
 
   /**
    * Calculate reliability metrics
    */
-  private calculateReliabilityMetrics(windowStart: number, windowEnd: number): SLAMeasurement['reliability'] {
+  private calculateReliabilityMetrics(
+    windowStart: number,
+    windowEnd: number,
+  ): SLAMeasurement["reliability"] {
     const totalRequests = this.realTimeMetrics.totalRequests;
     const successfulRequests = this.realTimeMetrics.successfulRequests;
-    const errorRate = totalRequests > 0 ? 
-      ((totalRequests - successfulRequests) / totalRequests) * 100 : 0;
+    const errorRate =
+      totalRequests > 0
+        ? ((totalRequests - successfulRequests) / totalRequests) * 100
+        : 0;
 
     return {
       totalRequests,
       successfulRequests,
-      errorRate
+      errorRate,
     };
   }
 
   /**
    * Calculate throughput metrics
    */
-  private calculateThroughputMetrics(windowStart: number, windowEnd: number): SLAMeasurement['throughput'] {
+  private calculateThroughputMetrics(
+    windowStart: number,
+    windowEnd: number,
+  ): SLAMeasurement["throughput"] {
     const windowMinutes = (windowEnd - windowStart) / (60 * 1000);
-    const requestsPerMinute = this.realTimeMetrics.totalRequests / windowMinutes;
+    const requestsPerMinute =
+      this.realTimeMetrics.totalRequests / windowMinutes;
 
     // In real implementation, we'd track peak RPM
     const peakRpm = requestsPerMinute * 1.5; // Simplified estimation
 
     return {
       requestsPerMinute,
-      peakRpm
+      peakRpm,
     };
   }
 
@@ -411,22 +437,30 @@ export class SLAComplianceMonitor extends EventEmitter {
    * Check SLA compliance
    */
   private checkCompliance(
-    availability: SLAMeasurement['availability'],
-    performance: SLAMeasurement['performance'],
-    reliability: SLAMeasurement['reliability'],
-    throughput: SLAMeasurement['throughput']
-  ): SLAMeasurement['compliance'] {
-    const availabilityCompliant = availability.percentage >= this.config.targets.availability;
-    const responseTimeCompliant = performance.avgResponseTime <= this.config.targets.responseTime;
-    const errorRateCompliant = reliability.errorRate <= this.config.targets.errorRate;
-    const throughputCompliant = throughput.requestsPerMinute >= this.config.targets.throughput;
+    availability: SLAMeasurement["availability"],
+    performance: SLAMeasurement["performance"],
+    reliability: SLAMeasurement["reliability"],
+    throughput: SLAMeasurement["throughput"],
+  ): SLAMeasurement["compliance"] {
+    const availabilityCompliant =
+      availability.percentage >= this.config.targets.availability;
+    const responseTimeCompliant =
+      performance.avgResponseTime <= this.config.targets.responseTime;
+    const errorRateCompliant =
+      reliability.errorRate <= this.config.targets.errorRate;
+    const throughputCompliant =
+      throughput.requestsPerMinute >= this.config.targets.throughput;
 
     return {
       availability: availabilityCompliant,
       responseTime: responseTimeCompliant,
       errorRate: errorRateCompliant,
       throughput: throughputCompliant,
-      overall: availabilityCompliant && responseTimeCompliant && errorRateCompliant && throughputCompliant
+      overall:
+        availabilityCompliant &&
+        responseTimeCompliant &&
+        errorRateCompliant &&
+        throughputCompliant,
     };
   }
 
@@ -441,10 +475,13 @@ export class SLAComplianceMonitor extends EventEmitter {
       violations.push({
         timestamp: measurement.timestamp,
         duration: this.config.measurement.window,
-        type: 'availability',
+        type: "availability",
         actual: measurement.availability.percentage,
         target: this.config.targets.availability,
-        impact: this.determineImpact(measurement.availability.percentage, this.config.targets.availability)
+        impact: this.determineImpact(
+          measurement.availability.percentage,
+          this.config.targets.availability,
+        ),
       });
     }
 
@@ -453,10 +490,14 @@ export class SLAComplianceMonitor extends EventEmitter {
       violations.push({
         timestamp: measurement.timestamp,
         duration: this.config.measurement.window,
-        type: 'response_time',
+        type: "response_time",
         actual: measurement.performance.avgResponseTime,
         target: this.config.targets.responseTime,
-        impact: this.determineImpact(measurement.performance.avgResponseTime, this.config.targets.responseTime, true)
+        impact: this.determineImpact(
+          measurement.performance.avgResponseTime,
+          this.config.targets.responseTime,
+          true,
+        ),
       });
     }
 
@@ -465,10 +506,14 @@ export class SLAComplianceMonitor extends EventEmitter {
       violations.push({
         timestamp: measurement.timestamp,
         duration: this.config.measurement.window,
-        type: 'error_rate',
+        type: "error_rate",
         actual: measurement.reliability.errorRate,
         target: this.config.targets.errorRate,
-        impact: this.determineImpact(measurement.reliability.errorRate, this.config.targets.errorRate, true)
+        impact: this.determineImpact(
+          measurement.reliability.errorRate,
+          this.config.targets.errorRate,
+          true,
+        ),
       });
     }
 
@@ -477,10 +522,13 @@ export class SLAComplianceMonitor extends EventEmitter {
       violations.push({
         timestamp: measurement.timestamp,
         duration: this.config.measurement.window,
-        type: 'throughput',
+        type: "throughput",
         actual: measurement.throughput.requestsPerMinute,
         target: this.config.targets.throughput,
-        impact: this.determineImpact(measurement.throughput.requestsPerMinute, this.config.targets.throughput)
+        impact: this.determineImpact(
+          measurement.throughput.requestsPerMinute,
+          this.config.targets.throughput,
+        ),
       });
     }
 
@@ -496,15 +544,19 @@ export class SLAComplianceMonitor extends EventEmitter {
   /**
    * Determine impact level
    */
-  private determineImpact(actual: number, target: number, higher_is_worse: boolean = false): SLAViolation['impact'] {
-    const diff = higher_is_worse ? 
-      ((actual - target) / target) : 
-      ((target - actual) / target);
+  private determineImpact(
+    actual: number,
+    target: number,
+    higher_is_worse: boolean = false,
+  ): SLAViolation["impact"] {
+    const diff = higher_is_worse
+      ? (actual - target) / target
+      : (target - actual) / target;
 
-    if (diff >= 0.5) return 'critical';
-    if (diff >= 0.2) return 'high';
-    if (diff >= 0.1) return 'medium';
-    return 'low';
+    if (diff >= 0.5) return "critical";
+    if (diff >= 0.2) return "high";
+    if (diff >= 0.1) return "medium";
+    return "low";
   }
 
   /**
@@ -514,18 +566,18 @@ export class SLAComplianceMonitor extends EventEmitter {
     this.logger.warn(`SLA violation detected: ${violation.type}`, {
       actual: violation.actual,
       target: violation.target,
-      impact: violation.impact
+      impact: violation.impact,
     });
 
     // Emit violation event
-    this.emit('violation', violation);
+    this.emit("violation", violation);
 
     // Calculate credits if enabled
     if (this.config.penalties.enabled) {
       const credit = this.calculateCredit(violation);
       if (credit) {
         this.credits.push(credit);
-        this.emit('credit', credit);
+        this.emit("credit", credit);
       }
     }
 
@@ -539,11 +591,11 @@ export class SLAComplianceMonitor extends EventEmitter {
    * Calculate SLA credit
    */
   private calculateCredit(violation: SLAViolation): SLACredit | null {
-    if (violation.type !== 'availability') return null;
+    if (violation.type !== "availability") return null;
 
     // Find applicable penalty threshold
-    const threshold = this.config.penalties.thresholds.find(t => 
-      violation.actual < t.availabilityBelow
+    const threshold = this.config.penalties.thresholds.find(
+      (t) => violation.actual < t.availabilityBelow,
     );
 
     if (!threshold) return null;
@@ -553,7 +605,7 @@ export class SLAComplianceMonitor extends EventEmitter {
       reason: `Availability ${violation.actual}% below SLA target of ${violation.target}%`,
       percentage: threshold.creditPercentage,
       amount: 0, // Would be calculated based on service fees
-      applied: false
+      applied: false,
     };
   }
 
@@ -562,24 +614,31 @@ export class SLAComplianceMonitor extends EventEmitter {
    */
   private async handleEscalation(violation: SLAViolation): Promise<void> {
     // Find appropriate escalation level
-    const violationDuration = this.calculateContinuousViolationDuration(violation.type);
-    const escalationLevel = this.config.escalation.levels.find(level => 
-      violationDuration >= level.triggerAfter
+    const violationDuration = this.calculateContinuousViolationDuration(
+      violation.type,
+    );
+    const escalationLevel = this.config.escalation.levels.find(
+      (level) => violationDuration >= level.triggerAfter,
     );
 
-    if (!escalationLevel || escalationLevel.level <= this.currentEscalationLevel) {
+    if (
+      !escalationLevel ||
+      escalationLevel.level <= this.currentEscalationLevel
+    ) {
       return;
     }
 
     this.currentEscalationLevel = escalationLevel.level;
-    this.logger.warn(`Escalating to level ${escalationLevel.level} due to ${violation.type} violation`);
+    this.logger.warn(
+      `Escalating to level ${escalationLevel.level} due to ${violation.type} violation`,
+    );
 
     // Execute escalation actions
     for (const action of escalationLevel.actions) {
       await this.executeEscalationAction(action, violation);
     }
 
-    this.emit('escalation', { level: escalationLevel.level, violation });
+    this.emit("escalation", { level: escalationLevel.level, violation });
   }
 
   /**
@@ -588,7 +647,7 @@ export class SLAComplianceMonitor extends EventEmitter {
   private calculateContinuousViolationDuration(violationType: string): number {
     // Find consecutive violations of the same type
     const recentViolations = this.violations
-      .filter(v => v.type === violationType)
+      .filter((v) => v.type === violationType)
       .sort((a, b) => b.timestamp - a.timestamp);
 
     if (recentViolations.length === 0) return 0;
@@ -598,16 +657,16 @@ export class SLAComplianceMonitor extends EventEmitter {
 
     for (let i = 0; i < recentViolations.length; i++) {
       const violation = recentViolations[i];
-      
+
       if (i === 0) {
         duration += violation.duration * 60 * 1000; // convert to milliseconds
       } else {
         const previousViolation = recentViolations[i - 1];
         const gap = previousViolation.timestamp - violation.timestamp;
-        
+
         // If gap is larger than window size, break the sequence
         if (gap > windowSize) break;
-        
+
         duration += violation.duration * 60 * 1000;
       }
     }
@@ -618,43 +677,63 @@ export class SLAComplianceMonitor extends EventEmitter {
   /**
    * Execute escalation action
    */
-  private async executeEscalationAction(action: EscalationAction, violation: SLAViolation): Promise<void> {
+  private async executeEscalationAction(
+    action: EscalationAction,
+    violation: SLAViolation,
+  ): Promise<void> {
     try {
       switch (action.type) {
-        case 'alert':
+        case "alert":
           await this.sendEscalationAlert(action.config, violation);
           break;
-        case 'auto_scale':
+        case "auto_scale":
           await this.triggerAutoScaling(action.config, violation);
           break;
-        case 'failover':
+        case "failover":
           await this.triggerFailover(action.config, violation);
           break;
-        case 'incident':
+        case "incident":
           await this.createIncident(action.config, violation);
           break;
       }
     } catch (error) {
-      this.logger.error(`Failed to execute escalation action ${action.type}:`, error);
+      this.logger.error(
+        `Failed to execute escalation action ${action.type}:`,
+        error,
+      );
     }
   }
 
-  private async sendEscalationAlert(config: any, violation: SLAViolation): Promise<void> {
+  private async sendEscalationAlert(
+    config: any,
+    violation: SLAViolation,
+  ): Promise<void> {
     // Implementation for sending escalation alerts
-    this.logger.info(`Sending escalation alert for ${violation.type} violation`);
+    this.logger.info(
+      `Sending escalation alert for ${violation.type} violation`,
+    );
   }
 
-  private async triggerAutoScaling(config: any, violation: SLAViolation): Promise<void> {
+  private async triggerAutoScaling(
+    config: any,
+    violation: SLAViolation,
+  ): Promise<void> {
     // Implementation for auto-scaling
     this.logger.info(`Triggering auto-scaling for ${violation.type} violation`);
   }
 
-  private async triggerFailover(config: any, violation: SLAViolation): Promise<void> {
+  private async triggerFailover(
+    config: any,
+    violation: SLAViolation,
+  ): Promise<void> {
     // Implementation for failover
     this.logger.info(`Triggering failover for ${violation.type} violation`);
   }
 
-  private async createIncident(config: any, violation: SLAViolation): Promise<void> {
+  private async createIncident(
+    config: any,
+    violation: SLAViolation,
+  ): Promise<void> {
     // Implementation for incident creation
     this.logger.info(`Creating incident for ${violation.type} violation`);
   }
@@ -677,31 +756,31 @@ export class SLAComplianceMonitor extends EventEmitter {
    */
   private async performHealthChecks(): Promise<void> {
     const healthCheckEndpoints = [
-      '/health',
-      '/api/health',
-      '/api/v1/health',
-      '/status'
+      "/health",
+      "/api/health",
+      "/api/v1/health",
+      "/status",
     ];
 
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.API_BASE_URL || "http://localhost:3000";
 
     for (const endpoint of healthCheckEndpoints) {
       try {
         const startTime = Date.now();
         const response = await fetch(`${baseUrl}${endpoint}`, {
-          method: 'GET',
-          timeout: 5000
+          method: "GET",
+          timeout: 5000,
         });
 
         const responseTime = Date.now() - startTime;
-        const status = response.ok ? 'up' : 'degraded';
+        const status = response.ok ? "up" : "degraded";
 
         const result: HealthCheckResult = {
           endpoint,
           status,
           responseTime,
           statusCode: response.status,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
 
         this.healthChecks.set(endpoint, result);
@@ -709,14 +788,13 @@ export class SLAComplianceMonitor extends EventEmitter {
 
         // Record metrics
         this.recordHealthCheckMetrics(result);
-
       } catch (error) {
         const result: HealthCheckResult = {
           endpoint,
-          status: 'down',
+          status: "down",
           responseTime: 0,
           error: (error as Error).message,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
 
         this.healthChecks.set(endpoint, result);
@@ -730,18 +808,18 @@ export class SLAComplianceMonitor extends EventEmitter {
    */
   private recordHealthCheckMetrics(result: HealthCheckResult): void {
     this.metricsCollector.recordMetric(
-      'health_check_response_time',
+      "health_check_response_time",
       result.responseTime,
-      'histogram',
+      "histogram",
       { endpoint: result.endpoint, status: result.status },
-      'ms'
+      "ms",
     );
 
     this.metricsCollector.recordMetric(
-      'health_check_status',
-      result.status === 'up' ? 1 : 0,
-      'gauge',
-      { endpoint: result.endpoint }
+      "health_check_status",
+      result.status === "up" ? 1 : 0,
+      "gauge",
+      { endpoint: result.endpoint },
     );
   }
 
@@ -753,32 +831,32 @@ export class SLAComplianceMonitor extends EventEmitter {
       availability: measurement.availability.percentage,
       responseTime: measurement.performance.avgResponseTime,
       errorRate: measurement.reliability.errorRate,
-      throughput: measurement.throughput.requestsPerMinute
+      throughput: measurement.throughput.requestsPerMinute,
     });
 
     // Record compliance metrics
     this.metricsCollector.recordMetric(
-      'sla_compliance_overall',
+      "sla_compliance_overall",
       measurement.compliance.overall ? 1 : 0,
-      'gauge'
+      "gauge",
     );
 
     this.metricsCollector.recordMetric(
-      'sla_compliance_availability',
+      "sla_compliance_availability",
       measurement.compliance.availability ? 1 : 0,
-      'gauge'
+      "gauge",
     );
 
     this.metricsCollector.recordMetric(
-      'sla_compliance_response_time',
+      "sla_compliance_response_time",
       measurement.compliance.responseTime ? 1 : 0,
-      'gauge'
+      "gauge",
     );
 
     this.metricsCollector.recordMetric(
-      'sla_compliance_error_rate',
+      "sla_compliance_error_rate",
       measurement.compliance.errorRate ? 1 : 0,
-      'gauge'
+      "gauge",
     );
   }
 
@@ -788,18 +866,18 @@ export class SLAComplianceMonitor extends EventEmitter {
   private startReporting(): void {
     for (const interval of this.config.reporting.intervals) {
       let intervalMs: number;
-      
+
       switch (interval) {
-        case 'hourly':
+        case "hourly":
           intervalMs = 60 * 60 * 1000;
           break;
-        case 'daily':
+        case "daily":
           intervalMs = 24 * 60 * 60 * 1000;
           break;
-        case 'weekly':
+        case "weekly":
           intervalMs = 7 * 24 * 60 * 60 * 1000;
           break;
-        case 'monthly':
+        case "monthly":
           intervalMs = 30 * 24 * 60 * 60 * 1000;
           break;
       }
@@ -816,42 +894,47 @@ export class SLAComplianceMonitor extends EventEmitter {
   /**
    * Generate SLA report
    */
-  async generateReport(type: 'hourly' | 'daily' | 'weekly' | 'monthly'): Promise<SLAReport> {
+  async generateReport(
+    type: "hourly" | "daily" | "weekly" | "monthly",
+  ): Promise<SLAReport> {
     const now = new Date();
     let start: Date;
 
     switch (type) {
-      case 'hourly':
-        start = new Date(now.getTime() - (60 * 60 * 1000));
+      case "hourly":
+        start = new Date(now.getTime() - 60 * 60 * 1000);
         break;
-      case 'daily':
-        start = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+      case "daily":
+        start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         break;
-      case 'weekly':
-        start = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+      case "weekly":
+        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case 'monthly':
-        start = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+      case "monthly":
+        start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
     }
 
-    const periodMeasurements = this.measurements.filter(m => 
-      m.timestamp >= start.getTime() && m.timestamp <= now.getTime()
+    const periodMeasurements = this.measurements.filter(
+      (m) => m.timestamp >= start.getTime() && m.timestamp <= now.getTime(),
     );
 
-    const periodViolations = this.violations.filter(v => 
-      v.timestamp >= start.getTime() && v.timestamp <= now.getTime()
+    const periodViolations = this.violations.filter(
+      (v) => v.timestamp >= start.getTime() && v.timestamp <= now.getTime(),
     );
 
-    const periodCredits = this.credits.filter(c => 
-      c.timestamp >= start.getTime() && c.timestamp <= now.getTime()
+    const periodCredits = this.credits.filter(
+      (c) => c.timestamp >= start.getTime() && c.timestamp <= now.getTime(),
     );
 
     // Calculate summary
     const summary = this.calculateReportSummary(periodMeasurements);
 
     // Generate recommendations
-    const recommendations = this.generateRecommendations(periodMeasurements, periodViolations);
+    const recommendations = this.generateRecommendations(
+      periodMeasurements,
+      periodViolations,
+    );
 
     const report: SLAReport = {
       period: { start, end: now, type },
@@ -859,7 +942,7 @@ export class SLAComplianceMonitor extends EventEmitter {
       measurements: periodMeasurements,
       violations: periodViolations,
       credits: periodCredits,
-      recommendations
+      recommendations,
     };
 
     // Store report
@@ -868,8 +951,10 @@ export class SLAComplianceMonitor extends EventEmitter {
     // Send report
     await this.sendReport(report);
 
-    this.emit('report', report);
-    this.logger.info(`Generated ${type} SLA report with ${periodMeasurements.length} measurements`);
+    this.emit("report", report);
+    this.logger.info(
+      `Generated ${type} SLA report with ${periodMeasurements.length} measurements`,
+    );
 
     return report;
   }
@@ -877,26 +962,37 @@ export class SLAComplianceMonitor extends EventEmitter {
   /**
    * Calculate report summary
    */
-  private calculateReportSummary(measurements: SLAMeasurement[]): SLAReport['summary'] {
+  private calculateReportSummary(
+    measurements: SLAMeasurement[],
+  ): SLAReport["summary"] {
     if (measurements.length === 0) {
       return {
         overallCompliance: 0,
         availabilityCompliance: 0,
         performanceCompliance: 0,
-        reliabilityCompliance: 0
+        reliabilityCompliance: 0,
       };
     }
 
-    const compliantMeasurements = measurements.filter(m => m.compliance.overall).length;
-    const availabilityCompliant = measurements.filter(m => m.compliance.availability).length;
-    const performanceCompliant = measurements.filter(m => m.compliance.responseTime).length;
-    const reliabilityCompliant = measurements.filter(m => m.compliance.errorRate).length;
+    const compliantMeasurements = measurements.filter(
+      (m) => m.compliance.overall,
+    ).length;
+    const availabilityCompliant = measurements.filter(
+      (m) => m.compliance.availability,
+    ).length;
+    const performanceCompliant = measurements.filter(
+      (m) => m.compliance.responseTime,
+    ).length;
+    const reliabilityCompliant = measurements.filter(
+      (m) => m.compliance.errorRate,
+    ).length;
 
     return {
       overallCompliance: (compliantMeasurements / measurements.length) * 100,
-      availabilityCompliance: (availabilityCompliant / measurements.length) * 100,
+      availabilityCompliance:
+        (availabilityCompliant / measurements.length) * 100,
       performanceCompliance: (performanceCompliant / measurements.length) * 100,
-      reliabilityCompliance: (reliabilityCompliant / measurements.length) * 100
+      reliabilityCompliance: (reliabilityCompliant / measurements.length) * 100,
     };
   }
 
@@ -904,30 +1000,46 @@ export class SLAComplianceMonitor extends EventEmitter {
    * Generate recommendations
    */
   private generateRecommendations(
-    measurements: SLAMeasurement[], 
-    violations: SLAViolation[]
+    measurements: SLAMeasurement[],
+    violations: SLAViolation[],
   ): string[] {
     const recommendations: string[] = [];
 
     // Availability recommendations
-    const availabilityViolations = violations.filter(v => v.type === 'availability');
+    const availabilityViolations = violations.filter(
+      (v) => v.type === "availability",
+    );
     if (availabilityViolations.length > 0) {
-      recommendations.push('Consider implementing redundancy and failover mechanisms to improve availability');
-      recommendations.push('Review incident response procedures and reduce MTTR (Mean Time To Recovery)');
+      recommendations.push(
+        "Consider implementing redundancy and failover mechanisms to improve availability",
+      );
+      recommendations.push(
+        "Review incident response procedures and reduce MTTR (Mean Time To Recovery)",
+      );
     }
 
     // Performance recommendations
-    const responseTimeViolations = violations.filter(v => v.type === 'response_time');
+    const responseTimeViolations = violations.filter(
+      (v) => v.type === "response_time",
+    );
     if (responseTimeViolations.length > 0) {
-      recommendations.push('Optimize application performance and consider auto-scaling');
-      recommendations.push('Implement caching strategies and CDN optimization');
+      recommendations.push(
+        "Optimize application performance and consider auto-scaling",
+      );
+      recommendations.push("Implement caching strategies and CDN optimization");
     }
 
     // Reliability recommendations
-    const errorRateViolations = violations.filter(v => v.type === 'error_rate');
+    const errorRateViolations = violations.filter(
+      (v) => v.type === "error_rate",
+    );
     if (errorRateViolations.length > 0) {
-      recommendations.push('Review error handling and implement better retry mechanisms');
-      recommendations.push('Improve input validation and API gateway configurations');
+      recommendations.push(
+        "Review error handling and implement better retry mechanisms",
+      );
+      recommendations.push(
+        "Improve input validation and API gateway configurations",
+      );
     }
 
     return recommendations;
@@ -946,22 +1058,24 @@ export class SLAComplianceMonitor extends EventEmitter {
    */
   private async sendReport(report: SLAReport): Promise<void> {
     // Implementation for sending reports to recipients
-    this.logger.debug(`Sending ${report.period.type} SLA report to ${this.config.reporting.recipients.length} recipients`);
+    this.logger.debug(
+      `Sending ${report.period.type} SLA report to ${this.config.reporting.recipients.length} recipients`,
+    );
   }
 
   /**
    * Generate final report
    */
   private async generateFinalReport(): Promise<void> {
-    const finalReport = await this.generateReport('daily');
-    this.logger.info('Final SLA report generated');
+    const finalReport = await this.generateReport("daily");
+    this.logger.info("Final SLA report generated");
   }
 
   /**
    * Setup listeners
    */
   private setupSyntheticMonitoringListeners(): void {
-    this.syntheticMonitor.on('result', (result: any) => {
+    this.syntheticMonitor.on("result", (result: any) => {
       // Track synthetic monitoring results
       this.realTimeMetrics.totalRequests++;
       if (result.success) {
@@ -972,16 +1086,19 @@ export class SLAComplianceMonitor extends EventEmitter {
       }
     });
 
-    this.syntheticMonitor.on('critical', (alert: any) => {
+    this.syntheticMonitor.on("critical", (alert: any) => {
       // Handle critical alerts from synthetic monitoring
-      this.logger.warn('Critical alert from synthetic monitoring:', alert);
+      this.logger.warn("Critical alert from synthetic monitoring:", alert);
     });
   }
 
   private setupMetricsCollectorListeners(): void {
-    this.metricsCollector.on('metric', (metric: any) => {
+    this.metricsCollector.on("metric", (metric: any) => {
       // Process relevant metrics for SLA calculation
-      if (metric.name.includes('response_time') || metric.name.includes('error_rate')) {
+      if (
+        metric.name.includes("response_time") ||
+        metric.name.includes("error_rate")
+      ) {
         // Update real-time metrics
       }
     });
@@ -999,7 +1116,8 @@ export class SLAComplianceMonitor extends EventEmitter {
 
     // Keep only recent response times (last 10000)
     if (this.realTimeMetrics.responseTimes.length > 10000) {
-      this.realTimeMetrics.responseTimes = this.realTimeMetrics.responseTimes.slice(-10000);
+      this.realTimeMetrics.responseTimes =
+        this.realTimeMetrics.responseTimes.slice(-10000);
     }
   }
 
@@ -1008,9 +1126,9 @@ export class SLAComplianceMonitor extends EventEmitter {
    */
   public recordIncident(id: string, startTime: number, endTime?: number): void {
     this.realTimeMetrics.activeIncidents.set(id, { startTime, endTime });
-    
+
     if (endTime) {
-      this.realTimeMetrics.downtime += (endTime - startTime);
+      this.realTimeMetrics.downtime += endTime - startTime;
     }
   }
 
@@ -1019,8 +1137,8 @@ export class SLAComplianceMonitor extends EventEmitter {
    */
   public getCurrentSLAStatus(): any {
     const latestMeasurement = this.measurements[this.measurements.length - 1];
-    const recentViolations = this.violations.filter(v => 
-      (Date.now() - v.timestamp) < (24 * 60 * 60 * 1000) // Last 24 hours
+    const recentViolations = this.violations.filter(
+      (v) => Date.now() - v.timestamp < 24 * 60 * 60 * 1000, // Last 24 hours
     );
 
     return {
@@ -1029,13 +1147,16 @@ export class SLAComplianceMonitor extends EventEmitter {
         responseTime: false,
         errorRate: false,
         throughput: false,
-        overall: false
+        overall: false,
       },
       recentViolations: recentViolations.length,
       escalationLevel: this.currentEscalationLevel,
-      totalCredits: this.credits.reduce((sum, credit) => sum + credit.percentage, 0),
+      totalCredits: this.credits.reduce(
+        (sum, credit) => sum + credit.percentage,
+        0,
+      ),
       uptime: this.calculateCurrentUptime(),
-      healthStatus: this.getHealthStatus()
+      healthStatus: this.getHealthStatus(),
     };
   }
 
@@ -1051,7 +1172,7 @@ export class SLAComplianceMonitor extends EventEmitter {
       status[endpoint] = {
         status: result.status,
         responseTime: result.responseTime,
-        lastCheck: new Date(result.timestamp).toISOString()
+        lastCheck: new Date(result.timestamp).toISOString(),
       };
     }
     return status;
@@ -1064,61 +1185,65 @@ export const DEFAULT_SLA_CONFIG: SLAConfig = {
     availability: 99.9, // 99.9%
     responseTime: 2000, // 2 seconds
     errorRate: 0.1, // 0.1%
-    throughput: 100 // 100 requests per minute
+    throughput: 100, // 100 requests per minute
   },
   measurement: {
     window: 5, // 5 minutes
     samples: 12, // 12 samples per hour
-    retention: 90 // 90 days
+    retention: 90, // 90 days
   },
   reporting: {
-    intervals: ['daily', 'weekly', 'monthly'],
-    recipients: process.env.SLA_REPORT_RECIPIENTS?.split(',') || [],
-    dashboard: true
+    intervals: ["daily", "weekly", "monthly"],
+    recipients: process.env.SLA_REPORT_RECIPIENTS?.split(",") || [],
+    dashboard: true,
   },
   penalties: {
     enabled: true,
     thresholds: [
-      { availabilityBelow: 99.9, creditPercentage: 10, description: 'Below 99.9% availability' },
-      { availabilityBelow: 99.0, creditPercentage: 25, description: 'Below 99.0% availability' },
-      { availabilityBelow: 95.0, creditPercentage: 100, description: 'Below 95.0% availability' }
-    ]
+      {
+        availabilityBelow: 99.9,
+        creditPercentage: 10,
+        description: "Below 99.9% availability",
+      },
+      {
+        availabilityBelow: 99.0,
+        creditPercentage: 25,
+        description: "Below 99.0% availability",
+      },
+      {
+        availabilityBelow: 95.0,
+        creditPercentage: 100,
+        description: "Below 95.0% availability",
+      },
+    ],
   },
   escalation: {
     levels: [
       {
         level: 1,
         triggerAfter: 5, // 5 minutes
-        actions: [
-          { type: 'alert', config: { severity: 'warning' } }
-        ]
+        actions: [{ type: "alert", config: { severity: "warning" } }],
       },
       {
         level: 2,
         triggerAfter: 15, // 15 minutes
         actions: [
-          { type: 'alert', config: { severity: 'critical' } },
-          { type: 'auto_scale', config: { factor: 1.5 } }
-        ]
+          { type: "alert", config: { severity: "critical" } },
+          { type: "auto_scale", config: { factor: 1.5 } },
+        ],
       },
       {
         level: 3,
         triggerAfter: 30, // 30 minutes
         actions: [
-          { type: 'incident', config: { priority: 'high' } },
-          { type: 'failover', config: { automatic: true } }
-        ]
-      }
+          { type: "incident", config: { priority: "high" } },
+          { type: "failover", config: { automatic: true } },
+        ],
+      },
     ],
-    autoRemediation: true
-  }
+    autoRemediation: true,
+  },
 };
 
 // Export types
-export type { 
-  SLAConfig, 
-  SLAMeasurement, 
-  SLAReport, 
-  SLAViolation, 
-  SLACredit 
-};
+export type { SLAConfig, SLAMeasurement, SLAReport, SLAViolation, SLACredit };

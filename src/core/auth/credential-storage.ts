@@ -1,22 +1,22 @@
 /**
  * Credential Storage Implementation
- * 
+ *
  * Secure storage interface for authentication credentials with encryption,
  * multiple backend support, and comprehensive error handling
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import * as crypto from 'crypto';
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
-import { 
-  CredentialStorage, 
-  AuthCredentials, 
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import * as crypto from "crypto";
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
+import {
+  CredentialStorage,
+  AuthCredentials,
   AuthError,
-  StorageConfig 
-} from '../../types/auth.js';
+  StorageConfig,
+} from "../../types/auth.js";
 
 /**
  * Storage entry with metadata
@@ -43,7 +43,10 @@ interface EncryptedEntry {
 /**
  * In-memory credential storage implementation
  */
-export class MemoryCredentialStorage extends EventEmitter implements CredentialStorage {
+export class MemoryCredentialStorage
+  extends EventEmitter
+  implements CredentialStorage
+{
   private storage = new Map<string, StorageEntry>();
   private logger: Logger;
   private config: StorageConfig;
@@ -52,19 +55,19 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
   constructor(config: Partial<StorageConfig> = {}) {
     super();
     this.config = {
-      type: 'memory',
+      type: "memory",
       maxEntries: 1000,
       ttl: 24 * 60 * 60 * 1000, // 24 hours default
-      ...config
+      ...config,
     };
-    this.logger = new Logger('MemoryCredentialStorage');
-    
+    this.logger = new Logger("MemoryCredentialStorage");
+
     // Start cleanup interval for expired entries
     this.startCleanupInterval();
-    
-    this.logger.debug('Memory credential storage initialized', {
+
+    this.logger.debug("Memory credential storage initialized", {
       maxEntries: this.config.maxEntries,
-      ttl: this.config.ttl
+      ttl: this.config.ttl,
     });
   }
 
@@ -83,22 +86,28 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
         createdAt: Date.now(),
         expiresAt: this.config.ttl ? Date.now() + this.config.ttl : undefined,
         accessCount: 0,
-        lastAccessed: Date.now()
+        lastAccessed: Date.now(),
       };
 
       this.storage.set(key, entry);
-      
-      this.logger.debug('Credentials stored in memory', { 
+
+      this.logger.debug("Credentials stored in memory", {
         key: this.maskKey(key),
         provider: credentials.provider,
-        type: credentials.type
+        type: credentials.type,
       });
 
-      this.emit('stored', { key, credentials });
-
+      this.emit("stored", { key, credentials });
     } catch (error) {
-      this.logger.error('Failed to store credentials', { key: this.maskKey(key), error });
-      throw this.createStorageError('STORE_FAILED', 'Failed to store credentials', error as Error);
+      this.logger.error("Failed to store credentials", {
+        key: this.maskKey(key),
+        error,
+      });
+      throw this.createStorageError(
+        "STORE_FAILED",
+        "Failed to store credentials",
+        error as Error,
+      );
     }
   }
 
@@ -121,18 +130,24 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
       entry.accessCount++;
       entry.lastAccessed = Date.now();
 
-      this.logger.debug('Credentials retrieved from memory', { 
+      this.logger.debug("Credentials retrieved from memory", {
         key: this.maskKey(key),
         provider: entry.credentials.provider,
-        accessCount: entry.accessCount
+        accessCount: entry.accessCount,
       });
 
-      this.emit('retrieved', { key, credentials: entry.credentials });
+      this.emit("retrieved", { key, credentials: entry.credentials });
       return { ...entry.credentials }; // Return copy to prevent mutations
-
     } catch (error) {
-      this.logger.error('Failed to retrieve credentials', { key: this.maskKey(key), error });
-      throw this.createStorageError('RETRIEVE_FAILED', 'Failed to retrieve credentials', error as Error);
+      this.logger.error("Failed to retrieve credentials", {
+        key: this.maskKey(key),
+        error,
+      });
+      throw this.createStorageError(
+        "RETRIEVE_FAILED",
+        "Failed to retrieve credentials",
+        error as Error,
+      );
     }
   }
 
@@ -141,27 +156,38 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
       this.validateKey(key);
 
       const deleted = this.storage.delete(key);
-      
-      if (deleted) {
-        this.logger.debug('Credentials deleted from memory', { key: this.maskKey(key) });
-        this.emit('deleted', { key });
-      }
 
+      if (deleted) {
+        this.logger.debug("Credentials deleted from memory", {
+          key: this.maskKey(key),
+        });
+        this.emit("deleted", { key });
+      }
     } catch (error) {
-      this.logger.error('Failed to delete credentials', { key: this.maskKey(key), error });
-      throw this.createStorageError('DELETE_FAILED', 'Failed to delete credentials', error as Error);
+      this.logger.error("Failed to delete credentials", {
+        key: this.maskKey(key),
+        error,
+      });
+      throw this.createStorageError(
+        "DELETE_FAILED",
+        "Failed to delete credentials",
+        error as Error,
+      );
     }
   }
 
   async list(): Promise<string[]> {
     try {
       const keys = Array.from(this.storage.keys());
-      this.logger.debug('Listed credential keys', { count: keys.length });
+      this.logger.debug("Listed credential keys", { count: keys.length });
       return keys;
-
     } catch (error) {
-      this.logger.error('Failed to list credentials', { error });
-      throw this.createStorageError('LIST_FAILED', 'Failed to list credentials', error as Error);
+      this.logger.error("Failed to list credentials", { error });
+      throw this.createStorageError(
+        "LIST_FAILED",
+        "Failed to list credentials",
+        error as Error,
+      );
     }
   }
 
@@ -169,13 +195,16 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
     try {
       const count = this.storage.size;
       this.storage.clear();
-      
-      this.logger.info('All credentials cleared from memory', { count });
-      this.emit('cleared', { count });
 
+      this.logger.info("All credentials cleared from memory", { count });
+      this.emit("cleared", { count });
     } catch (error) {
-      this.logger.error('Failed to clear credentials', { error });
-      throw this.createStorageError('CLEAR_FAILED', 'Failed to clear credentials', error as Error);
+      this.logger.error("Failed to clear credentials", { error });
+      throw this.createStorageError(
+        "CLEAR_FAILED",
+        "Failed to clear credentials",
+        error as Error,
+      );
     }
   }
 
@@ -183,9 +212,11 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
     try {
       this.validateKey(key);
       return this.storage.has(key);
-
     } catch (error) {
-      this.logger.error('Failed to check credential existence', { key: this.maskKey(key), error });
+      this.logger.error("Failed to check credential existence", {
+        key: this.maskKey(key),
+        error,
+      });
       return false;
     }
   }
@@ -196,17 +227,24 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
   getStats() {
     const entries = Array.from(this.storage.values());
     const now = Date.now();
-    
+
     return {
       totalEntries: this.storage.size,
-      expiredEntries: entries.filter(e => e.expiresAt && e.expiresAt <= now).length,
+      expiredEntries: entries.filter((e) => e.expiresAt && e.expiresAt <= now)
+        .length,
       totalAccesses: entries.reduce((sum, e) => sum + e.accessCount, 0),
-      avgAccessCount: entries.length > 0 ? 
-        entries.reduce((sum, e) => sum + e.accessCount, 0) / entries.length : 0,
-      oldestEntry: entries.length > 0 ? 
-        Math.min(...entries.map(e => e.createdAt)) : null,
-      newestEntry: entries.length > 0 ? 
-        Math.max(...entries.map(e => e.createdAt)) : null
+      avgAccessCount:
+        entries.length > 0
+          ? entries.reduce((sum, e) => sum + e.accessCount, 0) / entries.length
+          : 0,
+      oldestEntry:
+        entries.length > 0
+          ? Math.min(...entries.map((e) => e.createdAt))
+          : null,
+      newestEntry:
+        entries.length > 0
+          ? Math.max(...entries.map((e) => e.createdAt))
+          : null,
     };
   }
 
@@ -225,8 +263,8 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
     }
 
     if (cleanedCount > 0) {
-      this.logger.debug('Cleaned up expired entries', { count: cleanedCount });
-      this.emit('cleanup', { expiredEntries: cleanedCount });
+      this.logger.debug("Cleaned up expired entries", { count: cleanedCount });
+      this.emit("cleanup", { expiredEntries: cleanedCount });
     }
 
     return cleanedCount;
@@ -248,7 +286,9 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
 
     if (oldestKey) {
       await this.delete(oldestKey);
-      this.logger.debug('Evicted oldest entry', { key: this.maskKey(oldestKey) });
+      this.logger.debug("Evicted oldest entry", {
+        key: this.maskKey(oldestKey),
+      });
     }
   }
 
@@ -261,11 +301,14 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
     }
 
     // Cleanup every 5 minutes
-    this.cleanupInterval = setInterval(() => {
-      this.cleanupExpiredEntries().catch(error => {
-        this.logger.error('Cleanup interval error', { error });
-      });
-    }, 5 * 60 * 1000);
+    this.cleanupInterval = setInterval(
+      () => {
+        this.cleanupExpiredEntries().catch((error) => {
+          this.logger.error("Cleanup interval error", { error });
+        });
+      },
+      5 * 60 * 1000,
+    );
   }
 
   /**
@@ -277,39 +320,43 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
       this.cleanupInterval = undefined;
     }
     this.storage.clear();
-    this.logger.debug('Memory credential storage destroyed');
+    this.logger.debug("Memory credential storage destroyed");
   }
 
   private validateKey(key: string): void {
-    if (!key || typeof key !== 'string' || key.trim() === '') {
-      throw new Error('Invalid storage key');
+    if (!key || typeof key !== "string" || key.trim() === "") {
+      throw new Error("Invalid storage key");
     }
   }
 
   private validateCredentials(credentials: AuthCredentials): void {
-    if (!credentials || typeof credentials !== 'object') {
-      throw new Error('Invalid credentials object');
+    if (!credentials || typeof credentials !== "object") {
+      throw new Error("Invalid credentials object");
     }
 
     if (!credentials.type || !credentials.provider) {
-      throw new Error('Credentials missing required fields: type and provider');
+      throw new Error("Credentials missing required fields: type and provider");
     }
   }
 
   private maskKey(key: string): string {
-    if (key.length <= 8) return '***';
-    return key.substring(0, 4) + '***' + key.substring(key.length - 4);
+    if (key.length <= 8) return "***";
+    return key.substring(0, 4) + "***" + key.substring(key.length - 4);
   }
 
-  private createStorageError(code: string, message: string, originalError?: Error): AuthError {
+  private createStorageError(
+    code: string,
+    message: string,
+    originalError?: Error,
+  ): AuthError {
     const error = new Error(message) as AuthError;
     error.code = code;
-    error.type = 'configuration';
+    error.type = "configuration";
     error.retryable = false;
     error.originalError = originalError;
     error.context = {
       storageType: this.config.type,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
     return error;
   }
@@ -318,7 +365,10 @@ export class MemoryCredentialStorage extends EventEmitter implements CredentialS
 /**
  * File-based credential storage implementation
  */
-export class FileCredentialStorage extends EventEmitter implements CredentialStorage {
+export class FileCredentialStorage
+  extends EventEmitter
+  implements CredentialStorage
+{
   private basePath: string;
   private logger: Logger;
   private config: StorageConfig;
@@ -326,15 +376,17 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
   constructor(config: Partial<StorageConfig> = {}) {
     super();
     this.config = {
-      type: 'file',
-      basePath: path.join(os.homedir(), '.gemini-flow', 'credentials'),
-      ...config
+      type: "file",
+      basePath: path.join(os.homedir(), ".gemini-flow", "credentials"),
+      ...config,
     };
     this.basePath = this.config.basePath!;
-    this.logger = new Logger('FileCredentialStorage');
-    
+    this.logger = new Logger("FileCredentialStorage");
+
     this.ensureStorageDirectory();
-    this.logger.debug('File credential storage initialized', { basePath: this.basePath });
+    this.logger.debug("File credential storage initialized", {
+      basePath: this.basePath,
+    });
   }
 
   async store(key: string, credentials: AuthCredentials): Promise<void> {
@@ -347,25 +399,31 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
         createdAt: Date.now(),
         expiresAt: this.config.ttl ? Date.now() + this.config.ttl : undefined,
         accessCount: 0,
-        lastAccessed: Date.now()
+        lastAccessed: Date.now(),
       };
 
       const filePath = this.getFilePath(key);
       const fileContent = JSON.stringify(entry, null, 2);
-      
+
       await fs.promises.writeFile(filePath, fileContent, { mode: 0o600 }); // Secure permissions
-      
-      this.logger.debug('Credentials stored to file', { 
+
+      this.logger.debug("Credentials stored to file", {
         key: this.maskKey(key),
         filePath,
-        provider: credentials.provider
+        provider: credentials.provider,
       });
 
-      this.emit('stored', { key, credentials });
-
+      this.emit("stored", { key, credentials });
     } catch (error) {
-      this.logger.error('Failed to store credentials to file', { key: this.maskKey(key), error });
-      throw this.createStorageError('STORE_FAILED', 'Failed to store credentials to file', error as Error);
+      this.logger.error("Failed to store credentials to file", {
+        key: this.maskKey(key),
+        error,
+      });
+      throw this.createStorageError(
+        "STORE_FAILED",
+        "Failed to store credentials to file",
+        error as Error,
+      );
     }
   }
 
@@ -374,12 +432,12 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
       this.validateKey(key);
 
       const filePath = this.getFilePath(key);
-      
-      if (!await this.fileExists(filePath)) {
+
+      if (!(await this.fileExists(filePath))) {
         return null;
       }
 
-      const fileContent = await fs.promises.readFile(filePath, 'utf8');
+      const fileContent = await fs.promises.readFile(filePath, "utf8");
       const entry: StorageEntry = JSON.parse(fileContent);
 
       // Check expiration
@@ -391,20 +449,28 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
       // Update access tracking
       entry.accessCount++;
       entry.lastAccessed = Date.now();
-      await fs.promises.writeFile(filePath, JSON.stringify(entry, null, 2), { mode: 0o600 });
-
-      this.logger.debug('Credentials retrieved from file', { 
-        key: this.maskKey(key),
-        filePath,
-        provider: entry.credentials.provider
+      await fs.promises.writeFile(filePath, JSON.stringify(entry, null, 2), {
+        mode: 0o600,
       });
 
-      this.emit('retrieved', { key, credentials: entry.credentials });
-      return entry.credentials;
+      this.logger.debug("Credentials retrieved from file", {
+        key: this.maskKey(key),
+        filePath,
+        provider: entry.credentials.provider,
+      });
 
+      this.emit("retrieved", { key, credentials: entry.credentials });
+      return entry.credentials;
     } catch (error) {
-      this.logger.error('Failed to retrieve credentials from file', { key: this.maskKey(key), error });
-      throw this.createStorageError('RETRIEVE_FAILED', 'Failed to retrieve credentials from file', error as Error);
+      this.logger.error("Failed to retrieve credentials from file", {
+        key: this.maskKey(key),
+        error,
+      });
+      throw this.createStorageError(
+        "RETRIEVE_FAILED",
+        "Failed to retrieve credentials from file",
+        error as Error,
+      );
     }
   }
 
@@ -413,34 +479,46 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
       this.validateKey(key);
 
       const filePath = this.getFilePath(key);
-      
+
       if (await this.fileExists(filePath)) {
         await fs.promises.unlink(filePath);
-        this.logger.debug('Credentials file deleted', { key: this.maskKey(key), filePath });
-        this.emit('deleted', { key });
+        this.logger.debug("Credentials file deleted", {
+          key: this.maskKey(key),
+          filePath,
+        });
+        this.emit("deleted", { key });
       }
-
     } catch (error) {
-      this.logger.error('Failed to delete credentials file', { key: this.maskKey(key), error });
-      throw this.createStorageError('DELETE_FAILED', 'Failed to delete credentials file', error as Error);
+      this.logger.error("Failed to delete credentials file", {
+        key: this.maskKey(key),
+        error,
+      });
+      throw this.createStorageError(
+        "DELETE_FAILED",
+        "Failed to delete credentials file",
+        error as Error,
+      );
     }
   }
 
   async list(): Promise<string[]> {
     try {
       this.ensureStorageDirectory();
-      
+
       const files = await fs.promises.readdir(this.basePath);
       const keys = files
-        .filter(file => file.endsWith('.json'))
-        .map(file => file.replace('.json', ''));
+        .filter((file) => file.endsWith(".json"))
+        .map((file) => file.replace(".json", ""));
 
-      this.logger.debug('Listed credential files', { count: keys.length });
+      this.logger.debug("Listed credential files", { count: keys.length });
       return keys;
-
     } catch (error) {
-      this.logger.error('Failed to list credential files', { error });
-      throw this.createStorageError('LIST_FAILED', 'Failed to list credential files', error as Error);
+      this.logger.error("Failed to list credential files", { error });
+      throw this.createStorageError(
+        "LIST_FAILED",
+        "Failed to list credential files",
+        error as Error,
+      );
     }
   }
 
@@ -454,16 +532,22 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
           await this.delete(key);
           count++;
         } catch (error) {
-          this.logger.warn('Failed to delete credential file during clear', { key, error });
+          this.logger.warn("Failed to delete credential file during clear", {
+            key,
+            error,
+          });
         }
       }
 
-      this.logger.info('All credential files cleared', { count });
-      this.emit('cleared', { count });
-
+      this.logger.info("All credential files cleared", { count });
+      this.emit("cleared", { count });
     } catch (error) {
-      this.logger.error('Failed to clear credential files', { error });
-      throw this.createStorageError('CLEAR_FAILED', 'Failed to clear credential files', error as Error);
+      this.logger.error("Failed to clear credential files", { error });
+      throw this.createStorageError(
+        "CLEAR_FAILED",
+        "Failed to clear credential files",
+        error as Error,
+      );
     }
   }
 
@@ -472,9 +556,11 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
       this.validateKey(key);
       const filePath = this.getFilePath(key);
       return await this.fileExists(filePath);
-
     } catch (error) {
-      this.logger.error('Failed to check credential file existence', { key: this.maskKey(key), error });
+      this.logger.error("Failed to check credential file existence", {
+        key: this.maskKey(key),
+        error,
+      });
       return false;
     }
   }
@@ -487,7 +573,7 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
 
   private getFilePath(key: string): string {
     // Sanitize key for filesystem
-    const sanitizedKey = key.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const sanitizedKey = key.replace(/[^a-zA-Z0-9_-]/g, "_");
     return path.join(this.basePath, `${sanitizedKey}.json`);
   }
 
@@ -501,36 +587,40 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
   }
 
   private validateKey(key: string): void {
-    if (!key || typeof key !== 'string' || key.trim() === '') {
-      throw new Error('Invalid storage key');
+    if (!key || typeof key !== "string" || key.trim() === "") {
+      throw new Error("Invalid storage key");
     }
   }
 
   private validateCredentials(credentials: AuthCredentials): void {
-    if (!credentials || typeof credentials !== 'object') {
-      throw new Error('Invalid credentials object');
+    if (!credentials || typeof credentials !== "object") {
+      throw new Error("Invalid credentials object");
     }
 
     if (!credentials.type || !credentials.provider) {
-      throw new Error('Credentials missing required fields: type and provider');
+      throw new Error("Credentials missing required fields: type and provider");
     }
   }
 
   private maskKey(key: string): string {
-    if (key.length <= 8) return '***';
-    return key.substring(0, 4) + '***' + key.substring(key.length - 4);
+    if (key.length <= 8) return "***";
+    return key.substring(0, 4) + "***" + key.substring(key.length - 4);
   }
 
-  private createStorageError(code: string, message: string, originalError?: Error): AuthError {
+  private createStorageError(
+    code: string,
+    message: string,
+    originalError?: Error,
+  ): AuthError {
     const error = new Error(message) as AuthError;
     error.code = code;
-    error.type = 'configuration';
+    error.type = "configuration";
     error.retryable = false;
     error.originalError = originalError;
     error.context = {
       storageType: this.config.type,
       basePath: this.basePath,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
     return error;
   }
@@ -539,12 +629,14 @@ export class FileCredentialStorage extends EventEmitter implements CredentialSto
 /**
  * Factory function to create credential storage instances
  */
-export function createCredentialStorage(config: StorageConfig): CredentialStorage {
+export function createCredentialStorage(
+  config: StorageConfig,
+): CredentialStorage {
   switch (config.type) {
-    case 'memory':
+    case "memory":
       return new MemoryCredentialStorage(config);
-    case 'file':
-    case 'encrypted-file': // For now, treat encrypted-file same as file
+    case "file":
+    case "encrypted-file": // For now, treat encrypted-file same as file
       return new FileCredentialStorage(config);
     default:
       throw new Error(`Unsupported storage type: ${config.type}`);

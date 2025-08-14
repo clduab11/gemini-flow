@@ -5,18 +5,18 @@
 
 export interface VideoStreamRequest {
   id: string;
-  source: 'file' | 'camera' | 'generated';
+  source: "file" | "camera" | "generated";
   quality: StreamQuality;
   endpoint: string;
   metadata?: StreamMetadata;
-  priority?: 'low' | 'medium' | 'high' | 'critical';
+  priority?: "low" | "medium" | "high" | "critical";
   streaming?: StreamingOptions;
   preview?: PreviewOptions;
 }
 
 export interface AudioStreamRequest {
   id: string;
-  source: 'file' | 'microphone' | 'generated';
+  source: "file" | "microphone" | "generated";
   quality: StreamQuality;
   endpoint: string;
   processing?: AudioProcessing;
@@ -24,7 +24,7 @@ export interface AudioStreamRequest {
 }
 
 export interface StreamQuality {
-  level: 'low' | 'medium' | 'high' | 'ultra' | 'auto';
+  level: "low" | "medium" | "high" | "ultra" | "auto";
   video?: VideoStreamQuality;
   audio?: AudioStreamQuality;
   bandwidth: number;
@@ -93,7 +93,7 @@ export interface PreviewOptions {
 
 export interface MultiModalChunk {
   id: string;
-  type: 'video' | 'audio' | 'data';
+  type: "video" | "audio" | "data";
   timestamp: number;
   sequenceNumber: number;
   data: Buffer;
@@ -109,7 +109,7 @@ export interface ChunkMetadata {
   encoding: string;
   checksum: string;
   synchronized: boolean;
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  priority: "low" | "medium" | "high" | "critical";
 }
 
 export interface StreamInfo {

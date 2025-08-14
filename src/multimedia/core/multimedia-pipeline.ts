@@ -1,14 +1,14 @@
 /**
  * Unified Multimedia Pipeline
- * 
+ *
  * Orchestrates Imagen 4, Chirp Audio, and Lyria Music generation
  * with shared infrastructure and optimizations
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
-import { PerformanceMonitor } from '../../core/performance-monitor.js';
-import { CacheManager } from '../../core/cache-manager.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
+import { PerformanceMonitor } from "../../core/performance-monitor.js";
+import { CacheManager } from "../../core/cache-manager.js";
 import {
   MultimediaPipelineConfig,
   MultimediaPipelineResponse,
@@ -19,24 +19,24 @@ import {
   BatchStrategy,
   MonitoringConfig,
   SecurityConfig,
-  MultimediaMetadata
-} from '../../types/multimedia.js';
+  MultimediaMetadata,
+} from "../../types/multimedia.js";
 
-import { ImageGenerationPipeline } from '../image/image-generation-pipeline.js';
-import { AudioProcessor } from '../audio/audio-processor.js';
-import { MusicComposer } from '../music/music-composer.js';
+import { ImageGenerationPipeline } from "../image/image-generation-pipeline.js";
+import { AudioProcessor } from "../audio/audio-processor.js";
+import { MusicComposer } from "../music/music-composer.js";
 
 export class MultimediaPipeline extends EventEmitter {
   private logger: Logger;
   private config: MultimediaPipelineConfig;
   private performance: PerformanceMonitor;
   private cache: CacheManager;
-  
+
   // Specialized processors
   private imageGenerator: ImageGenerationPipeline;
   private audioProcessor: AudioProcessor;
   private musicComposer: MusicComposer;
-  
+
   // Pipeline state
   private activeRequests: Map<string, MultimediaPipelineResponse> = new Map();
   private requestQueue: Array<{
@@ -45,11 +45,11 @@ export class MultimediaPipeline extends EventEmitter {
     resolve: (result: MultimediaGenerationResponse) => void;
     reject: (error: Error) => void;
   }> = [];
-  
+
   // Batch processing
   private batchQueues: Map<string, MultimediaGenerationRequest[]> = new Map();
   private batchTimers: Map<string, NodeJS.Timeout> = new Map();
-  
+
   // Metrics
   private metrics = {
     totalRequests: 0,
@@ -62,21 +62,21 @@ export class MultimediaPipeline extends EventEmitter {
     cacheHits: 0,
     totalLatency: 0,
     totalCost: 0,
-    activeConnections: 0
+    activeConnections: 0,
   };
 
   constructor(config: MultimediaPipelineConfig) {
     super();
     this.config = config;
-    this.logger = new Logger('MultimediaPipeline');
+    this.logger = new Logger("MultimediaPipeline");
     this.performance = new PerformanceMonitor();
-    
+
     // Initialize shared cache with multimedia-optimized settings
     this.cache = new CacheManager({
       maxMemorySize: 200 * 1024 * 1024, // 200MB for multimedia content
       defaultTTL: this.config.shared.caching.ttl,
       evictionPolicy: this.config.shared.caching.evictionPolicy,
-      compression: true // Enable compression for large multimedia data
+      compression: true, // Enable compression for large multimedia data
     });
 
     // Initialize specialized processors
@@ -93,13 +93,13 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private async initializePipeline(): Promise<void> {
     try {
-      this.logger.info('Initializing multimedia pipeline...');
+      this.logger.info("Initializing multimedia pipeline...");
 
       // Initialize all processors in parallel
       await Promise.all([
         this.imageGenerator.initialize(),
         this.audioProcessor.initialize(),
-        this.musicComposer.initialize()
+        this.musicComposer.initialize(),
       ]);
 
       // Start monitoring if enabled
@@ -112,11 +112,10 @@ export class MultimediaPipeline extends EventEmitter {
         this.setupBatchProcessing();
       }
 
-      this.logger.info('Multimedia pipeline initialized successfully');
-      this.emit('initialized');
-
+      this.logger.info("Multimedia pipeline initialized successfully");
+      this.emit("initialized");
     } catch (error) {
-      this.logger.error('Failed to initialize multimedia pipeline', error);
+      this.logger.error("Failed to initialize multimedia pipeline", error);
       throw error;
     }
   }
@@ -126,30 +125,30 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private setupEventHandlers(): void {
     // Image generation events
-    this.imageGenerator.on('generation_completed', (data) => {
-      this.handleProcessorEvent('image', 'completed', data);
+    this.imageGenerator.on("generation_completed", (data) => {
+      this.handleProcessorEvent("image", "completed", data);
     });
 
-    this.imageGenerator.on('generation_failed', (data) => {
-      this.handleProcessorEvent('image', 'failed', data);
+    this.imageGenerator.on("generation_failed", (data) => {
+      this.handleProcessorEvent("image", "failed", data);
     });
 
     // Audio processing events
-    this.audioProcessor.on('audio_generated', (data) => {
-      this.handleProcessorEvent('audio', 'completed', data);
+    this.audioProcessor.on("audio_generated", (data) => {
+      this.handleProcessorEvent("audio", "completed", data);
     });
 
-    this.audioProcessor.on('audio_failed', (data) => {
-      this.handleProcessorEvent('audio', 'failed', data);
+    this.audioProcessor.on("audio_failed", (data) => {
+      this.handleProcessorEvent("audio", "failed", data);
     });
 
     // Music composition events
-    this.musicComposer.on('composition_completed', (data) => {
-      this.handleProcessorEvent('music', 'completed', data);
+    this.musicComposer.on("composition_completed", (data) => {
+      this.handleProcessorEvent("music", "completed", data);
     });
 
-    this.musicComposer.on('composition_failed', (data) => {
-      this.handleProcessorEvent('music', 'failed', data);
+    this.musicComposer.on("composition_failed", (data) => {
+      this.handleProcessorEvent("music", "failed", data);
     });
   }
 
@@ -161,14 +160,14 @@ export class MultimediaPipeline extends EventEmitter {
     const activeRequest = this.activeRequests.get(requestId);
 
     if (activeRequest) {
-      if (status === 'completed') {
-        activeRequest.status = 'completed';
+      if (status === "completed") {
+        activeRequest.status = "completed";
         activeRequest.result = data;
         activeRequest.progress = 1.0;
         this.metrics.successfulRequests++;
-      } else if (status === 'failed') {
-        activeRequest.status = 'failed';
-        activeRequest.error = data.error || 'Processing failed';
+      } else if (status === "failed") {
+        activeRequest.status = "failed";
+        activeRequest.error = data.error || "Processing failed";
         this.metrics.failedRequests++;
       }
 
@@ -176,10 +175,10 @@ export class MultimediaPipeline extends EventEmitter {
       this.updatePipelineStages(activeRequest, status);
 
       // Emit unified event
-      this.emit('request_updated', activeRequest);
+      this.emit("request_updated", activeRequest);
 
       // Clean up completed/failed requests
-      if (status === 'completed' || status === 'failed') {
+      if (status === "completed" || status === "failed") {
         this.activeRequests.delete(requestId);
       }
     }
@@ -190,11 +189,11 @@ export class MultimediaPipeline extends EventEmitter {
    */
   async generate(
     request: MultimediaGenerationRequest,
-    context: MultimediaContext
+    context: MultimediaContext,
   ): Promise<MultimediaGenerationResponse> {
     const startTime = performance.now();
     const requestId = context.requestId;
-    
+
     this.metrics.totalRequests++;
 
     try {
@@ -207,7 +206,7 @@ export class MultimediaPipeline extends EventEmitter {
         const cachedResult = await this.cache.get(cacheKey);
         if (cachedResult) {
           this.metrics.cacheHits++;
-          this.logger.debug('Cache hit for multimedia request', { requestId });
+          this.logger.debug("Cache hit for multimedia request", { requestId });
           return cachedResult;
         }
       }
@@ -216,14 +215,16 @@ export class MultimediaPipeline extends EventEmitter {
       const pipelineResponse: MultimediaPipelineResponse = {
         id: requestId,
         type: this.getRequestType(request),
-        status: 'pending',
+        status: "pending",
         progress: 0,
         metadata: this.createMetadata(requestId, startTime),
         pipeline: {
           stages: this.createPipelineStages(request),
           currentStage: 0,
-          estimatedCompletion: new Date(Date.now() + this.estimateCompletionTime(request))
-        }
+          estimatedCompletion: new Date(
+            Date.now() + this.estimateCompletionTime(request),
+          ),
+        },
       };
 
       this.activeRequests.set(requestId, pipelineResponse);
@@ -234,7 +235,11 @@ export class MultimediaPipeline extends EventEmitter {
       }
 
       // Process request directly
-      const result = await this.processRequest(request, context, pipelineResponse);
+      const result = await this.processRequest(
+        request,
+        context,
+        pipelineResponse,
+      );
 
       // Cache successful results
       if (this.config.shared.caching.enabled && result) {
@@ -247,26 +252,28 @@ export class MultimediaPipeline extends EventEmitter {
       this.metrics.successfulRequests++;
 
       // Record performance
-      this.performance.recordMetric('multimedia_generation_latency', latency);
-      this.performance.recordMetric('multimedia_generation_cost', result.metadata.cost);
+      this.performance.recordMetric("multimedia_generation_latency", latency);
+      this.performance.recordMetric(
+        "multimedia_generation_cost",
+        result.metadata.cost,
+      );
 
-      this.logger.info('Multimedia generation completed', {
+      this.logger.info("Multimedia generation completed", {
         requestId,
         type: pipelineResponse.type,
         latency,
-        cost: result.metadata.cost
+        cost: result.metadata.cost,
       });
 
       return result;
-
     } catch (error) {
       this.metrics.failedRequests++;
-      
+
       const latency = performance.now() - startTime;
-      this.logger.error('Multimedia generation failed', {
+      this.logger.error("Multimedia generation failed", {
         requestId,
         latency,
-        error: error.message
+        error: error.message,
       });
 
       throw error;
@@ -279,11 +286,11 @@ export class MultimediaPipeline extends EventEmitter {
   private async processRequest(
     request: MultimediaGenerationRequest,
     context: MultimediaContext,
-    pipelineResponse: MultimediaPipelineResponse
+    pipelineResponse: MultimediaPipelineResponse,
   ): Promise<MultimediaGenerationResponse> {
-    pipelineResponse.status = 'processing';
+    pipelineResponse.status = "processing";
     pipelineResponse.progress = 0.1;
-    this.emit('request_updated', pipelineResponse);
+    this.emit("request_updated", pipelineResponse);
 
     const requestType = this.getRequestType(request);
 
@@ -291,19 +298,19 @@ export class MultimediaPipeline extends EventEmitter {
       let result: MultimediaGenerationResponse;
 
       switch (requestType) {
-        case 'image':
+        case "image":
           this.metrics.imageRequests++;
           pipelineResponse.pipeline.currentStage = 1;
           result = await this.imageGenerator.generateImage(request as any);
           break;
 
-        case 'audio':
+        case "audio":
           this.metrics.audioRequests++;
           pipelineResponse.pipeline.currentStage = 1;
           result = await this.audioProcessor.generateAudio(request as any);
           break;
 
-        case 'music':
+        case "music":
           this.metrics.musicRequests++;
           pipelineResponse.pipeline.currentStage = 1;
           result = await this.musicComposer.composeMusic(request as any);
@@ -316,21 +323,20 @@ export class MultimediaPipeline extends EventEmitter {
       // Apply post-processing
       pipelineResponse.pipeline.currentStage = 2;
       pipelineResponse.progress = 0.8;
-      this.emit('request_updated', pipelineResponse);
+      this.emit("request_updated", pipelineResponse);
 
       const processedResult = await this.applyPostProcessing(result, context);
 
-      pipelineResponse.status = 'completed';
+      pipelineResponse.status = "completed";
       pipelineResponse.progress = 1.0;
       pipelineResponse.result = processedResult;
-      this.emit('request_updated', pipelineResponse);
+      this.emit("request_updated", pipelineResponse);
 
       return processedResult;
-
     } catch (error) {
-      pipelineResponse.status = 'failed';
+      pipelineResponse.status = "failed";
       pipelineResponse.error = error.message;
-      this.emit('request_updated', pipelineResponse);
+      this.emit("request_updated", pipelineResponse);
       throw error;
     }
   }
@@ -340,7 +346,7 @@ export class MultimediaPipeline extends EventEmitter {
    */
   async *generateStream(
     request: MultimediaGenerationRequest,
-    context: MultimediaContext
+    context: MultimediaContext,
   ): AsyncIterableIterator<MultimediaPipelineResponse> {
     const requestId = context.requestId;
     const requestType = this.getRequestType(request);
@@ -349,45 +355,59 @@ export class MultimediaPipeline extends EventEmitter {
     const pipelineResponse: MultimediaPipelineResponse = {
       id: requestId,
       type: requestType,
-      status: 'processing',
+      status: "processing",
       progress: 0,
       metadata: this.createMetadata(requestId, performance.now()),
       pipeline: {
         stages: this.createPipelineStages(request),
         currentStage: 0,
-        estimatedCompletion: new Date(Date.now() + this.estimateCompletionTime(request))
-      }
+        estimatedCompletion: new Date(
+          Date.now() + this.estimateCompletionTime(request),
+        ),
+      },
     };
 
     yield pipelineResponse;
 
     try {
       switch (requestType) {
-        case 'audio':
+        case "audio":
           if (this.audioProcessor.supportsStreaming()) {
-            for await (const chunk of this.audioProcessor.generateAudioStream(request as any)) {
+            for await (const chunk of this.audioProcessor.generateAudioStream(
+              request as any,
+            )) {
               pipelineResponse.progress = chunk.progress || 0;
               pipelineResponse.result = chunk;
               yield pipelineResponse;
             }
           } else {
             // Fallback to regular generation with progress updates
-            const result = await this.processRequest(request, context, pipelineResponse);
+            const result = await this.processRequest(
+              request,
+              context,
+              pipelineResponse,
+            );
             pipelineResponse.result = result;
             yield pipelineResponse;
           }
           break;
 
-        case 'music':
+        case "music":
           if (this.musicComposer.supportsStreaming()) {
-            for await (const chunk of this.musicComposer.composeMusicStream(request as any)) {
+            for await (const chunk of this.musicComposer.composeMusicStream(
+              request as any,
+            )) {
               pipelineResponse.progress = chunk.progress || 0;
               pipelineResponse.result = chunk;
               yield pipelineResponse;
             }
           } else {
             // Fallback to regular generation with progress updates
-            const result = await this.processRequest(request, context, pipelineResponse);
+            const result = await this.processRequest(
+              request,
+              context,
+              pipelineResponse,
+            );
             pipelineResponse.result = result;
             yield pipelineResponse;
           }
@@ -395,17 +415,20 @@ export class MultimediaPipeline extends EventEmitter {
 
         default:
           // For non-streaming requests, provide progress updates
-          const result = await this.processRequest(request, context, pipelineResponse);
+          const result = await this.processRequest(
+            request,
+            context,
+            pipelineResponse,
+          );
           pipelineResponse.result = result;
           yield pipelineResponse;
       }
 
-      pipelineResponse.status = 'completed';
+      pipelineResponse.status = "completed";
       pipelineResponse.progress = 1.0;
       yield pipelineResponse;
-
     } catch (error) {
-      pipelineResponse.status = 'failed';
+      pipelineResponse.status = "failed";
       pipelineResponse.error = error.message;
       yield pipelineResponse;
     }
@@ -418,14 +441,14 @@ export class MultimediaPipeline extends EventEmitter {
     requests: Array<{
       request: MultimediaGenerationRequest;
       context: MultimediaContext;
-    }>
+    }>,
   ): Promise<MultimediaGenerationResponse[]> {
     this.metrics.batchRequests++;
-    
+
     const batchId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    this.logger.info('Starting batch generation', {
+    this.logger.info("Starting batch generation", {
       batchId,
-      requestCount: requests.length
+      requestCount: requests.length,
     });
 
     try {
@@ -435,22 +458,25 @@ export class MultimediaPipeline extends EventEmitter {
 
       // Process each group
       for (const [type, typeRequests] of groupedRequests) {
-        const typeResults = await this.processBatchByType(type, typeRequests, batchId);
+        const typeResults = await this.processBatchByType(
+          type,
+          typeRequests,
+          batchId,
+        );
         results.push(...typeResults);
       }
 
-      this.logger.info('Batch generation completed', {
+      this.logger.info("Batch generation completed", {
         batchId,
         requestCount: requests.length,
-        successCount: results.length
+        successCount: results.length,
       });
 
       return results;
-
     } catch (error) {
-      this.logger.error('Batch generation failed', {
+      this.logger.error("Batch generation failed", {
         batchId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -461,28 +487,28 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private async validateRequest(
     request: MultimediaGenerationRequest,
-    context: MultimediaContext
+    context: MultimediaContext,
   ): Promise<void> {
     // Basic validation
-    if (!request || typeof request !== 'object') {
-      throw new Error('Invalid request object');
+    if (!request || typeof request !== "object") {
+      throw new Error("Invalid request object");
     }
 
     if (!context.requestId) {
-      throw new Error('Request ID is required');
+      throw new Error("Request ID is required");
     }
 
     // Type-specific validation
     const requestType = this.getRequestType(request);
-    
+
     switch (requestType) {
-      case 'image':
+      case "image":
         await this.imageGenerator.validateRequest(request as any);
         break;
-      case 'audio':
+      case "audio":
         await this.audioProcessor.validateRequest(request as any);
         break;
-      case 'music':
+      case "music":
         await this.musicComposer.validateRequest(request as any);
         break;
       default:
@@ -503,11 +529,13 @@ export class MultimediaPipeline extends EventEmitter {
   /**
    * Validate content for safety
    */
-  private async validateContent(request: MultimediaGenerationRequest): Promise<void> {
+  private async validateContent(
+    request: MultimediaGenerationRequest,
+  ): Promise<void> {
     // Implement content safety validation
     // This would integrate with Google's safety APIs
-    
-    if ('prompt' in request && request.prompt) {
+
+    if ("prompt" in request && request.prompt) {
       // Check for harmful content in prompts
       const safetyCheck = await this.checkContentSafety(request.prompt);
       if (!safetyCheck.safe) {
@@ -515,7 +543,7 @@ export class MultimediaPipeline extends EventEmitter {
       }
     }
 
-    if ('text' in request && request.text) {
+    if ("text" in request && request.text) {
       // Check for harmful content in text
       const safetyCheck = await this.checkContentSafety(request.text);
       if (!safetyCheck.safe) {
@@ -527,10 +555,12 @@ export class MultimediaPipeline extends EventEmitter {
   /**
    * Check content safety
    */
-  private async checkContentSafety(content: string): Promise<{ safe: boolean; reason?: string }> {
+  private async checkContentSafety(
+    content: string,
+  ): Promise<{ safe: boolean; reason?: string }> {
     // Implement safety checking logic
     // This would integrate with content moderation APIs
-    
+
     const harmfulPatterns = [
       /violence/i,
       /illegal/i,
@@ -542,7 +572,7 @@ export class MultimediaPipeline extends EventEmitter {
       if (pattern.test(content)) {
         return {
           safe: false,
-          reason: `Content contains potentially harmful material: ${pattern.source}`
+          reason: `Content contains potentially harmful material: ${pattern.source}`,
         };
       }
     }
@@ -555,15 +585,15 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private async validateBudget(
     request: MultimediaGenerationRequest,
-    context: MultimediaContext
+    context: MultimediaContext,
   ): Promise<void> {
     if (!context.budget) return;
 
     const estimatedCost = await this.estimateCost(request);
-    
+
     if (estimatedCost > context.budget.maxCost) {
       throw new Error(
-        `Estimated cost (${estimatedCost} ${context.budget.currency}) exceeds budget limit (${context.budget.maxCost} ${context.budget.currency})`
+        `Estimated cost (${estimatedCost} ${context.budget.currency}) exceeds budget limit (${context.budget.maxCost} ${context.budget.currency})`,
       );
     }
   }
@@ -571,15 +601,17 @@ export class MultimediaPipeline extends EventEmitter {
   /**
    * Estimate cost for request
    */
-  private async estimateCost(request: MultimediaGenerationRequest): Promise<number> {
+  private async estimateCost(
+    request: MultimediaGenerationRequest,
+  ): Promise<number> {
     const requestType = this.getRequestType(request);
-    
+
     switch (requestType) {
-      case 'image':
+      case "image":
         return this.imageGenerator.estimateCost(request as any);
-      case 'audio':
+      case "audio":
         return this.audioProcessor.estimateCost(request as any);
-      case 'music':
+      case "music":
         return this.musicComposer.estimateCost(request as any);
       default:
         return 0;
@@ -589,29 +621,35 @@ export class MultimediaPipeline extends EventEmitter {
   /**
    * Get request type
    */
-  private getRequestType(request: MultimediaGenerationRequest): 'image' | 'audio' | 'music' {
-    if ('prompt' in request && ('size' in request || 'style' in request)) {
-      return 'image';
+  private getRequestType(
+    request: MultimediaGenerationRequest,
+  ): "image" | "audio" | "music" {
+    if ("prompt" in request && ("size" in request || "style" in request)) {
+      return "image";
     }
-    if ('text' in request && 'voice' in request) {
-      return 'audio';
+    if ("text" in request && "voice" in request) {
+      return "audio";
     }
-    if ('prompt' in request && ('style' in request && 'genre' in (request.style || {}))) {
-      return 'music';
+    if (
+      "prompt" in request &&
+      "style" in request &&
+      "genre" in (request.style || {})
+    ) {
+      return "music";
     }
-    
+
     // Fallback detection based on specific properties
-    if ('artisticControls' in request || 'styleTransfer' in request) {
-      return 'image';
+    if ("artisticControls" in request || "styleTransfer" in request) {
+      return "image";
     }
-    if ('audioSettings' in request || 'effects' in request) {
-      return 'audio';
+    if ("audioSettings" in request || "effects" in request) {
+      return "audio";
     }
-    if ('composition' in request || 'instrumentation' in request) {
-      return 'music';
+    if ("composition" in request || "instrumentation" in request) {
+      return "music";
     }
-    
-    throw new Error('Cannot determine request type from request properties');
+
+    throw new Error("Cannot determine request type from request properties");
   }
 
   /**
@@ -619,10 +657,10 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private async applyPostProcessing(
     result: MultimediaGenerationResponse,
-    context: MultimediaContext
+    context: MultimediaContext,
   ): Promise<MultimediaGenerationResponse> {
     // Apply quality enhancements based on user tier
-    if (context.userTier === 'enterprise') {
+    if (context.userTier === "enterprise") {
       result = await this.applyEnterpriseEnhancements(result);
     }
 
@@ -632,7 +670,7 @@ export class MultimediaPipeline extends EventEmitter {
     }
 
     // Add watermarks for free tier
-    if (context.userTier === 'free') {
+    if (context.userTier === "free") {
       result = await this.applyWatermark(result);
     }
 
@@ -643,7 +681,7 @@ export class MultimediaPipeline extends EventEmitter {
    * Apply enterprise-level enhancements
    */
   private async applyEnterpriseEnhancements(
-    result: MultimediaGenerationResponse
+    result: MultimediaGenerationResponse,
   ): Promise<MultimediaGenerationResponse> {
     // Implement enterprise features like higher quality, extended duration, etc.
     return result;
@@ -653,7 +691,7 @@ export class MultimediaPipeline extends EventEmitter {
    * Apply compression optimizations
    */
   private async applyCompressionOptimizations(
-    result: MultimediaGenerationResponse
+    result: MultimediaGenerationResponse,
   ): Promise<MultimediaGenerationResponse> {
     // Implement compression for faster delivery
     return result;
@@ -663,7 +701,7 @@ export class MultimediaPipeline extends EventEmitter {
    * Apply watermark for free tier
    */
   private async applyWatermark(
-    result: MultimediaGenerationResponse
+    result: MultimediaGenerationResponse,
   ): Promise<MultimediaGenerationResponse> {
     // Implement watermarking logic
     return result;
@@ -674,17 +712,17 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private generateCacheKey(
     request: MultimediaGenerationRequest,
-    context: MultimediaContext
+    context: MultimediaContext,
   ): string {
     const keyData = {
       type: this.getRequestType(request),
       request: this.sanitizeRequestForCaching(request),
       userTier: context.userTier,
-      qualityTarget: context.qualityTarget
+      qualityTarget: context.qualityTarget,
     };
 
     const keyString = JSON.stringify(keyData);
-    return `multimedia_${Buffer.from(keyString).toString('base64').substring(0, 50)}`;
+    return `multimedia_${Buffer.from(keyString).toString("base64").substring(0, 50)}`;
   }
 
   /**
@@ -692,55 +730,60 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private sanitizeRequestForCaching(request: MultimediaGenerationRequest): any {
     const sanitized = { ...request };
-    
+
     // Remove context and sensitive information
     delete (sanitized as any).context;
-    
+
     return sanitized;
   }
 
   /**
    * Create metadata for response
    */
-  private createMetadata(requestId: string, startTime: number): MultimediaMetadata {
+  private createMetadata(
+    requestId: string,
+    startTime: number,
+  ): MultimediaMetadata {
     return {
       id: requestId,
       timestamp: new Date(),
-      model: 'multimedia-pipeline',
+      model: "multimedia-pipeline",
       latency: 0, // Will be updated
       cost: 0, // Will be calculated
       usage: {
         computeUnits: 0,
         storageBytes: 0,
-        bandwidth: 0
+        bandwidth: 0,
       },
       quality: {
         score: 0,
         artifacts: [],
-        safety: []
-      }
+        safety: [],
+      },
     };
   }
 
   /**
    * Create pipeline stages
    */
-  private createPipelineStages(request: MultimediaGenerationRequest): PipelineStage[] {
+  private createPipelineStages(
+    request: MultimediaGenerationRequest,
+  ): PipelineStage[] {
     const requestType = this.getRequestType(request);
-    
+
     const stages: PipelineStage[] = [
       {
-        name: 'validation',
-        status: 'pending'
+        name: "validation",
+        status: "pending",
       },
       {
         name: `${requestType}_generation`,
-        status: 'pending'
+        status: "pending",
       },
       {
-        name: 'post_processing',
-        status: 'pending'
-      }
+        name: "post_processing",
+        status: "pending",
+      },
     ];
 
     return stages;
@@ -751,22 +794,24 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private updatePipelineStages(
     pipelineResponse: MultimediaPipelineResponse,
-    status: string
+    status: string,
   ): void {
-    const currentStage = pipelineResponse.pipeline.stages[pipelineResponse.pipeline.currentStage];
-    
+    const currentStage =
+      pipelineResponse.pipeline.stages[pipelineResponse.pipeline.currentStage];
+
     if (currentStage) {
-      if (status === 'completed') {
-        currentStage.status = 'completed';
+      if (status === "completed") {
+        currentStage.status = "completed";
         currentStage.endTime = new Date();
         if (currentStage.startTime) {
-          currentStage.duration = currentStage.endTime.getTime() - currentStage.startTime.getTime();
+          currentStage.duration =
+            currentStage.endTime.getTime() - currentStage.startTime.getTime();
         }
-      } else if (status === 'failed') {
-        currentStage.status = 'failed';
+      } else if (status === "failed") {
+        currentStage.status = "failed";
         currentStage.endTime = new Date();
-      } else if (status === 'processing') {
-        currentStage.status = 'processing';
+      } else if (status === "processing") {
+        currentStage.status = "processing";
         currentStage.startTime = new Date();
       }
     }
@@ -777,12 +822,12 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private estimateCompletionTime(request: MultimediaGenerationRequest): number {
     const requestType = this.getRequestType(request);
-    
+
     // Base estimates in milliseconds
     const estimates = {
-      image: 5000,  // 5 seconds
+      image: 5000, // 5 seconds
       audio: 10000, // 10 seconds
-      music: 30000  // 30 seconds
+      music: 30000, // 30 seconds
     };
 
     return estimates[requestType] || 10000;
@@ -793,14 +838,14 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private shouldBatch(
     request: MultimediaGenerationRequest,
-    context: MultimediaContext
+    context: MultimediaContext,
   ): boolean {
     if (!this.config.shared.batching.enabled) {
       return false;
     }
 
     // Don't batch high-priority or real-time requests
-    if (context.priority === 'urgent' || context.latencyTarget < 5000) {
+    if (context.priority === "urgent" || context.latencyTarget < 5000) {
       return false;
     }
 
@@ -812,7 +857,7 @@ export class MultimediaPipeline extends EventEmitter {
    */
   private async enqueueBatchRequest(
     request: MultimediaGenerationRequest,
-    context: MultimediaContext
+    context: MultimediaContext,
   ): Promise<MultimediaGenerationResponse> {
     return new Promise((resolve, reject) => {
       this.requestQueue.push({ request, context, resolve, reject });
@@ -828,19 +873,20 @@ export class MultimediaPipeline extends EventEmitter {
 
     const batchSize = Math.min(
       this.requestQueue.length,
-      this.config.shared.batching.maxBatchSize
+      this.config.shared.batching.maxBatchSize,
     );
 
-    if (batchSize >= this.config.shared.batching.maxBatchSize ||
-        this.requestQueue.length > 0 && !this.batchTimers.has('default')) {
-      
+    if (
+      batchSize >= this.config.shared.batching.maxBatchSize ||
+      (this.requestQueue.length > 0 && !this.batchTimers.has("default"))
+    ) {
       // Set timer for batch processing
       const timer = setTimeout(() => {
         this.flushBatchQueue();
-        this.batchTimers.delete('default');
+        this.batchTimers.delete("default");
       }, this.config.shared.batching.timeout);
-      
-      this.batchTimers.set('default', timer);
+
+      this.batchTimers.set("default", timer);
     }
   }
 
@@ -852,15 +898,15 @@ export class MultimediaPipeline extends EventEmitter {
 
     const batchSize = Math.min(
       this.requestQueue.length,
-      this.config.shared.batching.maxBatchSize
+      this.config.shared.batching.maxBatchSize,
     );
 
     const batch = this.requestQueue.splice(0, batchSize);
-    
+
     try {
-      const requests = batch.map(item => ({
+      const requests = batch.map((item) => ({
         request: item.request,
-        context: item.context
+        context: item.context,
       }));
 
       const results = await this.batchGenerate(requests);
@@ -870,13 +916,12 @@ export class MultimediaPipeline extends EventEmitter {
         if (results[index]) {
           item.resolve(results[index]);
         } else {
-          item.reject(new Error('Batch processing failed'));
+          item.reject(new Error("Batch processing failed"));
         }
       });
-
     } catch (error) {
       // Reject all promises in the batch
-      batch.forEach(item => {
+      batch.forEach((item) => {
         item.reject(error as Error);
       });
     }
@@ -889,17 +934,17 @@ export class MultimediaPipeline extends EventEmitter {
     requests: Array<{
       request: MultimediaGenerationRequest;
       context: MultimediaContext;
-    }>
+    }>,
   ): Map<string, typeof requests> {
     const groups = new Map<string, typeof requests>();
 
     for (const item of requests) {
       const type = this.getRequestType(item.request);
-      
+
       if (!groups.has(type)) {
         groups.set(type, []);
       }
-      
+
       groups.get(type)!.push(item);
     }
 
@@ -915,32 +960,36 @@ export class MultimediaPipeline extends EventEmitter {
       request: MultimediaGenerationRequest;
       context: MultimediaContext;
     }>,
-    batchId: string
+    batchId: string,
   ): Promise<MultimediaGenerationResponse[]> {
-    this.logger.debug('Processing batch by type', {
+    this.logger.debug("Processing batch by type", {
       batchId,
       type,
-      requestCount: requests.length
+      requestCount: requests.length,
     });
 
     const results: MultimediaGenerationResponse[] = [];
 
     switch (type) {
-      case 'image':
+      case "image":
         for (const { request, context } of requests) {
-          const result = await this.imageGenerator.generateImage(request as any);
+          const result = await this.imageGenerator.generateImage(
+            request as any,
+          );
           results.push(result);
         }
         break;
 
-      case 'audio':
+      case "audio":
         for (const { request, context } of requests) {
-          const result = await this.audioProcessor.generateAudio(request as any);
+          const result = await this.audioProcessor.generateAudio(
+            request as any,
+          );
           results.push(result);
         }
         break;
 
-      case 'music':
+      case "music":
         for (const { request, context } of requests) {
           const result = await this.musicComposer.composeMusic(request as any);
           results.push(result);
@@ -991,15 +1040,24 @@ export class MultimediaPipeline extends EventEmitter {
       performanceMetrics: this.performance.getMetrics(),
       activeRequests: this.activeRequests.size,
       queuedRequests: this.requestQueue.length,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
-    this.emit('metrics_collected', metrics);
-    
+    this.emit("metrics_collected", metrics);
+
     if (this.config.shared.monitoring.performanceTracking) {
-      this.performance.recordMetric('pipeline_active_requests', this.activeRequests.size);
-      this.performance.recordMetric('pipeline_queued_requests', this.requestQueue.length);
-      this.performance.recordMetric('pipeline_cache_hit_rate', this.metrics.cacheHits / Math.max(this.metrics.totalRequests, 1));
+      this.performance.recordMetric(
+        "pipeline_active_requests",
+        this.activeRequests.size,
+      );
+      this.performance.recordMetric(
+        "pipeline_queued_requests",
+        this.requestQueue.length,
+      );
+      this.performance.recordMetric(
+        "pipeline_cache_hit_rate",
+        this.metrics.cacheHits / Math.max(this.metrics.totalRequests, 1),
+      );
     }
   }
 
@@ -1009,19 +1067,21 @@ export class MultimediaPipeline extends EventEmitter {
   private async performHealthCheck(): Promise<void> {
     try {
       const healthStatus = {
-        pipeline: 'healthy',
+        pipeline: "healthy",
         image: await this.imageGenerator.healthCheck(),
         audio: await this.audioProcessor.healthCheck(),
         music: await this.musicComposer.healthCheck(),
         cache: this.cache.getStats(),
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
-      this.emit('health_check', healthStatus);
-
+      this.emit("health_check", healthStatus);
     } catch (error) {
-      this.logger.error('Health check failed', error);
-      this.emit('health_check_failed', { error: error.message, timestamp: new Date() });
+      this.logger.error("Health check failed", error);
+      this.emit("health_check_failed", {
+        error: error.message,
+        timestamp: new Date(),
+      });
     }
   }
 
@@ -1031,12 +1091,21 @@ export class MultimediaPipeline extends EventEmitter {
   getMetrics() {
     return {
       ...this.metrics,
-      avgLatency: this.metrics.totalRequests > 0 ? this.metrics.totalLatency / this.metrics.totalRequests : 0,
-      successRate: this.metrics.totalRequests > 0 ? this.metrics.successfulRequests / this.metrics.totalRequests : 0,
-      cacheHitRate: this.metrics.totalRequests > 0 ? this.metrics.cacheHits / this.metrics.totalRequests : 0,
+      avgLatency:
+        this.metrics.totalRequests > 0
+          ? this.metrics.totalLatency / this.metrics.totalRequests
+          : 0,
+      successRate:
+        this.metrics.totalRequests > 0
+          ? this.metrics.successfulRequests / this.metrics.totalRequests
+          : 0,
+      cacheHitRate:
+        this.metrics.totalRequests > 0
+          ? this.metrics.cacheHits / this.metrics.totalRequests
+          : 0,
       activeRequests: this.activeRequests.size,
       queuedRequests: this.requestQueue.length,
-      cacheStats: this.cache.getStats()
+      cacheStats: this.cache.getStats(),
     };
   }
 
@@ -1052,19 +1121,19 @@ export class MultimediaPipeline extends EventEmitter {
    */
   async cancelRequest(requestId: string): Promise<boolean> {
     const activeRequest = this.activeRequests.get(requestId);
-    
+
     if (activeRequest) {
-      activeRequest.status = 'cancelled';
+      activeRequest.status = "cancelled";
       this.activeRequests.delete(requestId);
-      
+
       // Try to cancel in specialized processors
       await Promise.all([
         this.imageGenerator.cancelRequest(requestId).catch(() => {}),
         this.audioProcessor.cancelRequest(requestId).catch(() => {}),
-        this.musicComposer.cancelRequest(requestId).catch(() => {})
+        this.musicComposer.cancelRequest(requestId).catch(() => {}),
       ]);
 
-      this.emit('request_cancelled', { requestId });
+      this.emit("request_cancelled", { requestId });
       return true;
     }
 
@@ -1075,7 +1144,7 @@ export class MultimediaPipeline extends EventEmitter {
    * Shutdown pipeline
    */
   async shutdown(): Promise<void> {
-    this.logger.info('Shutting down multimedia pipeline...');
+    this.logger.info("Shutting down multimedia pipeline...");
 
     // Clear timers
     for (const timer of this.batchTimers.values()) {
@@ -1087,12 +1156,12 @@ export class MultimediaPipeline extends EventEmitter {
     await Promise.all([
       this.imageGenerator.shutdown(),
       this.audioProcessor.shutdown(),
-      this.musicComposer.shutdown()
+      this.musicComposer.shutdown(),
     ]);
 
     // Shutdown cache
     this.cache.shutdown();
 
-    this.logger.info('Multimedia pipeline shutdown complete');
+    this.logger.info("Multimedia pipeline shutdown complete");
   }
 }

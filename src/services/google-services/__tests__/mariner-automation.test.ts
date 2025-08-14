@@ -1,32 +1,39 @@
 /**
  * Comprehensive TDD Test Suite for Mariner Automation
- * 
+ *
  * Following London School TDD with emphasis on behavior verification
  * for browser automation, task orchestration, and AI-driven testing.
- * 
+ *
  * RED-GREEN-REFACTOR CYCLE:
  * Focus on automation workflow coordination, browser session management,
  * and task execution patterns with comprehensive error handling.
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { EventEmitter } from 'events';
-import { MarinerAutomation } from '../mariner-automation.js';
-import { 
-  MockFactory, 
-  TestDataGenerator, 
-  MockBuilder, 
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  jest,
+} from "@jest/globals";
+import { EventEmitter } from "events";
+import { MarinerAutomation } from "../mariner-automation.js";
+import {
+  MockFactory,
+  TestDataGenerator,
+  MockBuilder,
   ContractTester,
   PerformanceTester,
-  ErrorScenarioTester 
-} from './test-utilities.js';
+  ErrorScenarioTester,
+} from "./test-utilities.js";
 
 // Mock external dependencies following London School principles
-jest.mock('../../../utils/logger.js');
-jest.mock('../../../adapters/browser-adapter.js');
-jest.mock('../../../ai/task-optimizer.js');
+jest.mock("../../../utils/logger.js");
+jest.mock("../../../adapters/browser-adapter.js");
+jest.mock("../../../ai/task-optimizer.js");
 
-describe('MarinerAutomation - London School TDD', () => {
+describe("MarinerAutomation - London School TDD", () => {
   let marinerAutomation: MarinerAutomation;
   let mockConfig: any;
   let mockLogger: jest.Mocked<any>;
@@ -42,70 +49,70 @@ describe('MarinerAutomation - London School TDD', () => {
     // Setup comprehensive mock configuration
     mockConfig = {
       browser: {
-        engine: 'chromium',
+        engine: "chromium",
         headless: true,
         devtools: false,
         proxy: undefined,
-        userAgent: 'Mozilla/5.0 (Test Browser)',
+        userAgent: "Mozilla/5.0 (Test Browser)",
         viewport: {
           width: 1920,
           height: 1080,
           deviceScaleFactor: 1,
           isMobile: false,
           hasTouch: false,
-          isLandscape: true
+          isLandscape: true,
         },
         performance: {
           cpuThrottling: 1,
           networkThrottling: undefined,
           cacheDisabled: false,
           javascriptEnabled: true,
-          imagesEnabled: true
-        }
+          imagesEnabled: true,
+        },
       },
       orchestration: {
         maxConcurrentBrowsers: 5,
         taskQueue: {
           maxSize: 100,
-          priority: 'fifo',
+          priority: "fifo",
           timeout: 300000,
-          retries: 3
+          retries: 3,
         },
         scheduling: {
-          algorithm: 'round_robin',
+          algorithm: "round_robin",
           loadBalancing: true,
-          affinity: false
+          affinity: false,
         },
         resourceManagement: {
           memoryLimit: 8192,
           cpuLimit: 80,
           diskSpace: 10240,
-          cleanupInterval: 60
-        }
+          cleanupInterval: 60,
+        },
       },
       ai: {
         enabled: true,
-        model: 'mariner-optimization-v2',
+        model: "mariner-optimization-v2",
         capabilities: [
           {
-            name: 'element_detection',
-            type: 'vision',
+            name: "element_detection",
+            type: "vision",
             confidence: 0.9,
-            fallback: 'xpath_selector'
+            fallback: "xpath_selector",
           },
           {
-            name: 'task_optimization',
-            type: 'prediction',
+            name: "task_optimization",
+            type: "prediction",
             confidence: 0.85,
-            fallback: 'rule_based'
-          }
+            fallback: "rule_based",
+          },
         ],
         learning: {
           enabled: true,
           dataCollection: true,
           modelUpdates: false,
-          feedbackLoop: true
-        }
+          feedbackLoop: true,
+        },
       },
       monitoring: {
         performance: true,
@@ -118,55 +125,55 @@ describe('MarinerAutomation - London School TDD', () => {
           networkRequests: true,
           memoryUsage: true,
           cpuUsage: true,
-          errors: true
-        }
+          errors: true,
+        },
       },
-      plugins: []
+      plugins: [],
     };
 
     mockBuilder = new MockBuilder();
 
     // Setup Logger mock
     mockLogger = mockBuilder
-      .mockFunction('info', jest.fn())
-      .mockFunction('debug', jest.fn())
-      .mockFunction('warn', jest.fn())
-      .mockFunction('error', jest.fn())
+      .mockFunction("info", jest.fn())
+      .mockFunction("debug", jest.fn())
+      .mockFunction("warn", jest.fn())
+      .mockFunction("error", jest.fn())
       .build() as any;
 
     // Setup TaskQueue mock
     mockTaskQueue = {
       enqueue: jest.fn().mockResolvedValue(undefined),
       dequeue: jest.fn().mockResolvedValue({
-        id: 'task-123',
+        id: "task-123",
         task: MockFactory.createAutomationTask(),
-        status: 'pending'
+        status: "pending",
       }),
       getExecution: jest.fn().mockResolvedValue({
-        id: 'task-123',
-        status: 'running',
+        id: "task-123",
+        status: "running",
         startTime: new Date(),
-        progress: 50
+        progress: 50,
       }),
       cancel: jest.fn().mockResolvedValue(undefined),
       stop: jest.fn().mockResolvedValue(undefined),
       size: jest.fn().mockReturnValue(5),
       on: jest.fn(),
-      emit: jest.fn()
+      emit: jest.fn(),
     };
 
     // Setup TaskScheduler mock
     mockTaskScheduler = {
       schedule: jest.fn().mockImplementation((execution) => {
-        execution.status = 'running';
+        execution.status = "running";
         execution.startTime = new Date();
       }),
       getNextTask: jest.fn().mockReturnValue({
-        id: 'scheduled-task-123',
-        priority: 1
+        id: "scheduled-task-123",
+        priority: 1,
       }),
       reschedule: jest.fn(),
-      cancel: jest.fn()
+      cancel: jest.fn(),
     };
 
     // Setup AIEngine mock
@@ -176,31 +183,33 @@ describe('MarinerAutomation - London School TDD', () => {
       optimizeTask: jest.fn().mockImplementation(async (task) => ({
         ...task,
         optimized: true,
-        aiEnhanced: true
+        aiEnhanced: true,
       })),
       predictElementLocation: jest.fn().mockResolvedValue({
-        selector: '#predicted-element',
+        selector: "#predicted-element",
         confidence: 0.92,
-        coordinates: { x: 100, y: 200 }
+        coordinates: { x: 100, y: 200 },
       }),
       analyzePerformance: jest.fn().mockResolvedValue({
-        bottlenecks: ['slow_network'],
-        recommendations: ['enable_compression'],
-        score: 85
-      })
+        bottlenecks: ["slow_network"],
+        recommendations: ["enable_compression"],
+        score: 85,
+      }),
     };
 
     // Setup BrowserMonitoring mock
     mockBrowserMonitoring = {
       start: jest.fn().mockResolvedValue(undefined),
       stop: jest.fn().mockResolvedValue(undefined),
-      getMetrics: jest.fn().mockResolvedValue(MockFactory.createPerformanceMetrics()),
+      getMetrics: jest
+        .fn()
+        .mockResolvedValue(MockFactory.createPerformanceMetrics()),
       recordPageLoad: jest.fn(),
       recordUserAction: jest.fn(),
       recordError: jest.fn(),
-      takeScreenshot: jest.fn().mockReturnValue('screenshot-data'),
+      takeScreenshot: jest.fn().mockReturnValue("screenshot-data"),
       on: jest.fn(),
-      emit: jest.fn()
+      emit: jest.fn(),
     };
 
     // Setup PluginManager mock
@@ -208,7 +217,7 @@ describe('MarinerAutomation - London School TDD', () => {
       initialize: jest.fn().mockResolvedValue(undefined),
       shutdown: jest.fn().mockResolvedValue(undefined),
       loadPlugin: jest.fn().mockResolvedValue(undefined),
-      executePlugin: jest.fn().mockResolvedValue({ success: true })
+      executePlugin: jest.fn().mockResolvedValue({ success: true }),
     };
 
     // Setup ResourceManager mock
@@ -218,16 +227,18 @@ describe('MarinerAutomation - London School TDD', () => {
       getResourceUsage: jest.fn().mockReturnValue({
         memory: 4096,
         cpu: 45,
-        disk: 2048
+        disk: 2048,
       }),
       checkResourceLimits: jest.fn().mockReturnValue(true),
       cleanup: jest.fn().mockResolvedValue(undefined),
       on: jest.fn(),
-      emit: jest.fn()
+      emit: jest.fn(),
     };
 
     // Mock constructor dependencies
-    jest.mocked(require('../../../utils/logger.js')).Logger = jest.fn().mockImplementation(() => mockLogger);
+    jest.mocked(require("../../../utils/logger.js")).Logger = jest
+      .fn()
+      .mockImplementation(() => mockLogger);
 
     // Create MarinerAutomation instance
     marinerAutomation = new MarinerAutomation(mockConfig);
@@ -248,10 +259,10 @@ describe('MarinerAutomation - London School TDD', () => {
 
   // ==================== INITIALIZATION BEHAVIOR ====================
 
-  describe('Initialization and Component Orchestration', () => {
-    it('should coordinate initialization of all subsystems', async () => {
+  describe("Initialization and Component Orchestration", () => {
+    it("should coordinate initialization of all subsystems", async () => {
       // ARRANGE
-      const initializeSpy = jest.spyOn(marinerAutomation, 'initialize');
+      const initializeSpy = jest.spyOn(marinerAutomation, "initialize");
 
       // ACT
       await marinerAutomation.initialize();
@@ -262,41 +273,57 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(mockPluginManager.initialize).toHaveBeenCalled();
       expect(mockBrowserMonitoring.start).toHaveBeenCalled();
       expect(mockResourceManager.start).toHaveBeenCalled();
-      expect(mockLogger.info).toHaveBeenCalledWith('Mariner Automation Engine initialized');
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        "Mariner Automation Engine initialized",
+      );
     });
 
-    it('should handle initialization failure with proper error propagation', async () => {
+    it("should handle initialization failure with proper error propagation", async () => {
       // ARRANGE
-      const initError = new Error('AI Engine initialization failed');
+      const initError = new Error("AI Engine initialization failed");
       mockAIEngine.initialize.mockRejectedValueOnce(initError);
 
       // ACT & ASSERT
-      await expect(marinerAutomation.initialize()).rejects.toThrow('AI Engine initialization failed');
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to initialize automation engine', initError);
+      await expect(marinerAutomation.initialize()).rejects.toThrow(
+        "AI Engine initialization failed",
+      );
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Failed to initialize automation engine",
+        initError,
+      );
     });
 
-    it('should establish event handler contracts during initialization', async () => {
+    it("should establish event handler contracts during initialization", async () => {
       // ACT
       await marinerAutomation.initialize();
 
       // ASSERT - Verify event handler coordination
-      expect(mockTaskQueue.on).toHaveBeenCalledWith('task:ready', expect.any(Function));
-      expect(mockResourceManager.on).toHaveBeenCalledWith('resource:low', expect.any(Function));
-      expect(mockBrowserMonitoring.on).toHaveBeenCalledWith('performance:degraded', expect.any(Function));
+      expect(mockTaskQueue.on).toHaveBeenCalledWith(
+        "task:ready",
+        expect.any(Function),
+      );
+      expect(mockResourceManager.on).toHaveBeenCalledWith(
+        "resource:low",
+        expect.any(Function),
+      );
+      expect(mockBrowserMonitoring.on).toHaveBeenCalledWith(
+        "performance:degraded",
+        expect.any(Function),
+      );
     });
   });
 
   // ==================== TASK SUBMISSION AND ORCHESTRATION ====================
 
-  describe('Task Submission and Queue Management', () => {
+  describe("Task Submission and Queue Management", () => {
     beforeEach(async () => {
       await marinerAutomation.initialize();
     });
 
-    it('should coordinate task submission with validation and optimization', async () => {
+    it("should coordinate task submission with validation and optimization", async () => {
       // ARRANGE
       const automationTask = MockFactory.createAutomationTask();
-      const submitSpy = jest.spyOn(marinerAutomation, 'submitTask');
+      const submitSpy = jest.spyOn(marinerAutomation, "submitTask");
 
       // ACT
       const result = await marinerAutomation.submitTask(automationTask);
@@ -308,22 +335,22 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(mockAIEngine.optimizeTask).toHaveBeenCalledWith(automationTask);
       expect(mockTaskQueue.enqueue).toHaveBeenCalled();
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Submitting automation task',
+        "Submitting automation task",
         expect.objectContaining({
           taskId: automationTask.id,
-          name: automationTask.name
-        })
+          name: automationTask.name,
+        }),
       );
     });
 
-    it('should validate task structure before submission', async () => {
+    it("should validate task structure before submission", async () => {
       // ARRANGE
       const invalidTask = {
-        id: '', // Invalid ID
-        name: '',
+        id: "", // Invalid ID
+        name: "",
         steps: [], // No steps
         conditions: null,
-        timeout: -1 // Invalid timeout
+        timeout: -1, // Invalid timeout
       };
 
       // ACT
@@ -331,11 +358,11 @@ describe('MarinerAutomation - London School TDD', () => {
 
       // ASSERT
       expect(result.success).toBe(false);
-      expect(result.error?.code).toBe('TASK_SUBMISSION_FAILED');
+      expect(result.error?.code).toBe("TASK_SUBMISSION_FAILED");
       expect(mockLogger.error).toHaveBeenCalled();
     });
 
-    it('should coordinate task optimization with AI when enabled', async () => {
+    it("should coordinate task optimization with AI when enabled", async () => {
       // ARRANGE
       const originalTask = MockFactory.createAutomationTask();
       const optimizedTask = {
@@ -345,11 +372,11 @@ describe('MarinerAutomation - London School TDD', () => {
         steps: [
           ...originalTask.steps,
           {
-            type: 'ai_enhanced_wait',
-            value: 'smart_wait',
-            timeout: 5000
-          }
-        ]
+            type: "ai_enhanced_wait",
+            value: "smart_wait",
+            timeout: 5000,
+          },
+        ],
       };
 
       mockAIEngine.optimizeTask.mockResolvedValueOnce(optimizedTask);
@@ -364,26 +391,27 @@ describe('MarinerAutomation - London School TDD', () => {
         expect.objectContaining({
           task: expect.objectContaining({
             optimized: true,
-            aiEnhanced: true
-          })
-        })
+            aiEnhanced: true,
+          }),
+        }),
       );
     });
   });
 
   // ==================== TASK EXECUTION BEHAVIOR ====================
 
-  describe('Task Execution Orchestration', () => {
+  describe("Task Execution Orchestration", () => {
     beforeEach(async () => {
       await marinerAutomation.initialize();
     });
 
-    it('should coordinate browser acquisition and task execution', async () => {
+    it("should coordinate browser acquisition and task execution", async () => {
       // ARRANGE
       const automationTask = MockFactory.createAutomationTask();
       const mockBrowser = createMockBrowserSession();
-      
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // ACT
@@ -396,20 +424,21 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(mockBrowser.markAvailable).toHaveBeenCalled();
       expect(mockBrowserMonitoring.recordUserAction).toHaveBeenCalled();
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Executing automation task',
+        "Executing automation task",
         expect.objectContaining({
           taskId: automationTask.id,
-          name: automationTask.name
-        })
+          name: automationTask.name,
+        }),
       );
     });
 
-    it('should handle browser acquisition failure with proper error handling', async () => {
+    it("should handle browser acquisition failure with proper error handling", async () => {
       // ARRANGE
       const automationTask = MockFactory.createAutomationTask();
-      const acquisitionError = new Error('No browsers available');
-      
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+      const acquisitionError = new Error("No browsers available");
+
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockRejectedValue(acquisitionError);
 
       // ACT
@@ -417,39 +446,41 @@ describe('MarinerAutomation - London School TDD', () => {
 
       // ASSERT
       expect(result.success).toBe(false);
-      expect(result.error?.code).toBe('TASK_EXECUTION_FAILED');
+      expect(result.error?.code).toBe("TASK_EXECUTION_FAILED");
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Task execution failed',
+        "Task execution failed",
         expect.objectContaining({
-          taskId: automationTask.id
-        })
+          taskId: automationTask.id,
+        }),
       );
     });
 
-    it('should coordinate step execution with condition validation', async () => {
+    it("should coordinate step execution with condition validation", async () => {
       // ARRANGE
       const taskWithConditions = {
         ...MockFactory.createAutomationTask(),
         conditions: [
           {
-            type: 'element_present',
-            selector: '#success-message',
-            value: undefined
+            type: "element_present",
+            selector: "#success-message",
+            value: undefined,
           },
           {
-            type: 'url_matches',
+            type: "url_matches",
             selector: undefined,
-            value: '/success'
-          }
-        ]
+            value: "/success",
+          },
+        ],
       };
 
       const mockBrowser = createMockBrowserSession();
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // Mock condition evaluation
-      jest.spyOn(marinerAutomation as any, 'evaluateCondition')
+      jest
+        .spyOn(marinerAutomation as any, "evaluateCondition")
         .mockResolvedValue(true);
 
       // ACT
@@ -457,16 +488,19 @@ describe('MarinerAutomation - London School TDD', () => {
 
       // ASSERT
       expect(result.success).toBe(true);
-      expect(mockBrowser.isElementPresent).toHaveBeenCalledWith('#success-message');
+      expect(mockBrowser.isElementPresent).toHaveBeenCalledWith(
+        "#success-message",
+      );
       expect(mockBrowser.getCurrentUrl).toHaveBeenCalled();
     });
 
-    it('should coordinate screenshot capture during monitoring', async () => {
+    it("should coordinate screenshot capture during monitoring", async () => {
       // ARRANGE
       const automationTask = MockFactory.createAutomationTask();
       const mockBrowser = createMockBrowserSession();
-      
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // ACT
@@ -476,24 +510,25 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(result.success).toBe(true);
       expect(mockBrowser.enableScreenshots).toHaveBeenCalled();
       expect(mockBrowser.takeScreenshot).toHaveBeenCalled();
-      expect(result.data.screenshots).toContain('screenshot-data');
+      expect(result.data.screenshots).toContain("screenshot-data");
     });
   });
 
   // ==================== BROWSER SESSION MANAGEMENT ====================
 
-  describe('Browser Session Pool Management', () => {
+  describe("Browser Session Pool Management", () => {
     beforeEach(async () => {
       await marinerAutomation.initialize();
     });
 
-    it('should coordinate browser session creation and management', async () => {
+    it("should coordinate browser session creation and management", async () => {
       // ARRANGE
       const sessionCount = 3;
       const sessions: any[] = [];
-      
+
       // Mock browser creation
-      jest.spyOn(marinerAutomation as any, 'createBrowser')
+      jest
+        .spyOn(marinerAutomation as any, "createBrowser")
         .mockImplementation(() => {
           const session = createMockBrowserSession();
           sessions.push(session);
@@ -502,26 +537,27 @@ describe('MarinerAutomation - London School TDD', () => {
 
       // ACT - Create multiple sessions
       const promises = Array.from({ length: sessionCount }, (_, i) =>
-        (marinerAutomation as any).acquireBrowser()
+        (marinerAutomation as any).acquireBrowser(),
       );
-      
+
       const acquiredSessions = await Promise.all(promises);
 
       // ASSERT
       expect(acquiredSessions).toHaveLength(sessionCount);
-      expect(sessions.every(s => s.launch)).toHaveBeenCalled();
+      expect(sessions.every((s) => s.launch)).toHaveBeenCalled();
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        'Created new browser session',
-        expect.objectContaining({ browserId: expect.any(String) })
+        "Created new browser session",
+        expect.objectContaining({ browserId: expect.any(String) }),
       );
     });
 
-    it('should coordinate browser session cleanup and resource release', async () => {
+    it("should coordinate browser session cleanup and resource release", async () => {
       // ARRANGE
       const mockBrowser = createMockBrowserSession();
       mockBrowser.needsCleanup.mockResolvedValue(true);
-      
-      jest.spyOn(marinerAutomation as any, 'getAvailableBrowser')
+
+      jest
+        .spyOn(marinerAutomation as any, "getAvailableBrowser")
         .mockReturnValue(mockBrowser);
 
       // ACT
@@ -534,21 +570,28 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(browser.cleanup).toHaveBeenCalled();
     });
 
-    it('should handle browser pool exhaustion with waiting coordination', async () => {
+    it("should handle browser pool exhaustion with waiting coordination", async () => {
       // ARRANGE
       const maxBrowsers = mockConfig.orchestration.maxConcurrentBrowsers;
-      
+
       // Mock pool exhaustion
-      jest.spyOn(marinerAutomation as any, 'getAvailableBrowser')
+      jest
+        .spyOn(marinerAutomation as any, "getAvailableBrowser")
         .mockReturnValue(null);
-      jest.spyOn(marinerAutomation as any, 'browsers', 'get')
-        .mockReturnValue(new Map(Array.from({ length: maxBrowsers }, (_, i) => [
-          `browser-${i}`,
-          { isBusy: () => true }
-        ])));
+      jest
+        .spyOn(marinerAutomation as any, "browsers", "get")
+        .mockReturnValue(
+          new Map(
+            Array.from({ length: maxBrowsers }, (_, i) => [
+              `browser-${i}`,
+              { isBusy: () => true },
+            ]),
+          ),
+        );
 
       // Mock waiting behavior
-      jest.spyOn(marinerAutomation as any, 'waitForAvailableBrowser')
+      jest
+        .spyOn(marinerAutomation as any, "waitForAvailableBrowser")
         .mockResolvedValue(createMockBrowserSession());
 
       // ACT
@@ -556,55 +599,61 @@ describe('MarinerAutomation - London School TDD', () => {
 
       // ASSERT
       expect(browser).toBeDefined();
-      expect((marinerAutomation as any).waitForAvailableBrowser).toHaveBeenCalled();
+      expect(
+        (marinerAutomation as any).waitForAvailableBrowser,
+      ).toHaveBeenCalled();
     });
   });
 
   // ==================== AI INTEGRATION BEHAVIOR ====================
 
-  describe('AI Engine Integration and Optimization', () => {
+  describe("AI Engine Integration and Optimization", () => {
     beforeEach(async () => {
       await marinerAutomation.initialize();
     });
 
-    it('should coordinate AI-powered element detection with fallback', async () => {
+    it("should coordinate AI-powered element detection with fallback", async () => {
       // ARRANGE
       const taskWithSmartSelectors = {
         ...MockFactory.createAutomationTask(),
         steps: [
           {
-            type: 'click',
-            selector: 'ai:submit_button', // AI-enhanced selector
-            timeout: 5000
-          }
-        ]
+            type: "click",
+            selector: "ai:submit_button", // AI-enhanced selector
+            timeout: 5000,
+          },
+        ],
       };
 
       const mockBrowser = createMockBrowserSession();
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // ACT
-      const result = await marinerAutomation.executeTask(taskWithSmartSelectors);
+      const result = await marinerAutomation.executeTask(
+        taskWithSmartSelectors,
+      );
 
       // ASSERT
       expect(result.success).toBe(true);
       expect(mockAIEngine.predictElementLocation).toHaveBeenCalledWith(
-        'submit_button',
-        expect.any(Object) // Browser context
+        "submit_button",
+        expect.any(Object), // Browser context
       );
       expect(mockBrowser.click).toHaveBeenCalledWith(
-        '#predicted-element',
-        expect.any(Number)
+        "#predicted-element",
+        expect.any(Number),
       );
     });
 
-    it('should coordinate performance analysis with AI insights', async () => {
+    it("should coordinate performance analysis with AI insights", async () => {
       // ARRANGE
       const performanceTask = MockFactory.createAutomationTask();
       const mockBrowser = createMockBrowserSession();
-      
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // ACT
@@ -614,19 +663,19 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(result.success).toBe(true);
       expect(mockAIEngine.analyzePerformance).toHaveBeenCalled();
       expect(mockLogger.debug).toHaveBeenCalledWith(
-        'AI performance analysis completed',
+        "AI performance analysis completed",
         expect.objectContaining({
           score: 85,
-          recommendations: ['enable_compression']
-        })
+          recommendations: ["enable_compression"],
+        }),
       );
     });
 
-    it('should handle AI service failures with graceful degradation', async () => {
+    it("should handle AI service failures with graceful degradation", async () => {
       // ARRANGE
       const aiFailureTask = MockFactory.createAutomationTask();
-      const aiError = new Error('AI service unavailable');
-      
+      const aiError = new Error("AI service unavailable");
+
       mockAIEngine.optimizeTask.mockRejectedValueOnce(aiError);
 
       // ACT
@@ -635,8 +684,8 @@ describe('MarinerAutomation - London School TDD', () => {
       // ASSERT - Should continue without AI optimization
       expect(result.success).toBe(true);
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'AI optimization failed, proceeding without optimization',
-        aiError
+        "AI optimization failed, proceeding without optimization",
+        aiError,
       );
       expect(mockTaskQueue.enqueue).toHaveBeenCalled();
     });
@@ -644,17 +693,18 @@ describe('MarinerAutomation - London School TDD', () => {
 
   // ==================== PERFORMANCE MONITORING ====================
 
-  describe('Performance Monitoring and Resource Management', () => {
+  describe("Performance Monitoring and Resource Management", () => {
     beforeEach(async () => {
       await marinerAutomation.initialize();
     });
 
-    it('should coordinate performance metrics collection during execution', async () => {
+    it("should coordinate performance metrics collection during execution", async () => {
       // ARRANGE
       const performanceTask = MockFactory.createAutomationTask();
       const mockBrowser = createMockBrowserSession();
-      
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // ACT
@@ -668,15 +718,15 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(mockBrowserMonitoring.recordUserAction).toHaveBeenCalled();
     });
 
-    it('should handle resource exhaustion with proper throttling', async () => {
+    it("should handle resource exhaustion with proper throttling", async () => {
       // ARRANGE
       const resourceIntensiveTask = MockFactory.createAutomationTask();
-      
+
       mockResourceManager.checkResourceLimits.mockReturnValue(false); // Resource limit exceeded
       mockResourceManager.getResourceUsage.mockReturnValue({
         memory: 7500, // Near limit
-        cpu: 85,      // High usage
-        disk: 9000    // Near limit
+        cpu: 85, // High usage
+        disk: 9000, // Near limit
       });
 
       // ACT
@@ -684,22 +734,22 @@ describe('MarinerAutomation - London School TDD', () => {
 
       // ASSERT
       expect(result.success).toBe(false);
-      expect(result.error?.code).toBe('RESOURCE_LIMIT_EXCEEDED');
+      expect(result.error?.code).toBe("RESOURCE_LIMIT_EXCEEDED");
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'Resource limits exceeded, throttling execution',
+        "Resource limits exceeded, throttling execution",
         expect.objectContaining({
-          usage: expect.any(Object)
-        })
+          usage: expect.any(Object),
+        }),
       );
     });
 
-    it('should coordinate resource cleanup on low resource events', async () => {
+    it("should coordinate resource cleanup on low resource events", async () => {
       // ARRANGE
       const lowResourceEvent = {
-        type: 'memory_low',
+        type: "memory_low",
         threshold: 90,
         current: 95,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       // ACT
@@ -708,23 +758,23 @@ describe('MarinerAutomation - London School TDD', () => {
       // ASSERT
       expect(mockResourceManager.cleanup).toHaveBeenCalled();
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'Low resources detected',
-        lowResourceEvent
+        "Low resources detected",
+        lowResourceEvent,
       );
     });
   });
 
   // ==================== ERROR HANDLING AND RECOVERY ====================
 
-  describe('Error Handling and Recovery Coordination', () => {
+  describe("Error Handling and Recovery Coordination", () => {
     beforeEach(async () => {
       await marinerAutomation.initialize();
     });
 
-    it('should coordinate retry logic with exponential backoff', async () => {
+    it("should coordinate retry logic with exponential backoff", async () => {
       // ARRANGE
       const flakyTask = MockFactory.createAutomationTask();
-      const transientError = new Error('Network timeout');
+      const transientError = new Error("Network timeout");
       let attemptCount = 0;
 
       const mockBrowser = createMockBrowserSession();
@@ -736,7 +786,8 @@ describe('MarinerAutomation - London School TDD', () => {
         return Promise.resolve();
       });
 
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // ACT
@@ -746,23 +797,24 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(result.success).toBe(true);
       expect(attemptCount).toBe(3); // Verified retry behavior
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'Step execution failed, retrying',
+        "Step execution failed, retrying",
         expect.objectContaining({
           attempt: expect.any(Number),
-          error: transientError
-        })
+          error: transientError,
+        }),
       );
     });
 
-    it('should coordinate browser crash recovery', async () => {
+    it("should coordinate browser crash recovery", async () => {
       // ARRANGE
       const crashTask = MockFactory.createAutomationTask();
-      const crashError = new Error('Browser process crashed');
-      
+      const crashError = new Error("Browser process crashed");
+
       const mockBrowser = createMockBrowserSession();
       mockBrowser.navigate.mockRejectedValue(crashError);
 
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // ACT
@@ -772,21 +824,21 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(result.success).toBe(false);
       expect(mockBrowser.cleanup).toHaveBeenCalled();
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Browser session crashed, cleaning up',
+        "Browser session crashed, cleaning up",
         expect.objectContaining({
-          error: crashError
-        })
+          error: crashError,
+        }),
       );
     });
 
-    it('should handle task cancellation with resource cleanup', async () => {
+    it("should handle task cancellation with resource cleanup", async () => {
       // ARRANGE
-      const taskId = 'cancellable-task-123';
-      
+      const taskId = "cancellable-task-123";
+
       mockTaskQueue.getExecution.mockResolvedValue({
         id: taskId,
-        status: 'running',
-        startTime: new Date()
+        status: "running",
+        startTime: new Date(),
       });
 
       // ACT
@@ -796,28 +848,29 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(result.success).toBe(true);
       expect(mockTaskQueue.cancel).toHaveBeenCalledWith(taskId);
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Cancelling task',
-        expect.objectContaining({ taskId })
+        "Cancelling task",
+        expect.objectContaining({ taskId }),
       );
     });
   });
 
   // ==================== PLUGIN SYSTEM COORDINATION ====================
 
-  describe('Plugin System Integration', () => {
+  describe("Plugin System Integration", () => {
     beforeEach(async () => {
       await marinerAutomation.initialize();
     });
 
-    it('should coordinate plugin execution during task processing', async () => {
+    it("should coordinate plugin execution during task processing", async () => {
       // ARRANGE
       const taskWithPlugins = {
         ...MockFactory.createAutomationTask(),
-        plugins: ['screenshot-enhancer', 'data-validator']
+        plugins: ["screenshot-enhancer", "data-validator"],
       };
 
       const mockBrowser = createMockBrowserSession();
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // ACT
@@ -826,24 +879,25 @@ describe('MarinerAutomation - London School TDD', () => {
       // ASSERT
       expect(result.success).toBe(true);
       expect(mockPluginManager.executePlugin).toHaveBeenCalledWith(
-        'screenshot-enhancer',
-        expect.any(Object)
+        "screenshot-enhancer",
+        expect.any(Object),
       );
       expect(mockPluginManager.executePlugin).toHaveBeenCalledWith(
-        'data-validator',
-        expect.any(Object)
+        "data-validator",
+        expect.any(Object),
       );
     });
 
-    it('should handle plugin failures without affecting main execution', async () => {
+    it("should handle plugin failures without affecting main execution", async () => {
       // ARRANGE
       const taskWithFailingPlugin = MockFactory.createAutomationTask();
-      const pluginError = new Error('Plugin execution failed');
-      
+      const pluginError = new Error("Plugin execution failed");
+
       mockPluginManager.executePlugin.mockRejectedValue(pluginError);
 
       const mockBrowser = createMockBrowserSession();
-      jest.spyOn(marinerAutomation as any, 'acquireBrowser')
+      jest
+        .spyOn(marinerAutomation as any, "acquireBrowser")
         .mockResolvedValue(mockBrowser);
 
       // ACT
@@ -852,28 +906,29 @@ describe('MarinerAutomation - London School TDD', () => {
       // ASSERT
       expect(result.success).toBe(true); // Main execution should continue
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        'Plugin execution failed, continuing task',
-        pluginError
+        "Plugin execution failed, continuing task",
+        pluginError,
       );
     });
   });
 
   // ==================== SHUTDOWN AND CLEANUP ====================
 
-  describe('Graceful Shutdown and Resource Cleanup', () => {
-    it('should coordinate graceful shutdown of all subsystems', async () => {
+  describe("Graceful Shutdown and Resource Cleanup", () => {
+    it("should coordinate graceful shutdown of all subsystems", async () => {
       // ARRANGE
       await marinerAutomation.initialize();
-      
+
       const mockBrowser1 = createMockBrowserSession();
       const mockBrowser2 = createMockBrowserSession();
-      
+
       // Mock active browsers
-      jest.spyOn(marinerAutomation as any, 'browsers', 'get')
-        .mockReturnValue(new Map([
-          ['browser-1', mockBrowser1],
-          ['browser-2', mockBrowser2]
-        ]));
+      jest.spyOn(marinerAutomation as any, "browsers", "get").mockReturnValue(
+        new Map([
+          ["browser-1", mockBrowser1],
+          ["browser-2", mockBrowser2],
+        ]),
+      );
 
       // ACT
       await marinerAutomation.shutdown();
@@ -886,49 +941,55 @@ describe('MarinerAutomation - London School TDD', () => {
       expect(mockResourceManager.stop).toHaveBeenCalled();
       expect(mockPluginManager.shutdown).toHaveBeenCalled();
       expect(mockAIEngine.shutdown).toHaveBeenCalled();
-      expect(mockLogger.info).toHaveBeenCalledWith('Mariner Automation Engine shutdown complete');
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        "Mariner Automation Engine shutdown complete",
+      );
     });
 
-    it('should handle shutdown errors gracefully', async () => {
+    it("should handle shutdown errors gracefully", async () => {
       // ARRANGE
       await marinerAutomation.initialize();
-      
-      const shutdownError = new Error('Component shutdown failed');
+
+      const shutdownError = new Error("Component shutdown failed");
       mockBrowserMonitoring.stop.mockRejectedValue(shutdownError);
 
       // ACT & ASSERT
-      await expect(marinerAutomation.shutdown()).rejects.toThrow('Component shutdown failed');
+      await expect(marinerAutomation.shutdown()).rejects.toThrow(
+        "Component shutdown failed",
+      );
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Error during shutdown',
-        shutdownError
+        "Error during shutdown",
+        shutdownError,
       );
     });
   });
 
   // ==================== PERFORMANCE CONTRACT TESTING ====================
 
-  describe('Performance Contract Validation', () => {
+  describe("Performance Contract Validation", () => {
     beforeEach(async () => {
       await marinerAutomation.initialize();
     });
 
-    it('should meet performance requirements for task submission', async () => {
+    it("should meet performance requirements for task submission", async () => {
       // ARRANGE & ACT
       const performanceTest = PerformanceTester.createPerformanceTest(
-        'task_submission',
+        "task_submission",
         () => marinerAutomation.submitTask(MockFactory.createAutomationTask()),
         50, // 50ms max
-        5   // 5 iterations
+        5, // 5 iterations
       );
 
       // ASSERT
       await performanceTest();
     });
 
-    it('should maintain service response contracts', async () => {
+    it("should maintain service response contracts", async () => {
       // ARRANGE & ACT
-      const submitResult = await marinerAutomation.submitTask(MockFactory.createAutomationTask());
-      const statusResult = await marinerAutomation.getTaskStatus('task-123');
+      const submitResult = await marinerAutomation.submitTask(
+        MockFactory.createAutomationTask(),
+      );
+      const statusResult = await marinerAutomation.getTaskStatus("task-123");
       const metricsResult = await marinerAutomation.getMetrics();
 
       // ASSERT
@@ -937,17 +998,17 @@ describe('MarinerAutomation - London School TDD', () => {
       ContractTester.validateServiceResponse(metricsResult);
     });
 
-    it('should validate event emitter contract for task coordination', async () => {
+    it("should validate event emitter contract for task coordination", async () => {
       // ARRANGE
       const expectedEvents = [
-        'task:submitted',
-        'task:started',
-        'task:completed',
-        'task:failed',
-        'task:cancelled',
-        'browser:acquired',
-        'browser:released',
-        'performance:degraded'
+        "task:submitted",
+        "task:started",
+        "task:completed",
+        "task:failed",
+        "task:cancelled",
+        "browser:acquired",
+        "browser:released",
+        "performance:degraded",
       ];
 
       // ACT & ASSERT
@@ -963,7 +1024,7 @@ describe('MarinerAutomation - London School TDD', () => {
  */
 function createMockBrowserSession() {
   return {
-    id: 'mock-browser-123',
+    id: "mock-browser-123",
     launch: jest.fn().mockResolvedValue(undefined),
     close: jest.fn().mockResolvedValue(undefined),
     isBusy: jest.fn().mockReturnValue(false),
@@ -973,7 +1034,7 @@ function createMockBrowserSession() {
     cleanup: jest.fn().mockResolvedValue(undefined),
     enableScreenshots: jest.fn().mockResolvedValue(undefined),
     enableNetworkLogging: jest.fn().mockResolvedValue(undefined),
-    takeScreenshot: jest.fn().mockResolvedValue('screenshot-data'),
+    takeScreenshot: jest.fn().mockResolvedValue("screenshot-data"),
     navigate: jest.fn().mockResolvedValue(undefined),
     click: jest.fn().mockResolvedValue(undefined),
     type: jest.fn().mockResolvedValue(undefined),
@@ -983,41 +1044,41 @@ function createMockBrowserSession() {
     executeScript: jest.fn().mockResolvedValue({}),
     isElementPresent: jest.fn().mockResolvedValue(true),
     isElementVisible: jest.fn().mockResolvedValue(true),
-    getText: jest.fn().mockResolvedValue('test text'),
-    getCurrentUrl: jest.fn().mockResolvedValue('https://example.com/success'),
+    getText: jest.fn().mockResolvedValue("test text"),
+    getCurrentUrl: jest.fn().mockResolvedValue("https://example.com/success"),
     getMemoryUsage: jest.fn().mockResolvedValue(512),
-    getNetworkRequestCount: jest.fn().mockResolvedValue(15)
+    getNetworkRequestCount: jest.fn().mockResolvedValue(15),
   };
 }
 
 /**
  * RED-GREEN-REFACTOR CYCLE DOCUMENTATION FOR MARINER AUTOMATION:
- * 
+ *
  * This test suite demonstrates comprehensive London School TDD for complex automation:
- * 
+ *
  * 1. ORCHESTRATION TESTING:
  *    - Tests focus on HOW MarinerAutomation coordinates between subsystems
  *    - Browser session management, task queue coordination, AI integration
  *    - Resource management and performance monitoring coordination
- * 
+ *
  * 2. BEHAVIOR-DRIVEN MOCKING:
  *    - All dependencies are mocked to isolate MarinerAutomation behavior
  *    - Mocks verify interaction patterns, not implementation details
  *    - Error injection tests verify recovery and cleanup coordination
- * 
+ *
  * 3. COMPLEX WORKFLOW TESTING:
  *    - Multi-step task execution with condition validation
  *    - Browser pool management with resource constraints
  *    - AI-enhanced automation with fallback strategies
- * 
+ *
  * 4. LONDON SCHOOL PRINCIPLES:
  *    - RED: Define expected coordination behavior through failing tests
  *    - GREEN: Implement minimal orchestration logic to pass tests
  *    - REFACTOR: Improve coordination patterns while maintaining contracts
- * 
+ *
  * Key Collaboration Patterns Tested:
  * - TaskQueue ↔ TaskScheduler (task prioritization and execution)
- * - BrowserSession ↔ ResourceManager (resource allocation and limits)  
+ * - BrowserSession ↔ ResourceManager (resource allocation and limits)
  * - AIEngine ↔ TaskOptimizer (intelligent automation enhancement)
  * - PerformanceMonitor ↔ BrowserMonitoring (metrics collection and analysis)
  * - PluginManager ↔ TaskExecution (extensible automation capabilities)

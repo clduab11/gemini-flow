@@ -1,6 +1,6 @@
 /**
  * AgentSpace Integration - Comprehensive 87-Agent Architecture
- * 
+ *
  * Complete spatial computing framework with:
  * - Agent Environment Virtualization with resource isolation
  * - 3D Spatial Reasoning Framework with collision detection
@@ -13,41 +13,56 @@
  */
 
 // === CORE COMPONENTS ===
-export * from './core/AgentSpaceManager.js';
-export * from './core/AgentEnvironmentVirtualization.js';
-export * from './core/SpatialReasoningFramework.js';
-export * from './core/EnhancedMemoryArchitecture.js';
-export * from './core/ByzantineSpatialConsensus.js';
+export * from "./core/AgentSpaceManager.js";
+export * from "./core/AgentEnvironmentVirtualization.js";
+export * from "./core/SpatialReasoningFramework.js";
+export * from "./core/EnhancedMemoryArchitecture.js";
+export * from "./core/ByzantineSpatialConsensus.js";
 
 // === UTILITIES ===
-export * from './utils/ResourceAllocator.js';
-export * from './utils/PerformanceMonitor.js';
+export * from "./utils/ResourceAllocator.js";
+export * from "./utils/PerformanceMonitor.js";
 
 // === TYPE DEFINITIONS ===
-export * from './types/AgentSpaceTypes.js';
+export * from "./types/AgentSpaceTypes.js";
 
 // === INITIALIZATION ===
-export * from './AgentSpaceInitializer.js';
+export * from "./AgentSpaceInitializer.js";
 
 // === INTEGRATIONS ===
-export * from './integrations/MCPBridge.js';
-export * from './integrations/StreamingIntegration.js';
-export * from './integrations/SecurityIntegration.js';
+export * from "./integrations/MCPBridge.js";
+export * from "./integrations/StreamingIntegration.js";
+export * from "./integrations/SecurityIntegration.js";
 
 // === INTEGRATION FACTORY ===
 export class AgentSpaceIntegrationFactory {
-  static createMCPBridge(agentSpaceManager: any, performanceMonitor: any, resourceAllocator: any) {
-    const { MCPBridge } = require('./integrations/MCPBridge.js');
-    return new MCPBridge(agentSpaceManager, performanceMonitor, resourceAllocator);
+  static createMCPBridge(
+    agentSpaceManager: any,
+    performanceMonitor: any,
+    resourceAllocator: any,
+  ) {
+    const { MCPBridge } = require("./integrations/MCPBridge.js");
+    return new MCPBridge(
+      agentSpaceManager,
+      performanceMonitor,
+      resourceAllocator,
+    );
   }
 
   static createStreamingIntegration(streamingAPI: any, agentSpaceManager: any) {
-    const { StreamingIntegration } = require('./integrations/StreamingIntegration.js');
+    const {
+      StreamingIntegration,
+    } = require("./integrations/StreamingIntegration.js");
     return new StreamingIntegration(streamingAPI, agentSpaceManager);
   }
 
-  static createSecurityIntegration(agentSpaceManager: any, coScientistSecurity: any) {
-    const { SecurityIntegration } = require('./integrations/SecurityIntegration.js');
+  static createSecurityIntegration(
+    agentSpaceManager: any,
+    coScientistSecurity: any,
+  ) {
+    const {
+      SecurityIntegration,
+    } = require("./integrations/SecurityIntegration.js");
     return new SecurityIntegration(agentSpaceManager, coScientistSecurity);
   }
 
@@ -62,16 +77,16 @@ export class AgentSpaceIntegrationFactory {
       mcpBridge: this.createMCPBridge(
         config.agentSpaceManager,
         config.performanceMonitor,
-        config.resourceAllocator
+        config.resourceAllocator,
       ),
       streamingIntegration: this.createStreamingIntegration(
         config.streamingAPI,
-        config.agentSpaceManager
+        config.agentSpaceManager,
       ),
       securityIntegration: this.createSecurityIntegration(
         config.agentSpaceManager,
-        config.coScientistSecurity
-      )
+        config.coScientistSecurity,
+      ),
     };
   }
 }
@@ -80,60 +95,70 @@ export class AgentSpaceIntegrationFactory {
 export const AGENTSPACE_EXAMPLES = {
   // Basic AgentSpace Configuration
   BASIC_CONFIG: {
-    agentSpaceId: 'basic-agentspace',
+    agentSpaceId: "basic-agentspace",
     maxAgents: 10,
     spatialDimensions: { x: 100, y: 100, z: 50 },
-    securityLevel: 'standard' as const,
+    securityLevel: "standard" as const,
     mcpIntegration: {
-      memoryProvider: 'mem0',
-      toolRegistry: 'claude-flow',
-      authProvider: 'oauth2',
-      eventBus: 'redis'
+      memoryProvider: "mem0",
+      toolRegistry: "claude-flow",
+      authProvider: "oauth2",
+      eventBus: "redis",
     },
     autoDeployAgents: true,
-    initialAgentTypes: ['hierarchical-coordinator', 'coder', 'researcher'],
-    spatialArrangement: 'distributed' as const
+    initialAgentTypes: ["hierarchical-coordinator", "coder", "researcher"],
+    spatialArrangement: "distributed" as const,
   },
 
   // High-Performance Configuration
   HIGH_PERFORMANCE_CONFIG: {
-    agentSpaceId: 'high-perf-agentspace',
+    agentSpaceId: "high-perf-agentspace",
     maxAgents: 50,
     spatialDimensions: { x: 300, y: 300, z: 150 },
-    securityLevel: 'standard' as const,
+    securityLevel: "standard" as const,
     mcpIntegration: {
-      memoryProvider: 'distributed-cache',
-      toolRegistry: 'claude-flow-cluster',
-      authProvider: 'enterprise-sso',
-      eventBus: 'kafka'
+      memoryProvider: "distributed-cache",
+      toolRegistry: "claude-flow-cluster",
+      authProvider: "enterprise-sso",
+      eventBus: "kafka",
     },
     autoDeployAgents: true,
     initialAgentTypes: [
-      'hierarchical-coordinator', 'mesh-coordinator', 'adaptive-coordinator',
-      'coder', 'researcher', 'reviewer', 'tester', 'performance-monitor'
+      "hierarchical-coordinator",
+      "mesh-coordinator",
+      "adaptive-coordinator",
+      "coder",
+      "researcher",
+      "reviewer",
+      "tester",
+      "performance-monitor",
     ],
-    spatialArrangement: 'layered' as const
+    spatialArrangement: "layered" as const,
   },
 
   // Secure Research Configuration
   SECURE_RESEARCH_CONFIG: {
-    agentSpaceId: 'secure-research-agentspace',
+    agentSpaceId: "secure-research-agentspace",
     maxAgents: 25,
     spatialDimensions: { x: 200, y: 200, z: 100 },
-    securityLevel: 'high' as const,
+    securityLevel: "high" as const,
     mcpIntegration: {
-      memoryProvider: 'encrypted-vault',
-      toolRegistry: 'secure-tools',
-      authProvider: 'multi-factor',
-      eventBus: 'secure-messaging'
+      memoryProvider: "encrypted-vault",
+      toolRegistry: "secure-tools",
+      authProvider: "multi-factor",
+      eventBus: "secure-messaging",
     },
     autoDeployAgents: true,
     initialAgentTypes: [
-      'byzantine-fault-tolerant', 'security-auditor', 'compliance-officer',
-      'researcher', 'data-scientist', 'privacy-analyst'
+      "byzantine-fault-tolerant",
+      "security-auditor",
+      "compliance-officer",
+      "researcher",
+      "data-scientist",
+      "privacy-analyst",
     ],
-    spatialArrangement: 'clustered' as const
-  }
+    spatialArrangement: "clustered" as const,
+  },
 };
 
 // === UTILITY FUNCTIONS ===
@@ -147,12 +172,16 @@ export class AgentSpaceUtils {
     );
   }
 
-  static calculateOptimalDimensions(agentCount: number): { x: number; y: number; z: number } {
+  static calculateOptimalDimensions(agentCount: number): {
+    x: number;
+    y: number;
+    z: number;
+  } {
     const side = Math.ceil(Math.sqrt(agentCount)) * 20;
     return {
       x: side,
       y: side,
-      z: Math.max(side / 4, 50)
+      z: Math.max(side / 4, 50),
     };
   }
 
@@ -162,44 +191,70 @@ export class AgentSpaceUtils {
       ...override,
       spatialDimensions: {
         ...base.spatialDimensions,
-        ...override.spatialDimensions
+        ...override.spatialDimensions,
       },
       mcpIntegration: {
         ...base.mcpIntegration,
-        ...override.mcpIntegration
-      }
+        ...override.mcpIntegration,
+      },
     };
   }
 
-  static getRecommendedAgentTypes(purpose: 'development' | 'research' | 'analysis' | 'security'): string[] {
+  static getRecommendedAgentTypes(
+    purpose: "development" | "research" | "analysis" | "security",
+  ): string[] {
     switch (purpose) {
-      case 'development':
-        return ['hierarchical-coordinator', 'coder', 'reviewer', 'tester', 'performance-monitor'];
-      case 'research':
-        return ['mesh-coordinator', 'researcher', 'data-scientist', 'academic-integrator', 'peer-reviewer'];
-      case 'analysis':
-        return ['adaptive-coordinator', 'analyst', 'data-processor', 'pattern-recognizer', 'visualizer'];
-      case 'security':
-        return ['byzantine-fault-tolerant', 'security-auditor', 'compliance-officer', 'threat-analyzer', 'privacy-analyst'];
+      case "development":
+        return [
+          "hierarchical-coordinator",
+          "coder",
+          "reviewer",
+          "tester",
+          "performance-monitor",
+        ];
+      case "research":
+        return [
+          "mesh-coordinator",
+          "researcher",
+          "data-scientist",
+          "academic-integrator",
+          "peer-reviewer",
+        ];
+      case "analysis":
+        return [
+          "adaptive-coordinator",
+          "analyst",
+          "data-processor",
+          "pattern-recognizer",
+          "visualizer",
+        ];
+      case "security":
+        return [
+          "byzantine-fault-tolerant",
+          "security-auditor",
+          "compliance-officer",
+          "threat-analyzer",
+          "privacy-analyst",
+        ];
       default:
-        return ['hierarchical-coordinator', 'coder', 'researcher', 'tester'];
+        return ["hierarchical-coordinator", "coder", "researcher", "tester"];
     }
   }
 }
 
 // === STATUS AND HEALTH ===
 export enum AgentSpaceStatus {
-  INITIALIZING = 'initializing',
-  READY = 'ready',
-  ACTIVE = 'active',
-  DEGRADED = 'degraded',
-  ERROR = 'error',
-  SHUTDOWN = 'shutdown'
+  INITIALIZING = "initializing",
+  READY = "ready",
+  ACTIVE = "active",
+  DEGRADED = "degraded",
+  ERROR = "error",
+  SHUTDOWN = "shutdown",
 }
 
 export enum IntegrationHealth {
-  HEALTHY = 'healthy',
-  WARNING = 'warning',
-  CRITICAL = 'critical',
-  OFFLINE = 'offline'
+  HEALTHY = "healthy",
+  WARNING = "warning",
+  CRITICAL = "critical",
+  OFFLINE = "offline",
 }

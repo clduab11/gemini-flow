@@ -5,7 +5,7 @@
 
 export interface MultimediaGenerationRequest {
   id: string;
-  type: 'video' | 'audio' | 'image' | 'mixed';
+  type: "video" | "audio" | "image" | "mixed";
   prompt: string;
   duration?: number;
   quality: MediaQuality;
@@ -14,7 +14,7 @@ export interface MultimediaGenerationRequest {
 }
 
 export interface MediaQuality {
-  level: 'low' | 'medium' | 'high' | 'ultra' | 'auto';
+  level: "low" | "medium" | "high" | "ultra" | "auto";
   video?: VideoQuality;
   audio?: AudioQuality;
   image?: ImageQuality;

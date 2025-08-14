@@ -12,12 +12,12 @@ import {
   ParameterMapping,
   ResponseMapping,
   TransformFunction
-} from '../../../src/types/a2a.js';
+} from '../../../src/types/a2a';
 import {
   MCPRequest,
   MCPResponse,
   MCPTool
-} from '../../../src/types/mcp.js';
+} from '../../../src/types/mcp';
 
 // Mock implementation will be created later
 class A2AMCPBridge {

@@ -1,6 +1,6 @@
 /**
  * Agent Environment Virtualization System
- * 
+ *
  * Provides isolated, resource-controlled workspaces for agents with:
  * - Resource limits and monitoring
  * - Inter-agent communication via MCP
@@ -8,8 +8,8 @@
  * - Performance tracking
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
 import {
   AgentWorkspace,
   WorkspaceResources,
@@ -20,13 +20,13 @@ import {
   ResourceUtilization,
   PerformanceMetrics,
   NetworkPolicy,
-  SecurityPolicy
-} from '../types/AgentSpaceTypes.js';
+  SecurityPolicy,
+} from "../types/AgentSpaceTypes.js";
 
 export interface VirtualizationConfig {
   maxWorkspaces: number;
   defaultResourceLimits: ResourceLimits;
-  isolationLevel: 'process' | 'container' | 'vm' | 'secure_enclave';
+  isolationLevel: "process" | "container" | "vm" | "secure_enclave";
   monitoringInterval: number;
   cleanupInterval: number;
   securityEnabled: boolean;
@@ -38,7 +38,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
   private workspaces: Map<string, AgentWorkspace> = new Map();
   private resourceMonitors: Map<string, NodeJS.Timeout> = new Map();
   private cleanupTimer: NodeJS.Timeout | null = null;
-  
+
   // Performance tracking
   private metrics = {
     totalWorkspaces: 0,
@@ -47,18 +47,18 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       memory: 0,
       cpu: 0,
       network: 0,
-      storage: 0
+      storage: 0,
     },
     performance: {
       averageResponseTime: 0,
       throughput: 0,
-      errorRate: 0
-    }
+      errorRate: 0,
+    },
   };
 
   constructor(config: VirtualizationConfig) {
     super();
-    this.logger = new Logger('AgentEnvironmentVirtualization');
+    this.logger = new Logger("AgentEnvironmentVirtualization");
     this.config = config;
     this.initializeSystem();
   }
@@ -69,9 +69,9 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       this.performCleanup();
     }, this.config.cleanupInterval);
 
-    this.logger.info('Agent Environment Virtualization initialized', {
+    this.logger.info("Agent Environment Virtualization initialized", {
       maxWorkspaces: this.config.maxWorkspaces,
-      isolationLevel: this.config.isolationLevel
+      isolationLevel: this.config.isolationLevel,
     });
   }
 
@@ -81,19 +81,21 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
   async createWorkspace(
     agentId: string,
     workspaceName: string,
-    configuration?: Partial<WorkspaceConfiguration>
+    configuration?: Partial<WorkspaceConfiguration>,
   ): Promise<AgentWorkspace> {
     if (this.workspaces.size >= this.config.maxWorkspaces) {
-      throw new Error(`Maximum workspace limit reached: ${this.config.maxWorkspaces}`);
+      throw new Error(
+        `Maximum workspace limit reached: ${this.config.maxWorkspaces}`,
+      );
     }
 
     const workspaceId = `ws_${agentId}_${Date.now()}`;
-    
+
     const workspace: AgentWorkspace = {
       id: workspaceId,
       agentId,
       name: workspaceName,
-      type: 'isolated',
+      type: "isolated",
       resources: this.initializeResources(),
       resourceLimits: { ...this.config.defaultResourceLimits },
       spatialProperties: {
@@ -103,31 +105,33 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
           min: { x: -10, y: -10, z: -10 },
           max: { x: 10, y: 10, z: 10 },
           center: { x: 0, y: 0, z: 0 },
-          volume: 8000
+          volume: 8000,
         },
         velocity: { x: 0, y: 0, z: 0 },
         acceleration: { x: 0, y: 0, z: 0 },
-        spatialRelationships: []
+        spatialRelationships: [],
       },
       accessControl: {
         owner: agentId,
-        permissions: [{
-          subject: agentId,
-          actions: ['read', 'write', 'execute', 'admin'],
-          conditions: []
-        }],
+        permissions: [
+          {
+            subject: agentId,
+            actions: ["read", "write", "execute", "admin"],
+            conditions: [],
+          },
+        ],
         inheritanceEnabled: false,
-        defaultPermission: 'deny'
+        defaultPermission: "deny",
       },
       state: {
-        status: 'initializing',
-        health: 'healthy',
+        status: "initializing",
+        health: "healthy",
         resourceUtilization: {
           memory: 0,
           cpu: 0,
           network: 0,
           storage: 0,
-          efficiency: 1.0
+          efficiency: 1.0,
         },
         performance: {
           responseTime: 0,
@@ -135,41 +139,41 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
           errorRate: 0,
           successRate: 1.0,
           latency: 0,
-          concurrency: 0
+          concurrency: 0,
         },
-        errors: []
+        errors: [],
       },
       createdAt: new Date(),
       lastAccessedAt: new Date(),
-      configuration: this.createDefaultConfiguration(configuration)
+      configuration: this.createDefaultConfiguration(configuration),
     };
 
     this.workspaces.set(workspaceId, workspace);
-    
+
     // Start resource monitoring
     await this.startResourceMonitoring(workspaceId);
-    
+
     // Initialize workspace environment
     await this.initializeWorkspaceEnvironment(workspace);
-    
-    workspace.state.status = 'active';
+
+    workspace.state.status = "active";
     this.metrics.totalWorkspaces++;
     this.metrics.activeWorkspaces++;
 
-    this.logger.info('Workspace created', {
+    this.logger.info("Workspace created", {
       workspaceId,
       agentId,
-      name: workspaceName
+      name: workspaceName,
     });
 
-    this.emit('workspace_created', {
+    this.emit("workspace_created", {
       id: `evt_${Date.now()}`,
-      type: 'workspace_created',
-      source: 'virtualization_system',
+      type: "workspace_created",
+      source: "virtualization_system",
       target: agentId,
       timestamp: new Date(),
       data: { workspaceId, workspace },
-      severity: 'info'
+      severity: "info",
     } as AgentSpaceEvent);
 
     return workspace;
@@ -184,7 +188,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       throw new Error(`Workspace not found: ${workspaceId}`);
     }
 
-    workspace.state.status = 'terminating';
+    workspace.state.status = "terminating";
 
     try {
       // Stop resource monitoring
@@ -201,38 +205,37 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       this.workspaces.delete(workspaceId);
       this.metrics.activeWorkspaces--;
 
-      this.logger.info('Workspace destroyed', {
+      this.logger.info("Workspace destroyed", {
         workspaceId,
-        agentId: workspace.agentId
+        agentId: workspace.agentId,
       });
 
-      this.emit('workspace_destroyed', {
+      this.emit("workspace_destroyed", {
         id: `evt_${Date.now()}`,
-        type: 'workspace_destroyed',
-        source: 'virtualization_system',
+        type: "workspace_destroyed",
+        source: "virtualization_system",
         target: workspace.agentId,
         timestamp: new Date(),
         data: { workspaceId, agentId: workspace.agentId },
-        severity: 'info'
+        severity: "info",
       } as AgentSpaceEvent);
-
     } catch (error) {
-      workspace.state.status = 'error';
-      workspace.state.health = 'critical';
+      workspace.state.status = "error";
+      workspace.state.health = "critical";
       workspace.state.errors.push({
         id: `err_${Date.now()}`,
-        type: 'destruction_error',
+        type: "destruction_error",
         message: error.message,
-        severity: 'high',
+        severity: "high",
         timestamp: new Date(),
-        resolved: false
+        resolved: false,
       });
-      
-      this.logger.error('Failed to destroy workspace', {
+
+      this.logger.error("Failed to destroy workspace", {
         workspaceId,
-        error: error.message
+        error: error.message,
       });
-      
+
       throw error;
     }
   }
@@ -248,8 +251,9 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
    * Get all workspaces for an agent
    */
   getAgentWorkspaces(agentId: string): AgentWorkspace[] {
-    return Array.from(this.workspaces.values())
-      .filter(ws => ws.agentId === agentId);
+    return Array.from(this.workspaces.values()).filter(
+      (ws) => ws.agentId === agentId,
+    );
   }
 
   /**
@@ -264,7 +268,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
    */
   async updateResourceLimits(
     workspaceId: string,
-    newLimits: Partial<ResourceLimits>
+    newLimits: Partial<ResourceLimits>,
   ): Promise<void> {
     const workspace = this.workspaces.get(workspaceId);
     if (!workspace) {
@@ -277,20 +281,20 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
     // Apply new limits to running processes
     await this.applyResourceLimits(workspace);
 
-    this.logger.info('Resource limits updated', {
+    this.logger.info("Resource limits updated", {
       workspaceId,
       oldLimits,
-      newLimits: workspace.resourceLimits
+      newLimits: workspace.resourceLimits,
     });
 
-    this.emit('resource_allocated', {
+    this.emit("resource_allocated", {
       id: `evt_${Date.now()}`,
-      type: 'resource_allocated',
-      source: 'virtualization_system',
+      type: "resource_allocated",
+      source: "virtualization_system",
       target: workspace.agentId,
       timestamp: new Date(),
       data: { workspaceId, oldLimits, newLimits },
-      severity: 'info'
+      severity: "info",
     } as AgentSpaceEvent);
   }
 
@@ -305,7 +309,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
 
     // Update real-time metrics
     await this.updateResourceMetrics(workspace);
-    
+
     return workspace.resources;
   }
 
@@ -314,7 +318,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
    */
   async scaleResources(
     workspaceId: string,
-    scalingFactor: number
+    scalingFactor: number,
   ): Promise<void> {
     const workspace = this.workspaces.get(workspaceId);
     if (!workspace) {
@@ -322,18 +326,26 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
     }
 
     const newLimits: Partial<ResourceLimits> = {
-      maxMemoryMB: Math.floor(workspace.resourceLimits.maxMemoryMB * scalingFactor),
-      maxCPUPercentage: Math.min(100, workspace.resourceLimits.maxCPUPercentage * scalingFactor),
-      maxNetworkBandwidthMbps: workspace.resourceLimits.maxNetworkBandwidthMbps * scalingFactor,
-      maxStorageMB: Math.floor(workspace.resourceLimits.maxStorageMB * scalingFactor)
+      maxMemoryMB: Math.floor(
+        workspace.resourceLimits.maxMemoryMB * scalingFactor,
+      ),
+      maxCPUPercentage: Math.min(
+        100,
+        workspace.resourceLimits.maxCPUPercentage * scalingFactor,
+      ),
+      maxNetworkBandwidthMbps:
+        workspace.resourceLimits.maxNetworkBandwidthMbps * scalingFactor,
+      maxStorageMB: Math.floor(
+        workspace.resourceLimits.maxStorageMB * scalingFactor,
+      ),
     };
 
     await this.updateResourceLimits(workspaceId, newLimits);
 
-    this.logger.info('Resources scaled', {
+    this.logger.info("Resources scaled", {
       workspaceId,
       scalingFactor,
-      newLimits
+      newLimits,
     });
   }
 
@@ -346,37 +358,37 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       throw new Error(`Workspace not found: ${workspaceId}`);
     }
 
-    workspace.type = 'secure';
-    workspace.state.health = 'unhealthy';
-    
+    workspace.type = "secure";
+    workspace.state.health = "unhealthy";
+
     // Apply strict network isolation
     workspace.configuration.networkPolicy = {
       inboundRules: [],
       outboundRules: [],
-      defaultAction: 'deny',
+      defaultAction: "deny",
       rateLimiting: {
         requestsPerSecond: 0,
         burstSize: 0,
-        windowSize: 1000
-      }
+        windowSize: 1000,
+      },
     };
 
     await this.applyNetworkPolicy(workspace);
 
-    this.logger.warn('Workspace isolated', {
+    this.logger.warn("Workspace isolated", {
       workspaceId,
       agentId: workspace.agentId,
-      reason
+      reason,
     });
 
-    this.emit('security_violation', {
+    this.emit("security_violation", {
       id: `evt_${Date.now()}`,
-      type: 'security_violation',
-      source: 'virtualization_system',
+      type: "security_violation",
+      source: "virtualization_system",
       target: workspace.agentId,
       timestamp: new Date(),
-      data: { workspaceId, reason, action: 'isolated' },
-      severity: 'critical'
+      data: { workspaceId, reason, action: "isolated" },
+      severity: "critical",
     } as AgentSpaceEvent);
   }
 
@@ -388,7 +400,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       ...this.metrics,
       timestamp: new Date(),
       workspaceDistribution: this.getWorkspaceDistribution(),
-      resourceEfficiency: this.calculateResourceEfficiency()
+      resourceEfficiency: this.calculateResourceEfficiency(),
     };
   }
 
@@ -404,50 +416,48 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
         reserved: 0,
         swapped: 0,
         compressionRatio: 1.0,
-        cacheHitRate: 0.0
+        cacheHitRate: 0.0,
       },
       cpu: {
         cores: 1,
         usage: 0,
-        priority: 'normal',
-        scheduling: 'preemptive'
+        priority: "normal",
+        scheduling: "preemptive",
       },
       network: {
         bandwidth: 0,
         latency: 0,
         packetLoss: 0,
         connections: 0,
-        throughput: { inbound: 0, outbound: 0 }
+        throughput: { inbound: 0, outbound: 0 },
       },
       storage: {
         allocated: 0,
         used: 0,
         iops: 0,
-        type: 'memory'
+        type: "memory",
       },
-      tools: []
+      tools: [],
     };
   }
 
-  private createDefaultConfiguration(override?: Partial<WorkspaceConfiguration>): WorkspaceConfiguration {
+  private createDefaultConfiguration(
+    override?: Partial<WorkspaceConfiguration>,
+  ): WorkspaceConfiguration {
     return {
       isolationLevel: this.config.isolationLevel,
       networkPolicy: {
-        inboundRules: [
-          { protocol: 'mcp', ports: [8080], action: 'allow' }
-        ],
-        outboundRules: [
-          { protocol: 'mcp', ports: [8080], action: 'allow' }
-        ],
-        defaultAction: 'deny',
+        inboundRules: [{ protocol: "mcp", ports: [8080], action: "allow" }],
+        outboundRules: [{ protocol: "mcp", ports: [8080], action: "allow" }],
+        defaultAction: "deny",
         rateLimiting: {
           requestsPerSecond: 100,
           burstSize: 200,
-          windowSize: 1000
-        }
+          windowSize: 1000,
+        },
       },
       storagePolicy: {
-        type: 'local',
+        type: "local",
         encryption: this.config.securityEnabled,
         compression: true,
         deduplication: true,
@@ -455,23 +465,23 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
           defaultTTL: 86400000, // 24 hours
           archiveThreshold: 7 * 24 * 60 * 60 * 1000, // 7 days
           deleteThreshold: 30 * 24 * 60 * 60 * 1000, // 30 days
-          backupEnabled: true
-        }
+          backupEnabled: true,
+        },
       },
       securityPolicy: {
-        authentication: this.config.securityEnabled ? 'api_key' : 'none',
-        authorization: this.config.securityEnabled ? 'rbac' : 'none',
-        encryption: this.config.securityEnabled ? 'transport' : 'none',
-        auditLevel: 'basic'
+        authentication: this.config.securityEnabled ? "api_key" : "none",
+        authorization: this.config.securityEnabled ? "rbac" : "none",
+        encryption: this.config.securityEnabled ? "transport" : "none",
+        auditLevel: "basic",
       },
       monitoringPolicy: {
         metricsEnabled: true,
         logsEnabled: true,
         tracingEnabled: false,
         alertingEnabled: true,
-        retentionDays: 30
+        retentionDays: 30,
       },
-      ...override
+      ...override,
     };
   }
 
@@ -488,9 +498,9 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
         await this.updateResourceMetrics(workspace);
         await this.checkResourceThresholds(workspace);
       } catch (error) {
-        this.logger.error('Resource monitoring error', {
+        this.logger.error("Resource monitoring error", {
           workspaceId,
-          error: error.message
+          error: error.message,
         });
       }
     }, this.config.monitoringInterval);
@@ -498,13 +508,16 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
     this.resourceMonitors.set(workspaceId, monitor);
   }
 
-  private async updateResourceMetrics(workspace: AgentWorkspace): Promise<void> {
+  private async updateResourceMetrics(
+    workspace: AgentWorkspace,
+  ): Promise<void> {
     // Simulate resource usage measurement
     // In production, this would integrate with actual system monitoring
-    
+
     const memoryUsage = Math.random() * workspace.resourceLimits.maxMemoryMB;
     const cpuUsage = Math.random() * workspace.resourceLimits.maxCPUPercentage;
-    const networkUsage = Math.random() * workspace.resourceLimits.maxNetworkBandwidthMbps;
+    const networkUsage =
+      Math.random() * workspace.resourceLimits.maxNetworkBandwidthMbps;
     const storageUsage = Math.random() * workspace.resourceLimits.maxStorageMB;
 
     workspace.resources.memory.used = memoryUsage;
@@ -519,42 +532,44 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       cpu: cpuUsage / workspace.resourceLimits.maxCPUPercentage,
       network: networkUsage / workspace.resourceLimits.maxNetworkBandwidthMbps,
       storage: storageUsage / workspace.resourceLimits.maxStorageMB,
-      efficiency: this.calculateWorkspaceEfficiency(workspace)
+      efficiency: this.calculateWorkspaceEfficiency(workspace),
     };
 
     workspace.lastAccessedAt = new Date();
   }
 
-  private async checkResourceThresholds(workspace: AgentWorkspace): Promise<void> {
+  private async checkResourceThresholds(
+    workspace: AgentWorkspace,
+  ): Promise<void> {
     const utilization = workspace.state.resourceUtilization;
     const threshold = 0.85; // 85% threshold
 
     let violations: string[] = [];
 
-    if (utilization.memory > threshold) violations.push('memory');
-    if (utilization.cpu > threshold) violations.push('cpu');
-    if (utilization.network > threshold) violations.push('network');
-    if (utilization.storage > threshold) violations.push('storage');
+    if (utilization.memory > threshold) violations.push("memory");
+    if (utilization.cpu > threshold) violations.push("cpu");
+    if (utilization.network > threshold) violations.push("network");
+    if (utilization.storage > threshold) violations.push("storage");
 
     if (violations.length > 0) {
-      this.logger.warn('Resource threshold exceeded', {
+      this.logger.warn("Resource threshold exceeded", {
         workspaceId: workspace.id,
         violations,
-        utilization
+        utilization,
       });
 
-      this.emit('performance_threshold_exceeded', {
+      this.emit("performance_threshold_exceeded", {
         id: `evt_${Date.now()}`,
-        type: 'performance_threshold_exceeded',
-        source: 'virtualization_system',
+        type: "performance_threshold_exceeded",
+        source: "virtualization_system",
         target: workspace.agentId,
         timestamp: new Date(),
         data: { workspaceId: workspace.id, violations, utilization },
-        severity: 'warning'
+        severity: "warning",
       } as AgentSpaceEvent);
 
       // Auto-scale if enabled
-      if (violations.includes('memory') || violations.includes('cpu')) {
+      if (violations.includes("memory") || violations.includes("cpu")) {
         await this.scaleResources(workspace.id, 1.2); // 20% increase
       }
     }
@@ -563,7 +578,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
   private calculateWorkspaceEfficiency(workspace: AgentWorkspace): number {
     const util = workspace.state.resourceUtilization;
     const weights = { memory: 0.3, cpu: 0.4, network: 0.2, storage: 0.1 };
-    
+
     return (
       util.memory * weights.memory +
       util.cpu * weights.cpu +
@@ -572,26 +587,30 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
     );
   }
 
-  private async initializeWorkspaceEnvironment(workspace: AgentWorkspace): Promise<void> {
+  private async initializeWorkspaceEnvironment(
+    workspace: AgentWorkspace,
+  ): Promise<void> {
     // Initialize container/VM environment
     // Apply security policies
     // Set up monitoring
     // Configure network isolation
-    
-    this.logger.debug('Initializing workspace environment', {
+
+    this.logger.debug("Initializing workspace environment", {
       workspaceId: workspace.id,
-      isolationLevel: workspace.configuration.isolationLevel
+      isolationLevel: workspace.configuration.isolationLevel,
     });
   }
 
-  private async cleanupWorkspaceEnvironment(workspace: AgentWorkspace): Promise<void> {
+  private async cleanupWorkspaceEnvironment(
+    workspace: AgentWorkspace,
+  ): Promise<void> {
     // Clean up processes
     // Release resources
     // Remove temporary files
     // Close network connections
-    
-    this.logger.debug('Cleaning up workspace environment', {
-      workspaceId: workspace.id
+
+    this.logger.debug("Cleaning up workspace environment", {
+      workspaceId: workspace.id,
     });
   }
 
@@ -600,10 +619,10 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
     // Set CPU quotas
     // Configure network bandwidth limits
     // Set storage quotas
-    
-    this.logger.debug('Applying resource limits', {
+
+    this.logger.debug("Applying resource limits", {
       workspaceId: workspace.id,
-      limits: workspace.resourceLimits
+      limits: workspace.resourceLimits,
     });
   }
 
@@ -611,10 +630,10 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
     // Configure firewall rules
     // Set up traffic shaping
     // Apply rate limiting
-    
-    this.logger.debug('Applying network policy', {
+
+    this.logger.debug("Applying network policy", {
       workspaceId: workspace.id,
-      policy: workspace.configuration.networkPolicy
+      policy: workspace.configuration.networkPolicy,
     });
   }
 
@@ -622,15 +641,20 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
     // Clean up terminated workspaces
     // Release unused resources
     // Update metrics
-    
+
     const now = Date.now();
     const staleThreshold = 24 * 60 * 60 * 1000; // 24 hours
-    
+
     for (const [id, workspace] of this.workspaces) {
-      if (workspace.state.status === 'error' &&
-          (now - workspace.lastAccessedAt.getTime()) > staleThreshold) {
-        this.destroyWorkspace(id).catch(error => {
-          this.logger.error('Cleanup failed', { workspaceId: id, error: error.message });
+      if (
+        workspace.state.status === "error" &&
+        now - workspace.lastAccessedAt.getTime() > staleThreshold
+      ) {
+        this.destroyWorkspace(id).catch((error) => {
+          this.logger.error("Cleanup failed", {
+            workspaceId: id,
+            error: error.message,
+          });
         });
       }
     }
@@ -641,7 +665,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       isolated: 0,
       shared: 0,
       collaborative: 0,
-      secure: 0
+      secure: 0,
     };
 
     for (const workspace of this.workspaces.values()) {
@@ -679,11 +703,16 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
     // Destroy all workspaces
     const workspaceIds = Array.from(this.workspaces.keys());
     await Promise.all(
-      workspaceIds.map(id => this.destroyWorkspace(id).catch(error => 
-        this.logger.error('Failed to destroy workspace during shutdown', { id, error: error.message })
-      ))
+      workspaceIds.map((id) =>
+        this.destroyWorkspace(id).catch((error) =>
+          this.logger.error("Failed to destroy workspace during shutdown", {
+            id,
+            error: error.message,
+          }),
+        ),
+      ),
     );
 
-    this.logger.info('Agent Environment Virtualization shutdown complete');
+    this.logger.info("Agent Environment Virtualization shutdown complete");
   }
 }

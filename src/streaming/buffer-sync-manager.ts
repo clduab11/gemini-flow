@@ -1,6 +1,6 @@
 /**
  * Buffer and Synchronization Manager
- * 
+ *
  * Advanced buffering and synchronization strategies for multimedia streams:
  * - Adaptive buffering with predictive algorithms
  * - Multi-stream synchronization with sub-frame accuracy
@@ -9,45 +9,45 @@
  * - Quality-aware buffer management
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger.js";
 import {
   MultiModalChunk,
   BufferingStrategy,
   SynchronizationConfig,
   NetworkConditions,
-  StreamingSession
-} from '../types/streaming.js';
+  StreamingSession,
+} from "../types/streaming.js";
 
 export interface BufferMetrics {
-  currentLevel: number;      // Current buffer fill level (0-1)
-  targetLevel: number;       // Target buffer level (0-1)
-  underrunCount: number;     // Number of buffer underruns
-  overrunCount: number;      // Number of buffer overruns
-  averageLatency: number;    // Average end-to-end latency (ms)
-  jitter: number;           // Network jitter (ms)
-  throughput: number;       // Current throughput (bytes/s)
-  efficiency: number;       // Buffer efficiency score (0-1)
+  currentLevel: number; // Current buffer fill level (0-1)
+  targetLevel: number; // Target buffer level (0-1)
+  underrunCount: number; // Number of buffer underruns
+  overrunCount: number; // Number of buffer overruns
+  averageLatency: number; // Average end-to-end latency (ms)
+  jitter: number; // Network jitter (ms)
+  throughput: number; // Current throughput (bytes/s)
+  efficiency: number; // Buffer efficiency score (0-1)
 }
 
 export interface SyncPoint {
-  timestamp: number;         // Presentation timestamp
-  streamId: string;         // Associated stream ID
-  chunkId: string;          // Chunk identifier
-  priority: number;         // Sync priority (0-10)
-  tolerance: number;        // Acceptable deviation (ms)
-  dependencies: string[];   // Dependent chunks/streams
+  timestamp: number; // Presentation timestamp
+  streamId: string; // Associated stream ID
+  chunkId: string; // Chunk identifier
+  priority: number; // Sync priority (0-10)
+  tolerance: number; // Acceptable deviation (ms)
+  dependencies: string[]; // Dependent chunks/streams
 }
 
 export interface BufferPool {
   id: string;
-  type: 'audio' | 'video' | 'data';
-  capacity: number;         // Maximum buffer size (bytes)
+  type: "audio" | "video" | "data";
+  capacity: number; // Maximum buffer size (bytes)
   chunks: MultiModalChunk[];
   watermarks: {
-    low: number;           // Low watermark (bytes)
-    high: number;          // High watermark (bytes)
-    critical: number;      // Critical level (bytes)
+    low: number; // Low watermark (bytes)
+    high: number; // High watermark (bytes)
+    critical: number; // Critical level (bytes)
   };
   strategy: BufferingStrategy;
   metrics: BufferMetrics;
@@ -55,12 +55,12 @@ export interface BufferPool {
 
 export interface ClockReference {
   id: string;
-  type: 'local' | 'network' | 'master';
-  frequency: number;        // Clock frequency (Hz)
-  drift: number;           // Clock drift (ppm)
-  offset: number;          // Offset from reference (ms)
-  accuracy: number;        // Clock accuracy (ms)
-  lastSync: number;        // Last synchronization time
+  type: "local" | "network" | "master";
+  frequency: number; // Clock frequency (Hz)
+  drift: number; // Clock drift (ppm)
+  offset: number; // Offset from reference (ms)
+  accuracy: number; // Clock accuracy (ms)
+  lastSync: number; // Last synchronization time
 }
 
 export class BufferSyncManager extends EventEmitter {
@@ -76,12 +76,12 @@ export class BufferSyncManager extends EventEmitter {
 
   constructor(syncConfig: SynchronizationConfig) {
     super();
-    this.logger = new Logger('BufferSyncManager');
+    this.logger = new Logger("BufferSyncManager");
     this.syncConfig = syncConfig;
     this.adaptiveAlgorithm = new AdaptiveBufferingAlgorithm();
     this.jitterBuffer = new JitterBuffer();
     this.performanceMonitor = new BufferPerformanceMonitor();
-    
+
     this.initializeMasterClock();
     this.startSynchronizationLoop();
   }
@@ -91,8 +91,8 @@ export class BufferSyncManager extends EventEmitter {
    */
   createBufferPool(
     streamId: string,
-    type: 'audio' | 'video' | 'data',
-    strategy: BufferingStrategy
+    type: "audio" | "video" | "data",
+    strategy: BufferingStrategy,
   ): BufferPool {
     const pool: BufferPool = {
       id: streamId,
@@ -103,22 +103,22 @@ export class BufferSyncManager extends EventEmitter {
       strategy,
       metrics: {
         currentLevel: 0,
-        targetLevel: strategy.type === 'adaptive' ? 0.5 : 0.3,
+        targetLevel: strategy.type === "adaptive" ? 0.5 : 0.3,
         underrunCount: 0,
         overrunCount: 0,
         averageLatency: 0,
         jitter: 0,
         throughput: 0,
-        efficiency: 1.0
-      }
+        efficiency: 1.0,
+      },
     };
 
     this.bufferPools.set(streamId, pool);
-    this.logger.info('Buffer pool created', { 
-      streamId, 
-      type, 
+    this.logger.info("Buffer pool created", {
+      streamId,
+      type,
       capacity: pool.capacity,
-      strategy: strategy.type 
+      strategy: strategy.type,
     });
 
     return pool;
@@ -130,7 +130,7 @@ export class BufferSyncManager extends EventEmitter {
   async addChunk(streamId: string, chunk: MultiModalChunk): Promise<boolean> {
     const pool = this.bufferPools.get(streamId);
     if (!pool) {
-      this.logger.warn('Buffer pool not found', { streamId });
+      this.logger.warn("Buffer pool not found", { streamId });
       return false;
     }
 
@@ -138,7 +138,10 @@ export class BufferSyncManager extends EventEmitter {
     if (!this.hasCapacity(pool, chunk)) {
       const evicted = await this.evictChunks(pool, chunk.metadata.size);
       if (!evicted) {
-        this.logger.warn('Buffer overflow, chunk dropped', { streamId, chunkId: chunk.id });
+        this.logger.warn("Buffer overflow, chunk dropped", {
+          streamId,
+          chunkId: chunk.id,
+        });
         pool.metrics.overrunCount++;
         return false;
       }
@@ -157,16 +160,20 @@ export class BufferSyncManager extends EventEmitter {
         timestamp: chunk.sync.presentationTimestamp,
         streamId,
         chunkId: chunk.id,
-        priority: chunk.metadata.priority === 'critical' ? 10 : 5,
+        priority: chunk.metadata.priority === "critical" ? 10 : 5,
         tolerance: this.syncConfig.tolerance,
-        dependencies: chunk.sync.dependencies
+        dependencies: chunk.sync.dependencies,
       });
     }
 
     // Trigger adaptive algorithm update
     this.adaptiveAlgorithm.onChunkAdded(pool, chunk);
 
-    this.emit('chunk_buffered', { streamId, chunk, bufferLevel: pool.metrics.currentLevel });
+    this.emit("chunk_buffered", {
+      streamId,
+      chunk,
+      bufferLevel: pool.metrics.currentLevel,
+    });
     return true;
   }
 
@@ -181,7 +188,7 @@ export class BufferSyncManager extends EventEmitter {
 
     // Find the chunk that should be played at current time
     const tolerance = this.syncConfig.tolerance;
-    const chunkIndex = pool.chunks.findIndex(chunk => {
+    const chunkIndex = pool.chunks.findIndex((chunk) => {
       const playTime = chunk.sync?.presentationTimestamp || chunk.timestamp;
       return Math.abs(playTime - currentTime) <= tolerance;
     });
@@ -196,24 +203,33 @@ export class BufferSyncManager extends EventEmitter {
     const chunk = pool.chunks.splice(chunkIndex, 1)[0];
     this.updateBufferMetrics(pool);
 
-    this.emit('chunk_consumed', { streamId, chunk, bufferLevel: pool.metrics.currentLevel });
+    this.emit("chunk_consumed", {
+      streamId,
+      chunk,
+      bufferLevel: pool.metrics.currentLevel,
+    });
     return chunk;
   }
 
   /**
    * Synchronize multiple streams to a common timeline
    */
-  async synchronizeStreams(streamIds: string[], referenceTime: number): Promise<boolean> {
+  async synchronizeStreams(
+    streamIds: string[],
+    referenceTime: number,
+  ): Promise<boolean> {
     try {
-      const pools = streamIds.map(id => this.bufferPools.get(id)).filter(Boolean) as BufferPool[];
-      
+      const pools = streamIds
+        .map((id) => this.bufferPools.get(id))
+        .filter(Boolean) as BufferPool[];
+
       if (pools.length === 0) {
         return false;
       }
 
       // Calculate synchronization adjustments
       const adjustments = this.calculateSyncAdjustments(pools, referenceTime);
-      
+
       // Apply adjustments to each stream
       for (const [streamId, adjustment] of adjustments) {
         await this.applySyncAdjustment(streamId, adjustment);
@@ -221,20 +237,19 @@ export class BufferSyncManager extends EventEmitter {
 
       // Verify synchronization accuracy
       const syncAccuracy = this.verifySynchronization(pools, referenceTime);
-      
-      this.emit('streams_synchronized', {
+
+      this.emit("streams_synchronized", {
         streamIds,
         referenceTime,
         accuracy: syncAccuracy,
-        adjustments: Object.fromEntries(adjustments)
+        adjustments: Object.fromEntries(adjustments),
       });
 
       return syncAccuracy <= this.syncConfig.tolerance;
-
     } catch (error) {
-      this.logger.error('Stream synchronization failed', { 
-        streamIds, 
-        error: (error as Error).message 
+      this.logger.error("Stream synchronization failed", {
+        streamIds,
+        error: (error as Error).message,
       });
       return false;
     }
@@ -250,17 +265,17 @@ export class BufferSyncManager extends EventEmitter {
     const newStrategy = this.adaptiveAlgorithm.calculateOptimalStrategy(
       pool.strategy,
       conditions,
-      pool.metrics
+      pool.metrics,
     );
 
     if (this.shouldUpdateStrategy(pool.strategy, newStrategy)) {
       this.updateBufferingStrategy(pool, newStrategy);
-      
-      this.emit('strategy_adapted', {
+
+      this.emit("strategy_adapted", {
         streamId,
         oldStrategy: pool.strategy,
         newStrategy,
-        conditions
+        conditions,
       });
     }
   }
@@ -270,7 +285,7 @@ export class BufferSyncManager extends EventEmitter {
    */
   getBufferStatistics(streamId?: string): Map<string, BufferMetrics> {
     const stats = new Map<string, BufferMetrics>();
-    
+
     if (streamId) {
       const pool = this.bufferPools.get(streamId);
       if (pool) {
@@ -281,7 +296,7 @@ export class BufferSyncManager extends EventEmitter {
         stats.set(id, { ...pool.metrics });
       }
     }
-    
+
     return stats;
   }
 
@@ -289,11 +304,15 @@ export class BufferSyncManager extends EventEmitter {
    * Predict optimal buffer size based on conditions
    */
   predictOptimalBufferSize(
-    type: 'audio' | 'video' | 'data',
+    type: "audio" | "video" | "data",
     conditions: NetworkConditions,
-    qualityLevel: string
+    qualityLevel: string,
   ): number {
-    return this.adaptiveAlgorithm.predictOptimalSize(type, conditions, qualityLevel);
+    return this.adaptiveAlgorithm.predictOptimalSize(
+      type,
+      conditions,
+      qualityLevel,
+    );
   }
 
   /**
@@ -307,31 +326,34 @@ export class BufferSyncManager extends EventEmitter {
     pool.chunks = [];
     this.updateBufferMetrics(pool);
 
-    this.emit('buffer_flushed', { streamId, flushedCount });
+    this.emit("buffer_flushed", { streamId, flushedCount });
     return flushedCount;
   }
 
   /**
    * Calculate optimal buffer capacity based on stream type and strategy
    */
-  private calculateOptimalCapacity(type: 'audio' | 'video' | 'data', strategy: BufferingStrategy): number {
+  private calculateOptimalCapacity(
+    type: "audio" | "video" | "data",
+    strategy: BufferingStrategy,
+  ): number {
     const baseCapacities = {
-      audio: 1024 * 1024,      // 1 MB for audio
+      audio: 1024 * 1024, // 1 MB for audio
       video: 10 * 1024 * 1024, // 10 MB for video
-      data: 512 * 1024         // 512 KB for data
+      data: 512 * 1024, // 512 KB for data
     };
 
     let capacity = baseCapacities[type];
 
     // Adjust based on strategy
     switch (strategy.type) {
-      case 'adaptive':
+      case "adaptive":
         capacity *= 1.5; // More space for adaptation
         break;
-      case 'predictive':
+      case "predictive":
         capacity *= 2.0; // More space for prediction
         break;
-      case 'fixed':
+      case "fixed":
         capacity *= 1.0; // Standard size
         break;
     }
@@ -349,13 +371,16 @@ export class BufferSyncManager extends EventEmitter {
   /**
    * Calculate buffer watermarks
    */
-  private calculateWatermarks(type: 'audio' | 'video' | 'data', strategy: BufferingStrategy): any {
+  private calculateWatermarks(
+    type: "audio" | "video" | "data",
+    strategy: BufferingStrategy,
+  ): any {
     const capacity = this.calculateOptimalCapacity(type, strategy);
-    
+
     return {
-      low: Math.floor(capacity * 0.2),      // 20% for low watermark
-      high: Math.floor(capacity * 0.8),     // 80% for high watermark
-      critical: Math.floor(capacity * 0.95) // 95% for critical level
+      low: Math.floor(capacity * 0.2), // 20% for low watermark
+      high: Math.floor(capacity * 0.8), // 80% for high watermark
+      critical: Math.floor(capacity * 0.95), // 95% for critical level
     };
   }
 
@@ -363,26 +388,34 @@ export class BufferSyncManager extends EventEmitter {
    * Check if buffer has capacity for new chunk
    */
   private hasCapacity(pool: BufferPool, chunk: MultiModalChunk): boolean {
-    const currentSize = pool.chunks.reduce((sum, c) => sum + c.metadata.size, 0);
-    return (currentSize + chunk.metadata.size) <= pool.capacity;
+    const currentSize = pool.chunks.reduce(
+      (sum, c) => sum + c.metadata.size,
+      0,
+    );
+    return currentSize + chunk.metadata.size <= pool.capacity;
   }
 
   /**
    * Evict chunks to make space
    */
-  private async evictChunks(pool: BufferPool, neededSpace: number): Promise<boolean> {
+  private async evictChunks(
+    pool: BufferPool,
+    neededSpace: number,
+  ): Promise<boolean> {
     let freedSpace = 0;
     const toEvict: MultiModalChunk[] = [];
 
     // Use LRU strategy for eviction
-    const sortedChunks = [...pool.chunks].sort((a, b) => a.timestamp - b.timestamp);
+    const sortedChunks = [...pool.chunks].sort(
+      (a, b) => a.timestamp - b.timestamp,
+    );
 
     for (const chunk of sortedChunks) {
       if (freedSpace >= neededSpace) break;
-      
+
       // Don't evict high-priority chunks
-      if (chunk.metadata.priority === 'critical') continue;
-      
+      if (chunk.metadata.priority === "critical") continue;
+
       toEvict.push(chunk);
       freedSpace += chunk.metadata.size;
     }
@@ -395,10 +428,10 @@ export class BufferSyncManager extends EventEmitter {
       }
     }
 
-    this.emit('chunks_evicted', { 
-      poolId: pool.id, 
-      evictedCount: toEvict.length, 
-      freedSpace 
+    this.emit("chunks_evicted", {
+      poolId: pool.id,
+      evictedCount: toEvict.length,
+      freedSpace,
     });
 
     return freedSpace >= neededSpace;
@@ -409,14 +442,15 @@ export class BufferSyncManager extends EventEmitter {
    */
   private findInsertPosition(pool: BufferPool, chunk: MultiModalChunk): number {
     const timestamp = chunk.sync?.presentationTimestamp || chunk.timestamp;
-    
+
     for (let i = 0; i < pool.chunks.length; i++) {
-      const existingTimestamp = pool.chunks[i].sync?.presentationTimestamp || pool.chunks[i].timestamp;
+      const existingTimestamp =
+        pool.chunks[i].sync?.presentationTimestamp || pool.chunks[i].timestamp;
       if (timestamp < existingTimestamp) {
         return i;
       }
     }
-    
+
     return pool.chunks.length;
   }
 
@@ -424,9 +458,12 @@ export class BufferSyncManager extends EventEmitter {
    * Update buffer metrics
    */
   private updateBufferMetrics(pool: BufferPool): void {
-    const currentSize = pool.chunks.reduce((sum, c) => sum + c.metadata.size, 0);
+    const currentSize = pool.chunks.reduce(
+      (sum, c) => sum + c.metadata.size,
+      0,
+    );
     pool.metrics.currentLevel = currentSize / pool.capacity;
-    
+
     // Update other metrics based on recent performance
     this.performanceMonitor.updateMetrics(pool);
   }
@@ -436,11 +473,11 @@ export class BufferSyncManager extends EventEmitter {
    */
   private addSyncPoint(syncPoint: SyncPoint): void {
     const bucket = Math.floor(syncPoint.timestamp / 1000) * 1000; // 1-second buckets
-    
+
     if (!this.syncPoints.has(bucket)) {
       this.syncPoints.set(bucket, []);
     }
-    
+
     this.syncPoints.get(bucket)!.push(syncPoint);
   }
 
@@ -450,12 +487,12 @@ export class BufferSyncManager extends EventEmitter {
   private checkForUnderrun(pool: BufferPool, currentTime: number): void {
     if (pool.metrics.currentLevel < pool.watermarks.low / pool.capacity) {
       pool.metrics.underrunCount++;
-      
-      this.emit('buffer_underrun', {
+
+      this.emit("buffer_underrun", {
         poolId: pool.id,
         currentLevel: pool.metrics.currentLevel,
         currentTime,
-        underrunCount: pool.metrics.underrunCount
+        underrunCount: pool.metrics.underrunCount,
       });
     }
   }
@@ -465,30 +502,34 @@ export class BufferSyncManager extends EventEmitter {
    */
   private calculateSyncAdjustments(
     pools: BufferPool[],
-    referenceTime: number
+    referenceTime: number,
   ): Map<string, number> {
     const adjustments = new Map<string, number>();
-    
+
     for (const pool of pools) {
       if (pool.chunks.length === 0) continue;
-      
+
       const nextChunk = pool.chunks[0];
-      const chunkTime = nextChunk.sync?.presentationTimestamp || nextChunk.timestamp;
+      const chunkTime =
+        nextChunk.sync?.presentationTimestamp || nextChunk.timestamp;
       const adjustment = referenceTime - chunkTime;
-      
+
       adjustments.set(pool.id, adjustment);
     }
-    
+
     return adjustments;
   }
 
   /**
    * Apply synchronization adjustment to stream
    */
-  private async applySyncAdjustment(streamId: string, adjustment: number): Promise<void> {
+  private async applySyncAdjustment(
+    streamId: string,
+    adjustment: number,
+  ): Promise<void> {
     const pool = this.bufferPools.get(streamId);
     if (!pool) return;
-    
+
     // Adjust timestamps of all chunks in buffer
     for (const chunk of pool.chunks) {
       if (chunk.sync?.presentationTimestamp) {
@@ -502,48 +543,64 @@ export class BufferSyncManager extends EventEmitter {
   /**
    * Verify synchronization accuracy
    */
-  private verifySynchronization(pools: BufferPool[], referenceTime: number): number {
+  private verifySynchronization(
+    pools: BufferPool[],
+    referenceTime: number,
+  ): number {
     let maxDeviation = 0;
-    
+
     for (const pool of pools) {
       if (pool.chunks.length === 0) continue;
-      
+
       const nextChunk = pool.chunks[0];
-      const chunkTime = nextChunk.sync?.presentationTimestamp || nextChunk.timestamp;
+      const chunkTime =
+        nextChunk.sync?.presentationTimestamp || nextChunk.timestamp;
       const deviation = Math.abs(chunkTime - referenceTime);
-      
+
       maxDeviation = Math.max(maxDeviation, deviation);
     }
-    
+
     return maxDeviation;
   }
 
   /**
    * Check if buffering strategy should be updated
    */
-  private shouldUpdateStrategy(current: BufferingStrategy, proposed: BufferingStrategy): boolean {
+  private shouldUpdateStrategy(
+    current: BufferingStrategy,
+    proposed: BufferingStrategy,
+  ): boolean {
     // Only update if the change is significant
-    const bufferSizeDiff = Math.abs(proposed.bufferSize - current.bufferSize) / current.bufferSize;
-    const latencyDiff = Math.abs(proposed.targetLatency - current.targetLatency) / current.targetLatency;
-    
+    const bufferSizeDiff =
+      Math.abs(proposed.bufferSize - current.bufferSize) / current.bufferSize;
+    const latencyDiff =
+      Math.abs(proposed.targetLatency - current.targetLatency) /
+      current.targetLatency;
+
     return bufferSizeDiff > 0.1 || latencyDiff > 0.1; // 10% threshold
   }
 
   /**
    * Update buffering strategy for pool
    */
-  private updateBufferingStrategy(pool: BufferPool, newStrategy: BufferingStrategy): void {
+  private updateBufferingStrategy(
+    pool: BufferPool,
+    newStrategy: BufferingStrategy,
+  ): void {
     pool.strategy = newStrategy;
     pool.watermarks = this.calculateWatermarks(pool.type, newStrategy);
-    
+
     // Adjust buffer capacity if needed
     const newCapacity = this.calculateOptimalCapacity(pool.type, newStrategy);
     if (newCapacity !== pool.capacity) {
       pool.capacity = newCapacity;
-      
+
       // Evict chunks if new capacity is smaller
       if (newCapacity < pool.capacity) {
-        const currentSize = pool.chunks.reduce((sum, c) => sum + c.metadata.size, 0);
+        const currentSize = pool.chunks.reduce(
+          (sum, c) => sum + c.metadata.size,
+          0,
+        );
         if (currentSize > newCapacity) {
           this.evictChunks(pool, currentSize - newCapacity);
         }
@@ -556,16 +613,16 @@ export class BufferSyncManager extends EventEmitter {
    */
   private initializeMasterClock(): void {
     this.masterClock = {
-      id: 'master',
-      type: 'local',
+      id: "master",
+      type: "local",
       frequency: 1000, // 1 kHz
       drift: 0,
       offset: 0,
       accuracy: 1, // 1ms accuracy
-      lastSync: Date.now()
+      lastSync: Date.now(),
     };
-    
-    this.clockReferences.set('master', this.masterClock);
+
+    this.clockReferences.set("master", this.masterClock);
   }
 
   /**
@@ -582,14 +639,14 @@ export class BufferSyncManager extends EventEmitter {
    */
   private performSynchronizationCycle(): void {
     const currentTime = Date.now();
-    
+
     // Update clock references
     for (const [, clock] of this.clockReferences) {
-      if (clock.type === 'network') {
+      if (clock.type === "network") {
         this.updateNetworkClock(clock, currentTime);
       }
     }
-    
+
     // Process synchronization points
     this.processSyncPoints(currentTime);
   }
@@ -608,13 +665,13 @@ export class BufferSyncManager extends EventEmitter {
   private processSyncPoints(currentTime: number): void {
     const bucket = Math.floor(currentTime / 1000) * 1000;
     const syncPoints = this.syncPoints.get(bucket);
-    
+
     if (syncPoints) {
       // Process sync points for current time bucket
       for (const syncPoint of syncPoints) {
         this.processSyncPoint(syncPoint, currentTime);
       }
-      
+
       // Clean up processed sync points
       this.syncPoints.delete(bucket);
     }
@@ -625,12 +682,12 @@ export class BufferSyncManager extends EventEmitter {
    */
   private processSyncPoint(syncPoint: SyncPoint, currentTime: number): void {
     const deviation = Math.abs(syncPoint.timestamp - currentTime);
-    
+
     if (deviation > syncPoint.tolerance) {
-      this.emit('sync_deviation_detected', {
+      this.emit("sync_deviation_detected", {
         syncPoint,
         deviation,
-        currentTime
+        currentTime,
       });
     }
   }
@@ -643,8 +700,8 @@ export class BufferSyncManager extends EventEmitter {
     this.syncPoints.clear();
     this.clockReferences.clear();
     this.removeAllListeners();
-    
-    this.logger.info('Buffer sync manager cleaned up');
+
+    this.logger.info("Buffer sync manager cleaned up");
   }
 }
 
@@ -657,29 +714,35 @@ class AdaptiveBufferingAlgorithm {
   calculateOptimalStrategy(
     current: BufferingStrategy,
     conditions: NetworkConditions,
-    metrics: BufferMetrics
+    metrics: BufferMetrics,
   ): BufferingStrategy {
     // Analyze current performance
     const performanceScore = this.calculatePerformanceScore(metrics);
-    
+
     // Adjust strategy based on conditions
     const newStrategy = { ...current };
-    
+
     if (conditions.quality.packetLoss > 0.05) {
       // High packet loss - increase buffer size
-      newStrategy.bufferSize = Math.min(current.bufferSize * 1.5, current.bufferSize * 3);
+      newStrategy.bufferSize = Math.min(
+        current.bufferSize * 1.5,
+        current.bufferSize * 3,
+      );
     }
-    
+
     if (conditions.latency.rtt > 200) {
       // High latency - adjust target latency
       newStrategy.targetLatency = Math.max(current.targetLatency * 1.2, 500);
     }
-    
+
     if (metrics.underrunCount > 5) {
       // Frequent underruns - increase buffer size
-      newStrategy.bufferSize = Math.min(current.bufferSize * 1.3, current.bufferSize * 2);
+      newStrategy.bufferSize = Math.min(
+        current.bufferSize * 1.3,
+        current.bufferSize * 2,
+      );
     }
-    
+
     return newStrategy;
   }
 
@@ -690,58 +753,60 @@ class AdaptiveBufferingAlgorithm {
       timestamp: Date.now(),
       chunkSize: chunk.metadata.size,
       bufferLevel: pool.metrics.currentLevel,
-      priority: chunk.metadata.priority
+      priority: chunk.metadata.priority,
     });
-    
+
     // Keep only recent history
     if (history.length > 100) {
       history.splice(0, history.length - 100);
     }
-    
+
     this.history.set(pool.id, history);
   }
 
   predictOptimalSize(
-    type: 'audio' | 'video' | 'data',
+    type: "audio" | "video" | "data",
     conditions: NetworkConditions,
-    qualityLevel: string
+    qualityLevel: string,
   ): number {
     // Predictive algorithm implementation
-    const baseSize = type === 'video' ? 10 * 1024 * 1024 : 1024 * 1024;
-    
+    const baseSize = type === "video" ? 10 * 1024 * 1024 : 1024 * 1024;
+
     // Adjust based on conditions
     let multiplier = 1.0;
-    
-    if (conditions.bandwidth.available < 1000000) { // < 1 Mbps
+
+    if (conditions.bandwidth.available < 1000000) {
+      // < 1 Mbps
       multiplier *= 0.5;
-    } else if (conditions.bandwidth.available > 10000000) { // > 10 Mbps
+    } else if (conditions.bandwidth.available > 10000000) {
+      // > 10 Mbps
       multiplier *= 1.5;
     }
-    
-    if (qualityLevel === 'high' || qualityLevel === 'ultra') {
+
+    if (qualityLevel === "high" || qualityLevel === "ultra") {
       multiplier *= 1.5;
-    } else if (qualityLevel === 'low') {
+    } else if (qualityLevel === "low") {
       multiplier *= 0.7;
     }
-    
+
     return Math.floor(baseSize * multiplier);
   }
 
   private calculatePerformanceScore(metrics: BufferMetrics): number {
     // Calculate performance score based on multiple factors
     let score = 1.0;
-    
+
     // Penalize underruns and overruns
     score -= (metrics.underrunCount + metrics.overrunCount) * 0.1;
-    
+
     // Reward efficiency
     score *= metrics.efficiency;
-    
+
     // Penalize high jitter
     if (metrics.jitter > 50) {
       score *= 0.8;
     }
-    
+
     return Math.max(0, Math.min(1, score));
   }
 }
@@ -769,23 +834,29 @@ class BufferPerformanceMonitor {
   updateMetrics(pool: BufferPool): void {
     // Update performance metrics based on buffer state
     const chunks = pool.chunks;
-    
+
     if (chunks.length > 0) {
       // Calculate average latency
       const latencies = chunks
-        .filter(c => c.metadata.synchronized)
-        .map(c => Date.now() - c.timestamp);
-      
+        .filter((c) => c.metadata.synchronized)
+        .map((c) => Date.now() - c.timestamp);
+
       if (latencies.length > 0) {
-        pool.metrics.averageLatency = latencies.reduce((sum, l) => sum + l, 0) / latencies.length;
+        pool.metrics.averageLatency =
+          latencies.reduce((sum, l) => sum + l, 0) / latencies.length;
       }
-      
+
       // Calculate throughput
-      const recentChunks = chunks.filter(c => Date.now() - c.timestamp < 5000); // Last 5 seconds
-      const totalBytes = recentChunks.reduce((sum, c) => sum + c.metadata.size, 0);
+      const recentChunks = chunks.filter(
+        (c) => Date.now() - c.timestamp < 5000,
+      ); // Last 5 seconds
+      const totalBytes = recentChunks.reduce(
+        (sum, c) => sum + c.metadata.size,
+        0,
+      );
       pool.metrics.throughput = totalBytes / 5; // Bytes per second
     }
-    
+
     // Calculate efficiency
     pool.metrics.efficiency = this.calculateEfficiency(pool);
   }
@@ -795,7 +866,7 @@ class BufferPerformanceMonitor {
     const idealLevel = pool.metrics.targetLevel;
     const actualLevel = pool.metrics.currentLevel;
     const deviation = Math.abs(idealLevel - actualLevel);
-    
+
     return Math.max(0, 1 - deviation);
   }
 }

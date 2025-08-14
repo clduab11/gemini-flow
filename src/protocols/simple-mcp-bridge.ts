@@ -1,11 +1,11 @@
 /**
  * Simple MCP Bridge (Fallback Implementation)
- * 
+ *
  * Minimal implementation for environments where full MCP protocol is not available
  */
 
-import { Logger } from '../utils/logger.js';
-import { TopologyType } from './protocol-activator.js';
+import { Logger } from "../utils/logger.js";
+import { TopologyType } from "./protocol-activator.js";
 
 export class SimpleMCPBridge {
   private logger: Logger;
@@ -13,12 +13,14 @@ export class SimpleMCPBridge {
   private topology: TopologyType;
 
   constructor(options: { topology: TopologyType }) {
-    this.logger = new Logger('SimpleMCPBridge');
+    this.logger = new Logger("SimpleMCPBridge");
     this.topology = options.topology;
   }
 
   async initialize(): Promise<void> {
-    this.logger.info(`Simple MCP bridge initialized (fallback mode) with ${this.topology} topology`);
+    this.logger.info(
+      `Simple MCP bridge initialized (fallback mode) with ${this.topology} topology`,
+    );
     this.initialized = true;
   }
 
@@ -27,8 +29,10 @@ export class SimpleMCPBridge {
   }
 
   async bridge(request: any): Promise<any> {
-    this.logger.debug('MCP request bridged (no-op in fallback mode)', { request });
-    return { status: 'fallback', message: 'MCP not available' };
+    this.logger.debug("MCP request bridged (no-op in fallback mode)", {
+      request,
+    });
+    return { status: "fallback", message: "MCP not available" };
   }
 
   async cleanup(): Promise<void> {

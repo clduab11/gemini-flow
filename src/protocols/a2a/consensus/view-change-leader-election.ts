@@ -4,12 +4,12 @@
  * for Byzantine fault-tolerant consensus
  */
 
-import { EventEmitter } from 'events';
-import { createHash } from 'crypto';
-import { Agent, ConsensusMessage, ConsensusState } from './byzantine-consensus';
+import { EventEmitter } from "events";
+import { createHash } from "crypto";
+import { Agent, ConsensusMessage, ConsensusState } from "./byzantine-consensus";
 
 export interface ViewChangeMessage {
-  type: 'view-change' | 'new-view' | 'view-change-ack';
+  type: "view-change" | "new-view" | "view-change-ack";
   viewNumber: number;
   agentId: string;
   lastStableCheckpoint: number;
@@ -20,7 +20,7 @@ export interface ViewChangeMessage {
 }
 
 export interface NewViewMessage {
-  type: 'new-view';
+  type: "new-view";
   viewNumber: number;
   viewChangeMessages: ViewChangeMessage[];
   prePrepareMessages: ConsensusMessage[];
@@ -56,7 +56,12 @@ export interface LeaderCandidate {
 }
 
 export interface ElectionConfiguration {
-  algorithm: 'round-robin' | 'reputation-based' | 'stake-weighted' | 'performance-based' | 'hybrid';
+  algorithm:
+    | "round-robin"
+    | "reputation-based"
+    | "stake-weighted"
+    | "performance-based"
+    | "hybrid";
   term: number; // Leadership term in milliseconds
   heartbeatInterval: number;
   electionTimeout: number;
@@ -81,7 +86,7 @@ export class ViewChangeLeaderElection extends EventEmitter {
   private leaderCandidates: Map<string, LeaderCandidate> = new Map();
   private electionHistory: Map<number, string> = new Map(); // view -> leader
   private consecutiveTerms: Map<string, number> = new Map();
-  
+
   private readonly config: ElectionConfiguration;
   private heartbeatTimer: ReturnType<typeof setTimeout> | null = null;
   private electionTimer: ReturnType<typeof setTimeout> | null = null;
@@ -89,27 +94,27 @@ export class ViewChangeLeaderElection extends EventEmitter {
   constructor(
     private nodeId: string,
     private totalAgents: number = 4,
-    config: Partial<ElectionConfiguration> = {}
+    config: Partial<ElectionConfiguration> = {},
   ) {
     super();
-    
+
     this.config = {
-      algorithm: 'hybrid',
+      algorithm: "hybrid",
       term: 60000, // 1 minute
       heartbeatInterval: 5000, // 5 seconds
       electionTimeout: 15000, // 15 seconds
       maxConsecutiveTerms: 3,
-      ...config
+      ...config,
     };
 
     this.viewState = {
       currentView: 0,
-      currentLeader: '',
+      currentLeader: "",
       viewStartTime: new Date(),
       lastViewChange: new Date(),
       viewChangeInProgress: false,
       participatingAgents: new Set(),
-      suspectedFaultyAgents: new Set()
+      suspectedFaultyAgents: new Set(),
     };
 
     this.startHeartbeatMonitoring();
@@ -121,7 +126,7 @@ export class ViewChangeLeaderElection extends EventEmitter {
   public registerAgent(agent: Agent): void {
     this.agents.set(agent.id, agent);
     this.viewState.participatingAgents.add(agent.id);
-    
+
     // Initialize leader candidate
     this.leaderCandidates.set(agent.id, {
       agentId: agent.id,
@@ -130,15 +135,18 @@ export class ViewChangeLeaderElection extends EventEmitter {
       performance: 1.0,
       stake: 1.0,
       lastElectionTime: new Date(0),
-      electionScore: 0
+      electionScore: 0,
     });
 
     // If this is the first agent and no leader is set, elect it
-    if (this.viewState.currentLeader === '' && this.viewState.participatingAgents.size === 1) {
+    if (
+      this.viewState.currentLeader === "" &&
+      this.viewState.participatingAgents.size === 1
+    ) {
       this.electLeader(0);
     }
 
-    this.emit('agent-registered', agent);
+    this.emit("agent-registered", agent);
   }
 
   /**
@@ -148,13 +156,13 @@ export class ViewChangeLeaderElection extends EventEmitter {
     this.agents.delete(agentId);
     this.viewState.participatingAgents.delete(agentId);
     this.leaderCandidates.delete(agentId);
-    
+
     // If the removed agent was the leader, trigger view change
     if (this.viewState.currentLeader === agentId) {
-      this.initiateViewChange('leader-failure');
+      this.initiateViewChange("leader-failure");
     }
 
-    this.emit('agent-removed', agentId);
+    this.emit("agent-removed", agentId);
   }
 
   /**
@@ -167,35 +175,37 @@ export class ViewChangeLeaderElection extends EventEmitter {
 
     this.viewState.viewChangeInProgress = true;
     this.viewState.lastViewChange = new Date();
-    
+
     const newView = this.viewState.currentView + 1;
-    
+
     console.log(`Initiating view change to view ${newView}. Reason: ${reason}`);
-    
+
     // Create view change message
     const viewChangeMessage = await this.createViewChangeMessage(newView);
-    
+
     // Store our view change message
     if (!this.viewChangeMessages.has(newView)) {
       this.viewChangeMessages.set(newView, []);
     }
     this.viewChangeMessages.get(newView)!.push(viewChangeMessage);
-    
+
     // Broadcast view change message
     await this.broadcastViewChangeMessage(viewChangeMessage);
-    
+
     // Start election timeout
     this.startElectionTimeout(newView);
-    
-    this.emit('view-change-initiated', { newView, reason });
+
+    this.emit("view-change-initiated", { newView, reason });
   }
 
   /**
    * Process incoming view change message
    */
-  public async processViewChangeMessage(message: ViewChangeMessage): Promise<void> {
+  public async processViewChangeMessage(
+    message: ViewChangeMessage,
+  ): Promise<void> {
     if (!this.validateViewChangeMessage(message)) {
-      this.emit('invalid-view-change-message', message);
+      this.emit("invalid-view-change-message", message);
       return;
     }
 
@@ -203,25 +213,25 @@ export class ViewChangeLeaderElection extends EventEmitter {
     if (!this.viewChangeMessages.has(message.viewNumber)) {
       this.viewChangeMessages.set(message.viewNumber, []);
     }
-    
+
     const messages = this.viewChangeMessages.get(message.viewNumber)!;
-    
+
     // Avoid duplicate messages
-    if (messages.some(m => m.agentId === message.agentId)) {
+    if (messages.some((m) => m.agentId === message.agentId)) {
       return;
     }
-    
+
     messages.push(message);
-    
+
     // Check if we have enough view change messages (Byzantine quorum)
     const faultThreshold = Math.floor((this.totalAgents - 1) / 3);
     const requiredMessages = 2 * faultThreshold + 1; // Byzantine minimum quorum
-    
+
     if (messages.length >= requiredMessages) {
       await this.processViewChange(message.viewNumber);
     }
-    
-    this.emit('view-change-message-received', message);
+
+    this.emit("view-change-message-received", message);
   }
 
   /**
@@ -229,36 +239,36 @@ export class ViewChangeLeaderElection extends EventEmitter {
    */
   private async processViewChange(viewNumber: number): Promise<void> {
     const newLeader = this.electLeader(viewNumber);
-    
+
     if (newLeader === this.nodeId) {
       // We are the new leader, send new-view message
       await this.sendNewViewMessage(viewNumber);
     }
-    
+
     // Update view state
     this.viewState.currentView = viewNumber;
     this.viewState.currentLeader = newLeader;
     this.viewState.viewStartTime = new Date();
     this.viewState.viewChangeInProgress = false;
-    
+
     // Record election
     this.electionHistory.set(viewNumber, newLeader);
-    
+
     // Update consecutive terms
     const prevTerms = this.consecutiveTerms.get(newLeader) || 0;
     this.consecutiveTerms.set(newLeader, prevTerms + 1);
-    
+
     // Reset other agents' consecutive terms
     for (const [agentId, terms] of this.consecutiveTerms.entries()) {
       if (agentId !== newLeader) {
         this.consecutiveTerms.set(agentId, 0);
       }
     }
-    
-    this.emit('view-changed', { 
-      viewNumber, 
-      newLeader, 
-      previousLeader: this.viewState.currentLeader 
+
+    this.emit("view-changed", {
+      viewNumber,
+      newLeader,
+      previousLeader: this.viewState.currentLeader,
     });
   }
 
@@ -267,19 +277,19 @@ export class ViewChangeLeaderElection extends EventEmitter {
    */
   private async sendNewViewMessage(viewNumber: number): Promise<void> {
     const viewChangeMessages = this.viewChangeMessages.get(viewNumber) || [];
-    
+
     const newViewMessage: NewViewMessage = {
-      type: 'new-view',
+      type: "new-view",
       viewNumber,
       viewChangeMessages,
       prePrepareMessages: this.constructPrePrepareMessages(viewChangeMessages),
       leaderId: this.nodeId,
       timestamp: new Date(),
-      signature: this.signMessage(`new-view-${viewNumber}`)
+      signature: this.signMessage(`new-view-${viewNumber}`),
     };
-    
+
     await this.broadcastNewViewMessage(newViewMessage);
-    this.emit('new-view-sent', newViewMessage);
+    this.emit("new-view-sent", newViewMessage);
   }
 
   /**
@@ -287,7 +297,7 @@ export class ViewChangeLeaderElection extends EventEmitter {
    */
   public async processNewViewMessage(message: NewViewMessage): Promise<void> {
     if (!this.validateNewViewMessage(message)) {
-      this.emit('invalid-new-view-message', message);
+      this.emit("invalid-new-view-message", message);
       return;
     }
 
@@ -296,34 +306,34 @@ export class ViewChangeLeaderElection extends EventEmitter {
     this.viewState.currentLeader = message.leaderId;
     this.viewState.viewStartTime = new Date();
     this.viewState.viewChangeInProgress = false;
-    
-    this.emit('new-view-accepted', message);
+
+    this.emit("new-view-accepted", message);
   }
 
   /**
    * Elect leader based on configured algorithm
    */
   private electLeader(viewNumber: number): string {
-    const candidates = Array.from(this.leaderCandidates.values())
-      .filter(candidate => 
+    const candidates = Array.from(this.leaderCandidates.values()).filter(
+      (candidate) =>
         this.viewState.participatingAgents.has(candidate.agentId) &&
-        !this.viewState.suspectedFaultyAgents.has(candidate.agentId)
-      );
+        !this.viewState.suspectedFaultyAgents.has(candidate.agentId),
+    );
 
     if (candidates.length === 0) {
-      throw new Error('No valid candidates for leader election');
+      throw new Error("No valid candidates for leader election");
     }
 
     switch (this.config.algorithm) {
-      case 'round-robin':
+      case "round-robin":
         return this.roundRobinElection(viewNumber, candidates);
-      case 'reputation-based':
+      case "reputation-based":
         return this.reputationBasedElection(candidates);
-      case 'stake-weighted':
+      case "stake-weighted":
         return this.stakeWeightedElection(candidates);
-      case 'performance-based':
+      case "performance-based":
         return this.performanceBasedElection(candidates);
-      case 'hybrid':
+      case "hybrid":
         return this.hybridElection(candidates);
       default:
         return candidates[0].agentId;
@@ -333,8 +343,13 @@ export class ViewChangeLeaderElection extends EventEmitter {
   /**
    * Round-robin leader election
    */
-  private roundRobinElection(viewNumber: number, candidates: LeaderCandidate[]): string {
-    const sortedCandidates = candidates.sort((a, b) => a.agentId.localeCompare(b.agentId));
+  private roundRobinElection(
+    viewNumber: number,
+    candidates: LeaderCandidate[],
+  ): string {
+    const sortedCandidates = candidates.sort((a, b) =>
+      a.agentId.localeCompare(b.agentId),
+    );
     const index = viewNumber % sortedCandidates.length;
     return sortedCandidates[index].agentId;
   }
@@ -343,8 +358,8 @@ export class ViewChangeLeaderElection extends EventEmitter {
    * Reputation-based leader election
    */
   private reputationBasedElection(candidates: LeaderCandidate[]): string {
-    return candidates.reduce((best, current) => 
-      current.reputation > best.reputation ? current : best
+    return candidates.reduce((best, current) =>
+      current.reputation > best.reputation ? current : best,
     ).agentId;
   }
 
@@ -352,8 +367,8 @@ export class ViewChangeLeaderElection extends EventEmitter {
    * Stake-weighted leader election
    */
   private stakeWeightedElection(candidates: LeaderCandidate[]): string {
-    return candidates.reduce((best, current) => 
-      current.stake > best.stake ? current : best
+    return candidates.reduce((best, current) =>
+      current.stake > best.stake ? current : best,
     ).agentId;
   }
 
@@ -361,8 +376,8 @@ export class ViewChangeLeaderElection extends EventEmitter {
    * Performance-based leader election
    */
   private performanceBasedElection(candidates: LeaderCandidate[]): string {
-    return candidates.reduce((best, current) => 
-      current.performance > best.performance ? current : best
+    return candidates.reduce((best, current) =>
+      current.performance > best.performance ? current : best,
     ).agentId;
   }
 
@@ -371,20 +386,22 @@ export class ViewChangeLeaderElection extends EventEmitter {
    */
   private hybridElection(candidates: LeaderCandidate[]): string {
     // Calculate election scores
-    candidates.forEach(candidate => {
-      const consecutiveTerms = this.consecutiveTerms.get(candidate.agentId) || 0;
-      const termPenalty = consecutiveTerms >= this.config.maxConsecutiveTerms ? 0.5 : 1.0;
-      
-      candidate.electionScore = (
-        candidate.reputation * 0.3 +
-        candidate.availability * 0.25 +
-        candidate.performance * 0.25 +
-        candidate.stake * 0.2
-      ) * termPenalty;
+    candidates.forEach((candidate) => {
+      const consecutiveTerms =
+        this.consecutiveTerms.get(candidate.agentId) || 0;
+      const termPenalty =
+        consecutiveTerms >= this.config.maxConsecutiveTerms ? 0.5 : 1.0;
+
+      candidate.electionScore =
+        (candidate.reputation * 0.3 +
+          candidate.availability * 0.25 +
+          candidate.performance * 0.25 +
+          candidate.stake * 0.2) *
+        termPenalty;
     });
 
-    return candidates.reduce((best, current) => 
-      current.electionScore > best.electionScore ? current : best
+    return candidates.reduce((best, current) =>
+      current.electionScore > best.electionScore ? current : best,
     ).agentId;
   }
 
@@ -392,18 +409,18 @@ export class ViewChangeLeaderElection extends EventEmitter {
    * Update candidate performance metrics
    */
   public updateCandidateMetrics(
-    agentId: string, 
+    agentId: string,
     metrics: {
       reputation?: number;
       availability?: number;
       performance?: number;
       stake?: number;
-    }
+    },
   ): void {
     const candidate = this.leaderCandidates.get(agentId);
     if (candidate) {
       Object.assign(candidate, metrics);
-      this.emit('candidate-metrics-updated', { agentId, metrics });
+      this.emit("candidate-metrics-updated", { agentId, metrics });
     }
   }
 
@@ -425,11 +442,12 @@ export class ViewChangeLeaderElection extends EventEmitter {
       this.sendHeartbeat();
     } else {
       // Check if we've received heartbeat from leader
-      const timeSinceLastHeartbeat = Date.now() - this.viewState.viewStartTime.getTime();
-      
+      const timeSinceLastHeartbeat =
+        Date.now() - this.viewState.viewStartTime.getTime();
+
       if (timeSinceLastHeartbeat > this.config.electionTimeout) {
         // Leader appears to be down, initiate view change
-        this.initiateViewChange('leader-timeout');
+        this.initiateViewChange("leader-timeout");
       }
     }
   }
@@ -439,15 +457,15 @@ export class ViewChangeLeaderElection extends EventEmitter {
    */
   private sendHeartbeat(): void {
     const heartbeat = {
-      type: 'heartbeat',
+      type: "heartbeat",
       viewNumber: this.viewState.currentView,
       leaderId: this.nodeId,
       timestamp: new Date(),
-      signature: this.signMessage(`heartbeat-${this.viewState.currentView}`)
+      signature: this.signMessage(`heartbeat-${this.viewState.currentView}`),
     };
 
     this.broadcastMessage(heartbeat);
-    this.emit('heartbeat-sent', heartbeat);
+    this.emit("heartbeat-sent", heartbeat);
   }
 
   /**
@@ -457,7 +475,7 @@ export class ViewChangeLeaderElection extends EventEmitter {
     if (heartbeat.leaderId === this.viewState.currentLeader) {
       // Update view start time to reset timeout
       this.viewState.viewStartTime = new Date();
-      this.emit('heartbeat-received', heartbeat);
+      this.emit("heartbeat-received", heartbeat);
     }
   }
 
@@ -472,7 +490,7 @@ export class ViewChangeLeaderElection extends EventEmitter {
     this.electionTimer = setTimeout(() => {
       if (this.viewState.currentView < viewNumber) {
         // Election timeout, try again
-        this.initiateViewChange('election-timeout');
+        this.initiateViewChange("election-timeout");
       }
     }, this.config.electionTimeout);
   }
@@ -480,20 +498,22 @@ export class ViewChangeLeaderElection extends EventEmitter {
   /**
    * Create view change message
    */
-  private async createViewChangeMessage(viewNumber: number): Promise<ViewChangeMessage> {
+  private async createViewChangeMessage(
+    viewNumber: number,
+  ): Promise<ViewChangeMessage> {
     const lastStableCheckpoint = this.getLastStableCheckpoint();
     const checkpointProof = this.getCheckpointProof(lastStableCheckpoint);
     const preparedMessages = this.getPreparedMessages(lastStableCheckpoint);
 
     const message: ViewChangeMessage = {
-      type: 'view-change',
+      type: "view-change",
       viewNumber,
       agentId: this.nodeId,
       lastStableCheckpoint,
       checkpointProof,
       preparedMessages,
       timestamp: new Date(),
-      signature: this.signMessage(`view-change-${viewNumber}`)
+      signature: this.signMessage(`view-change-${viewNumber}`),
     };
 
     return message;
@@ -504,7 +524,11 @@ export class ViewChangeLeaderElection extends EventEmitter {
    */
   private validateViewChangeMessage(message: ViewChangeMessage): boolean {
     // Basic validation
-    if (!message.agentId || !message.signature || message.viewNumber <= this.viewState.currentView) {
+    if (
+      !message.agentId ||
+      !message.signature ||
+      message.viewNumber <= this.viewState.currentView
+    ) {
       return false;
     }
 
@@ -514,8 +538,10 @@ export class ViewChangeLeaderElection extends EventEmitter {
     }
 
     // Validate signature
-    const expectedSignature = this.signMessage(`view-change-${message.viewNumber}`);
-    
+    const expectedSignature = this.signMessage(
+      `view-change-${message.viewNumber}`,
+    );
+
     return true; // Simplified validation
   }
 
@@ -532,7 +558,7 @@ export class ViewChangeLeaderElection extends EventEmitter {
     // Validate view change messages (Byzantine quorum requirement)
     const faultThreshold = Math.floor((this.totalAgents - 1) / 3);
     const requiredMessages = 2 * faultThreshold + 1; // Byzantine minimum quorum
-    
+
     if (message.viewChangeMessages.length < requiredMessages) {
       return false;
     }
@@ -543,7 +569,9 @@ export class ViewChangeLeaderElection extends EventEmitter {
   /**
    * Construct pre-prepare messages for new view
    */
-  private constructPrePrepareMessages(viewChangeMessages: ViewChangeMessage[]): ConsensusMessage[] {
+  private constructPrePrepareMessages(
+    viewChangeMessages: ViewChangeMessage[],
+  ): ConsensusMessage[] {
     // This would construct the necessary pre-prepare messages
     // based on the prepared messages in view change messages
     return [];
@@ -555,18 +583,20 @@ export class ViewChangeLeaderElection extends EventEmitter {
   private getLastStableCheckpoint(): number {
     // Find the highest sequence number that has been checkpointed
     // by a majority of agents
-    const checkpointSequences = Array.from(this.checkpoints.keys()).sort((a, b) => b - a);
-    
+    const checkpointSequences = Array.from(this.checkpoints.keys()).sort(
+      (a, b) => b - a,
+    );
+
     for (const seq of checkpointSequences) {
       const checkpoints = this.checkpoints.get(seq) || [];
       const faultThreshold = Math.floor((this.totalAgents - 1) / 3);
       const minQuorum = 2 * faultThreshold + 1; // Byzantine quorum
-      
+
       if (checkpoints.length >= minQuorum) {
         return seq;
       }
     }
-    
+
     return 0;
   }
 
@@ -588,14 +618,18 @@ export class ViewChangeLeaderElection extends EventEmitter {
   /**
    * Broadcast view change message
    */
-  private async broadcastViewChangeMessage(message: ViewChangeMessage): Promise<void> {
+  private async broadcastViewChangeMessage(
+    message: ViewChangeMessage,
+  ): Promise<void> {
     this.broadcastMessage(message);
   }
 
   /**
    * Broadcast new-view message
    */
-  private async broadcastNewViewMessage(message: NewViewMessage): Promise<void> {
+  private async broadcastNewViewMessage(
+    message: NewViewMessage,
+  ): Promise<void> {
     this.broadcastMessage(message);
   }
 
@@ -605,16 +639,16 @@ export class ViewChangeLeaderElection extends EventEmitter {
   private broadcastMessage(message: any): void {
     // This would implement actual network broadcast
     // For now, just emit the message
-    this.emit('broadcast-message', message);
+    this.emit("broadcast-message", message);
   }
 
   /**
    * Sign message
    */
   private signMessage(data: string): string {
-    return createHash('sha256')
+    return createHash("sha256")
       .update(data + this.nodeId)
-      .digest('hex');
+      .digest("hex");
   }
 
   /**
@@ -637,7 +671,7 @@ export class ViewChangeLeaderElection extends EventEmitter {
   } {
     const elections = this.electionHistory.size;
     const changes = elections > 0 ? elections - 1 : 0;
-    
+
     // Calculate average term length (simplified)
     const avgTermLength = elections > 1 ? this.config.term : 0;
 
@@ -652,7 +686,7 @@ export class ViewChangeLeaderElection extends EventEmitter {
       currentView: this.viewState.currentView,
       leadershipChanges: changes,
       averageTermLength: avgTermLength,
-      candidateScores
+      candidateScores,
     };
   }
 

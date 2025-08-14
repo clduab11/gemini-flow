@@ -1,18 +1,18 @@
 /**
  * Multi-Model Orchestration Engine
- * 
+ *
  * Intelligent routing between Google AI models with <100ms overhead
  * Supports Gemini 2.0 Flash, DeepMind 2.5, and Vertex AI models
  */
 
-import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
-import { Logger } from '../utils/logger.js';
-import { PerformanceMonitor } from './performance-monitor.js';
-import { AuthenticationManager } from './auth-manager.js';
-import { ModelRouter } from './model-router.js';
-import { CacheManager } from './cache-manager.js';
-import { EventEmitter } from 'events';
-import { safeImport } from '../utils/feature-detection.js';
+import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
+import { Logger } from "../utils/logger.js";
+import { PerformanceMonitor } from "./performance-monitor.js";
+import { AuthenticationManager } from "./auth-manager.js";
+import { ModelRouter } from "./model-router.js";
+import { CacheManager } from "./cache-manager.js";
+import { EventEmitter } from "events";
+import { safeImport } from "../utils/feature-detection.js";
 
 export interface ModelConfig {
   name: string;
@@ -20,7 +20,7 @@ export interface ModelConfig {
   apiKey?: string;
   projectId?: string;
   location?: string;
-  tier: 'free' | 'pro' | 'enterprise';
+  tier: "free" | "pro" | "enterprise";
   capabilities: string[];
   latencyTarget: number; // ms
   costPerToken: number;
@@ -29,8 +29,8 @@ export interface ModelConfig {
 
 export interface RoutingContext {
   task: string;
-  userTier: 'free' | 'pro' | 'enterprise';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  userTier: "free" | "pro" | "enterprise";
+  priority: "low" | "medium" | "high" | "critical";
   latencyRequirement: number; // ms
   tokenBudget?: number;
   capabilities?: string[];
@@ -60,7 +60,7 @@ export class ModelOrchestrator extends EventEmitter {
   private performance: PerformanceMonitor;
   private cache: CacheManager;
   private logger: Logger;
-  
+
   // Performance tracking
   private metrics = {
     totalRequests: 0,
@@ -68,17 +68,17 @@ export class ModelOrchestrator extends EventEmitter {
     modelSwitches: 0,
     cacheHits: 0,
     failovers: 0,
-    tierUpgrades: 0
+    tierUpgrades: 0,
   };
 
   constructor(config?: { cacheSize?: number; performanceThreshold?: number }) {
     super();
-    this.logger = new Logger('ModelOrchestrator');
+    this.logger = new Logger("ModelOrchestrator");
     this.performance = new PerformanceMonitor();
     this.cache = new CacheManager({ maxMemorySize: config?.cacheSize || 1000 });
     this.auth = new AuthenticationManager();
     this.router = new ModelRouter();
-    
+
     this.initializeDefaultModels();
     this.setupPerformanceMonitoring();
   }
@@ -89,66 +89,84 @@ export class ModelOrchestrator extends EventEmitter {
   private initializeDefaultModels(): void {
     // Gemini 2.0 Flash - Fast and efficient
     this.addModel({
-      name: 'gemini-2.0-flash',
-      tier: 'free',
-      capabilities: ['text', 'code', 'reasoning', 'multimodal'],
+      name: "gemini-2.0-flash",
+      tier: "free",
+      capabilities: ["text", "code", "reasoning", "multimodal"],
       latencyTarget: 800,
       costPerToken: 0.000001,
-      maxTokens: 1000000
+      maxTokens: 1000000,
     });
 
     // Gemini 2.5 Flash - Enhanced performance and efficiency
     this.addModel({
-      name: 'gemini-2.5-flash',
-      tier: 'pro',
-      capabilities: ['text', 'code', 'reasoning', 'multimodal', 'fast'],
+      name: "gemini-2.5-flash",
+      tier: "pro",
+      capabilities: ["text", "code", "reasoning", "multimodal", "fast"],
       latencyTarget: 600,
       costPerToken: 0.0000006,
-      maxTokens: 1000000
+      maxTokens: 1000000,
     });
 
     // Gemini 2.0 Flash Thinking - Advanced reasoning
     this.addModel({
-      name: 'gemini-2.0-flash-thinking',
-      tier: 'pro',
-      capabilities: ['text', 'code', 'advanced-reasoning', 'multimodal'],
+      name: "gemini-2.0-flash-thinking",
+      tier: "pro",
+      capabilities: ["text", "code", "advanced-reasoning", "multimodal"],
       latencyTarget: 1200,
       costPerToken: 0.000002,
-      maxTokens: 1000000
+      maxTokens: 1000000,
     });
 
     // Gemini 2.5 Pro - Enhanced capabilities
     this.addModel({
-      name: 'gemini-2.5-pro',
-      tier: 'enterprise',
-      capabilities: ['text', 'code', 'advanced-reasoning', 'multimodal', 'long-context'],
+      name: "gemini-2.5-pro",
+      tier: "enterprise",
+      capabilities: [
+        "text",
+        "code",
+        "advanced-reasoning",
+        "multimodal",
+        "long-context",
+      ],
       latencyTarget: 1000,
       costPerToken: 0.0000012,
-      maxTokens: 2000000
+      maxTokens: 2000000,
     });
 
     // Gemini 2.5 Deep Think - Ultra tier only (Coming Soon)
     this.addModel({
-      name: 'gemini-2.5-deep-think',
-      tier: 'enterprise', // Note: Actually Ultra tier, but using enterprise as closest
-      capabilities: ['text', 'code', 'multi-agent', 'deep-reasoning', 'complex-problem-solving'],
+      name: "gemini-2.5-deep-think",
+      tier: "enterprise", // Note: Actually Ultra tier, but using enterprise as closest
+      capabilities: [
+        "text",
+        "code",
+        "multi-agent",
+        "deep-reasoning",
+        "complex-problem-solving",
+      ],
       latencyTarget: 5000, // Longer for deep reasoning
       costPerToken: 0.000005, // Premium pricing
-      maxTokens: 2000000
+      maxTokens: 2000000,
     });
 
     // Vertex AI Gemini Pro
     this.addModel({
-      name: 'gemini-pro-vertex',
-      tier: 'enterprise',
-      capabilities: ['text', 'code', 'reasoning', 'multimodal', 'enterprise-security'],
+      name: "gemini-pro-vertex",
+      tier: "enterprise",
+      capabilities: [
+        "text",
+        "code",
+        "reasoning",
+        "multimodal",
+        "enterprise-security",
+      ],
       latencyTarget: 1000,
       costPerToken: 0.000003,
-      maxTokens: 1000000
+      maxTokens: 1000000,
     });
 
-    this.logger.info('Default models initialized', { 
-      modelCount: this.models.size 
+    this.logger.info("Default models initialized", {
+      modelCount: this.models.size,
     });
   }
 
@@ -158,11 +176,11 @@ export class ModelOrchestrator extends EventEmitter {
   addModel(config: ModelConfig): void {
     this.models.set(config.name, config);
     this.initializeModelClient(config);
-    
-    this.logger.info('Model added', { 
-      name: config.name, 
+
+    this.logger.info("Model added", {
+      name: config.name,
       tier: config.tier,
-      capabilities: config.capabilities 
+      capabilities: config.capabilities,
     });
   }
 
@@ -171,42 +189,44 @@ export class ModelOrchestrator extends EventEmitter {
    */
   private async initializeModelClient(config: ModelConfig): Promise<void> {
     try {
-      if (config.name.includes('vertex')) {
+      if (config.name.includes("vertex")) {
         // Vertex AI client with conditional import
-        const googleAuth = await safeImport('google-auth-library');
+        const googleAuth = await safeImport("google-auth-library");
         if (!googleAuth?.GoogleAuth) {
-          throw new Error('Google Auth Library not available for Vertex AI');
+          throw new Error("Google Auth Library not available for Vertex AI");
         }
-        
+
         const auth = new googleAuth.GoogleAuth({
-          scopes: ['https://www.googleapis.com/auth/cloud-platform']
+          scopes: ["https://www.googleapis.com/auth/cloud-platform"],
         });
-        
+
         const client = {
-          type: 'vertex',
+          type: "vertex",
           auth,
           projectId: config.projectId,
-          location: config.location || 'us-central1'
+          location: config.location || "us-central1",
         };
-        
+
         this.clients.set(config.name, client);
       } else {
         // Standard Gemini API client
-        const genAI = new GoogleGenerativeAI(config.apiKey || process.env.GOOGLE_AI_API_KEY!);
+        const genAI = new GoogleGenerativeAI(
+          config.apiKey || process.env.GOOGLE_AI_API_KEY!,
+        );
         const model = genAI.getGenerativeModel({ model: config.name });
-        
+
         this.clients.set(config.name, {
-          type: 'gemini',
+          type: "gemini",
           client: genAI,
-          model
+          model,
         });
       }
 
-      this.logger.debug('Model client initialized', { name: config.name });
+      this.logger.debug("Model client initialized", { name: config.name });
     } catch (error) {
-      this.logger.error('Failed to initialize model client', { 
-        name: config.name, 
-        error 
+      this.logger.error("Failed to initialize model client", {
+        name: config.name,
+        error,
       });
     }
   }
@@ -214,57 +234,74 @@ export class ModelOrchestrator extends EventEmitter {
   /**
    * Main orchestration method - route request to optimal model
    */
-  async orchestrate(prompt: string, context: RoutingContext): Promise<ModelResponse> {
+  async orchestrate(
+    prompt: string,
+    context: RoutingContext,
+  ): Promise<ModelResponse> {
     const startTime = performance.now();
     this.metrics.totalRequests++;
 
     // 1. Authenticate and determine user tier
     const userTier = await this.auth.determineUserTier();
-    const contextWithTier = { 
-      ...context, 
-      userTier: ((userTier as any).tier || userTier) as 'free' | 'pro' | 'enterprise' 
+    const contextWithTier = {
+      ...context,
+      userTier: ((userTier as any).tier || userTier) as
+        | "free"
+        | "pro"
+        | "enterprise",
     };
 
     try {
       // 2. Route to optimal model with smart routing engine
       const routingStart = performance.now();
-      const routingDecision = await this.router.selectOptimalModel(contextWithTier, this.models);
+      const routingDecision = await this.router.selectOptimalModel(
+        contextWithTier,
+        this.models,
+      );
       const routingTime = performance.now() - routingStart;
-      
+
       this.metrics.routingTime += routingTime;
 
       // Target: <75ms routing overhead (improved from 100ms)
       if (routingTime > 75) {
-        this.logger.warn('Smart routing overhead exceeded target', { 
-          routingTime, 
+        this.logger.warn("Smart routing overhead exceeded target", {
+          routingTime,
           target: 75,
-          decision: routingDecision
+          decision: routingDecision,
         });
       }
-      
+
       const selectedModel = routingDecision.modelName;
 
       // 3. Check cache first
-      const cacheKey = this.generateCacheKey(prompt, selectedModel, contextWithTier);
+      const cacheKey = this.generateCacheKey(
+        prompt,
+        selectedModel,
+        contextWithTier,
+      );
       const cachedResponse = await this.cache.get(cacheKey);
-      
+
       if (cachedResponse) {
         this.metrics.cacheHits++;
         return { ...cachedResponse, cached: true };
       }
 
       // 4. Execute request with selected model
-      const response = await this.executeWithModel(selectedModel, prompt, contextWithTier);
-      
+      const response = await this.executeWithModel(
+        selectedModel,
+        prompt,
+        contextWithTier,
+      );
+
       // 5. Cache successful responses
-      if (response && !response.content.includes('error')) {
+      if (response && !response.content.includes("error")) {
         await this.cache.set(cacheKey, response, 3600); // 1 hour TTL
       }
 
       // 6. Update performance metrics
       const totalLatency = performance.now() - startTime;
-      this.performance.recordMetric('orchestration_latency', totalLatency);
-      this.performance.recordMetric('routing_overhead', routingTime);
+      this.performance.recordMetric("orchestration_latency", totalLatency);
+      this.performance.recordMetric("routing_overhead", routingTime);
 
       // 7. Record performance for smart routing
       this.router.recordPerformance(
@@ -272,31 +309,36 @@ export class ModelOrchestrator extends EventEmitter {
         response.latency,
         true, // success
         response.cost,
-        response.tokenUsage
+        response.tokenUsage,
       );
 
       // 8. Emit events for monitoring
-      this.emit('request_completed', {
+      this.emit("request_completed", {
         model: selectedModel,
         latency: totalLatency,
         routingTime,
         userTier: contextWithTier.userTier,
         cached: false,
-        routingDecision
+        routingDecision,
       });
 
       return response;
-
     } catch (error) {
-      this.logger.error('Orchestration failed', { error, context: contextWithTier });
-      
+      this.logger.error("Orchestration failed", {
+        error,
+        context: contextWithTier,
+      });
+
       // Attempt failover
       if (contextWithTier.retryCount < 2) {
-        const retryContext = { ...contextWithTier, retryCount: (contextWithTier.retryCount || 0) + 1 };
+        const retryContext = {
+          ...contextWithTier,
+          retryCount: (contextWithTier.retryCount || 0) + 1,
+        };
         this.metrics.failovers++;
         return this.orchestrate(prompt, retryContext);
       }
-      
+
       throw error;
     }
   }
@@ -305,9 +347,9 @@ export class ModelOrchestrator extends EventEmitter {
    * Execute request with specific model
    */
   private async executeWithModel(
-    modelName: string, 
-    prompt: string, 
-    context: RoutingContext
+    modelName: string,
+    prompt: string,
+    context: RoutingContext,
   ): Promise<ModelResponse> {
     const startTime = performance.now();
     const modelConfig = this.models.get(modelName);
@@ -321,7 +363,7 @@ export class ModelOrchestrator extends EventEmitter {
       let response: any;
       let usage: any = { input: 0, output: 0, total: 0 };
 
-      if (client.type === 'vertex') {
+      if (client.type === "vertex") {
         response = await this.executeVertexRequest(client, prompt, context);
         usage = response.usage || usage;
       } else {
@@ -329,7 +371,7 @@ export class ModelOrchestrator extends EventEmitter {
         usage = {
           input: response.usageMetadata?.promptTokenCount || 0,
           output: response.usageMetadata?.candidatesTokenCount || 0,
-          total: response.usageMetadata?.totalTokenCount || 0
+          total: response.usageMetadata?.totalTokenCount || 0,
         };
       }
 
@@ -347,14 +389,13 @@ export class ModelOrchestrator extends EventEmitter {
           finishReason: response.finishReason,
           safety: response.safetyRatings,
           model: modelName,
-          tier: modelConfig.tier
-        }
+          tier: modelConfig.tier,
+        },
       };
-
     } catch (error) {
-      this.logger.error('Model execution failed', { 
-        model: modelName, 
-        error: error.message 
+      this.logger.error("Model execution failed", {
+        model: modelName,
+        error: error.message,
       });
       throw error;
     }
@@ -363,26 +404,34 @@ export class ModelOrchestrator extends EventEmitter {
   /**
    * Execute Vertex AI request
    */
-  private async executeVertexRequest(client: any, prompt: string, context: RoutingContext): Promise<any> {
+  private async executeVertexRequest(
+    client: any,
+    prompt: string,
+    context: RoutingContext,
+  ): Promise<any> {
     // TODO: Implement Vertex AI request execution
     // This would use the Vertex AI client to make requests
-    throw new Error('Vertex AI integration not yet implemented');
+    throw new Error("Vertex AI integration not yet implemented");
   }
 
   /**
    * Execute Gemini API request
    */
-  private async executeGeminiRequest(client: any, prompt: string, context: RoutingContext): Promise<any> {
+  private async executeGeminiRequest(
+    client: any,
+    prompt: string,
+    context: RoutingContext,
+  ): Promise<any> {
     const generationConfig = {
       temperature: 0.7,
       topP: 0.9,
       topK: 40,
-      maxOutputTokens: Math.min(context.tokenBudget || 4096, 8192)
+      maxOutputTokens: Math.min(context.tokenBudget || 4096, 8192),
     };
 
     const result = await client.model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig,
     });
 
     return result.response;
@@ -391,15 +440,19 @@ export class ModelOrchestrator extends EventEmitter {
   /**
    * Generate cache key for request
    */
-  private generateCacheKey(prompt: string, model: string, context: RoutingContext): string {
+  private generateCacheKey(
+    prompt: string,
+    model: string,
+    context: RoutingContext,
+  ): string {
     const key = {
       prompt: prompt.substring(0, 200), // Truncate for key size
       model,
       userTier: context.userTier,
-      priority: context.priority
+      priority: context.priority,
     };
-    
-    return Buffer.from(JSON.stringify(key)).toString('base64').substring(0, 50);
+
+    return Buffer.from(JSON.stringify(key)).toString("base64").substring(0, 50);
   }
 
   /**
@@ -407,14 +460,14 @@ export class ModelOrchestrator extends EventEmitter {
    */
   private setupPerformanceMonitoring(): void {
     // Monitor routing performance every 10 requests
-    this.on('request_completed', (data) => {
+    this.on("request_completed", (data) => {
       if (this.metrics.totalRequests % 10 === 0) {
         this.analyzePerformance();
       }
     });
 
     // Auto-optimize every 100 requests
-    this.on('request_completed', (data) => {
+    this.on("request_completed", (data) => {
       if (this.metrics.totalRequests % 100 === 0) {
         this.optimizeRouting();
       }
@@ -425,22 +478,23 @@ export class ModelOrchestrator extends EventEmitter {
    * Analyze current performance
    */
   private analyzePerformance(): void {
-    const avgRoutingTime = this.metrics.routingTime / this.metrics.totalRequests;
+    const avgRoutingTime =
+      this.metrics.routingTime / this.metrics.totalRequests;
     const cacheHitRate = this.metrics.cacheHits / this.metrics.totalRequests;
-    
-    this.logger.info('Performance analysis', {
+
+    this.logger.info("Performance analysis", {
       avgRoutingTime,
       cacheHitRate,
       totalRequests: this.metrics.totalRequests,
-      failovers: this.metrics.failovers
+      failovers: this.metrics.failovers,
     });
 
     // Alert if performance degrades
     if (avgRoutingTime > 100) {
-      this.emit('performance_warning', {
-        metric: 'routing_time',
+      this.emit("performance_warning", {
+        metric: "routing_time",
         value: avgRoutingTime,
-        threshold: 100
+        threshold: 100,
       });
     }
   }
@@ -451,9 +505,9 @@ export class ModelOrchestrator extends EventEmitter {
   private optimizeRouting(): void {
     const performanceData = this.performance.getMetrics();
     this.router.optimizeBasedOnPerformance(performanceData);
-    
-    this.logger.info('Routing optimization completed', {
-      requestsAnalyzed: this.metrics.totalRequests
+
+    this.logger.info("Routing optimization completed", {
+      requestsAnalyzed: this.metrics.totalRequests,
     });
   }
 
@@ -467,7 +521,7 @@ export class ModelOrchestrator extends EventEmitter {
       cacheHitRate: this.metrics.cacheHits / this.metrics.totalRequests,
       failoverRate: this.metrics.failovers / this.metrics.totalRequests,
       modelDistribution: this.router.getModelUsageStats(),
-      performance: this.performance.getMetrics()
+      performance: this.performance.getMetrics(),
     };
   }
 
@@ -476,28 +530,31 @@ export class ModelOrchestrator extends EventEmitter {
    */
   async healthCheck(): Promise<{ [model: string]: boolean }> {
     const health: { [model: string]: boolean } = {};
-    
+
     for (const [modelName] of this.models) {
       try {
         // Skip Deep Think for health checks (Coming Soon)
-        if (modelName === 'gemini-2.5-deep-think') {
+        if (modelName === "gemini-2.5-deep-think") {
           health[modelName] = false; // Coming Soon - API not yet available
           continue;
         }
-        
-        await this.executeWithModel(modelName, 'Health check', {
-          task: 'health_check',
-          userTier: 'free',
-          priority: 'low',
-          latencyRequirement: 5000
+
+        await this.executeWithModel(modelName, "Health check", {
+          task: "health_check",
+          userTier: "free",
+          priority: "low",
+          latencyRequirement: 5000,
         });
         health[modelName] = true;
       } catch (error) {
         health[modelName] = false;
-        this.logger.warn('Model health check failed', { model: modelName, error });
+        this.logger.warn("Model health check failed", {
+          model: modelName,
+          error,
+        });
       }
     }
-    
+
     return health;
   }
 
@@ -505,19 +562,19 @@ export class ModelOrchestrator extends EventEmitter {
    * Shutdown orchestrator and cleanup resources
    */
   shutdown(): void {
-    this.logger.info('Shutting down ModelOrchestrator', {
+    this.logger.info("Shutting down ModelOrchestrator", {
       totalRequests: this.metrics.totalRequests,
-      modelsCount: this.models.size
+      modelsCount: this.models.size,
     });
 
     // Clear intervals and listeners
     this.removeAllListeners();
-    
+
     // Clear caches and connections
     this.cache?.clear?.();
     this.models.clear();
     this.clients.clear();
-    
+
     // Reset metrics
     this.metrics = {
       totalRequests: 0,
@@ -525,9 +582,9 @@ export class ModelOrchestrator extends EventEmitter {
       modelSwitches: 0,
       cacheHits: 0,
       failovers: 0,
-      tierUpgrades: 0
+      tierUpgrades: 0,
     };
 
-    this.logger.info('ModelOrchestrator shutdown completed');
+    this.logger.info("ModelOrchestrator shutdown completed");
   }
 }

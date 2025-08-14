@@ -1,12 +1,12 @@
 /**
  * Performance Monitor
- * 
+ *
  * Tracks and analyzes performance metrics for model orchestration
  * Provides real-time monitoring and optimization recommendations
  */
 
-import { Logger } from '../utils/logger.js';
-import { EventEmitter } from 'events';
+import { Logger } from "../utils/logger.js";
+import { EventEmitter } from "events";
 
 export interface PerformanceMetric {
   name: string;
@@ -29,7 +29,7 @@ export interface PerformanceStats {
 export interface Bottleneck {
   component: string;
   metric: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   impact: number;
   description: string;
   recommendation: string;
@@ -40,19 +40,19 @@ export class PerformanceMonitor extends EventEmitter {
   private metrics: Map<string, PerformanceMetric[]> = new Map();
   private maxHistorySize: number = 1000;
   private alertThresholds: Map<string, number> = new Map();
-  
+
   // Performance targets
   private targets = {
     orchestration_latency: 2000, // 2 seconds max
     routing_overhead: 100, // 100ms max
     cache_hit_rate: 0.7, // 70% minimum
     model_availability: 0.99, // 99% uptime
-    error_rate: 0.01 // 1% max error rate
+    error_rate: 0.01, // 1% max error rate
   };
 
   constructor() {
     super();
-    this.logger = new Logger('PerformanceMonitor');
+    this.logger = new Logger("PerformanceMonitor");
     this.setupDefaultThresholds();
     this.startPeriodicAnalysis();
   }
@@ -61,14 +61,14 @@ export class PerformanceMonitor extends EventEmitter {
    * Setup default alert thresholds
    */
   private setupDefaultThresholds(): void {
-    this.alertThresholds.set('orchestration_latency', 3000);
-    this.alertThresholds.set('routing_overhead', 150);
-    this.alertThresholds.set('model_latency', 5000);
-    this.alertThresholds.set('cache_miss_rate', 0.4);
-    this.alertThresholds.set('error_rate', 0.05);
+    this.alertThresholds.set("orchestration_latency", 3000);
+    this.alertThresholds.set("routing_overhead", 150);
+    this.alertThresholds.set("model_latency", 5000);
+    this.alertThresholds.set("cache_miss_rate", 0.4);
+    this.alertThresholds.set("error_rate", 0.05);
 
-    this.logger.debug('Performance thresholds configured', {
-      thresholds: Object.fromEntries(this.alertThresholds)
+    this.logger.debug("Performance thresholds configured", {
+      thresholds: Object.fromEntries(this.alertThresholds),
     });
   }
 
@@ -80,7 +80,7 @@ export class PerformanceMonitor extends EventEmitter {
       name,
       value,
       timestamp: new Date(),
-      metadata
+      metadata,
     };
 
     // Get or create metric history
@@ -98,7 +98,7 @@ export class PerformanceMonitor extends EventEmitter {
     this.checkThreshold(name, value);
 
     // Emit metric event
-    this.emit('metric_recorded', metric);
+    this.emit("metric_recorded", metric);
   }
 
   /**
@@ -114,24 +114,27 @@ export class PerformanceMonitor extends EventEmitter {
         value,
         threshold,
         severity: this.calculateSeverity(value, threshold),
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
-      this.logger.warn('Performance threshold exceeded', alert);
-      this.emit('threshold_exceeded', alert);
+      this.logger.warn("Performance threshold exceeded", alert);
+      this.emit("threshold_exceeded", alert);
     }
   }
 
   /**
    * Calculate alert severity
    */
-  private calculateSeverity(value: number, threshold: number): 'low' | 'medium' | 'high' | 'critical' {
+  private calculateSeverity(
+    value: number,
+    threshold: number,
+  ): "low" | "medium" | "high" | "critical" {
     const ratio = value / threshold;
-    
-    if (ratio >= 3) return 'critical';
-    if (ratio >= 2) return 'high';
-    if (ratio >= 1.5) return 'medium';
-    return 'low';
+
+    if (ratio >= 3) return "critical";
+    if (ratio >= 2) return "high";
+    if (ratio >= 1.5) return "medium";
+    return "low";
   }
 
   /**
@@ -143,14 +146,12 @@ export class PerformanceMonitor extends EventEmitter {
       return null;
     }
 
-    let values = history.map(m => m.value);
+    let values = history.map((m) => m.value);
 
     // Filter by time window if specified
     if (timeWindow) {
       const cutoff = new Date(Date.now() - timeWindow);
-      values = history
-        .filter(m => m.timestamp >= cutoff)
-        .map(m => m.value);
+      values = history.filter((m) => m.timestamp >= cutoff).map((m) => m.value);
     }
 
     if (values.length === 0) {
@@ -159,7 +160,8 @@ export class PerformanceMonitor extends EventEmitter {
 
     const sorted = [...values].sort((a, b) => a - b);
     const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
-    const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+    const variance =
+      values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
 
     return {
       mean,
@@ -169,7 +171,7 @@ export class PerformanceMonitor extends EventEmitter {
       min: Math.min(...values),
       max: Math.max(...values),
       count: values.length,
-      stddev: Math.sqrt(variance)
+      stddev: Math.sqrt(variance),
     };
   }
 
@@ -184,12 +186,13 @@ export class PerformanceMonitor extends EventEmitter {
   /**
    * Analyze performance and identify bottlenecks
    */
-  analyzeBottlenecks(timeWindow: number = 300000): Bottleneck[] { // Default 5 minutes
+  analyzeBottlenecks(timeWindow: number = 300000): Bottleneck[] {
+    // Default 5 minutes
     const bottlenecks: Bottleneck[] = [];
     const cutoff = new Date(Date.now() - timeWindow);
 
     for (const [metricName, history] of this.metrics) {
-      const recentMetrics = history.filter(m => m.timestamp >= cutoff);
+      const recentMetrics = history.filter((m) => m.timestamp >= cutoff);
       if (recentMetrics.length < 5) continue; // Need minimum data
 
       const stats = this.getStats(metricName, timeWindow);
@@ -209,7 +212,7 @@ export class PerformanceMonitor extends EventEmitter {
           severity,
           impact,
           description: `${metricName} P95 (${stats.p95.toFixed(2)}) exceeds target (${target})`,
-          recommendation: this.generateRecommendation(metricName, stats)
+          recommendation: this.generateRecommendation(metricName, stats),
         });
       }
 
@@ -219,10 +222,10 @@ export class PerformanceMonitor extends EventEmitter {
         bottlenecks.push({
           component: this.getComponentFromMetric(metricName),
           metric: metricName,
-          severity: 'medium',
+          severity: "medium",
           impact: 0.3,
           description: `${metricName} shows high variance (CV: ${coefficientOfVariation.toFixed(2)})`,
-          recommendation: 'Investigate cause of performance inconsistency'
+          recommendation: "Investigate cause of performance inconsistency",
         });
       }
     }
@@ -230,10 +233,12 @@ export class PerformanceMonitor extends EventEmitter {
     // Sort by impact (highest first)
     bottlenecks.sort((a, b) => b.impact - a.impact);
 
-    this.logger.info('Bottleneck analysis completed', {
+    this.logger.info("Bottleneck analysis completed", {
       bottlenecksFound: bottlenecks.length,
       timeWindow,
-      highSeverity: bottlenecks.filter(b => b.severity === 'high' || b.severity === 'critical').length
+      highSeverity: bottlenecks.filter(
+        (b) => b.severity === "high" || b.severity === "critical",
+      ).length,
     });
 
     return bottlenecks;
@@ -242,19 +247,26 @@ export class PerformanceMonitor extends EventEmitter {
   /**
    * Calculate bottleneck severity
    */
-  private calculateBottleneckSeverity(value: number, target: number): 'low' | 'medium' | 'high' | 'critical' {
+  private calculateBottleneckSeverity(
+    value: number,
+    target: number,
+  ): "low" | "medium" | "high" | "critical" {
     const ratio = value / target;
-    
-    if (ratio >= 4) return 'critical';
-    if (ratio >= 3) return 'high';
-    if (ratio >= 2) return 'medium';  
-    return 'low';
+
+    if (ratio >= 4) return "critical";
+    if (ratio >= 3) return "high";
+    if (ratio >= 2) return "medium";
+    return "low";
   }
 
   /**
    * Calculate performance impact
    */
-  private calculateImpact(metric: string, value: number, target: number): number {
+  private calculateImpact(
+    metric: string,
+    value: number,
+    target: number,
+  ): number {
     const ratio = value / target;
     const baseImpact = Math.min(1.0, (ratio - 1) / 3); // Scale 0-1
 
@@ -264,7 +276,7 @@ export class PerformanceMonitor extends EventEmitter {
       routing_overhead: 0.8,
       model_latency: 0.9,
       cache_hit_rate: 0.7,
-      error_rate: 1.0
+      error_rate: 1.0,
     };
 
     const weight = weights[metric as keyof typeof weights] || 0.5;
@@ -275,27 +287,38 @@ export class PerformanceMonitor extends EventEmitter {
    * Get component name from metric name
    */
   private getComponentFromMetric(metric: string): string {
-    if (metric.includes('orchestration')) return 'orchestrator';
-    if (metric.includes('routing')) return 'router';
-    if (metric.includes('model')) return 'model_client';
-    if (metric.includes('cache')) return 'cache';
-    if (metric.includes('auth')) return 'authentication';
-    return 'unknown';
+    if (metric.includes("orchestration")) return "orchestrator";
+    if (metric.includes("routing")) return "router";
+    if (metric.includes("model")) return "model_client";
+    if (metric.includes("cache")) return "cache";
+    if (metric.includes("auth")) return "authentication";
+    return "unknown";
   }
 
   /**
    * Generate optimization recommendations
    */
-  private generateRecommendation(metric: string, stats: PerformanceStats): string {
+  private generateRecommendation(
+    metric: string,
+    stats: PerformanceStats,
+  ): string {
     const recommendations = {
-      orchestration_latency: 'Consider enabling caching, optimizing model selection, or implementing request batching',
-      routing_overhead: 'Optimize routing algorithm, reduce rule complexity, or implement routing cache',
-      model_latency: 'Switch to faster models, implement request optimization, or add model warm-up',
-      cache_hit_rate: 'Increase cache size, optimize cache key generation, or extend TTL values',
-      error_rate: 'Implement better error handling, add retries, or investigate root cause'
+      orchestration_latency:
+        "Consider enabling caching, optimizing model selection, or implementing request batching",
+      routing_overhead:
+        "Optimize routing algorithm, reduce rule complexity, or implement routing cache",
+      model_latency:
+        "Switch to faster models, implement request optimization, or add model warm-up",
+      cache_hit_rate:
+        "Increase cache size, optimize cache key generation, or extend TTL values",
+      error_rate:
+        "Implement better error handling, add retries, or investigate root cause",
     };
 
-    return recommendations[metric as keyof typeof recommendations] || 'Investigate performance degradation';
+    return (
+      recommendations[metric as keyof typeof recommendations] ||
+      "Investigate performance degradation"
+    );
   }
 
   /**
@@ -310,7 +333,7 @@ export class PerformanceMonitor extends EventEmitter {
       if (!stats) continue;
 
       let score = 100;
-      
+
       // Penalize if above target
       if (stats.mean > target) {
         const penalty = ((stats.mean - target) / target) * 50;
@@ -320,7 +343,7 @@ export class PerformanceMonitor extends EventEmitter {
       // Additional penalty for high variance
       const cv = stats.stddev / stats.mean;
       if (cv > 0.3) {
-        score *= (1 - cv * 0.5);
+        score *= 1 - cv * 0.5;
       }
 
       totalScore += Math.max(0, score);
@@ -354,25 +377,27 @@ export class PerformanceMonitor extends EventEmitter {
       score: healthScore,
       status: this.getHealthStatus(healthScore),
       bottlenecks: bottlenecksCount,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    this.emit('health_check', health);
+    this.emit("health_check", health);
 
     if (healthScore < 70) {
-      this.logger.warn('Performance health degraded', health);
+      this.logger.warn("Performance health degraded", health);
     }
   }
 
   /**
    * Get health status from score
    */
-  private getHealthStatus(score: number): 'excellent' | 'good' | 'fair' | 'poor' | 'critical' {
-    if (score >= 90) return 'excellent';
-    if (score >= 80) return 'good';
-    if (score >= 70) return 'fair';
-    if (score >= 50) return 'poor';
-    return 'critical';
+  private getHealthStatus(
+    score: number,
+  ): "excellent" | "good" | "fair" | "poor" | "critical" {
+    if (score >= 90) return "excellent";
+    if (score >= 80) return "good";
+    if (score >= 70) return "fair";
+    if (score >= 50) return "poor";
+    return "critical";
   }
 
   /**
@@ -380,7 +405,7 @@ export class PerformanceMonitor extends EventEmitter {
    */
   getMetrics(): { [metricName: string]: PerformanceStats } {
     const result: { [metricName: string]: PerformanceStats } = {};
-    
+
     for (const metricName of this.metrics.keys()) {
       const stats = this.getStats(metricName);
       if (stats) {
@@ -394,14 +419,15 @@ export class PerformanceMonitor extends EventEmitter {
   /**
    * Clear old metrics data
    */
-  clearOldMetrics(olderThan: number = 86400000): void { // Default 24 hours
+  clearOldMetrics(olderThan: number = 86400000): void {
+    // Default 24 hours
     const cutoff = new Date(Date.now() - olderThan);
     let clearedCount = 0;
 
     for (const [metricName, history] of this.metrics) {
-      const filtered = history.filter(m => m.timestamp >= cutoff);
+      const filtered = history.filter((m) => m.timestamp >= cutoff);
       const removed = history.length - filtered.length;
-      
+
       if (removed > 0) {
         this.metrics.set(metricName, filtered);
         clearedCount += removed;
@@ -409,35 +435,35 @@ export class PerformanceMonitor extends EventEmitter {
     }
 
     if (clearedCount > 0) {
-      this.logger.info('Old metrics cleared', { clearedCount, cutoff });
+      this.logger.info("Old metrics cleared", { clearedCount, cutoff });
     }
   }
 
   /**
    * Export performance data for analysis
    */
-  exportData(format: 'json' | 'csv' = 'json'): string {
+  exportData(format: "json" | "csv" = "json"): string {
     const data: any = {};
-    
+
     for (const [metricName, history] of this.metrics) {
       data[metricName] = {
         stats: this.getStats(metricName),
-        history: history.slice(-100) // Last 100 data points
+        history: history.slice(-100), // Last 100 data points
       };
     }
 
-    if (format === 'json') {
+    if (format === "json") {
       return JSON.stringify(data, null, 2);
     }
 
     // Simple CSV export
-    let csv = 'metric,timestamp,value\n';
+    let csv = "metric,timestamp,value\n";
     for (const [metricName, history] of this.metrics) {
       for (const metric of history.slice(-100)) {
         csv += `${metricName},${metric.timestamp.toISOString()},${metric.value}\n`;
       }
     }
-    
+
     return csv;
   }
 
@@ -445,18 +471,21 @@ export class PerformanceMonitor extends EventEmitter {
    * Shutdown performance monitor and cleanup resources
    */
   shutdown(): void {
-    this.logger.info('Shutting down PerformanceMonitor', {
+    this.logger.info("Shutting down PerformanceMonitor", {
       metricsCount: this.metrics.size,
-      totalDataPoints: Array.from(this.metrics.values()).reduce((sum, history) => sum + history.length, 0)
+      totalDataPoints: Array.from(this.metrics.values()).reduce(
+        (sum, history) => sum + history.length,
+        0,
+      ),
     });
 
     // Clear intervals and listeners
     this.removeAllListeners();
-    
+
     // Clear metrics data
     this.metrics.clear();
     this.alertThresholds.clear();
-    
-    this.logger.info('PerformanceMonitor shutdown completed');
+
+    this.logger.info("PerformanceMonitor shutdown completed");
   }
 }

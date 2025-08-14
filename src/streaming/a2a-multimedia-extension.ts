@@ -1,6 +1,6 @@
 /**
  * A2A Protocol Multimedia Extension
- * 
+ *
  * Extends the Agent-to-Agent protocol for multimedia coordination:
  * - Multi-agent streaming coordination
  * - Distributed load balancing
@@ -9,8 +9,8 @@
  * - Fault-tolerant streaming
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger.js";
 import {
   A2AMultimediaExtension,
   StreamingSession,
@@ -18,12 +18,12 @@ import {
   VideoStreamRequest,
   AudioStreamRequest,
   NetworkConditions,
-  PerformanceMetrics
-} from '../types/streaming.js';
+  PerformanceMetrics,
+} from "../types/streaming.js";
 
 export interface A2AStreamingAgent {
   id: string;
-  role: 'producer' | 'consumer' | 'relay' | 'coordinator';
+  role: "producer" | "consumer" | "relay" | "coordinator";
   capabilities: {
     maxStreams: number;
     supportedCodecs: string[];
@@ -37,36 +37,53 @@ export interface A2AStreamingAgent {
     memoryUsage: number;
     bandwidthUsage: { upload: number; download: number };
   };
-  status: 'online' | 'offline' | 'degraded' | 'maintenance';
+  status: "online" | "offline" | "degraded" | "maintenance";
   lastHeartbeat: number;
 }
 
 export interface A2AMultimediaMessage {
-  type: 'stream_request' | 'stream_response' | 'quality_change' | 'sync_command' | 
-        'load_balance' | 'failover' | 'consensus_vote' | 'heartbeat' | 'coordination';
+  type:
+    | "stream_request"
+    | "stream_response"
+    | "quality_change"
+    | "sync_command"
+    | "load_balance"
+    | "failover"
+    | "consensus_vote"
+    | "heartbeat"
+    | "coordination";
   from: string;
-  to: string | 'broadcast';
+  to: string | "broadcast";
   sessionId: string;
   timestamp: number;
   sequence: number;
   data: any;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  reliability: 'best_effort' | 'reliable' | 'ordered';
+  priority: "low" | "medium" | "high" | "critical";
+  reliability: "best_effort" | "reliable" | "ordered";
 }
 
 export interface ConsensusProposal {
   id: string;
-  type: 'quality_change' | 'load_redistribution' | 'failover' | 'sync_adjustment';
+  type:
+    | "quality_change"
+    | "load_redistribution"
+    | "failover"
+    | "sync_adjustment";
   proposer: string;
   data: any;
   votes: Map<string, boolean>;
   threshold: number;
   deadline: number;
-  status: 'pending' | 'approved' | 'rejected' | 'expired';
+  status: "pending" | "approved" | "rejected" | "expired";
 }
 
 export interface LoadBalancingStrategy {
-  algorithm: 'round_robin' | 'least_loaded' | 'geographic' | 'capability_based' | 'adaptive';
+  algorithm:
+    | "round_robin"
+    | "least_loaded"
+    | "geographic"
+    | "capability_based"
+    | "adaptive";
   parameters: {
     maxLoadPerAgent: number;
     geographicPreference: boolean;
@@ -92,36 +109,36 @@ export class A2AMultimediaExtension extends EventEmitter {
 
   constructor(config: any) {
     super();
-    this.logger = new Logger('A2AMultimediaExtension');
-    
+    this.logger = new Logger("A2AMultimediaExtension");
+
     this.extension = {
-      version: '1.0.0',
+      version: "1.0.0",
       capabilities: {
         videoStreaming: true,
         audioStreaming: true,
         multicast: true,
         recording: true,
         transcoding: true,
-        synchronization: true
+        synchronization: true,
       },
       protocols: {
         webrtc: true,
         hls: true,
         dash: true,
         websocket: true,
-        custom: ['a2a-stream']
+        custom: ["a2a-stream"],
       },
       quality: {
         adaptiveBitrate: true,
         multipleQualities: true,
-        realTimeAdjustment: true
+        realTimeAdjustment: true,
       },
       coordination: {
         multiAgent: true,
         loadBalancing: true,
         failover: true,
-        consensus: true
-      }
+        consensus: true,
+      },
     };
 
     this.loadBalancer = new MultimediaLoadBalancer();
@@ -139,33 +156,33 @@ export class A2AMultimediaExtension extends EventEmitter {
    */
   registerAgent(agent: A2AStreamingAgent): void {
     this.agents.set(agent.id, agent);
-    
-    this.logger.info('Agent registered', {
+
+    this.logger.info("Agent registered", {
       id: agent.id,
       role: agent.role,
-      capabilities: agent.capabilities
+      capabilities: agent.capabilities,
     });
 
     this.broadcastMessage({
-      type: 'coordination',
-      from: 'system',
-      to: 'broadcast',
-      sessionId: 'system',
+      type: "coordination",
+      from: "system",
+      to: "broadcast",
+      sessionId: "system",
       timestamp: Date.now(),
       sequence: 0,
       data: {
-        action: 'agent_joined',
+        action: "agent_joined",
         agent: {
           id: agent.id,
           role: agent.role,
-          capabilities: agent.capabilities
-        }
+          capabilities: agent.capabilities,
+        },
       },
-      priority: 'medium',
-      reliability: 'reliable'
+      priority: "medium",
+      reliability: "reliable",
     });
 
-    this.emit('agent_registered', agent);
+    this.emit("agent_registered", agent);
   }
 
   /**
@@ -174,29 +191,32 @@ export class A2AMultimediaExtension extends EventEmitter {
   async createCoordinatedSession(
     sessionId: string,
     participants: string[],
-    sessionType: 'broadcast' | 'multicast' | 'p2p'
+    sessionType: "broadcast" | "multicast" | "p2p",
   ): Promise<StreamingSession> {
     // Select optimal agents for the session
-    const selectedAgents = await this.selectOptimalAgents(participants, sessionType);
-    
+    const selectedAgents = await this.selectOptimalAgents(
+      participants,
+      sessionType,
+    );
+
     if (selectedAgents.length === 0) {
-      throw new Error('No suitable agents available for session');
+      throw new Error("No suitable agents available for session");
     }
 
     // Create session with coordination
     const session: StreamingSession = {
       id: sessionId,
       type: sessionType,
-      participants: selectedAgents.map(agent => ({
+      participants: selectedAgents.map((agent) => ({
         id: agent.id,
         role: this.determineRole(agent, sessionType),
         capabilities: Object.keys(agent.capabilities.supportedCodecs),
-        connection: null as any // Will be set during connection
+        connection: null as any, // Will be set during connection
       })),
       streams: {
         video: [],
         audio: [],
-        data: []
+        data: [],
       },
       coordination: {
         master: this.selectMasterAgent(selectedAgents),
@@ -206,9 +226,9 @@ export class A2AMultimediaExtension extends EventEmitter {
           tolerance: 50,
           maxDrift: 200,
           resyncThreshold: 500,
-          method: 'rtp',
-          masterClock: 'audio'
-        }
+          method: "rtp",
+          masterClock: "audio",
+        },
       },
       metrics: {
         startTime: Date.now(),
@@ -216,8 +236,8 @@ export class A2AMultimediaExtension extends EventEmitter {
         totalBytes: 0,
         qualityChanges: 0,
         errors: 0,
-        averageLatency: 0
-      }
+        averageLatency: 0,
+      },
     };
 
     this.sessions.set(sessionId, session);
@@ -225,7 +245,7 @@ export class A2AMultimediaExtension extends EventEmitter {
     // Notify all participants
     await this.coordinateSessionSetup(session);
 
-    this.emit('session_created', session);
+    this.emit("session_created", session);
     return session;
   }
 
@@ -234,7 +254,7 @@ export class A2AMultimediaExtension extends EventEmitter {
    */
   async requestStream(
     request: VideoStreamRequest | AudioStreamRequest,
-    sessionId: string
+    sessionId: string,
   ): Promise<void> {
     const session = this.sessions.get(sessionId);
     if (!session) {
@@ -245,29 +265,29 @@ export class A2AMultimediaExtension extends EventEmitter {
     const optimalAgent = await this.loadBalancer.selectAgent(
       Array.from(this.agents.values()),
       request,
-      session
+      session,
     );
 
     if (!optimalAgent) {
-      throw new Error('No suitable agent available for stream');
+      throw new Error("No suitable agent available for stream");
     }
 
     // Send stream request to selected agent
     const message: A2AMultimediaMessage = {
-      type: 'stream_request',
-      from: 'coordinator',
+      type: "stream_request",
+      from: "coordinator",
       to: optimalAgent.id,
       sessionId,
       timestamp: Date.now(),
       sequence: this.getNextSequence(),
       data: request,
-      priority: 'high',
-      reliability: 'reliable'
+      priority: "high",
+      reliability: "reliable",
     };
 
     await this.sendMessage(message);
-    
-    this.emit('stream_requested', { request, agent: optimalAgent, session });
+
+    this.emit("stream_requested", { request, agent: optimalAgent, session });
   }
 
   /**
@@ -276,7 +296,7 @@ export class A2AMultimediaExtension extends EventEmitter {
   async coordinateQualityChange(
     sessionId: string,
     newQuality: any,
-    reason: string
+    reason: string,
   ): Promise<boolean> {
     const session = this.sessions.get(sessionId);
     if (!session) {
@@ -286,34 +306,34 @@ export class A2AMultimediaExtension extends EventEmitter {
     // Create consensus proposal
     const proposal: ConsensusProposal = {
       id: this.generateProposalId(),
-      type: 'quality_change',
+      type: "quality_change",
       proposer: session.coordination.master,
       data: { newQuality, reason },
       votes: new Map(),
       threshold: Math.ceil(session.participants.length / 2), // Majority
       deadline: Date.now() + 5000, // 5 seconds to vote
-      status: 'pending'
+      status: "pending",
     };
 
     this.consensusProposals.set(proposal.id, proposal);
 
     // Request votes from all participants
     const voteMessage: A2AMultimediaMessage = {
-      type: 'consensus_vote',
+      type: "consensus_vote",
       from: session.coordination.master,
-      to: 'broadcast',
+      to: "broadcast",
       sessionId,
       timestamp: Date.now(),
       sequence: this.getNextSequence(),
       data: {
         proposal: proposal.id,
-        type: 'quality_change',
+        type: "quality_change",
         currentQuality: session.streams.video[0]?.quality,
         proposedQuality: newQuality,
-        reason
+        reason,
       },
-      priority: 'high',
-      reliability: 'reliable'
+      priority: "high",
+      reliability: "reliable",
     };
 
     await this.broadcastToSession(sessionId, voteMessage);
@@ -322,9 +342,9 @@ export class A2AMultimediaExtension extends EventEmitter {
     return new Promise((resolve) => {
       const checkInterval = setInterval(() => {
         const updatedProposal = this.consensusProposals.get(proposal.id);
-        if (updatedProposal && updatedProposal.status !== 'pending') {
+        if (updatedProposal && updatedProposal.status !== "pending") {
           clearInterval(checkInterval);
-          resolve(updatedProposal.status === 'approved');
+          resolve(updatedProposal.status === "approved");
         }
       }, 100);
 
@@ -332,8 +352,8 @@ export class A2AMultimediaExtension extends EventEmitter {
       setTimeout(() => {
         clearInterval(checkInterval);
         const finalProposal = this.consensusProposals.get(proposal.id);
-        if (finalProposal && finalProposal.status === 'pending') {
-          finalProposal.status = 'expired';
+        if (finalProposal && finalProposal.status === "pending") {
+          finalProposal.status = "expired";
           resolve(false);
         }
       }, 6000);
@@ -347,44 +367,51 @@ export class A2AMultimediaExtension extends EventEmitter {
     const failedAgent = this.agents.get(failedAgentId);
     if (!failedAgent) return;
 
-    this.logger.warn('Agent failure detected', { agentId: failedAgentId });
+    this.logger.warn("Agent failure detected", { agentId: failedAgentId });
 
     // Mark agent as offline
-    failedAgent.status = 'offline';
+    failedAgent.status = "offline";
 
     // Find affected sessions
-    const affectedSessions = Array.from(this.sessions.values())
-      .filter(session => session.participants.some(p => p.id === failedAgentId));
+    const affectedSessions = Array.from(this.sessions.values()).filter(
+      (session) => session.participants.some((p) => p.id === failedAgentId),
+    );
 
     // Coordinate failover for each affected session
     for (const session of affectedSessions) {
       await this.coordinateFailover(session, failedAgentId);
     }
 
-    this.emit('agent_failure_handled', { failedAgentId, affectedSessions: affectedSessions.length });
+    this.emit("agent_failure_handled", {
+      failedAgentId,
+      affectedSessions: affectedSessions.length,
+    });
   }
 
   /**
    * Synchronize streams across multiple agents
    */
-  async synchronizeMultiAgentStreams(sessionId: string, referenceTime: number): Promise<boolean> {
+  async synchronizeMultiAgentStreams(
+    sessionId: string,
+    referenceTime: number,
+  ): Promise<boolean> {
     const session = this.sessions.get(sessionId);
     if (!session) return false;
 
     const syncMessage: A2AMultimediaMessage = {
-      type: 'sync_command',
+      type: "sync_command",
       from: session.coordination.master,
-      to: 'broadcast',
+      to: "broadcast",
       sessionId,
       timestamp: Date.now(),
       sequence: this.getNextSequence(),
       data: {
         referenceTime,
         tolerance: session.coordination.synchronization.tolerance,
-        method: session.coordination.synchronization.method
+        method: session.coordination.synchronization.method,
       },
-      priority: 'critical',
-      reliability: 'ordered'
+      priority: "critical",
+      reliability: "ordered",
     };
 
     await this.broadcastToSession(sessionId, syncMessage);
@@ -398,15 +425,15 @@ export class A2AMultimediaExtension extends EventEmitter {
    */
   async rebalanceLoad(strategy?: LoadBalancingStrategy): Promise<void> {
     const currentStrategy = strategy || this.loadBalancer.getStrategy();
-    
+
     const rebalancePlan = await this.loadBalancer.createRebalancePlan(
       Array.from(this.agents.values()),
       Array.from(this.sessions.values()),
-      currentStrategy
+      currentStrategy,
     );
 
     if (rebalancePlan.actions.length === 0) {
-      this.logger.debug('No rebalancing needed');
+      this.logger.debug("No rebalancing needed");
       return;
     }
 
@@ -415,7 +442,7 @@ export class A2AMultimediaExtension extends EventEmitter {
       await this.executeRebalanceAction(action);
     }
 
-    this.emit('load_rebalanced', rebalancePlan);
+    this.emit("load_rebalanced", rebalancePlan);
   }
 
   /**
@@ -423,14 +450,14 @@ export class A2AMultimediaExtension extends EventEmitter {
    */
   getNetworkTopology(): any {
     const topology = {
-      agents: Array.from(this.agents.values()).map(agent => ({
+      agents: Array.from(this.agents.values()).map((agent) => ({
         id: agent.id,
         role: agent.role,
         status: agent.status,
         load: this.calculateAgentLoad(agent),
-        geographic: agent.capabilities.geographic
+        geographic: agent.capabilities.geographic,
       })),
-      sessions: Array.from(this.sessions.values()).map(session => ({
+      sessions: Array.from(this.sessions.values()).map((session) => ({
         id: session.id,
         type: session.type,
         participants: session.participants.length,
@@ -438,11 +465,11 @@ export class A2AMultimediaExtension extends EventEmitter {
         streams: {
           video: session.streams.video.length,
           audio: session.streams.audio.length,
-          data: session.streams.data.length
-        }
+          data: session.streams.data.length,
+        },
       })),
       connections: this.getConnectionMatrix(),
-      performance: this.getOverallPerformanceMetrics()
+      performance: this.getOverallPerformanceMetrics(),
     };
 
     return topology;
@@ -452,55 +479,60 @@ export class A2AMultimediaExtension extends EventEmitter {
    * Setup message handling
    */
   private setupMessageHandling(): void {
-    this.messageRouter.on('message_received', (message: A2AMultimediaMessage) => {
-      this.handleIncomingMessage(message);
-    });
+    this.messageRouter.on(
+      "message_received",
+      (message: A2AMultimediaMessage) => {
+        this.handleIncomingMessage(message);
+      },
+    );
 
-    this.messageRouter.on('message_failed', (error: any) => {
-      this.logger.error('Message delivery failed', error);
+    this.messageRouter.on("message_failed", (error: any) => {
+      this.logger.error("Message delivery failed", error);
     });
   }
 
   /**
    * Handle incoming A2A multimedia messages
    */
-  private async handleIncomingMessage(message: A2AMultimediaMessage): Promise<void> {
+  private async handleIncomingMessage(
+    message: A2AMultimediaMessage,
+  ): Promise<void> {
     try {
       switch (message.type) {
-        case 'stream_request':
+        case "stream_request":
           await this.handleStreamRequest(message);
           break;
-        case 'stream_response':
+        case "stream_response":
           await this.handleStreamResponse(message);
           break;
-        case 'quality_change':
+        case "quality_change":
           await this.handleQualityChange(message);
           break;
-        case 'sync_command':
+        case "sync_command":
           await this.handleSyncCommand(message);
           break;
-        case 'load_balance':
+        case "load_balance":
           await this.handleLoadBalance(message);
           break;
-        case 'failover':
+        case "failover":
           await this.handleFailover(message);
           break;
-        case 'consensus_vote':
+        case "consensus_vote":
           await this.handleConsensusVote(message);
           break;
-        case 'heartbeat':
+        case "heartbeat":
           await this.handleHeartbeat(message);
           break;
-        case 'coordination':
+        case "coordination":
           await this.handleCoordination(message);
           break;
         default:
-          this.logger.warn('Unknown message type', { type: message.type });
+          this.logger.warn("Unknown message type", { type: message.type });
       }
     } catch (error) {
-      this.logger.error('Message handling failed', { 
-        message: message.type, 
-        error: (error as Error).message 
+      this.logger.error("Message handling failed", {
+        message: message.type,
+        error: (error as Error).message,
       });
     }
   }
@@ -510,30 +542,38 @@ export class A2AMultimediaExtension extends EventEmitter {
    */
   private async selectOptimalAgents(
     participants: string[],
-    sessionType: string
+    sessionType: string,
   ): Promise<A2AStreamingAgent[]> {
     const availableAgents = Array.from(this.agents.values())
-      .filter(agent => agent.status === 'online')
-      .filter(agent => participants.length === 0 || participants.includes(agent.id));
+      .filter((agent) => agent.status === "online")
+      .filter(
+        (agent) => participants.length === 0 || participants.includes(agent.id),
+      );
 
     // Sort by suitability score
-    const scoredAgents = availableAgents.map(agent => ({
-      agent,
-      score: this.calculateAgentScore(agent, sessionType)
-    })).sort((a, b) => b.score - a.score);
+    const scoredAgents = availableAgents
+      .map((agent) => ({
+        agent,
+        score: this.calculateAgentScore(agent, sessionType),
+      }))
+      .sort((a, b) => b.score - a.score);
 
-    return scoredAgents.slice(0, Math.min(participants.length || 10, scoredAgents.length))
-      .map(scored => scored.agent);
+    return scoredAgents
+      .slice(0, Math.min(participants.length || 10, scoredAgents.length))
+      .map((scored) => scored.agent);
   }
 
   /**
    * Calculate agent suitability score
    */
-  private calculateAgentScore(agent: A2AStreamingAgent, sessionType: string): number {
+  private calculateAgentScore(
+    agent: A2AStreamingAgent,
+    sessionType: string,
+  ): number {
     let score = 0;
 
     // Load factor (lower load = higher score)
-    const loadFactor = 1 - (agent.currentLoad.cpuUsage / 100);
+    const loadFactor = 1 - agent.currentLoad.cpuUsage / 100;
     score += loadFactor * 30;
 
     // Capability factor
@@ -541,15 +581,21 @@ export class A2AMultimediaExtension extends EventEmitter {
     score += capabilityFactor * 20;
 
     // Geographic factor (lower latency = higher score)
-    const geoFactor = Math.max(0, 1 - (agent.capabilities.geographic.latency / 1000));
+    const geoFactor = Math.max(
+      0,
+      1 - agent.capabilities.geographic.latency / 1000,
+    );
     score += geoFactor * 15;
 
     // Bandwidth factor
-    const bandwidthFactor = Math.min(1, agent.capabilities.bandwidth.upload / 10000000); // 10 Mbps reference
+    const bandwidthFactor = Math.min(
+      1,
+      agent.capabilities.bandwidth.upload / 10000000,
+    ); // 10 Mbps reference
     score += bandwidthFactor * 25;
 
     // Status factor
-    if (agent.status === 'online') score += 10;
+    if (agent.status === "online") score += 10;
 
     return score;
   }
@@ -557,11 +603,17 @@ export class A2AMultimediaExtension extends EventEmitter {
   /**
    * Determine agent role in session
    */
-  private determineRole(agent: A2AStreamingAgent, sessionType: string): 'producer' | 'consumer' | 'prosumer' {
-    if (sessionType === 'broadcast') {
-      return agent.capabilities.bandwidth.upload > agent.capabilities.bandwidth.download ? 'producer' : 'consumer';
+  private determineRole(
+    agent: A2AStreamingAgent,
+    sessionType: string,
+  ): "producer" | "consumer" | "prosumer" {
+    if (sessionType === "broadcast") {
+      return agent.capabilities.bandwidth.upload >
+        agent.capabilities.bandwidth.download
+        ? "producer"
+        : "consumer";
     }
-    return 'prosumer'; // Can both produce and consume
+    return "prosumer"; // Can both produce and consume
   }
 
   /**
@@ -570,34 +622,40 @@ export class A2AMultimediaExtension extends EventEmitter {
   private selectMasterAgent(agents: A2AStreamingAgent[]): string {
     // Select agent with highest score and stable connection
     const masterCandidate = agents
-      .filter(agent => agent.status === 'online')
-      .sort((a, b) => this.calculateAgentScore(b, 'coordination') - this.calculateAgentScore(a, 'coordination'))[0];
+      .filter((agent) => agent.status === "online")
+      .sort(
+        (a, b) =>
+          this.calculateAgentScore(b, "coordination") -
+          this.calculateAgentScore(a, "coordination"),
+      )[0];
 
-    return masterCandidate?.id || agents[0]?.id || 'unknown';
+    return masterCandidate?.id || agents[0]?.id || "unknown";
   }
 
   /**
    * Coordinate session setup with all participants
    */
-  private async coordinateSessionSetup(session: StreamingSession): Promise<void> {
+  private async coordinateSessionSetup(
+    session: StreamingSession,
+  ): Promise<void> {
     const setupMessage: A2AMultimediaMessage = {
-      type: 'coordination',
-      from: 'coordinator',
-      to: 'broadcast',
+      type: "coordination",
+      from: "coordinator",
+      to: "broadcast",
       sessionId: session.id,
       timestamp: Date.now(),
       sequence: this.getNextSequence(),
       data: {
-        action: 'session_setup',
+        action: "session_setup",
         session: {
           id: session.id,
           type: session.type,
           participants: session.participants,
-          coordination: session.coordination
-        }
+          coordination: session.coordination,
+        },
       },
-      priority: 'high',
-      reliability: 'reliable'
+      priority: "high",
+      reliability: "reliable",
     };
 
     await this.broadcastToSession(session.id, setupMessage);
@@ -613,14 +671,17 @@ export class A2AMultimediaExtension extends EventEmitter {
   /**
    * Broadcast message to all participants in session
    */
-  private async broadcastToSession(sessionId: string, message: A2AMultimediaMessage): Promise<void> {
+  private async broadcastToSession(
+    sessionId: string,
+    message: A2AMultimediaMessage,
+  ): Promise<void> {
     const session = this.sessions.get(sessionId);
     if (!session) return;
 
     for (const participant of session.participants) {
       const participantMessage = {
         ...message,
-        to: participant.id
+        to: participant.id,
       };
       await this.sendMessage(participantMessage);
     }
@@ -633,7 +694,7 @@ export class A2AMultimediaExtension extends EventEmitter {
     for (const [agentId] of this.agents) {
       const agentMessage = {
         ...message,
-        to: agentId
+        to: agentId,
       };
       await this.sendMessage(agentMessage);
     }
@@ -642,41 +703,51 @@ export class A2AMultimediaExtension extends EventEmitter {
   /**
    * Handle stream request message
    */
-  private async handleStreamRequest(message: A2AMultimediaMessage): Promise<void> {
+  private async handleStreamRequest(
+    message: A2AMultimediaMessage,
+  ): Promise<void> {
     // Process stream request and respond
-    this.emit('stream_request_received', message);
+    this.emit("stream_request_received", message);
   }
 
   /**
    * Handle stream response message
    */
-  private async handleStreamResponse(message: A2AMultimediaMessage): Promise<void> {
+  private async handleStreamResponse(
+    message: A2AMultimediaMessage,
+  ): Promise<void> {
     // Process stream response
-    this.emit('stream_response_received', message);
+    this.emit("stream_response_received", message);
   }
 
   /**
    * Handle quality change message
    */
-  private async handleQualityChange(message: A2AMultimediaMessage): Promise<void> {
+  private async handleQualityChange(
+    message: A2AMultimediaMessage,
+  ): Promise<void> {
     // Apply quality change
-    this.emit('quality_change_received', message);
+    this.emit("quality_change_received", message);
   }
 
   /**
    * Handle sync command message
    */
-  private async handleSyncCommand(message: A2AMultimediaMessage): Promise<void> {
+  private async handleSyncCommand(
+    message: A2AMultimediaMessage,
+  ): Promise<void> {
     // Execute synchronization
-    this.emit('sync_command_received', message);
+    this.emit("sync_command_received", message);
   }
 
   /**
    * Handle load balance message
    */
-  private async handleLoadBalance(message: A2AMultimediaMessage): Promise<void> {
+  private async handleLoadBalance(
+    message: A2AMultimediaMessage,
+  ): Promise<void> {
     // Process load balancing request
-    this.emit('load_balance_received', message);
+    this.emit("load_balance_received", message);
   }
 
   /**
@@ -684,27 +755,34 @@ export class A2AMultimediaExtension extends EventEmitter {
    */
   private async handleFailover(message: A2AMultimediaMessage): Promise<void> {
     // Process failover coordination
-    this.emit('failover_received', message);
+    this.emit("failover_received", message);
   }
 
   /**
    * Handle consensus vote message
    */
-  private async handleConsensusVote(message: A2AMultimediaMessage): Promise<void> {
+  private async handleConsensusVote(
+    message: A2AMultimediaMessage,
+  ): Promise<void> {
     const { proposal, vote } = message.data;
     const proposalObj = this.consensusProposals.get(proposal);
-    
-    if (proposalObj && proposalObj.status === 'pending') {
+
+    if (proposalObj && proposalObj.status === "pending") {
       proposalObj.votes.set(message.from, vote);
-      
+
       // Check if threshold reached
-      const positiveVotes = Array.from(proposalObj.votes.values()).filter(v => v).length;
+      const positiveVotes = Array.from(proposalObj.votes.values()).filter(
+        (v) => v,
+      ).length;
       if (positiveVotes >= proposalObj.threshold) {
-        proposalObj.status = 'approved';
-        this.emit('consensus_reached', proposalObj);
-      } else if (proposalObj.votes.size === this.agents.size && positiveVotes < proposalObj.threshold) {
-        proposalObj.status = 'rejected';
-        this.emit('consensus_rejected', proposalObj);
+        proposalObj.status = "approved";
+        this.emit("consensus_reached", proposalObj);
+      } else if (
+        proposalObj.votes.size === this.agents.size &&
+        positiveVotes < proposalObj.threshold
+      ) {
+        proposalObj.status = "rejected";
+        this.emit("consensus_rejected", proposalObj);
       }
     }
   }
@@ -723,20 +801,33 @@ export class A2AMultimediaExtension extends EventEmitter {
   /**
    * Handle coordination message
    */
-  private async handleCoordination(message: A2AMultimediaMessage): Promise<void> {
+  private async handleCoordination(
+    message: A2AMultimediaMessage,
+  ): Promise<void> {
     // Process coordination commands
-    this.emit('coordination_received', message);
+    this.emit("coordination_received", message);
   }
 
   /**
    * Coordinate failover for a session
    */
-  private async coordinateFailover(session: StreamingSession, failedAgentId: string): Promise<void> {
-    const failoverPlan = await this.failoverManager.createFailoverPlan(session, failedAgentId, this.agents);
-    
+  private async coordinateFailover(
+    session: StreamingSession,
+    failedAgentId: string,
+  ): Promise<void> {
+    const failoverPlan = await this.failoverManager.createFailoverPlan(
+      session,
+      failedAgentId,
+      this.agents,
+    );
+
     if (failoverPlan.replacementAgent) {
       // Execute failover
-      await this.executeFailover(session, failedAgentId, failoverPlan.replacementAgent);
+      await this.executeFailover(
+        session,
+        failedAgentId,
+        failoverPlan.replacementAgent,
+      );
     } else {
       // No replacement available, gracefully degrade
       await this.degradeSession(session, failedAgentId);
@@ -749,52 +840,65 @@ export class A2AMultimediaExtension extends EventEmitter {
   private async executeFailover(
     session: StreamingSession,
     failedAgentId: string,
-    replacementAgent: A2AStreamingAgent
+    replacementAgent: A2AStreamingAgent,
   ): Promise<void> {
     // Update session participants
-    const participantIndex = session.participants.findIndex(p => p.id === failedAgentId);
+    const participantIndex = session.participants.findIndex(
+      (p) => p.id === failedAgentId,
+    );
     if (participantIndex !== -1) {
       session.participants[participantIndex] = {
         id: replacementAgent.id,
         role: session.participants[participantIndex].role,
-        capabilities: Object.keys(replacementAgent.capabilities.supportedCodecs),
-        connection: null as any
+        capabilities: Object.keys(
+          replacementAgent.capabilities.supportedCodecs,
+        ),
+        connection: null as any,
       };
     }
 
     // Notify all participants about failover
     const failoverMessage: A2AMultimediaMessage = {
-      type: 'failover',
+      type: "failover",
       from: session.coordination.master,
-      to: 'broadcast',
+      to: "broadcast",
       sessionId: session.id,
       timestamp: Date.now(),
       sequence: this.getNextSequence(),
       data: {
         failedAgent: failedAgentId,
         replacementAgent: replacementAgent.id,
-        action: 'agent_replacement'
+        action: "agent_replacement",
       },
-      priority: 'critical',
-      reliability: 'reliable'
+      priority: "critical",
+      reliability: "reliable",
     };
 
     await this.broadcastToSession(session.id, failoverMessage);
 
-    this.emit('failover_executed', { session, failedAgentId, replacementAgent });
+    this.emit("failover_executed", {
+      session,
+      failedAgentId,
+      replacementAgent,
+    });
   }
 
   /**
    * Degrade session when no replacement available
    */
-  private async degradeSession(session: StreamingSession, failedAgentId: string): Promise<void> {
+  private async degradeSession(
+    session: StreamingSession,
+    failedAgentId: string,
+  ): Promise<void> {
     // Remove failed agent from session
-    session.participants = session.participants.filter(p => p.id !== failedAgentId);
-    
+    session.participants = session.participants.filter(
+      (p) => p.id !== failedAgentId,
+    );
+
     // Adjust quality if needed
     // Implementation would adjust stream quality based on reduced capacity
-    
-    this.emit('session_degraded', { session, failedAgentId });
+
+    this.emit("session_degraded", { session, failedAgentId });
   }
 
   /**
@@ -802,7 +906,7 @@ export class A2AMultimediaExtension extends EventEmitter {
    */
   private async executeRebalanceAction(action: any): Promise<void> {
     // Implementation would execute specific rebalancing actions
-    this.emit('rebalance_action_executed', action);
+    this.emit("rebalance_action_executed", action);
   }
 
   /**
@@ -811,8 +915,9 @@ export class A2AMultimediaExtension extends EventEmitter {
   private calculateAgentLoad(agent: A2AStreamingAgent): number {
     const cpuLoad = agent.currentLoad.cpuUsage / 100;
     const memoryLoad = agent.currentLoad.memoryUsage / 100;
-    const streamLoad = agent.currentLoad.activeStreams / agent.capabilities.maxStreams;
-    
+    const streamLoad =
+      agent.currentLoad.activeStreams / agent.capabilities.maxStreams;
+
     return (cpuLoad + memoryLoad + streamLoad) / 3;
   }
 
@@ -849,8 +954,11 @@ export class A2AMultimediaExtension extends EventEmitter {
     const heartbeatTimeout = 60000; // 60 seconds
 
     for (const [agentId, agent] of this.agents) {
-      if (now - agent.lastHeartbeat > heartbeatTimeout && agent.status === 'online') {
-        agent.status = 'offline';
+      if (
+        now - agent.lastHeartbeat > heartbeatTimeout &&
+        agent.status === "online"
+      ) {
+        agent.status = "offline";
         this.handleAgentFailure(agentId);
       }
     }
@@ -879,8 +987,8 @@ export class A2AMultimediaExtension extends EventEmitter {
     this.consensusProposals.clear();
     this.messageQueue = [];
     this.removeAllListeners();
-    
-    this.logger.info('A2A multimedia extension cleaned up');
+
+    this.logger.info("A2A multimedia extension cleaned up");
   }
 }
 
@@ -889,30 +997,30 @@ export class A2AMultimediaExtension extends EventEmitter {
  */
 class MultimediaLoadBalancer {
   private strategy: LoadBalancingStrategy = {
-    algorithm: 'adaptive',
+    algorithm: "adaptive",
     parameters: {
       maxLoadPerAgent: 0.8,
       geographicPreference: true,
       capabilityWeighting: 0.3,
-      latencyThreshold: 100
+      latencyThreshold: 100,
     },
     rebalanceInterval: 60000,
-    hysteresis: 0.1
+    hysteresis: 0.1,
   };
 
   async selectAgent(
     agents: A2AStreamingAgent[],
     request: any,
-    session: StreamingSession
+    session: StreamingSession,
   ): Promise<A2AStreamingAgent | null> {
     // Implementation would select optimal agent based on strategy
-    return agents.find(agent => agent.status === 'online') || null;
+    return agents.find((agent) => agent.status === "online") || null;
   }
 
   async createRebalancePlan(
     agents: A2AStreamingAgent[],
     sessions: StreamingSession[],
-    strategy: LoadBalancingStrategy
+    strategy: LoadBalancingStrategy,
   ): Promise<{ actions: any[] }> {
     // Implementation would create rebalancing plan
     return { actions: [] };
@@ -934,7 +1042,10 @@ class ConsensusManager {
  * Synchronization coordinator
  */
 class SyncCoordinator {
-  async verifySynchronization(session: StreamingSession, referenceTime: number): Promise<boolean> {
+  async verifySynchronization(
+    session: StreamingSession,
+    referenceTime: number,
+  ): Promise<boolean> {
     // Implementation would verify synchronization across agents
     return true;
   }
@@ -947,12 +1058,13 @@ class FailoverManager {
   async createFailoverPlan(
     session: StreamingSession,
     failedAgentId: string,
-    agents: Map<string, A2AStreamingAgent>
+    agents: Map<string, A2AStreamingAgent>,
   ): Promise<{ replacementAgent: A2AStreamingAgent | null }> {
     // Implementation would create failover plan
-    const availableAgents = Array.from(agents.values())
-      .filter(agent => agent.status === 'online' && agent.id !== failedAgentId);
-    
+    const availableAgents = Array.from(agents.values()).filter(
+      (agent) => agent.status === "online" && agent.id !== failedAgentId,
+    );
+
     return { replacementAgent: availableAgents[0] || null };
   }
 }
@@ -963,6 +1075,6 @@ class FailoverManager {
 class MessageRouter extends EventEmitter {
   async sendMessage(message: A2AMultimediaMessage): Promise<void> {
     // Implementation would route message to destination
-    this.emit('message_sent', message);
+    this.emit("message_sent", message);
   }
 }

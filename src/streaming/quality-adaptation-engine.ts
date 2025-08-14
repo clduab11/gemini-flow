@@ -1,6 +1,6 @@
 /**
  * Real-time Quality Adaptation Engine
- * 
+ *
  * Advanced algorithms for dynamic quality adjustment based on:
  * - Network conditions monitoring
  * - Device capabilities assessment
@@ -9,20 +9,20 @@
  * - Multi-stream coordination
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger.js";
 import {
   StreamQuality,
   NetworkConditions,
   QualityAdaptationRule,
   VideoStreamConfig,
   AudioStreamConfig,
-  PerformanceMetrics
-} from '../types/streaming.js';
+  PerformanceMetrics,
+} from "../types/streaming.js";
 
 export interface AdaptationContext {
   streamId: string;
-  streamType: 'video' | 'audio' | 'data';
+  streamType: "video" | "audio" | "data";
   currentQuality: StreamQuality;
   targetQuality?: StreamQuality;
   networkConditions: NetworkConditions;
@@ -51,7 +51,7 @@ export interface DeviceCapabilities {
     hdr: boolean;
   };
   network: {
-    type: '3g' | '4g' | '5g' | 'wifi' | 'ethernet';
+    type: "3g" | "4g" | "5g" | "wifi" | "ethernet";
     speed: { upload: number; download: number };
     reliability: number;
   };
@@ -63,13 +63,13 @@ export interface DeviceCapabilities {
 }
 
 export interface UserPreferences {
-  qualityPriority: 'battery' | 'quality' | 'data' | 'balanced';
+  qualityPriority: "battery" | "quality" | "data" | "balanced";
   maxBitrate: number;
   autoAdjust: boolean;
   preferredResolution: { width: number; height: number };
   latencyTolerance: number;
   dataUsageLimit: number;
-  adaptationSpeed: 'slow' | 'medium' | 'fast';
+  adaptationSpeed: "slow" | "medium" | "fast";
 }
 
 export interface SessionMetrics {
@@ -96,7 +96,7 @@ export interface QualityConstraints {
 
 export interface AdaptationDecision {
   streamId: string;
-  action: 'upgrade' | 'downgrade' | 'maintain' | 'emergency';
+  action: "upgrade" | "downgrade" | "maintain" | "emergency";
   reason: string;
   confidence: number;
   newQuality: StreamQuality;
@@ -112,7 +112,7 @@ export interface AdaptationDecision {
 }
 
 export interface MLModel {
-  type: 'linear_regression' | 'neural_network' | 'decision_tree' | 'ensemble';
+  type: "linear_regression" | "neural_network" | "decision_tree" | "ensemble";
   features: string[];
   accuracy: number;
   lastTrained: number;
@@ -134,13 +134,13 @@ export class QualityAdaptationEngine extends EventEmitter {
 
   constructor() {
     super();
-    this.logger = new Logger('QualityAdaptationEngine');
+    this.logger = new Logger("QualityAdaptationEngine");
     this.networkMonitor = new NetworkMonitor();
     this.deviceMonitor = new DeviceMonitor();
     this.predictionEngine = new PredictionEngine();
     this.decisionEngine = new DecisionEngine();
     this.metricsCollector = new MetricsCollector();
-    
+
     this.initializeAdaptationRules();
     this.initializeMLModels();
     this.startMonitoring();
@@ -151,10 +151,10 @@ export class QualityAdaptationEngine extends EventEmitter {
    */
   initializeStream(
     streamId: string,
-    streamType: 'video' | 'audio' | 'data',
+    streamType: "video" | "audio" | "data",
     initialQuality: StreamQuality,
     userPreferences: UserPreferences,
-    constraints: QualityConstraints
+    constraints: QualityConstraints,
   ): void {
     const context: AdaptationContext = {
       streamId,
@@ -171,30 +171,32 @@ export class QualityAdaptationEngine extends EventEmitter {
         userSatisfaction: 0.8,
         errorRate: 0,
         rebufferingEvents: 0,
-        averageLatency: 0
+        averageLatency: 0,
       },
-      constraints
+      constraints,
     };
 
     this.contexts.set(streamId, context);
     this.generateQualityLadder(streamId, streamType, constraints);
-    
-    this.logger.info('Stream adaptation initialized', {
+
+    this.logger.info("Stream adaptation initialized", {
       streamId,
       streamType,
-      initialQuality: initialQuality.level
+      initialQuality: initialQuality.level,
     });
 
-    this.emit('stream_initialized', context);
+    this.emit("stream_initialized", context);
   }
 
   /**
    * Evaluate and potentially adapt stream quality
    */
-  async evaluateAdaptation(streamId: string): Promise<AdaptationDecision | null> {
+  async evaluateAdaptation(
+    streamId: string,
+  ): Promise<AdaptationDecision | null> {
     const context = this.contexts.get(streamId);
     if (!context) {
-      this.logger.warn('No context found for stream', { streamId });
+      this.logger.warn("No context found for stream", { streamId });
       return null;
     }
 
@@ -208,13 +210,13 @@ export class QualityAdaptationEngine extends EventEmitter {
     // Generate adaptation decision
     const decision = await this.generateAdaptationDecision(context);
 
-    if (decision && decision.action !== 'maintain') {
+    if (decision && decision.action !== "maintain") {
       // Apply the adaptation decision
       await this.applyAdaptationDecision(decision);
-      
+
       // Store in history for learning
       this.adaptationHistory.push(decision);
-      
+
       // Update ML models
       await this.updateMLModels(decision, context);
     }
@@ -228,26 +230,29 @@ export class QualityAdaptationEngine extends EventEmitter {
   async forceQualityChange(
     streamId: string,
     targetQuality: StreamQuality,
-    reason: string
+    reason: string,
   ): Promise<boolean> {
     const context = this.contexts.get(streamId);
     if (!context) return false;
 
     const decision: AdaptationDecision = {
       streamId,
-      action: 'emergency',
+      action: "emergency",
       reason,
       confidence: 1.0,
       newQuality: targetQuality,
-      estimatedImpact: this.estimateImpact(context.currentQuality, targetQuality),
+      estimatedImpact: this.estimateImpact(
+        context.currentQuality,
+        targetQuality,
+      ),
       timeline: 0, // Immediate
-      rollbackPlan: context.currentQuality
+      rollbackPlan: context.currentQuality,
     };
 
     await this.applyAdaptationDecision(decision);
     this.adaptationHistory.push(decision);
 
-    this.emit('quality_forced', decision);
+    this.emit("quality_forced", decision);
     return true;
   }
 
@@ -256,12 +261,13 @@ export class QualityAdaptationEngine extends EventEmitter {
    */
   getOptimalQuality(
     streamId: string,
-    conditions?: NetworkConditions
+    conditions?: NetworkConditions,
   ): StreamQuality | null {
     const context = this.contexts.get(streamId);
     if (!context) return null;
 
-    const effectiveConditions = conditions || this.networkMonitor.getCurrentConditions();
+    const effectiveConditions =
+      conditions || this.networkMonitor.getCurrentConditions();
     const ladder = this.qualityLadder.get(streamId);
     if (!ladder) return null;
 
@@ -269,7 +275,7 @@ export class QualityAdaptationEngine extends EventEmitter {
     const prediction = this.predictionEngine.predictOptimalQuality(
       context,
       effectiveConditions,
-      ladder
+      ladder,
     );
 
     if (prediction) {
@@ -286,8 +292,8 @@ export class QualityAdaptationEngine extends EventEmitter {
   addAdaptationRule(rule: QualityAdaptationRule): void {
     this.adaptationRules.push(rule);
     this.adaptationRules.sort((a, b) => b.priority - a.priority);
-    
-    this.logger.info('Adaptation rule added', { priority: rule.priority });
+
+    this.logger.info("Adaptation rule added", { priority: rule.priority });
   }
 
   /**
@@ -303,24 +309,29 @@ export class QualityAdaptationEngine extends EventEmitter {
       impactMetrics: {
         latency: 0,
         bandwidth: 0,
-        userExperience: 0
-      }
+        userExperience: 0,
+      },
     };
 
     let filteredHistory = this.adaptationHistory;
     if (streamId) {
-      filteredHistory = this.adaptationHistory.filter(d => d.streamId === streamId);
+      filteredHistory = this.adaptationHistory.filter(
+        (d) => d.streamId === streamId,
+      );
     }
 
     // Calculate statistics
     for (const decision of filteredHistory) {
-      stats.byAction[decision.action] = (stats.byAction[decision.action] || 0) + 1;
-      stats.byReason[decision.reason] = (stats.byReason[decision.reason] || 0) + 1;
+      stats.byAction[decision.action] =
+        (stats.byAction[decision.action] || 0) + 1;
+      stats.byReason[decision.reason] =
+        (stats.byReason[decision.reason] || 0) + 1;
       stats.averageConfidence += decision.confidence;
-      
+
       stats.impactMetrics.latency += decision.estimatedImpact.latency;
       stats.impactMetrics.bandwidth += decision.estimatedImpact.bandwidth;
-      stats.impactMetrics.userExperience += decision.estimatedImpact.userExperience;
+      stats.impactMetrics.userExperience +=
+        decision.estimatedImpact.userExperience;
     }
 
     if (filteredHistory.length > 0) {
@@ -339,21 +350,24 @@ export class QualityAdaptationEngine extends EventEmitter {
   private async updateContext(context: AdaptationContext): Promise<void> {
     context.networkConditions = this.networkMonitor.getCurrentConditions();
     context.deviceCapabilities = this.deviceMonitor.getCapabilities();
-    
+
     // Update session duration
-    context.sessionMetrics.duration = Date.now() - (context.sessionMetrics.duration || Date.now());
+    context.sessionMetrics.duration =
+      Date.now() - (context.sessionMetrics.duration || Date.now());
   }
 
   /**
    * Generate adaptation decision based on context
    */
-  private async generateAdaptationDecision(context: AdaptationContext): Promise<AdaptationDecision | null> {
+  private async generateAdaptationDecision(
+    context: AdaptationContext,
+  ): Promise<AdaptationDecision | null> {
     // Check if adaptation is needed
     if (!this.shouldConsiderAdaptation(context)) {
       return {
         streamId: context.streamId,
-        action: 'maintain',
-        reason: 'Conditions stable',
+        action: "maintain",
+        reason: "Conditions stable",
         confidence: 1.0,
         newQuality: context.currentQuality,
         estimatedImpact: {
@@ -361,9 +375,9 @@ export class QualityAdaptationEngine extends EventEmitter {
           bandwidth: 0,
           cpu: 0,
           battery: 0,
-          userExperience: 0
+          userExperience: 0,
         },
-        timeline: 0
+        timeline: 0,
       };
     }
 
@@ -371,12 +385,15 @@ export class QualityAdaptationEngine extends EventEmitter {
     const decision = await this.decisionEngine.decide(
       context,
       this.adaptationRules,
-      this.qualityLadder.get(context.streamId) || []
+      this.qualityLadder.get(context.streamId) || [],
     );
 
     // Validate decision against constraints
     if (decision && !this.validateDecision(decision, context)) {
-      this.logger.warn('Invalid adaptation decision', { decision, constraints: context.constraints });
+      this.logger.warn("Invalid adaptation decision", {
+        decision,
+        constraints: context.constraints,
+      });
       return null;
     }
 
@@ -389,32 +406,38 @@ export class QualityAdaptationEngine extends EventEmitter {
   private shouldConsiderAdaptation(context: AdaptationContext): boolean {
     const conditions = context.networkConditions;
     const metrics = context.sessionMetrics;
-    
+
     // Network degradation
     if (conditions.quality.packetLoss > 0.05) return true;
     if (conditions.latency.rtt > 300) return true;
-    if (conditions.bandwidth.available < context.currentQuality.bandwidth * 0.8) return true;
-    
+    if (conditions.bandwidth.available < context.currentQuality.bandwidth * 0.8)
+      return true;
+
     // Performance issues
     if (metrics.bufferHealth < 0.3) return true;
     if (metrics.errorRate > 0.1) return true;
     if (metrics.rebufferingEvents > 3) return true;
-    
+
     // Device constraints
     if (context.deviceCapabilities.cpu.usage > 90) return true;
     if (context.deviceCapabilities.memory.usage > 85) return true;
-    
+
     // Improvement opportunity
-    if (conditions.bandwidth.available > context.currentQuality.bandwidth * 1.5 && 
-        context.userPreferences.autoAdjust) return true;
-    
+    if (
+      conditions.bandwidth.available > context.currentQuality.bandwidth * 1.5 &&
+      context.userPreferences.autoAdjust
+    )
+      return true;
+
     return false;
   }
 
   /**
    * Apply adaptation decision
    */
-  private async applyAdaptationDecision(decision: AdaptationDecision): Promise<void> {
+  private async applyAdaptationDecision(
+    decision: AdaptationDecision,
+  ): Promise<void> {
     const context = this.contexts.get(decision.streamId);
     if (!context) return;
 
@@ -422,43 +445,52 @@ export class QualityAdaptationEngine extends EventEmitter {
     context.currentQuality = decision.newQuality;
     context.sessionMetrics.qualityChanges++;
 
-    this.logger.info('Quality adaptation applied', {
+    this.logger.info("Quality adaptation applied", {
       streamId: decision.streamId,
       action: decision.action,
       newQuality: decision.newQuality.level,
       reason: decision.reason,
-      confidence: decision.confidence
+      confidence: decision.confidence,
     });
 
-    this.emit('quality_adapted', decision);
+    this.emit("quality_adapted", decision);
   }
 
   /**
    * Validate adaptation decision against constraints
    */
-  private validateDecision(decision: AdaptationDecision, context: AdaptationContext): boolean {
+  private validateDecision(
+    decision: AdaptationDecision,
+    context: AdaptationContext,
+  ): boolean {
     const newQuality = decision.newQuality;
     const constraints = context.constraints;
 
     // Check bitrate constraints
-    if (newQuality.bandwidth < constraints.minBitrate || 
-        newQuality.bandwidth > constraints.maxBitrate) {
+    if (
+      newQuality.bandwidth < constraints.minBitrate ||
+      newQuality.bandwidth > constraints.maxBitrate
+    ) {
       return false;
     }
 
     // Check resolution constraints for video
     if (newQuality.video) {
       const res = newQuality.video.resolution;
-      if (res.width < constraints.minResolution.width || 
-          res.height < constraints.minResolution.height ||
-          res.width > constraints.maxResolution.width || 
-          res.height > constraints.maxResolution.height) {
+      if (
+        res.width < constraints.minResolution.width ||
+        res.height < constraints.minResolution.height ||
+        res.width > constraints.maxResolution.width ||
+        res.height > constraints.maxResolution.height
+      ) {
         return false;
       }
 
       // Check framerate constraints
-      if (newQuality.video.framerate < constraints.minFramerate ||
-          newQuality.video.framerate > constraints.maxFramerate) {
+      if (
+        newQuality.video.framerate < constraints.minFramerate ||
+        newQuality.video.framerate > constraints.maxFramerate
+      ) {
         return false;
       }
     }
@@ -476,76 +508,89 @@ export class QualityAdaptationEngine extends EventEmitter {
    */
   private generateQualityLadder(
     streamId: string,
-    streamType: 'video' | 'audio' | 'data',
-    constraints: QualityConstraints
+    streamType: "video" | "audio" | "data",
+    constraints: QualityConstraints,
   ): void {
     const ladder: StreamQuality[] = [];
 
-    if (streamType === 'video') {
+    if (streamType === "video") {
       // Generate video quality ladder
       const resolutions = [
-        { width: 426, height: 240, name: 'low' },
-        { width: 640, height: 360, name: 'medium' },
-        { width: 854, height: 480, name: 'high' },
-        { width: 1280, height: 720, name: 'hd' },
-        { width: 1920, height: 1080, name: 'fhd' },
-        { width: 3840, height: 2160, name: 'uhd' }
+        { width: 426, height: 240, name: "low" },
+        { width: 640, height: 360, name: "medium" },
+        { width: 854, height: 480, name: "high" },
+        { width: 1280, height: 720, name: "hd" },
+        { width: 1920, height: 1080, name: "fhd" },
+        { width: 3840, height: 2160, name: "uhd" },
       ];
 
       for (const res of resolutions) {
-        if (res.width >= constraints.minResolution.width && 
-            res.height >= constraints.minResolution.height &&
-            res.width <= constraints.maxResolution.width && 
-            res.height <= constraints.maxResolution.height) {
-          
+        if (
+          res.width >= constraints.minResolution.width &&
+          res.height >= constraints.minResolution.height &&
+          res.width <= constraints.maxResolution.width &&
+          res.height <= constraints.maxResolution.height
+        ) {
           const bitrate = this.calculateOptimalBitrate(res.width, res.height);
-          if (bitrate >= constraints.minBitrate && bitrate <= constraints.maxBitrate) {
+          if (
+            bitrate >= constraints.minBitrate &&
+            bitrate <= constraints.maxBitrate
+          ) {
             ladder.push({
               level: res.name as any,
               video: {
-                codec: { name: 'H264', mimeType: 'video/mp4', bitrate },
+                codec: { name: "H264", mimeType: "video/mp4", bitrate },
                 resolution: res,
                 framerate: Math.min(30, constraints.maxFramerate),
                 bitrate,
                 keyframeInterval: 60,
-                adaptiveBitrate: true
+                adaptiveBitrate: true,
               },
               bandwidth: bitrate,
-              latency: 100
+              latency: 100,
             });
           }
         }
       }
-    } else if (streamType === 'audio') {
+    } else if (streamType === "audio") {
       // Generate audio quality ladder
       const audioQualities = [
-        { bitrate: 64000, sampleRate: 22050, name: 'low' },
-        { bitrate: 128000, sampleRate: 44100, name: 'medium' },
-        { bitrate: 256000, sampleRate: 48000, name: 'high' },
-        { bitrate: 320000, sampleRate: 48000, name: 'ultra' }
+        { bitrate: 64000, sampleRate: 22050, name: "low" },
+        { bitrate: 128000, sampleRate: 44100, name: "medium" },
+        { bitrate: 256000, sampleRate: 48000, name: "high" },
+        { bitrate: 320000, sampleRate: 48000, name: "ultra" },
       ];
 
       for (const quality of audioQualities) {
-        if (quality.bitrate >= constraints.minBitrate && 
-            quality.bitrate <= constraints.maxBitrate) {
+        if (
+          quality.bitrate >= constraints.minBitrate &&
+          quality.bitrate <= constraints.maxBitrate
+        ) {
           ladder.push({
             level: quality.name as any,
             audio: {
-              codec: { name: 'Opus', mimeType: 'audio/opus', bitrate: quality.bitrate },
+              codec: {
+                name: "Opus",
+                mimeType: "audio/opus",
+                bitrate: quality.bitrate,
+              },
               sampleRate: quality.sampleRate,
               channels: 2,
               bitrate: quality.bitrate,
-              bufferSize: 4096
+              bufferSize: 4096,
             },
             bandwidth: quality.bitrate,
-            latency: 50
+            latency: 50,
           });
         }
       }
     }
 
     this.qualityLadder.set(streamId, ladder);
-    this.logger.info('Quality ladder generated', { streamId, levels: ladder.length });
+    this.logger.info("Quality ladder generated", {
+      streamId,
+      levels: ladder.length,
+    });
   }
 
   /**
@@ -553,14 +598,14 @@ export class QualityAdaptationEngine extends EventEmitter {
    */
   private calculateOptimalBitrate(width: number, height: number): number {
     const pixels = width * height;
-    
+
     // Rough bitrate calculation based on resolution
-    if (pixels <= 153600) return 500000;      // 240p: 500 kbps
-    if (pixels <= 230400) return 750000;      // 360p: 750 kbps
-    if (pixels <= 409920) return 1200000;     // 480p: 1.2 Mbps
-    if (pixels <= 921600) return 2500000;     // 720p: 2.5 Mbps
-    if (pixels <= 2073600) return 5000000;    // 1080p: 5 Mbps
-    return 15000000;                          // 4K: 15 Mbps
+    if (pixels <= 153600) return 500000; // 240p: 500 kbps
+    if (pixels <= 230400) return 750000; // 360p: 750 kbps
+    if (pixels <= 409920) return 1200000; // 480p: 1.2 Mbps
+    if (pixels <= 921600) return 2500000; // 720p: 2.5 Mbps
+    if (pixels <= 2073600) return 5000000; // 1080p: 5 Mbps
+    return 15000000; // 4K: 15 Mbps
   }
 
   /**
@@ -569,7 +614,7 @@ export class QualityAdaptationEngine extends EventEmitter {
   private selectQualityByRules(
     context: AdaptationContext,
     conditions: NetworkConditions,
-    ladder: StreamQuality[]
+    ladder: StreamQuality[],
   ): StreamQuality | null {
     if (ladder.length === 0) return null;
 
@@ -578,10 +623,10 @@ export class QualityAdaptationEngine extends EventEmitter {
 
     // Select based on available bandwidth with safety margin
     const availableBandwidth = conditions.bandwidth.available * 0.8; // 20% safety margin
-    
+
     for (let i = sortedLadder.length - 1; i >= 0; i--) {
       const quality = sortedLadder[i];
-      
+
       if (quality.bandwidth <= availableBandwidth) {
         // Check if device can handle this quality
         if (this.canDeviceHandle(context.deviceCapabilities, quality)) {
@@ -597,25 +642,31 @@ export class QualityAdaptationEngine extends EventEmitter {
   /**
    * Check if device can handle quality level
    */
-  private canDeviceHandle(capabilities: DeviceCapabilities, quality: StreamQuality): boolean {
+  private canDeviceHandle(
+    capabilities: DeviceCapabilities,
+    quality: StreamQuality,
+  ): boolean {
     // CPU check
     if (capabilities.cpu.usage > 80) {
       // Reduce quality if CPU is stressed
-      return quality.level === 'low' || quality.level === 'medium';
+      return quality.level === "low" || quality.level === "medium";
     }
 
     // Memory check
     if (capabilities.memory.usage > 80) {
-      return quality.level !== 'ultra';
+      return quality.level !== "ultra";
     }
 
     // Display resolution check
     if (quality.video) {
       const deviceRes = capabilities.display.resolution;
       const qualityRes = quality.video.resolution;
-      
+
       // Don't stream higher than display resolution
-      if (qualityRes.width > deviceRes.width || qualityRes.height > deviceRes.height) {
+      if (
+        qualityRes.width > deviceRes.width ||
+        qualityRes.height > deviceRes.height
+      ) {
         return false;
       }
     }
@@ -626,7 +677,10 @@ export class QualityAdaptationEngine extends EventEmitter {
   /**
    * Estimate impact of quality change
    */
-  private estimateImpact(currentQuality: StreamQuality, newQuality: StreamQuality): any {
+  private estimateImpact(
+    currentQuality: StreamQuality,
+    newQuality: StreamQuality,
+  ): any {
     const bandwidthRatio = newQuality.bandwidth / currentQuality.bandwidth;
     const qualityIndex = { low: 1, medium: 2, high: 3, ultra: 4 };
     const currentIndex = qualityIndex[currentQuality.level] || 2;
@@ -637,7 +691,7 @@ export class QualityAdaptationEngine extends EventEmitter {
       bandwidth: newQuality.bandwidth - currentQuality.bandwidth,
       cpu: (bandwidthRatio - 1) * 20, // Estimated CPU impact
       battery: (bandwidthRatio - 1) * 15, // Estimated battery impact
-      userExperience: (newIndex - currentIndex) * 0.2 // User experience impact
+      userExperience: (newIndex - currentIndex) * 0.2, // User experience impact
     };
   }
 
@@ -648,64 +702,64 @@ export class QualityAdaptationEngine extends EventEmitter {
     // High packet loss rule
     this.addAdaptationRule({
       condition: {
-        packetLoss: { min: 0.05 }
+        packetLoss: { min: 0.05 },
       },
       action: {
-        type: 'downgrade',
-        targetQuality: { level: 'medium', bandwidth: 1000000, latency: 150 }
+        type: "downgrade",
+        targetQuality: { level: "medium", bandwidth: 1000000, latency: 150 },
       },
       priority: 10,
-      cooldown: 5000
+      cooldown: 5000,
     });
 
     // Low bandwidth rule
     this.addAdaptationRule({
       condition: {
-        bandwidth: { max: 1000000 }
+        bandwidth: { max: 1000000 },
       },
       action: {
-        type: 'downgrade',
-        targetQuality: { level: 'low', bandwidth: 500000, latency: 200 }
+        type: "downgrade",
+        targetQuality: { level: "low", bandwidth: 500000, latency: 200 },
       },
       priority: 9,
-      cooldown: 3000
+      cooldown: 3000,
     });
 
     // High latency rule
     this.addAdaptationRule({
       condition: {
-        latency: { min: 300 }
+        latency: { min: 300 },
       },
       action: {
-        type: 'downgrade'
+        type: "downgrade",
       },
       priority: 8,
-      cooldown: 5000
+      cooldown: 5000,
     });
 
     // Buffer underrun rule
     this.addAdaptationRule({
       condition: {
-        bufferHealth: { max: 0.3 }
+        bufferHealth: { max: 0.3 },
       },
       action: {
-        type: 'downgrade'
+        type: "downgrade",
       },
       priority: 7,
-      cooldown: 2000
+      cooldown: 2000,
     });
 
     // Improvement opportunity rule
     this.addAdaptationRule({
       condition: {
         bandwidth: { min: 5000000 },
-        bufferHealth: { min: 0.8 }
+        bufferHealth: { min: 0.8 },
       },
       action: {
-        type: 'upgrade'
+        type: "upgrade",
       },
       priority: 5,
-      cooldown: 10000
+      cooldown: 10000,
     });
   }
 
@@ -714,31 +768,44 @@ export class QualityAdaptationEngine extends EventEmitter {
    */
   private initializeMLModels(): void {
     // Bandwidth prediction model
-    this.mlModels.set('bandwidth_prediction', {
-      type: 'neural_network',
-      features: ['time_of_day', 'location', 'network_type', 'historical_bandwidth'],
+    this.mlModels.set("bandwidth_prediction", {
+      type: "neural_network",
+      features: [
+        "time_of_day",
+        "location",
+        "network_type",
+        "historical_bandwidth",
+      ],
       accuracy: 0.8,
       lastTrained: Date.now(),
-      predictions: new Map()
+      predictions: new Map(),
     });
 
     // Quality optimization model
-    this.mlModels.set('quality_optimization', {
-      type: 'ensemble',
-      features: ['bandwidth', 'latency', 'device_capabilities', 'user_preferences'],
+    this.mlModels.set("quality_optimization", {
+      type: "ensemble",
+      features: [
+        "bandwidth",
+        "latency",
+        "device_capabilities",
+        "user_preferences",
+      ],
       accuracy: 0.85,
       lastTrained: Date.now(),
-      predictions: new Map()
+      predictions: new Map(),
     });
   }
 
   /**
    * Update ML models with new data
    */
-  private async updateMLModels(decision: AdaptationDecision, context: AdaptationContext): Promise<void> {
+  private async updateMLModels(
+    decision: AdaptationDecision,
+    context: AdaptationContext,
+  ): Promise<void> {
     // Training data would be collected and models updated
     // This is a placeholder for ML model training logic
-    this.logger.debug('ML models updated with new adaptation data');
+    this.logger.debug("ML models updated with new adaptation data");
   }
 
   /**
@@ -747,10 +814,10 @@ export class QualityAdaptationEngine extends EventEmitter {
   private startMonitoring(): void {
     // Start network monitoring
     this.networkMonitor.start();
-    
+
     // Start device monitoring
     this.deviceMonitor.start();
-    
+
     // Periodic evaluation
     setInterval(() => {
       this.evaluateAllStreams();
@@ -765,9 +832,9 @@ export class QualityAdaptationEngine extends EventEmitter {
       try {
         await this.evaluateAdaptation(streamId);
       } catch (error) {
-        this.logger.error('Stream evaluation failed', { 
-          streamId, 
-          error: (error as Error).message 
+        this.logger.error("Stream evaluation failed", {
+          streamId,
+          error: (error as Error).message,
         });
       }
     }
@@ -779,15 +846,15 @@ export class QualityAdaptationEngine extends EventEmitter {
   removeStream(streamId: string): void {
     this.contexts.delete(streamId);
     this.qualityLadder.delete(streamId);
-    
+
     // Clean up history for this stream (keep recent ones)
     const cutoffTime = Date.now() - 3600000; // 1 hour
     this.adaptationHistory = this.adaptationHistory.filter(
-      decision => decision.streamId !== streamId || 
-      (decision.timeline || 0) > cutoffTime
+      (decision) =>
+        decision.streamId !== streamId || (decision.timeline || 0) > cutoffTime,
     );
-    
-    this.logger.info('Stream context removed', { streamId });
+
+    this.logger.info("Stream context removed", { streamId });
   }
 
   /**
@@ -799,12 +866,12 @@ export class QualityAdaptationEngine extends EventEmitter {
     this.adaptationHistory = [];
     this.mlModels.clear();
     this.adaptationRules = [];
-    
+
     this.networkMonitor.stop();
     this.deviceMonitor.stop();
     this.removeAllListeners();
-    
-    this.logger.info('Quality adaptation engine cleaned up');
+
+    this.logger.info("Quality adaptation engine cleaned up");
   }
 }
 
@@ -816,7 +883,7 @@ class NetworkMonitor {
     bandwidth: { upload: 0, download: 0, available: 0 },
     latency: { rtt: 0, jitter: 0 },
     quality: { packetLoss: 0, stability: 1, congestion: 0 },
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
 
   start(): void {
@@ -845,11 +912,24 @@ class NetworkMonitor {
  */
 class DeviceMonitor {
   private capabilities: DeviceCapabilities = {
-    cpu: { cores: 4, usage: 0, maxFrequency: 2400, architecture: 'x64' },
+    cpu: { cores: 4, usage: 0, maxFrequency: 2400, architecture: "x64" },
     memory: { total: 8192, available: 4096, usage: 50 },
-    display: { resolution: { width: 1920, height: 1080 }, refreshRate: 60, colorDepth: 24, hdr: false },
-    network: { type: 'wifi', speed: { upload: 10000000, download: 50000000 }, reliability: 0.95 },
-    hardware: { videoDecoding: ['h264', 'vp9'], audioProcessing: ['opus', 'aac'], acceleration: true }
+    display: {
+      resolution: { width: 1920, height: 1080 },
+      refreshRate: 60,
+      colorDepth: 24,
+      hdr: false,
+    },
+    network: {
+      type: "wifi",
+      speed: { upload: 10000000, download: 50000000 },
+      reliability: 0.95,
+    },
+    hardware: {
+      videoDecoding: ["h264", "vp9"],
+      audioProcessing: ["opus", "aac"],
+      acceleration: true,
+    },
   };
 
   start(): void {
@@ -879,7 +959,7 @@ class PredictionEngine {
   predictOptimalQuality(
     context: AdaptationContext,
     conditions: NetworkConditions,
-    ladder: StreamQuality[]
+    ladder: StreamQuality[],
   ): StreamQuality | null {
     // ML-based quality prediction - placeholder implementation
     return null;
@@ -893,7 +973,7 @@ class DecisionEngine {
   async decide(
     context: AdaptationContext,
     rules: QualityAdaptationRule[],
-    ladder: StreamQuality[]
+    ladder: StreamQuality[],
   ): Promise<AdaptationDecision | null> {
     // Decision logic implementation
     return null;

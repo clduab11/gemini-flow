@@ -1,14 +1,14 @@
 /**
  * Performance Benchmark Suite
- * 
+ *
  * Measures actual performance against <75ms routing target
  * Identifies bottlenecks and validates optimizations
  */
 
-import { ModelRouter } from '../core/model-router.js';
-import { CacheManager } from '../core/cache-manager.js';
-import { PerformanceMonitor } from '../core/performance-monitor.js';
-import { Logger } from './logger.js';
+import { ModelRouter } from "../core/model-router.js";
+import { CacheManager } from "../core/cache-manager.js";
+import { PerformanceMonitor } from "../core/performance-monitor.js";
+import { Logger } from "./logger.js";
 
 export interface BenchmarkResult {
   operation: string;
@@ -43,12 +43,12 @@ export class PerformanceBenchmark {
   private results: BenchmarkResult[] = [];
 
   constructor() {
-    this.logger = new Logger('PerformanceBenchmark');
+    this.logger = new Logger("PerformanceBenchmark");
     this.router = new ModelRouter();
     this.cache = new CacheManager({
       maxMemorySize: 50 * 1024 * 1024, // 50MB for testing
       persistToDisk: true,
-      dbPath: ':memory:' // Use in-memory for benchmark consistency
+      dbPath: ":memory:", // Use in-memory for benchmark consistency
     });
     this.monitor = new PerformanceMonitor();
   }
@@ -57,7 +57,7 @@ export class PerformanceBenchmark {
    * Run complete routing performance benchmark
    */
   async benchmarkRouting(iterations: number = 100): Promise<RoutingBenchmark> {
-    this.logger.info('Starting routing performance benchmark', { iterations });
+    this.logger.info("Starting routing performance benchmark", { iterations });
 
     const results: RoutingBenchmark[] = [];
     const mockContext = this.createMockRoutingContext();
@@ -70,29 +70,47 @@ export class PerformanceBenchmark {
 
     // Calculate aggregated results
     const avgResult: RoutingBenchmark = {
-      totalTime: this.average(results.map(r => r.totalTime)),
-      routingTime: this.average(results.map(r => r.routingTime)),
-      cacheTime: this.average(results.map(r => r.cacheTime)),
-      monitoringTime: this.average(results.map(r => r.monitoringTime)),
+      totalTime: this.average(results.map((r) => r.totalTime)),
+      routingTime: this.average(results.map((r) => r.routingTime)),
+      cacheTime: this.average(results.map((r) => r.cacheTime)),
+      monitoringTime: this.average(results.map((r) => r.monitoringTime)),
       breakdown: {
-        ruleEvaluation: this.average(results.map(r => r.breakdown.ruleEvaluation)),
-        candidateScoring: this.average(results.map(r => r.breakdown.candidateScoring)),
-        loadBalancing: this.average(results.map(r => r.breakdown.loadBalancing)),
-        cacheL1Lookup: this.average(results.map(r => r.breakdown.cacheL1Lookup)),
-        cacheL2Lookup: this.average(results.map(r => r.breakdown.cacheL2Lookup)),
-        metricRecording: this.average(results.map(r => r.breakdown.metricRecording))
-      }
+        ruleEvaluation: this.average(
+          results.map((r) => r.breakdown.ruleEvaluation),
+        ),
+        candidateScoring: this.average(
+          results.map((r) => r.breakdown.candidateScoring),
+        ),
+        loadBalancing: this.average(
+          results.map((r) => r.breakdown.loadBalancing),
+        ),
+        cacheL1Lookup: this.average(
+          results.map((r) => r.breakdown.cacheL1Lookup),
+        ),
+        cacheL2Lookup: this.average(
+          results.map((r) => r.breakdown.cacheL2Lookup),
+        ),
+        metricRecording: this.average(
+          results.map((r) => r.breakdown.metricRecording),
+        ),
+      },
     };
 
-    const p95 = this.percentile(results.map(r => r.totalTime), 0.95);
-    const p99 = this.percentile(results.map(r => r.totalTime), 0.99);
+    const p95 = this.percentile(
+      results.map((r) => r.totalTime),
+      0.95,
+    );
+    const p99 = this.percentile(
+      results.map((r) => r.totalTime),
+      0.99,
+    );
 
-    this.logger.info('Routing benchmark completed', {
+    this.logger.info("Routing benchmark completed", {
       avgTotalTime: avgResult.totalTime,
       p95Time: p95,
       p99Time: p99,
       target: 75,
-      meetsTarget: avgResult.totalTime < 75
+      meetsTarget: avgResult.totalTime < 75,
     });
 
     return avgResult;
@@ -101,43 +119,50 @@ export class PerformanceBenchmark {
   /**
    * Measure single routing operation with detailed breakdown
    */
-  private async measureSingleRouting(context: any, models: Map<string, any>): Promise<RoutingBenchmark> {
+  private async measureSingleRouting(
+    context: any,
+    models: Map<string, any>,
+  ): Promise<RoutingBenchmark> {
     const startTotal = performance.now();
-    
+
     // Measure rule evaluation
     const ruleStart = performance.now();
     // Simulate routing rule evaluation (private method call simulation)
     await this.simulateRuleEvaluation(context);
     const ruleTime = performance.now() - ruleStart;
 
-    // Measure candidate scoring  
+    // Measure candidate scoring
     const scoringStart = performance.now();
-    await this.simulateCandidateScoring(['model1', 'model2', 'model3'], context, models);
+    await this.simulateCandidateScoring(
+      ["model1", "model2", "model3"],
+      context,
+      models,
+    );
     const scoringTime = performance.now() - scoringStart;
 
     // Measure load balancing
     const balanceStart = performance.now();
-    await this.simulateLoadBalancing([{model: 'model1', score: 0.9}]);
+    await this.simulateLoadBalancing([{ model: "model1", score: 0.9 }]);
     const balanceTime = performance.now() - balanceStart;
 
     // Measure cache operations
     const cacheStart = performance.now();
     const cacheKey = `routing:${context.task.slice(0, 20)}:${context.userTier}`;
-    
+
     const l1Start = performance.now();
     await this.cache.get(cacheKey);
     const l1Time = performance.now() - l1Start;
 
     const l2Start = performance.now();
-    await this.cache.set(cacheKey, 'model1', 300);
+    await this.cache.set(cacheKey, "model1", 300);
     const l2Time = performance.now() - l2Start;
-    
+
     const totalCacheTime = performance.now() - cacheStart;
 
     // Measure monitoring
     const monitorStart = performance.now();
-    this.monitor.recordMetric('routing_latency', 50);
-    this.monitor.recordMetric('cache_hit_rate', 0.8);
+    this.monitor.recordMetric("routing_latency", 50);
+    this.monitor.recordMetric("cache_hit_rate", 0.8);
     const monitorTime = performance.now() - monitorStart;
 
     const totalTime = performance.now() - startTotal;
@@ -153,8 +178,8 @@ export class PerformanceBenchmark {
         loadBalancing: balanceTime,
         cacheL1Lookup: l1Time,
         cacheL2Lookup: l2Time,
-        metricRecording: monitorTime
-      }
+        metricRecording: monitorTime,
+      },
     };
   }
 
@@ -167,23 +192,26 @@ export class PerformanceBenchmark {
 
     for (let i = 0; i < iterations; i++) {
       const start = performance.now();
-      
+
       try {
         const key = `test:key:${i}`;
         const value = { data: `test data ${i}`, timestamp: Date.now() };
-        
+
         // Test cache set/get cycle
         await this.cache.set(key, value, 300);
         const retrieved = await this.cache.get(key);
-        
+
         if (retrieved && retrieved.data === value.data) {
           successCount++;
         }
-        
+
         times.push(performance.now() - start);
       } catch (error) {
         times.push(performance.now() - start);
-        this.logger.debug('Cache benchmark iteration failed', { iteration: i, error });
+        this.logger.debug("Cache benchmark iteration failed", {
+          iteration: i,
+          error,
+        });
       }
     }
 
@@ -192,48 +220,51 @@ export class PerformanceBenchmark {
     const p99 = this.percentile(times, 0.99);
 
     return {
-      operation: 'cache_operations',
+      operation: "cache_operations",
       averageTime: avgTime,
       p95Time: p95,
       p99Time: p99,
       iterations,
       success: successCount / iterations > 0.95,
-      bottlenecks: this.identifyCacheBottlenecks(avgTime, p95)
+      bottlenecks: this.identifyCacheBottlenecks(avgTime, p95),
     };
   }
 
   /**
    * Benchmark WAL mode vs regular SQLite
    */
-  async benchmarkWALMode(): Promise<{ wal: BenchmarkResult; regular: BenchmarkResult }> {
-    this.logger.info('Benchmarking WAL mode performance');
-    
+  async benchmarkWALMode(): Promise<{
+    wal: BenchmarkResult;
+    regular: BenchmarkResult;
+  }> {
+    this.logger.info("Benchmarking WAL mode performance");
+
     // Test with WAL mode (current implementation)
     const walCache = new CacheManager({
       maxMemorySize: 10 * 1024 * 1024,
       persistToDisk: true,
-      dbPath: ':memory:' // WAL enabled by default
+      dbPath: ":memory:", // WAL enabled by default
     });
-    
+
     const walResult = await this.benchmarkCacheInstance(walCache, 500);
-    walResult.operation = 'cache_operations_wal';
+    walResult.operation = "cache_operations_wal";
 
     // Simulate regular mode (for comparison)
     // Note: This is theoretical since we can't easily disable WAL in current implementation
     const regularResult: BenchmarkResult = {
-      operation: 'cache_operations_regular',
+      operation: "cache_operations_regular",
       averageTime: walResult.averageTime * 2.5, // Estimated 2.5x slower
       p95Time: walResult.p95Time * 3,
       p99Time: walResult.p99Time * 3.5,
       iterations: 500,
       success: walResult.success,
-      bottlenecks: ['synchronous_writes', 'table_locking', 'fsync_overhead']
+      bottlenecks: ["synchronous_writes", "table_locking", "fsync_overhead"],
     };
 
-    this.logger.info('WAL mode benchmark completed', {
+    this.logger.info("WAL mode benchmark completed", {
       walAvgTime: walResult.averageTime,
       regularAvgTime: regularResult.averageTime,
-      improvement: `${((regularResult.averageTime / walResult.averageTime) * 100).toFixed(1)}%`
+      improvement: `${((regularResult.averageTime / walResult.averageTime) * 100).toFixed(1)}%`,
     });
 
     return { wal: walResult, regular: regularResult };
@@ -242,21 +273,24 @@ export class PerformanceBenchmark {
   /**
    * Benchmark specific cache instance
    */
-  private async benchmarkCacheInstance(cache: CacheManager, iterations: number): Promise<BenchmarkResult> {
+  private async benchmarkCacheInstance(
+    cache: CacheManager,
+    iterations: number,
+  ): Promise<BenchmarkResult> {
     const times: number[] = [];
     let successCount = 0;
 
     for (let i = 0; i < iterations; i++) {
       const start = performance.now();
-      
+
       try {
         await cache.set(`test:${i}`, { data: `value ${i}` }, 300);
         const result = await cache.get(`test:${i}`);
-        
+
         if (result && result.data === `value ${i}`) {
           successCount++;
         }
-        
+
         times.push(performance.now() - start);
       } catch (error) {
         times.push(performance.now() - start);
@@ -264,13 +298,13 @@ export class PerformanceBenchmark {
     }
 
     return {
-      operation: 'cache_benchmark',
+      operation: "cache_benchmark",
       averageTime: this.average(times),
       p95Time: this.percentile(times, 0.95),
       p99Time: this.percentile(times, 0.99),
       iterations,
       success: successCount / iterations > 0.95,
-      bottlenecks: []
+      bottlenecks: [],
     };
   }
 
@@ -281,15 +315,15 @@ export class PerformanceBenchmark {
     const bottlenecks: string[] = [];
 
     if (avgTime > 10) {
-      bottlenecks.push('slow_average_operations');
+      bottlenecks.push("slow_average_operations");
     }
 
     if (p95Time > 25) {
-      bottlenecks.push('high_tail_latency');
+      bottlenecks.push("high_tail_latency");
     }
 
     if (p95Time / avgTime > 3) {
-      bottlenecks.push('inconsistent_performance');
+      bottlenecks.push("inconsistent_performance");
     }
 
     return bottlenecks;
@@ -307,31 +341,33 @@ export class PerformanceBenchmark {
       recommendations: string[];
     };
   }> {
-    this.logger.info('Starting comprehensive performance benchmark');
+    this.logger.info("Starting comprehensive performance benchmark");
 
     const [routing, cache, wal] = await Promise.all([
       this.benchmarkRouting(100),
       this.benchmarkCache(500),
-      this.benchmarkWALMode()
+      this.benchmarkWALMode(),
     ]);
 
     const meetsTarget = routing.totalTime < 75;
     const recommendations: string[] = [];
 
     if (routing.routingTime > 25) {
-      recommendations.push('Optimize routing algorithm with async patterns');
+      recommendations.push("Optimize routing algorithm with async patterns");
     }
 
     if (routing.cacheTime > 20) {
-      recommendations.push('Implement intelligent caching and connection pooling');
+      recommendations.push(
+        "Implement intelligent caching and connection pooling",
+      );
     }
 
     if (routing.monitoringTime > 5) {
-      recommendations.push('Streamline performance monitoring overhead');
+      recommendations.push("Streamline performance monitoring overhead");
     }
 
     if (cache.p95Time > 15) {
-      recommendations.push('Optimize cache operations and eviction algorithms');
+      recommendations.push("Optimize cache operations and eviction algorithms");
     }
 
     return {
@@ -340,8 +376,8 @@ export class PerformanceBenchmark {
       wal,
       summary: {
         meetsTarget,
-        recommendations
-      }
+        recommendations,
+      },
     };
   }
 
@@ -350,12 +386,12 @@ export class PerformanceBenchmark {
    */
   private createMockRoutingContext(): any {
     return {
-      task: 'Generate code for user authentication system',
-      priority: 'high',
-      userTier: 'pro',
+      task: "Generate code for user authentication system",
+      priority: "high",
+      userTier: "pro",
       latencyRequirement: 1000,
       tokenBudget: 50000,
-      capabilities: ['code', 'analysis']
+      capabilities: ["code", "analysis"],
     };
   }
 
@@ -364,51 +400,56 @@ export class PerformanceBenchmark {
    */
   private createMockModelConfigs(): Map<string, any> {
     const models = new Map();
-    
+
     // Updated Gemini 2.5 models
-    models.set('gemini-2.5-flash', {
+    models.set("gemini-2.5-flash", {
       latencyTarget: 600,
       costPerToken: 0.0000006,
-      tier: 'pro',
-      capabilities: ['code', 'general', 'reasoning']
+      tier: "pro",
+      capabilities: ["code", "general", "reasoning"],
     });
 
-    models.set('gemini-2.5-pro', {
+    models.set("gemini-2.5-pro", {
       latencyTarget: 1000,
       costPerToken: 0.0000012,
-      tier: 'enterprise',
-      capabilities: ['code', 'reasoning', 'analysis', 'long-context']
+      tier: "enterprise",
+      capabilities: ["code", "reasoning", "analysis", "long-context"],
     });
 
     // Legacy and current models
-    models.set('gemini-2.0-flash', {
+    models.set("gemini-2.0-flash", {
       latencyTarget: 800,
       costPerToken: 0.000001,
-      tier: 'free',
-      capabilities: ['code', 'general']
+      tier: "free",
+      capabilities: ["code", "general"],
     });
 
-    models.set('gemini-2.0-flash-thinking', {
+    models.set("gemini-2.0-flash-thinking", {
       latencyTarget: 1200,
       costPerToken: 0.000002,
-      tier: 'pro', 
-      capabilities: ['code', 'reasoning', 'analysis']
+      tier: "pro",
+      capabilities: ["code", "reasoning", "analysis"],
     });
 
     // Deep Think - Ultra tier (Coming Soon)
-    models.set('gemini-2.5-deep-think', {
+    models.set("gemini-2.5-deep-think", {
       latencyTarget: 5000, // Higher latency for deep reasoning
       costPerToken: 0.000005,
-      tier: 'enterprise', // Actually Ultra tier
-      capabilities: ['code', 'multi-agent', 'deep-reasoning', 'complex-problem-solving'],
-      comingSoon: true
+      tier: "enterprise", // Actually Ultra tier
+      capabilities: [
+        "code",
+        "multi-agent",
+        "deep-reasoning",
+        "complex-problem-solving",
+      ],
+      comingSoon: true,
     });
 
-    models.set('gemini-pro-vertex', {
+    models.set("gemini-pro-vertex", {
       latencyTarget: 1500,
       costPerToken: 0.000003,
-      tier: 'enterprise',
-      capabilities: ['code', 'general', 'enterprise']
+      tier: "enterprise",
+      capabilities: ["code", "general", "enterprise"],
     });
 
     return models;
@@ -417,19 +458,25 @@ export class PerformanceBenchmark {
   // Simulation methods for private router methods
   private async simulateRuleEvaluation(context: any): Promise<void> {
     // Simulate rule processing overhead
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 5));
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 5));
   }
 
-  private async simulateCandidateScoring(candidates: string[], context: any, models: Map<string, any>): Promise<void> {
+  private async simulateCandidateScoring(
+    candidates: string[],
+    context: any,
+    models: Map<string, any>,
+  ): Promise<void> {
     // Simulate scoring computation
     for (const candidate of candidates) {
-      await new Promise(resolve => setTimeout(resolve, Math.random() * 3));
+      await new Promise((resolve) => setTimeout(resolve, Math.random() * 3));
     }
   }
 
-  private async simulateLoadBalancing(candidates: Array<{model: string, score: number}>): Promise<void> {
+  private async simulateLoadBalancing(
+    candidates: Array<{ model: string; score: number }>,
+  ): Promise<void> {
     // Simulate load balancing logic
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 2));
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 2));
   }
 
   // Utility methods
@@ -448,6 +495,6 @@ export class PerformanceBenchmark {
    */
   shutdown(): void {
     this.cache.shutdown();
-    this.logger.info('Performance benchmark shutdown completed');
+    this.logger.info("Performance benchmark shutdown completed");
   }
 }

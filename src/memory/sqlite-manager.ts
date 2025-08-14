@@ -1,25 +1,25 @@
 /**
  * SQLite Memory Manager with Fallback Support
- * 
+ *
  * Implements 12 specialized tables for persistent memory coordination
  * across agent swarms with optimized performance and cross-platform compatibility
- * 
+ *
  * Fallback hierarchy:
  * 1. better-sqlite3 (performance optimized)
  * 2. sqlite3 (Node.js compatible)
  * 3. sql.js (WASM cross-platform)
  */
 
-import { Logger } from '../utils/logger.js';
-import { EventEmitter } from 'events';
-import path from 'path';
-import fs from 'fs/promises';
-import { 
-  SQLiteDatabase, 
-  SQLiteImplementation, 
-  createSQLiteDatabase, 
-  detectSQLiteImplementations 
-} from './sqlite-adapter.js';
+import { Logger } from "../utils/logger.js";
+import { EventEmitter } from "events";
+import path from "path";
+import fs from "fs/promises";
+import {
+  SQLiteDatabase,
+  SQLiteImplementation,
+  createSQLiteDatabase,
+  detectSQLiteImplementations,
+} from "./sqlite-adapter.js";
 
 export interface MemoryEntry {
   id?: number;
@@ -45,7 +45,11 @@ export interface NamespaceOperations {
   store(entry: MemoryEntry): Promise<void>;
   retrieve(key: string, namespace?: string): Promise<any>;
   delete(key: string, namespace?: string): Promise<boolean>;
-  search(pattern: string, namespace?: string, options?: SearchOptions): Promise<MemoryEntry[]>;
+  search(
+    pattern: string,
+    namespace?: string,
+    options?: SearchOptions,
+  ): Promise<MemoryEntry[]>;
   list(namespace?: string, includeMetadata?: boolean): Promise<MemoryEntry[]>;
   cleanup(namespace?: string): Promise<number>;
   getNamespaceInfo(namespace?: string): Promise<NamespaceInfo[]>;
@@ -54,8 +58,8 @@ export interface NamespaceOperations {
 
 export interface SearchOptions {
   limit?: number;
-  sortBy?: 'created_at' | 'updated_at' | 'access_count' | 'key';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "created_at" | "updated_at" | "access_count" | "key";
+  sortOrder?: "asc" | "desc";
   includeExpired?: boolean;
   keyPattern?: string;
   valuePattern?: string;
@@ -66,142 +70,157 @@ export class NamespaceUtils {
    * Validates namespace format (hierarchical paths allowed)
    */
   static validateNamespace(namespace: string): boolean {
-    if (!namespace || typeof namespace !== 'string') {
+    if (!namespace || typeof namespace !== "string") {
       return false;
     }
-    
+
     // Allow alphanumeric, dots, slashes, hyphens, underscores
     const validPattern = /^[a-zA-Z0-9._/-]+$/;
     return validPattern.test(namespace) && namespace.length <= 255;
   }
-  
+
   /**
    * Normalizes namespace path (removes duplicates slashes, trims)
    */
   static normalizeNamespace(namespace: string): string {
-    if (!namespace) return 'default';
-    
-    return namespace
-      .trim()
-      .replace(/\/+/g, '/') // Replace multiple slashes with single
-      .replace(/^\//g, '') // Remove leading slash
-      .replace(/\/$/, '') // Remove trailing slash
-      || 'default';
+    if (!namespace) return "default";
+
+    return (
+      namespace
+        .trim()
+        .replace(/\/+/g, "/") // Replace multiple slashes with single
+        .replace(/^\//g, "") // Remove leading slash
+        .replace(/\/$/, "") || // Remove trailing slash
+      "default"
+    );
   }
-  
+
   /**
    * Gets parent namespace from hierarchical path
    */
   static getParentNamespace(namespace: string): string | null {
     const normalized = this.normalizeNamespace(namespace);
-    const lastSlash = normalized.lastIndexOf('/');
-    
+    const lastSlash = normalized.lastIndexOf("/");
+
     if (lastSlash === -1) {
       return null; // Root level namespace
     }
-    
-    return normalized.substring(0, lastSlash) || 'default';
+
+    return normalized.substring(0, lastSlash) || "default";
   }
-  
+
   /**
    * Gets namespace depth (number of levels)
    */
   static getNamespaceDepth(namespace: string): number {
     const normalized = this.normalizeNamespace(namespace);
-    if (normalized === 'default') return 0;
+    if (normalized === "default") return 0;
     return (normalized.match(/\//g) || []).length + 1;
   }
-  
+
   /**
    * Checks if namespace matches pattern (supports wildcards)
    */
   static matchesPattern(namespace: string, pattern: string): boolean {
     const normalizedNamespace = this.normalizeNamespace(namespace);
     const normalizedPattern = this.normalizeNamespace(pattern);
-    
+
     // Convert pattern to regex (support * and **)
     const regexPattern = normalizedPattern
-      .replace(/\*\*/g, '§DOUBLE_WILDCARD§') // Temporary placeholder
-      .replace(/\*/g, '[^/]*') // Single * matches anything except /
-      .replace(/§DOUBLE_WILDCARD§/g, '.*'); // ** matches everything including /
-    
+      .replace(/\*\*/g, "§DOUBLE_WILDCARD§") // Temporary placeholder
+      .replace(/\*/g, "[^/]*") // Single * matches anything except /
+      .replace(/§DOUBLE_WILDCARD§/g, ".*"); // ** matches everything including /
+
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(normalizedNamespace);
   }
-  
+
   /**
    * Lists all child namespaces
    */
-  static getChildNamespaces(parentNamespace: string, allNamespaces: string[]): string[] {
+  static getChildNamespaces(
+    parentNamespace: string,
+    allNamespaces: string[],
+  ): string[] {
     const normalized = this.normalizeNamespace(parentNamespace);
-    const prefix = normalized === 'default' ? '' : normalized + '/';
-    
+    const prefix = normalized === "default" ? "" : normalized + "/";
+
     return allNamespaces
-      .filter(ns => {
+      .filter((ns) => {
         const normalizedNs = this.normalizeNamespace(ns);
-        return normalizedNs.startsWith(prefix) && 
-               normalizedNs !== normalized &&
-               normalizedNs.indexOf('/', prefix.length) === -1; // Direct children only
+        return (
+          normalizedNs.startsWith(prefix) &&
+          normalizedNs !== normalized &&
+          normalizedNs.indexOf("/", prefix.length) === -1
+        ); // Direct children only
       })
-      .map(ns => this.normalizeNamespace(ns));
+      .map((ns) => this.normalizeNamespace(ns));
   }
 }
 
-export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperations {
+export class SQLiteMemoryManager
+  extends EventEmitter
+  implements NamespaceOperations
+{
   private db: SQLiteDatabase;
   private logger: Logger;
   private cleanupInterval?: ReturnType<typeof setInterval>;
-  private implementation: SQLiteImplementation = 'sql.js';
-  
-  private constructor(db: SQLiteDatabase, implementation: SQLiteImplementation) {
+  private implementation: SQLiteImplementation = "sql.js";
+
+  private constructor(
+    db: SQLiteDatabase,
+    implementation: SQLiteImplementation,
+  ) {
     super();
-    this.logger = new Logger('SQLiteMemory');
+    this.logger = new Logger("SQLiteMemory");
     this.db = db;
     this.implementation = implementation;
-    
+
     this.logger.info(`Using SQLite implementation: ${this.implementation}`);
-    
+
     // Configure database optimization
     try {
-      this.db.pragma('journal_mode = WAL');
-      this.db.pragma('synchronous = NORMAL');
-      this.db.pragma('cache_size = 10000');
-      this.db.pragma('temp_store = memory');
+      this.db.pragma("journal_mode = WAL");
+      this.db.pragma("synchronous = NORMAL");
+      this.db.pragma("cache_size = 10000");
+      this.db.pragma("temp_store = memory");
     } catch (error) {
       // Some implementations may not support all pragmas
-      this.logger.warn('Some pragma optimizations not supported:', error);
+      this.logger.warn("Some pragma optimizations not supported:", error);
     }
-    
+
     this.initializeTables();
     this.startCleanupTask();
   }
-  
+
   /**
    * Create a new SQLiteMemoryManager instance with fallback support
    */
-  static async create(dbPath: string = '.swarm/memory.db', preferredImpl?: SQLiteImplementation): Promise<SQLiteMemoryManager> {
-    const logger = new Logger('SQLiteMemory');
+  static async create(
+    dbPath: string = ".swarm/memory.db",
+    preferredImpl?: SQLiteImplementation,
+  ): Promise<SQLiteMemoryManager> {
+    const logger = new Logger("SQLiteMemory");
     try {
       // Ensure directory exists
       const dir = path.dirname(dbPath);
       await fs.mkdir(dir, { recursive: true }).catch(() => {});
-      
+
       // Detect available implementations
       const detection = await detectSQLiteImplementations();
-      logger.info('SQLite implementations detected:', {
+      logger.info("SQLite implementations detected:", {
         available: detection.available,
         recommended: detection.recommended,
-        errors: Object.keys(detection.errors)
+        errors: Object.keys(detection.errors),
       });
-      
+
       // Create database with fallback
       const db = await createSQLiteDatabase(dbPath, preferredImpl);
       const implementation = db.name as SQLiteImplementation;
-      
+
       return new SQLiteMemoryManager(db, implementation);
-      
     } catch (error) {
-      logger.error('Failed to initialize SQLite database:', error);
+      logger.error("Failed to initialize SQLite database:", error);
       throw new Error(`SQLite initialization failed: ${error}`);
     }
   }
@@ -416,7 +435,7 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
       CREATE INDEX IF NOT EXISTS idx_workspace_status ON google_workspace(sync_status);
     `);
 
-    this.logger.info('All 12 SQLite tables initialized successfully');
+    this.logger.info("All 12 SQLite tables initialized successfully");
   }
 
   /**
@@ -425,21 +444,23 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
   async store(entry: MemoryEntry): Promise<void> {
     try {
       // Validate and normalize namespace
-      const namespace = NamespaceUtils.normalizeNamespace(entry.namespace || 'default');
-      
+      const namespace = NamespaceUtils.normalizeNamespace(
+        entry.namespace || "default",
+      );
+
       if (!NamespaceUtils.validateNamespace(namespace)) {
         throw new Error(`Invalid namespace format: ${entry.namespace}`);
       }
-      
+
       // Enhanced entry with normalized namespace
       const normalizedEntry = {
         ...entry,
-        namespace
+        namespace,
       };
-      
+
       // Handle different SQL syntax for UPSERT across implementations
-      let sql = '';
-      if (this.implementation === 'better-sqlite3') {
+      let sql = "";
+      if (this.implementation === "better-sqlite3") {
         sql = `
           INSERT INTO memory_store (key, value, namespace, metadata, ttl)
           VALUES (@key, @value, @namespace, @metadata, @ttl)
@@ -459,33 +480,41 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
           )
         `;
       }
-      
+
       const stmt = this.db.prepare(sql);
-      
-      if (this.implementation === 'better-sqlite3') {
+
+      if (this.implementation === "better-sqlite3") {
         stmt.run({
           key: normalizedEntry.key,
           value: JSON.stringify(normalizedEntry.value),
           namespace: namespace,
-          metadata: normalizedEntry.metadata ? JSON.stringify(normalizedEntry.metadata) : null,
-          ttl: normalizedEntry.ttl ? Math.floor(Date.now() / 1000) + normalizedEntry.ttl : null
+          metadata: normalizedEntry.metadata
+            ? JSON.stringify(normalizedEntry.metadata)
+            : null,
+          ttl: normalizedEntry.ttl
+            ? Math.floor(Date.now() / 1000) + normalizedEntry.ttl
+            : null,
         });
       } else {
         await stmt.run(
           normalizedEntry.key,
           JSON.stringify(normalizedEntry.value),
           namespace,
-          normalizedEntry.metadata ? JSON.stringify(normalizedEntry.metadata) : null,
-          normalizedEntry.ttl ? Math.floor(Date.now() / 1000) + normalizedEntry.ttl : null,
+          normalizedEntry.metadata
+            ? JSON.stringify(normalizedEntry.metadata)
+            : null,
+          normalizedEntry.ttl
+            ? Math.floor(Date.now() / 1000) + normalizedEntry.ttl
+            : null,
           normalizedEntry.key,
-          namespace
+          namespace,
         );
       }
 
-      this.emit('stored', normalizedEntry);
+      this.emit("stored", normalizedEntry);
       this.logger.debug(`Stored entry in namespace: ${namespace}`);
     } catch (error) {
-      this.logger.error('Failed to store memory entry:', error);
+      this.logger.error("Failed to store memory entry:", error);
       throw error;
     }
   }
@@ -493,18 +522,18 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
   /**
    * Retrieve memory entry with namespace support and wildcard matching
    */
-  async retrieve(key: string, namespace: string = 'default'): Promise<any> {
+  async retrieve(key: string, namespace: string = "default"): Promise<any> {
     try {
       // Validate and normalize namespace
       const normalizedNamespace = NamespaceUtils.normalizeNamespace(namespace);
-      
+
       if (!NamespaceUtils.validateNamespace(normalizedNamespace)) {
         throw new Error(`Invalid namespace format: ${namespace}`);
       }
-      
+
       // Handle different SQL syntax across implementations
-      let sql = '';
-      if (this.implementation === 'better-sqlite3') {
+      let sql = "";
+      if (this.implementation === "better-sqlite3") {
         sql = `
           UPDATE memory_store 
           SET access_count = access_count + 1
@@ -520,15 +549,15 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
           AND (ttl IS NULL OR ttl > strftime('%s', 'now'))
         `;
       }
-      
+
       const stmt = this.db.prepare(sql);
       let row: any;
-      
-      if (this.implementation === 'better-sqlite3') {
+
+      if (this.implementation === "better-sqlite3") {
         row = stmt.get(key, normalizedNamespace);
       } else {
         row = await stmt.get(key, normalizedNamespace);
-        
+
         // Update access count separately for sqlite3/sql.js
         if (row) {
           const updateStmt = this.db.prepare(`
@@ -538,21 +567,23 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
           await updateStmt.run(key, normalizedNamespace);
         }
       }
-      
+
       if (!row) {
         return null;
       }
 
-      this.emit('retrieved', { key, namespace: normalizedNamespace });
-      this.logger.debug(`Retrieved key '${key}' from namespace: ${normalizedNamespace}`);
-      
+      this.emit("retrieved", { key, namespace: normalizedNamespace });
+      this.logger.debug(
+        `Retrieved key '${key}' from namespace: ${normalizedNamespace}`,
+      );
+
       return {
         value: JSON.parse(row.value),
         metadata: row.metadata ? JSON.parse(row.metadata) : null,
-        namespace: row.namespace
+        namespace: row.namespace,
       };
     } catch (error) {
-      this.logger.error('Failed to retrieve memory entry:', error);
+      this.logger.error("Failed to retrieve memory entry:", error);
       throw error;
     }
   }
@@ -560,89 +591,104 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
   /**
    * Enhanced search with namespace patterns and advanced filtering
    */
-  async search(pattern: string, namespace?: string, options: SearchOptions = {}): Promise<MemoryEntry[]> {
+  async search(
+    pattern: string,
+    namespace?: string,
+    options: SearchOptions = {},
+  ): Promise<MemoryEntry[]> {
     try {
       const {
         limit = 100,
-        sortBy = 'access_count',
-        sortOrder = 'desc',
+        sortBy = "access_count",
+        sortOrder = "desc",
         includeExpired = false,
         keyPattern,
-        valuePattern
+        valuePattern,
       } = options;
-      
+
       let query = `
         SELECT key, value, namespace, metadata, created_at, updated_at, access_count
         FROM memory_store
         WHERE 1=1
       `;
-      
+
       const params: any[] = [];
-      
+
       // Add TTL filter unless explicitly including expired
       if (!includeExpired) {
-        query += ' AND (ttl IS NULL OR ttl > strftime(\'%s\', \'now\'))';
+        query += " AND (ttl IS NULL OR ttl > strftime('%s', 'now'))";
       }
-      
+
       // Add key pattern filter
       if (keyPattern || pattern) {
-        query += ' AND key LIKE ?';
+        query += " AND key LIKE ?";
         params.push(`%${keyPattern || pattern}%`);
       }
-      
+
       // Add value pattern filter (search within JSON)
       if (valuePattern) {
-        query += ' AND value LIKE ?';
+        query += " AND value LIKE ?";
         params.push(`%${valuePattern}%`);
       }
-      
+
       // Add namespace filter with wildcard support
       if (namespace) {
-        const normalizedNamespace = NamespaceUtils.normalizeNamespace(namespace);
-        
-        if (namespace.includes('*')) {
+        const normalizedNamespace =
+          NamespaceUtils.normalizeNamespace(namespace);
+
+        if (namespace.includes("*")) {
           // Wildcard namespace matching
           const namespacePattern = normalizedNamespace
-            .replace(/\*/g, '%')
-            .replace(/\?/g, '_');
-          query += ' AND namespace LIKE ?';
+            .replace(/\*/g, "%")
+            .replace(/\?/g, "_");
+          query += " AND namespace LIKE ?";
           params.push(namespacePattern);
         } else {
           // Exact namespace match
-          query += ' AND namespace = ?';
+          query += " AND namespace = ?";
           params.push(normalizedNamespace);
         }
       }
-      
+
       // Add sorting
-      const validSortColumns = ['created_at', 'updated_at', 'access_count', 'key'];
-      const validSortOrder = ['asc', 'desc'];
-      
-      if (validSortColumns.includes(sortBy) && validSortOrder.includes(sortOrder)) {
+      const validSortColumns = [
+        "created_at",
+        "updated_at",
+        "access_count",
+        "key",
+      ];
+      const validSortOrder = ["asc", "desc"];
+
+      if (
+        validSortColumns.includes(sortBy) &&
+        validSortOrder.includes(sortOrder)
+      ) {
         query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`;
       } else {
-        query += ' ORDER BY access_count DESC';
+        query += " ORDER BY access_count DESC";
       }
-      
+
       // Add limit
       query += ` LIMIT ${Math.min(Math.max(1, limit), 1000)}`;
-      
+
       const stmt = this.db.prepare(query);
-      const rows = await stmt.all(...params) as any[];
-      
-      this.logger.debug(`Search found ${rows.length} entries with pattern: ${pattern}`);
-      
-      return rows.map(row => ({
+      const rows = (await stmt.all(...params)) as any[];
+
+      this.logger.debug(
+        `Search found ${rows.length} entries with pattern: ${pattern}`,
+      );
+
+      return rows.map((row) => ({
         key: row.key,
         value: JSON.parse(row.value),
         namespace: row.namespace,
         metadata: row.metadata ? JSON.parse(row.metadata) : null,
         created_at: row.created_at,
         updated_at: row.updated_at,
-        access_count: row.access_count
+        access_count: row.access_count,
       }));
     } catch (error) {
-      this.logger.error('Failed to search memory entries:', error);
+      this.logger.error("Failed to search memory entries:", error);
       throw error;
     }
   }
@@ -656,10 +702,10 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
         INSERT INTO metrics (metric_name, metric_value, unit, tags)
         VALUES (?, ?, ?, ?)
       `);
-      
+
       await stmt.run(name, value, unit, tags ? JSON.stringify(tags) : null);
     } catch (error) {
-      this.logger.error('Failed to record metric:', error);
+      this.logger.error("Failed to record metric:", error);
       throw error;
     }
   }
@@ -670,7 +716,7 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
   async getMetricsSummary(name: string, timeRange?: number): Promise<any> {
     try {
       const since = timeRange ? Math.floor(Date.now() / 1000) - timeRange : 0;
-      
+
       const stmt = this.db.prepare(`
         SELECT 
           COUNT(*) as count,
@@ -682,10 +728,10 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
         WHERE metric_name = ?
         AND timestamp > ?
       `);
-      
+
       return await stmt.get(name, since);
     } catch (error) {
-      this.logger.error('Failed to get metrics summary:', error);
+      this.logger.error("Failed to get metrics summary:", error);
       throw error;
     }
   }
@@ -700,14 +746,14 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
           DELETE FROM memory_store
           WHERE ttl IS NOT NULL AND ttl < strftime('%s', 'now')
         `);
-        
+
         const result = await stmt.run();
-        
+
         if (result.changes && result.changes > 0) {
           this.logger.debug(`Cleaned up ${result.changes} expired entries`);
         }
       } catch (error) {
-        this.logger.error('Cleanup task failed:', error);
+        this.logger.error("Cleanup task failed:", error);
       }
     }, 60000); // Run every minute
   }
@@ -715,104 +761,113 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
   /**
    * Get current implementation info
    */
-  async getImplementationInfo(): Promise<{ name: SQLiteImplementation; available: SQLiteImplementation[] }> {
+  async getImplementationInfo(): Promise<{
+    name: SQLiteImplementation;
+    available: SQLiteImplementation[];
+  }> {
     const detection = await detectSQLiteImplementations();
     return {
       name: this.implementation,
-      available: detection.available
+      available: detection.available,
     };
   }
-  
+
   /**
    * Test database connection and functionality
    */
   async testConnection(): Promise<boolean> {
     try {
-      const stmt = this.db.prepare('SELECT 1 as test');
+      const stmt = this.db.prepare("SELECT 1 as test");
       const result = await stmt.get();
       return result && result.test === 1;
     } catch (error) {
-      this.logger.error('Database connection test failed:', error);
+      this.logger.error("Database connection test failed:", error);
       return false;
     }
   }
-  
+
   /**
    * Delete a specific memory entry
    */
-  async delete(key: string, namespace: string = 'default'): Promise<boolean> {
+  async delete(key: string, namespace: string = "default"): Promise<boolean> {
     try {
       const normalizedNamespace = NamespaceUtils.normalizeNamespace(namespace);
-      
+
       const stmt = this.db.prepare(`
         DELETE FROM memory_store
         WHERE key = ? AND namespace = ?
       `);
-      
+
       const result = await stmt.run(key, normalizedNamespace);
       const deleted = (result.changes || 0) > 0;
-      
+
       if (deleted) {
-        this.emit('deleted', { key, namespace: normalizedNamespace });
-        this.logger.debug(`Deleted key '${key}' from namespace: ${normalizedNamespace}`);
+        this.emit("deleted", { key, namespace: normalizedNamespace });
+        this.logger.debug(
+          `Deleted key '${key}' from namespace: ${normalizedNamespace}`,
+        );
       }
-      
+
       return deleted;
     } catch (error) {
-      this.logger.error('Failed to delete memory entry:', error);
+      this.logger.error("Failed to delete memory entry:", error);
       throw error;
     }
   }
-  
+
   /**
    * List all entries in a namespace
    */
-  async list(namespace?: string, includeMetadata: boolean = false): Promise<MemoryEntry[]> {
+  async list(
+    namespace?: string,
+    includeMetadata: boolean = false,
+  ): Promise<MemoryEntry[]> {
     try {
       let query = `
         SELECT key, value, namespace, metadata, created_at, updated_at, access_count
         FROM memory_store
         WHERE (ttl IS NULL OR ttl > strftime('%s', 'now'))
       `;
-      
+
       const params: any[] = [];
-      
+
       if (namespace) {
-        const normalizedNamespace = NamespaceUtils.normalizeNamespace(namespace);
-        
-        if (namespace.includes('*')) {
+        const normalizedNamespace =
+          NamespaceUtils.normalizeNamespace(namespace);
+
+        if (namespace.includes("*")) {
           // Wildcard namespace matching
           const namespacePattern = normalizedNamespace
-            .replace(/\*/g, '%')
-            .replace(/\?/g, '_');
-          query += ' AND namespace LIKE ?';
+            .replace(/\*/g, "%")
+            .replace(/\?/g, "_");
+          query += " AND namespace LIKE ?";
           params.push(namespacePattern);
         } else {
-          query += ' AND namespace = ?';
+          query += " AND namespace = ?";
           params.push(normalizedNamespace);
         }
       }
-      
-      query += ' ORDER BY namespace, key';
-      
+
+      query += " ORDER BY namespace, key";
+
       const stmt = this.db.prepare(query);
-      const rows = await stmt.all(...params) as any[];
-      
-      return rows.map(row => ({
+      const rows = (await stmt.all(...params)) as any[];
+
+      return rows.map((row) => ({
         key: row.key,
-        value: includeMetadata ? JSON.parse(row.value) : '[hidden]',
+        value: includeMetadata ? JSON.parse(row.value) : "[hidden]",
         namespace: row.namespace,
         metadata: row.metadata ? JSON.parse(row.metadata) : null,
         created_at: row.created_at,
         updated_at: row.updated_at,
-        access_count: row.access_count
+        access_count: row.access_count,
       }));
     } catch (error) {
-      this.logger.error('Failed to list memory entries:', error);
+      this.logger.error("Failed to list memory entries:", error);
       throw error;
     }
   }
-  
+
   /**
    * Cleanup expired entries in a namespace
    */
@@ -822,31 +877,34 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
         DELETE FROM memory_store
         WHERE ttl IS NOT NULL AND ttl < strftime('%s', 'now')
       `;
-      
+
       const params: any[] = [];
-      
+
       if (namespace) {
-        const normalizedNamespace = NamespaceUtils.normalizeNamespace(namespace);
-        query += ' AND namespace = ?';
+        const normalizedNamespace =
+          NamespaceUtils.normalizeNamespace(namespace);
+        query += " AND namespace = ?";
         params.push(normalizedNamespace);
       }
-      
+
       const stmt = this.db.prepare(query);
       const result = await stmt.run(...params);
       const cleaned = result.changes || 0;
-      
+
       if (cleaned > 0) {
-        this.emit('cleanup', { namespace, count: cleaned });
-        this.logger.info(`Cleaned up ${cleaned} expired entries${namespace ? ` in namespace: ${namespace}` : ''}`);
+        this.emit("cleanup", { namespace, count: cleaned });
+        this.logger.info(
+          `Cleaned up ${cleaned} expired entries${namespace ? ` in namespace: ${namespace}` : ""}`,
+        );
       }
-      
+
       return cleaned;
     } catch (error) {
-      this.logger.error('Failed to cleanup memory entries:', error);
+      this.logger.error("Failed to cleanup memory entries:", error);
       throw error;
     }
   }
-  
+
   /**
    * Get namespace information and statistics
    */
@@ -862,80 +920,89 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
         FROM memory_store
         WHERE (ttl IS NULL OR ttl > strftime('%s', 'now'))
       `;
-      
+
       const params: any[] = [];
-      
+
       if (namespace) {
-        const normalizedNamespace = NamespaceUtils.normalizeNamespace(namespace);
-        
-        if (namespace.includes('*')) {
+        const normalizedNamespace =
+          NamespaceUtils.normalizeNamespace(namespace);
+
+        if (namespace.includes("*")) {
           const namespacePattern = normalizedNamespace
-            .replace(/\*/g, '%')
-            .replace(/\?/g, '_');
-          query += ' AND namespace LIKE ?';
+            .replace(/\*/g, "%")
+            .replace(/\?/g, "_");
+          query += " AND namespace LIKE ?";
           params.push(namespacePattern);
         } else {
-          query += ' AND namespace = ?';
+          query += " AND namespace = ?";
           params.push(normalizedNamespace);
         }
       }
-      
-      query += ' GROUP BY namespace ORDER BY namespace';
-      
+
+      query += " GROUP BY namespace ORDER BY namespace";
+
       const stmt = this.db.prepare(query);
-      const rows = await stmt.all(...params) as any[];
-      
-      return rows.map(row => ({
+      const rows = (await stmt.all(...params)) as any[];
+
+      return rows.map((row) => ({
         namespace: row.namespace,
         keyCount: row.keyCount,
         totalSize: row.totalSize || 0,
         lastAccessed: row.lastAccessed,
-        created: row.created
+        created: row.created,
       }));
     } catch (error) {
-      this.logger.error('Failed to get namespace info:', error);
+      this.logger.error("Failed to get namespace info:", error);
       throw error;
     }
   }
-  
+
   /**
    * Delete entire namespace and all its entries
    */
   async deleteNamespace(namespace: string): Promise<number> {
     try {
       const normalizedNamespace = NamespaceUtils.normalizeNamespace(namespace);
-      
-      if (normalizedNamespace === 'default') {
-        throw new Error('Cannot delete default namespace');
+
+      if (normalizedNamespace === "default") {
+        throw new Error("Cannot delete default namespace");
       }
-      
+
       const stmt = this.db.prepare(`
         DELETE FROM memory_store
         WHERE namespace = ?
       `);
-      
+
       const result = await stmt.run(normalizedNamespace);
       const deleted = result.changes || 0;
-      
+
       if (deleted > 0) {
-        this.emit('namespaceDeleted', { namespace: normalizedNamespace, count: deleted });
-        this.logger.info(`Deleted namespace '${normalizedNamespace}' with ${deleted} entries`);
+        this.emit("namespaceDeleted", {
+          namespace: normalizedNamespace,
+          count: deleted,
+        });
+        this.logger.info(
+          `Deleted namespace '${normalizedNamespace}' with ${deleted} entries`,
+        );
       }
-      
+
       return deleted;
     } catch (error) {
-      this.logger.error('Failed to delete namespace:', error);
+      this.logger.error("Failed to delete namespace:", error);
       throw error;
     }
   }
-  
+
   /**
    * Get namespace-specific metrics and analytics
    */
-  async getNamespaceMetrics(namespace?: string, timeRange?: number): Promise<any> {
+  async getNamespaceMetrics(
+    namespace?: string,
+    timeRange?: number,
+  ): Promise<any> {
     try {
       const since = timeRange ? Math.floor(Date.now() / 1000) - timeRange : 0;
-      
+
       let query = `
         SELECT 
           namespace,
@@ -949,31 +1016,32 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
         WHERE created_at > ?
         AND (ttl IS NULL OR ttl > strftime('%s', 'now'))
       `;
-      
+
       const params: any[] = [since];
-      
+
       if (namespace) {
-        const normalizedNamespace = NamespaceUtils.normalizeNamespace(namespace);
-        query += ' AND namespace = ?';
+        const normalizedNamespace =
+          NamespaceUtils.normalizeNamespace(namespace);
+        query += " AND namespace = ?";
         params.push(normalizedNamespace);
       }
-      
-      query += ' GROUP BY namespace ORDER BY totalEntries DESC';
-      
+
+      query += " GROUP BY namespace ORDER BY totalEntries DESC";
+
       const stmt = this.db.prepare(query);
-      const rows = await stmt.all(...params) as any[];
-      
-      return rows.map(row => ({
+      const rows = (await stmt.all(...params)) as any[];
+
+      return rows.map((row) => ({
         namespace: row.namespace,
         totalEntries: row.totalEntries,
         avgAccessCount: Math.round(row.avgAccessCount * 100) / 100,
         maxAccessCount: row.maxAccessCount,
         entriesWithTTL: row.entriesWithTTL,
         avgValueSize: Math.round(row.avgValueSize || 0),
-        maxValueSize: row.maxValueSize || 0
+        maxValueSize: row.maxValueSize || 0,
       }));
     } catch (error) {
-      this.logger.error('Failed to get namespace metrics:', error);
+      this.logger.error("Failed to get namespace metrics:", error);
       throw error;
     }
   }
@@ -985,7 +1053,7 @@ export class SQLiteMemoryManager extends EventEmitter implements NamespaceOperat
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
     }
-    
+
     this.db.close();
     this.logger.info(`SQLite database closed (${this.implementation})`);
   }

@@ -3,7 +3,7 @@
  * Implements advanced queue management with priority balancing and fairness controls
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 export interface QueueItem<T = any> {
   id: string;
@@ -15,13 +15,13 @@ export interface QueueItem<T = any> {
   maxRetries: number;
   cost: number;
   userId: string;
-  tier: 'free' | 'basic' | 'premium' | 'enterprise';
+  tier: "free" | "basic" | "premium" | "enterprise";
   estimatedProcessingTime: number;
   metadata: {
     source: string;
     type: string;
     size: number;
-    complexity: 'low' | 'medium' | 'high' | 'critical';
+    complexity: "low" | "medium" | "high" | "critical";
   };
 }
 
@@ -37,7 +37,7 @@ export interface QueueMetrics {
 }
 
 export interface FairnessPolicy {
-  algorithm: 'weighted-fair' | 'lottery' | 'stride' | 'proportional-share';
+  algorithm: "weighted-fair" | "lottery" | "stride" | "proportional-share";
   tierWeights: Map<string, number>;
   maxStarvationTime: number; // ms
   agingFactor: number;
@@ -87,19 +87,24 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
     const queue = this.ensureQueue(queueId);
 
     // Apply fairness checks
-    const fairnessAdjustment = await this.fairnessManager.calculateAdjustment(item);
+    const fairnessAdjustment =
+      await this.fairnessManager.calculateAdjustment(item);
     item.priority += fairnessAdjustment;
 
     // Enqueue item
     queue.enqueue(item);
-    
+
     // Update metrics
     this.metricsCollector.recordEnqueue(item, queueId);
-    
+
     // Check for starvation prevention
     await this.starvationPreventer.checkAndPrevent(queueId);
 
-    this.emit('itemEnqueued', { itemId: item.id, queueId, priority: item.priority });
+    this.emit("itemEnqueued", {
+      itemId: item.id,
+      queueId,
+      priority: item.priority,
+    });
   }
 
   /**
@@ -124,11 +129,15 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
 
     // Update fairness tracking
     await this.fairnessManager.recordProcessing(queueId, item);
-    
+
     // Update metrics
     this.metricsCollector.recordDequeue(item, queueId);
 
-    this.emit('itemDequeued', { itemId: item.id, queueId, waitTime: Date.now() - item.timestamp });
+    this.emit("itemDequeued", {
+      itemId: item.id,
+      queueId,
+      waitTime: Date.now() - item.timestamp,
+    });
     return item;
   }
 
@@ -136,43 +145,49 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
    * Process item with monitoring and feedback
    */
   async processItem(
-    item: QueueItem<T>, 
-    processor: (data: T) => Promise<ProcessingResult<any>>
+    item: QueueItem<T>,
+    processor: (data: T) => Promise<ProcessingResult<any>>,
   ): Promise<ProcessingResult<any>> {
     const startTime = Date.now();
-    
+
     try {
       // Execute processing
       const result = await processor(item.data);
       const processingTime = Date.now() - startTime;
-      
+
       // Update metrics
-      this.metricsCollector.recordProcessing(item, processingTime, result.success);
-      
+      this.metricsCollector.recordProcessing(
+        item,
+        processingTime,
+        result.success,
+      );
+
       // Provide feedback to adaptive scheduler
       await this.adaptiveScheduler.recordOutcome(item, result, processingTime);
-      
+
       if (result.success) {
-        this.emit('itemProcessed', { 
-          itemId: item.id, 
+        this.emit("itemProcessed", {
+          itemId: item.id,
           processingTime,
-          success: true 
+          success: true,
         });
       } else {
-        await this.handleProcessingFailure(item, result.error || 'Unknown error');
+        await this.handleProcessingFailure(
+          item,
+          result.error || "Unknown error",
+        );
       }
-      
+
       return result;
-      
     } catch (error) {
       const processingTime = Date.now() - startTime;
       await this.handleProcessingFailure(item, error.message);
-      
+
       return {
         success: false,
         error: error.message,
         processingTime,
-        resourcesUsed: { cpu: 0, memory: 0, network: 0 }
+        resourcesUsed: { cpu: 0, memory: 0, network: 0 },
       };
     }
   }
@@ -182,11 +197,11 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
    */
   getMetrics(): Map<string, QueueMetrics> {
     const metrics = new Map<string, QueueMetrics>();
-    
+
     for (const [queueId, queue] of this.queues.entries()) {
       metrics.set(queueId, this.metricsCollector.getQueueMetrics(queueId));
     }
-    
+
     return metrics;
   }
 
@@ -202,7 +217,7 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
    */
   async adjustFairnessPolicy(updates: Partial<FairnessPolicy>): Promise<void> {
     await this.fairnessManager.updatePolicy(updates);
-    this.emit('policyUpdated', { updates });
+    this.emit("policyUpdated", { updates });
   }
 
   /**
@@ -216,35 +231,35 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
     const analysis = await this.adaptiveScheduler.analyzePerformance();
     const recommendations = [];
     const changes = [];
-    
+
     // Analyze queue imbalances
     if (analysis.queueImbalance > 0.3) {
-      recommendations.push('Redistribute workload across queues');
-      changes.push({ type: 'rebalance', factor: analysis.queueImbalance });
+      recommendations.push("Redistribute workload across queues");
+      changes.push({ type: "rebalance", factor: analysis.queueImbalance });
     }
-    
+
     // Check fairness violations
     if (analysis.fairnessViolations > 0.1) {
-      recommendations.push('Adjust tier weights to improve fairness');
-      changes.push({ 
-        type: 'fairness-adjustment', 
-        newWeights: analysis.suggestedWeights 
+      recommendations.push("Adjust tier weights to improve fairness");
+      changes.push({
+        type: "fairness-adjustment",
+        newWeights: analysis.suggestedWeights,
       });
     }
-    
+
     // Analyze starvation patterns
     if (analysis.starvationIncidents > 0) {
-      recommendations.push('Reduce max starvation time');
-      changes.push({ 
-        type: 'starvation-prevention', 
-        newMaxTime: this.policy.maxStarvationTime * 0.8 
+      recommendations.push("Reduce max starvation time");
+      changes.push({
+        type: "starvation-prevention",
+        newMaxTime: this.policy.maxStarvationTime * 0.8,
       });
     }
-    
+
     return {
       recommendations,
       expectedImprovement: analysis.potentialImprovement,
-      changes
+      changes,
     };
   }
 
@@ -254,30 +269,33 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
   async handleBurst(expectedLoad: number, duration: number): Promise<void> {
     // Increase burst allowance temporarily
     const originalAllowance = this.policy.burstAllowance;
-    this.policy.burstAllowance = Math.max(originalAllowance, expectedLoad * 1.2);
-    
+    this.policy.burstAllowance = Math.max(
+      originalAllowance,
+      expectedLoad * 1.2,
+    );
+
     // Adjust queue priorities for burst handling
     await this.adaptiveScheduler.prepareBurstHandling(expectedLoad, duration);
-    
+
     // Schedule restoration of normal policies
     setTimeout(() => {
       this.policy.burstAllowance = originalAllowance;
       this.adaptiveScheduler.restoreNormalOperation();
-      this.emit('burstHandlingCompleted');
+      this.emit("burstHandlingCompleted");
     }, duration);
-    
-    this.emit('burstHandlingActivated', { expectedLoad, duration });
+
+    this.emit("burstHandlingActivated", { expectedLoad, duration });
   }
 
   // Private implementation methods
 
   private async initializeSystem(): Promise<void> {
     // Initialize default queues for different tiers
-    const tiers = ['free', 'basic', 'premium', 'enterprise'];
+    const tiers = ["free", "basic", "premium", "enterprise"];
     for (const tier of tiers) {
       this.queues.set(tier, new PriorityQueue<T>());
     }
-    
+
     // Start background processes
     setInterval(() => this.performMaintenance(), 30000); // 30 seconds
     setInterval(() => this.updateFairnessMetrics(), 10000); // 10 seconds
@@ -285,30 +303,30 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
 
   private async calculateDynamicPriority(item: QueueItem<T>): Promise<number> {
     let priority = item.priority;
-    
+
     // Deadline urgency
     if (item.deadline) {
       const timeLeft = item.deadline - Date.now();
-      const urgencyBoost = Math.max(0, 100 - (timeLeft / 1000));
+      const urgencyBoost = Math.max(0, 100 - timeLeft / 1000);
       priority += urgencyBoost;
     }
-    
+
     // Tier-based priority
     const tierPriority = this.policy.tierWeights.get(item.tier) || 1;
     priority *= tierPriority;
-    
+
     // Complexity adjustment
     const complexityMultiplier = {
       low: 1,
       medium: 1.2,
       high: 1.5,
-      critical: 2
+      critical: 2,
     }[item.metadata.complexity];
     priority *= complexityMultiplier;
-    
+
     // Retry penalty
     priority -= item.retries * 10;
-    
+
     return Math.max(0, priority);
   }
 
@@ -324,27 +342,30 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
     return this.queues.get(queueId)!;
   }
 
-  private async handleProcessingFailure(item: QueueItem<T>, error: string): Promise<void> {
+  private async handleProcessingFailure(
+    item: QueueItem<T>,
+    error: string,
+  ): Promise<void> {
     item.retries++;
-    
+
     if (item.retries < item.maxRetries) {
       // Re-queue with reduced priority
       item.priority = Math.max(1, item.priority * 0.8);
       await this.enqueue(item);
-      
-      this.emit('itemRetried', { 
-        itemId: item.id, 
-        retryCount: item.retries, 
-        error 
+
+      this.emit("itemRetried", {
+        itemId: item.id,
+        retryCount: item.retries,
+        error,
       });
     } else {
       // Move to dead letter queue
       this.metricsCollector.recordFailure(item, error);
-      
-      this.emit('itemFailed', { 
-        itemId: item.id, 
-        finalError: error, 
-        totalRetries: item.retries 
+
+      this.emit("itemFailed", {
+        itemId: item.id,
+        finalError: error,
+        totalRetries: item.retries,
       });
     }
   }
@@ -352,11 +373,14 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
   private async performMaintenance(): Promise<void> {
     // Clean up empty queues
     for (const [queueId, queue] of this.queues.entries()) {
-      if (queue.isEmpty() && !['free', 'basic', 'premium', 'enterprise'].includes(queueId)) {
+      if (
+        queue.isEmpty() &&
+        !["free", "basic", "premium", "enterprise"].includes(queueId)
+      ) {
         this.queues.delete(queueId);
       }
     }
-    
+
     // Perform aging of old items
     await this.performAging();
   }
@@ -364,7 +388,7 @@ export class QueuePrioritizationSystem<T = any> extends EventEmitter {
   private async performAging(): Promise<void> {
     const now = Date.now();
     const agingThreshold = 300000; // 5 minutes
-    
+
     for (const queue of this.queues.values()) {
       queue.ageItems(now, agingThreshold, this.policy.agingFactor);
     }
@@ -429,31 +453,34 @@ class FairnessManager {
     const queueId = item.tier;
     const lastProcessed = this.lastProcessingTimes.get(queueId) || 0;
     const timeSinceLastProcessed = Date.now() - lastProcessed;
-    
+
     // Boost priority if queue hasn't been processed recently
     if (timeSinceLastProcessed > this.policy.maxStarvationTime) {
       return 50; // Significant boost to prevent starvation
     }
-    
+
     return 0;
   }
 
-  async selectNextQueue(queues: Map<string, PriorityQueue<any>>): Promise<string | null> {
-    const eligibleQueues = Array.from(queues.entries())
-      .filter(([_, queue]) => !queue.isEmpty());
-    
+  async selectNextQueue(
+    queues: Map<string, PriorityQueue<any>>,
+  ): Promise<string | null> {
+    const eligibleQueues = Array.from(queues.entries()).filter(
+      ([_, queue]) => !queue.isEmpty(),
+    );
+
     if (eligibleQueues.length === 0) {
       return null;
     }
 
     switch (this.policy.algorithm) {
-      case 'weighted-fair':
+      case "weighted-fair":
         return this.weightedFairSelection(eligibleQueues);
-      case 'lottery':
+      case "lottery":
         return this.lotterySelection(eligibleQueues);
-      case 'stride':
+      case "stride":
         return this.strideSelection(eligibleQueues);
-      case 'proportional-share':
+      case "proportional-share":
         return this.proportionalShareSelection(eligibleQueues);
       default:
         return eligibleQueues[0][0];
@@ -469,12 +496,14 @@ class FairnessManager {
   calculateOverallFairnessScore(): number {
     const counts = Array.from(this.queueProcessingCounts.values());
     if (counts.length === 0) return 1;
-    
+
     const mean = counts.reduce((sum, count) => sum + count, 0) / counts.length;
-    const variance = counts.reduce((sum, count) => sum + Math.pow(count - mean, 2), 0) / counts.length;
-    
+    const variance =
+      counts.reduce((sum, count) => sum + Math.pow(count - mean, 2), 0) /
+      counts.length;
+
     // Higher scores indicate better fairness (lower variance)
-    return Math.max(0, 1 - (variance / (mean + 1)));
+    return Math.max(0, 1 - variance / (mean + 1));
   }
 
   async updatePolicy(updates: Partial<FairnessPolicy>): Promise<void> {
@@ -484,35 +513,42 @@ class FairnessManager {
   async updateMetrics(): Promise<void> {
     // Update fairness scores for each queue
     for (const queueId of this.queueProcessingCounts.keys()) {
-      this.fairnessScores.set(queueId, this.calculateQueueFairnessScore(queueId));
+      this.fairnessScores.set(
+        queueId,
+        this.calculateQueueFairnessScore(queueId),
+      );
     }
   }
 
-  private weightedFairSelection(queues: [string, PriorityQueue<any>][]): string {
+  private weightedFairSelection(
+    queues: [string, PriorityQueue<any>][],
+  ): string {
     // Select based on tier weights and recent processing
     let bestQueue = queues[0][0];
     let bestScore = -1;
-    
+
     for (const [queueId, queue] of queues) {
       const weight = this.policy.tierWeights.get(queueId) || 1;
       const recentProcessing = this.queueProcessingCounts.get(queueId) || 0;
       const score = weight / (recentProcessing + 1);
-      
+
       if (score > bestScore) {
         bestScore = score;
         bestQueue = queueId;
       }
     }
-    
+
     return bestQueue;
   }
 
   private lotterySelection(queues: [string, PriorityQueue<any>][]): string {
     // Weighted random selection
-    const weights = queues.map(([queueId]) => this.policy.tierWeights.get(queueId) || 1);
+    const weights = queues.map(
+      ([queueId]) => this.policy.tierWeights.get(queueId) || 1,
+    );
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
     const random = Math.random() * totalWeight;
-    
+
     let cumulativeWeight = 0;
     for (let i = 0; i < queues.length; i++) {
       cumulativeWeight += weights[i];
@@ -520,7 +556,7 @@ class FairnessManager {
         return queues[i][0];
       }
     }
-    
+
     return queues[0][0];
   }
 
@@ -529,7 +565,9 @@ class FairnessManager {
     return this.weightedFairSelection(queues); // Simplified
   }
 
-  private proportionalShareSelection(queues: [string, PriorityQueue<any>][]): string {
+  private proportionalShareSelection(
+    queues: [string, PriorityQueue<any>][],
+  ): string {
     // Proportional share scheduling
     return this.weightedFairSelection(queues); // Simplified
   }
@@ -537,15 +575,20 @@ class FairnessManager {
   private calculateQueueFairnessScore(queueId: string): number {
     const expectedShare = this.policy.tierWeights.get(queueId) || 1;
     const actualShare = this.queueProcessingCounts.get(queueId) || 0;
-    const totalProcessed = Array.from(this.queueProcessingCounts.values())
-      .reduce((sum, count) => sum + count, 0);
-    
+    const totalProcessed = Array.from(
+      this.queueProcessingCounts.values(),
+    ).reduce((sum, count) => sum + count, 0);
+
     if (totalProcessed === 0) return 1;
-    
+
     const actualRatio = actualShare / totalProcessed;
-    const expectedRatio = expectedShare / Array.from(this.policy.tierWeights.values())
-      .reduce((sum, weight) => sum + weight, 0);
-    
+    const expectedRatio =
+      expectedShare /
+      Array.from(this.policy.tierWeights.values()).reduce(
+        (sum, weight) => sum + weight,
+        0,
+      );
+
     return Math.max(0, 1 - Math.abs(actualRatio - expectedRatio));
   }
 }
@@ -553,14 +596,15 @@ class FairnessManager {
 class QueueLoadBalancer {
   selectOptimalQueue(queues: Map<string, PriorityQueue<any>>): string | null {
     // Implementation for load balancing across queues
-    const nonEmptyQueues = Array.from(queues.entries())
-      .filter(([_, queue]) => !queue.isEmpty());
-    
+    const nonEmptyQueues = Array.from(queues.entries()).filter(
+      ([_, queue]) => !queue.isEmpty(),
+    );
+
     if (nonEmptyQueues.length === 0) return null;
-    
+
     // Select queue with least items
-    return nonEmptyQueues.reduce((best, current) => 
-      current[1].size() < best[1].size() ? current : best
+    return nonEmptyQueues.reduce((best, current) =>
+      current[1].size() < best[1].size() ? current : best,
     )[0];
   }
 }
@@ -580,16 +624,20 @@ class QueueMetricsCollector {
   recordDequeue(item: QueueItem<any>, queueId: string): void {
     const current = this.dequeueCounts.get(queueId) || 0;
     this.dequeueCounts.set(queueId, current + 1);
-    
+
     const waitTime = Date.now() - item.timestamp;
     const waitTimes = this.waitTimes.get(queueId) || [];
     waitTimes.push(waitTime);
     this.waitTimes.set(queueId, waitTimes.slice(-1000)); // Keep last 1000
   }
 
-  recordProcessing(item: QueueItem<any>, processingTime: number, success: boolean): void {
+  recordProcessing(
+    item: QueueItem<any>,
+    processingTime: number,
+    success: boolean,
+  ): void {
     const queueId = item.tier;
-    
+
     if (success) {
       const times = this.processingTimes.get(queueId) || [];
       times.push(processingTime);
@@ -607,17 +655,20 @@ class QueueMetricsCollector {
     const enqueued = this.enqueueCounts.get(queueId) || 0;
     const processed = this.dequeueCounts.get(queueId) || 0;
     const failed = this.failures.get(queueId) || 0;
-    
+
     const waitTimes = this.waitTimes.get(queueId) || [];
     const processingTimes = this.processingTimes.get(queueId) || [];
-    
-    const avgWaitTime = waitTimes.length > 0 
-      ? waitTimes.reduce((sum, time) => sum + time, 0) / waitTimes.length 
-      : 0;
-      
-    const avgProcessingTime = processingTimes.length > 0 
-      ? processingTimes.reduce((sum, time) => sum + time, 0) / processingTimes.length 
-      : 0;
+
+    const avgWaitTime =
+      waitTimes.length > 0
+        ? waitTimes.reduce((sum, time) => sum + time, 0) / waitTimes.length
+        : 0;
+
+    const avgProcessingTime =
+      processingTimes.length > 0
+        ? processingTimes.reduce((sum, time) => sum + time, 0) /
+          processingTimes.length
+        : 0;
 
     return {
       totalItems: enqueued,
@@ -627,7 +678,7 @@ class QueueMetricsCollector {
       averageProcessingTime: avgProcessingTime,
       throughputPerSecond: processed / 60, // Simplified
       fairnessScore: 0.85, // Calculated elsewhere
-      tierDistribution: new Map([[queueId, 1]])
+      tierDistribution: new Map([[queueId, 1]]),
     };
   }
 }
@@ -646,9 +697,9 @@ class StarvationPreventer {
 
 class AdaptiveScheduler {
   async recordOutcome(
-    item: QueueItem<any>, 
-    result: ProcessingResult<any>, 
-    processingTime: number
+    item: QueueItem<any>,
+    result: ProcessingResult<any>,
+    processingTime: number,
   ): Promise<void> {
     // Record processing outcomes for learning
   }
@@ -665,16 +716,19 @@ class AdaptiveScheduler {
       fairnessViolations: 0.05,
       starvationIncidents: 0,
       suggestedWeights: new Map([
-        ['free', 1],
-        ['basic', 2],
-        ['premium', 4],
-        ['enterprise', 8]
+        ["free", 1],
+        ["basic", 2],
+        ["premium", 4],
+        ["enterprise", 8],
       ]),
-      potentialImprovement: 0.15
+      potentialImprovement: 0.15,
     };
   }
 
-  async prepareBurstHandling(expectedLoad: number, duration: number): Promise<void> {
+  async prepareBurstHandling(
+    expectedLoad: number,
+    duration: number,
+  ): Promise<void> {
     // Prepare for burst traffic
   }
 
@@ -689,5 +743,5 @@ export {
   QueueLoadBalancer,
   QueueMetricsCollector,
   StarvationPreventer,
-  AdaptiveScheduler
+  AdaptiveScheduler,
 };

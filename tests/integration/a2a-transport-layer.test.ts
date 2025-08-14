@@ -6,8 +6,8 @@
  */
 
 import { jest } from '@jest/globals';
-import { A2ATransportLayer, TransportConnection } from '../../src/protocols/a2a/core/a2a-transport-layer.js';
-import { TransportConfig, A2AMessage, A2ANotification, A2AResponse } from '../../src/types/a2a.js';
+import { A2ATransportLayer, TransportConnection } from '../../src/protocols/a2a/core/a2a-transport-layer';
+import { TransportConfig, A2AMessage, A2ANotification, A2AResponse } from '../../src/types/a2a';
 
 describe('A2A Transport Layer Integration', () => {
   let transportLayer: A2ATransportLayer;

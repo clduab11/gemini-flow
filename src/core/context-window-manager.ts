@@ -1,24 +1,24 @@
 /**
  * Context Window Manager
- * 
+ *
  * Advanced context window management for 1M+ tokens
  * with smart truncation, session persistence, and conversation analysis
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import { Logger } from '../utils/logger.js';
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import { Logger } from "../utils/logger.js";
 
 export interface ContextWindowOptions {
   maxTokens?: number;
   sessionPath?: string;
-  truncationStrategy?: 'sliding' | 'importance' | 'hybrid';
+  truncationStrategy?: "sliding" | "importance" | "hybrid";
   compressionEnabled?: boolean;
 }
 
 export interface ConversationMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
   tokens: number;
@@ -52,21 +52,21 @@ export class ContextWindowManager {
   private messages: ConversationMessage[] = [];
   private maxTokens: number;
   private sessionPath: string;
-  private truncationStrategy: 'sliding' | 'importance' | 'hybrid';
+  private truncationStrategy: "sliding" | "importance" | "hybrid";
   private compressionEnabled: boolean;
   private logger: Logger;
 
   constructor(options: ContextWindowOptions = {}) {
     this.maxTokens = options.maxTokens || 1000000; // 1M tokens default
     this.sessionPath = options.sessionPath || this.getDefaultSessionPath();
-    this.truncationStrategy = options.truncationStrategy || 'hybrid';
+    this.truncationStrategy = options.truncationStrategy || "hybrid";
     this.compressionEnabled = options.compressionEnabled || false;
-    this.logger = new Logger('ContextWindowManager');
+    this.logger = new Logger("ContextWindowManager");
 
-    this.logger.debug('Context window manager initialized', {
+    this.logger.debug("Context window manager initialized", {
       maxTokens: this.maxTokens,
       sessionPath: this.sessionPath,
-      truncationStrategy: this.truncationStrategy
+      truncationStrategy: this.truncationStrategy,
     });
   }
 
@@ -75,15 +75,15 @@ export class ContextWindowManager {
    */
   private getDefaultSessionPath(): string {
     const homeDir = os.homedir();
-    return path.join(homeDir, '.gemini-flow', 'sessions');
+    return path.join(homeDir, ".gemini-flow", "sessions");
   }
 
   /**
    * Add message to context
    */
-  async addMessage(role: 'user' | 'assistant', content: string): Promise<void> {
-    if (!content || typeof content !== 'string') {
-      throw new Error('Message content must be a non-empty string');
+  async addMessage(role: "user" | "assistant", content: string): Promise<void> {
+    if (!content || typeof content !== "string") {
+      throw new Error("Message content must be a non-empty string");
     }
 
     const tokens = this.estimateTokens(content);
@@ -95,8 +95,8 @@ export class ContextWindowManager {
       metadata: {
         importance: this.calculateImportance(content, role),
         topic: this.extractTopics(content),
-        messageId: this.generateMessageId()
-      }
+        messageId: this.generateMessageId(),
+      },
     };
 
     this.messages.push(message);
@@ -106,11 +106,11 @@ export class ContextWindowManager {
       await this.autoTruncate();
     }
 
-    this.logger.debug('Message added', {
+    this.logger.debug("Message added", {
       role,
       tokens,
       totalTokens: this.getTotalTokens(),
-      messageCount: this.messages.length
+      messageCount: this.messages.length,
     });
   }
 
@@ -147,7 +147,7 @@ export class ContextWindowManager {
    */
   clearContext(): void {
     this.messages = [];
-    this.logger.debug('Context cleared');
+    this.logger.debug("Context cleared");
   }
 
   /**
@@ -161,33 +161,33 @@ export class ContextWindowManager {
       return {
         removedMessages: 0,
         tokensSaved: 0,
-        strategy: 'none'
+        strategy: "none",
       };
     }
 
-    this.logger.info('Truncating context', {
+    this.logger.info("Truncating context", {
       currentTokens,
       targetTokens,
-      strategy: this.truncationStrategy
+      strategy: this.truncationStrategy,
     });
 
     let result: TruncationResult;
 
     switch (this.truncationStrategy) {
-      case 'sliding':
+      case "sliding":
         result = await this.slidingWindowTruncation(targetTokens);
         break;
-      case 'importance':
+      case "importance":
         result = await this.importanceBasedTruncation(targetTokens);
         break;
-      case 'hybrid':
+      case "hybrid":
         result = await this.hybridTruncation(targetTokens);
         break;
       default:
         result = await this.slidingWindowTruncation(targetTokens);
     }
 
-    this.logger.info('Context truncated', result);
+    this.logger.info("Context truncated", result);
     return result;
   }
 
@@ -202,7 +202,9 @@ export class ContextWindowManager {
   /**
    * Sliding window truncation - remove oldest messages
    */
-  private async slidingWindowTruncation(targetTokens: number): Promise<TruncationResult> {
+  private async slidingWindowTruncation(
+    targetTokens: number,
+  ): Promise<TruncationResult> {
     let removedMessages = 0;
     let tokensSaved = 0;
 
@@ -215,29 +217,36 @@ export class ContextWindowManager {
     return {
       removedMessages,
       tokensSaved,
-      strategy: 'sliding'
+      strategy: "sliding",
     };
   }
 
   /**
    * Importance-based truncation - remove least important messages
    */
-  private async importanceBasedTruncation(targetTokens: number): Promise<TruncationResult> {
+  private async importanceBasedTruncation(
+    targetTokens: number,
+  ): Promise<TruncationResult> {
     let removedMessages = 0;
     let tokensSaved = 0;
 
     // Sort messages by importance (ascending)
     const sortedByImportance = [...this.messages]
       .map((msg, index) => ({ ...msg, originalIndex: index }))
-      .sort((a, b) => (a.metadata?.importance || 0) - (b.metadata?.importance || 0));
+      .sort(
+        (a, b) => (a.metadata?.importance || 0) - (b.metadata?.importance || 0),
+      );
 
     // Remove least important messages until we reach target
-    while (this.getTotalTokens() > targetTokens && sortedByImportance.length > 1) {
+    while (
+      this.getTotalTokens() > targetTokens &&
+      sortedByImportance.length > 1
+    ) {
       const leastImportant = sortedByImportance.shift()!;
-      const index = this.messages.findIndex(msg => 
-        msg.metadata?.messageId === leastImportant.metadata?.messageId
+      const index = this.messages.findIndex(
+        (msg) => msg.metadata?.messageId === leastImportant.metadata?.messageId,
       );
-      
+
       if (index !== -1) {
         const removed = this.messages.splice(index, 1)[0];
         removedMessages++;
@@ -248,25 +257,27 @@ export class ContextWindowManager {
     return {
       removedMessages,
       tokensSaved,
-      strategy: 'importance'
+      strategy: "importance",
     };
   }
 
   /**
    * Hybrid truncation - combination of sliding window and importance
    */
-  private async hybridTruncation(targetTokens: number): Promise<TruncationResult> {
+  private async hybridTruncation(
+    targetTokens: number,
+  ): Promise<TruncationResult> {
     let removedMessages = 0;
     let tokensSaved = 0;
 
     // First pass: remove oldest low-importance messages
     const threshold = this.calculateImportanceThreshold();
-    
+
     let i = 0;
     while (i < this.messages.length && this.getTotalTokens() > targetTokens) {
       const message = this.messages[i];
       const importance = message.metadata?.importance || 0;
-      
+
       // Remove if old (first 30%) and low importance
       if (i < this.messages.length * 0.3 && importance < threshold) {
         const removed = this.messages.splice(i, 1)[0];
@@ -287,7 +298,7 @@ export class ContextWindowManager {
     return {
       removedMessages,
       tokensSaved,
-      strategy: 'hybrid'
+      strategy: "hybrid",
     };
   }
 
@@ -296,9 +307,9 @@ export class ContextWindowManager {
    */
   private calculateImportanceThreshold(): number {
     const importanceScores = this.messages
-      .map(msg => msg.metadata?.importance || 0)
+      .map((msg) => msg.metadata?.importance || 0)
       .sort((a, b) => b - a);
-    
+
     // Use median as threshold
     const middle = Math.floor(importanceScores.length / 2);
     return importanceScores[middle] || 0;
@@ -312,27 +323,30 @@ export class ContextWindowManager {
     const characterCount = text.length;
     const wordCount = text.split(/\s+/).length;
     const punctuationCount = (text.match(/[.,!?;:]/g) || []).length;
-    
+
     // Base estimation: ~4 characters per token for English
     let tokens = Math.ceil(characterCount / 4);
-    
+
     // Adjust for word boundaries (words tend to be tokenized together)
     tokens = Math.max(tokens, Math.ceil(wordCount * 1.3));
-    
+
     // Adjust for punctuation (each punctuation might be a separate token)
     tokens += punctuationCount * 0.5;
-    
+
     return Math.ceil(tokens);
   }
 
   /**
    * Calculate message importance
    */
-  private calculateImportance(content: string, role: 'user' | 'assistant'): number {
+  private calculateImportance(
+    content: string,
+    role: "user" | "assistant",
+  ): number {
     let importance = 0;
 
     // Base importance by role
-    importance += role === 'user' ? 1.0 : 0.8;
+    importance += role === "user" ? 1.0 : 0.8;
 
     // Length factor (longer messages tend to be more important)
     const lengthFactor = Math.min(content.length / 1000, 2.0);
@@ -340,23 +354,37 @@ export class ContextWindowManager {
 
     // Content analysis
     const importantKeywords = [
-      'important', 'critical', 'urgent', 'error', 'problem', 'issue',
-      'help', 'question', 'explain', 'define', 'remember', 'context'
+      "important",
+      "critical",
+      "urgent",
+      "error",
+      "problem",
+      "issue",
+      "help",
+      "question",
+      "explain",
+      "define",
+      "remember",
+      "context",
     ];
-    
-    const keywordMatches = importantKeywords.filter(keyword => 
-      content.toLowerCase().includes(keyword)
+
+    const keywordMatches = importantKeywords.filter((keyword) =>
+      content.toLowerCase().includes(keyword),
     ).length;
-    
+
     importance += keywordMatches * 0.3;
 
     // Code presence (code tends to be important)
-    if (content.includes('```') || content.includes('function') || content.includes('class')) {
+    if (
+      content.includes("```") ||
+      content.includes("function") ||
+      content.includes("class")
+    ) {
       importance += 0.5;
     }
 
     // Question detection
-    if (content.includes('?')) {
+    if (content.includes("?")) {
       importance += 0.3;
     }
 
@@ -368,16 +396,25 @@ export class ContextWindowManager {
    */
   private extractTopics(content: string): string[] {
     const topics: string[] = [];
-    
+
     // Simple keyword extraction
     const techKeywords = [
-      'javascript', 'python', 'react', 'node', 'api', 'database',
-      'machine learning', 'ai', 'cloud', 'docker', 'kubernetes'
+      "javascript",
+      "python",
+      "react",
+      "node",
+      "api",
+      "database",
+      "machine learning",
+      "ai",
+      "cloud",
+      "docker",
+      "kubernetes",
     ];
-    
+
     const lowerContent = content.toLowerCase();
-    
-    techKeywords.forEach(keyword => {
+
+    techKeywords.forEach((keyword) => {
       if (lowerContent.includes(keyword)) {
         topics.push(keyword);
       }
@@ -397,17 +434,26 @@ export class ContextWindowManager {
    * Analyze conversation context
    */
   analyzeContext(): ContextAnalysis {
-    const userMessages = this.messages.filter(msg => msg.role === 'user');
-    const assistantMessages = this.messages.filter(msg => msg.role === 'assistant');
-    
-    const totalLength = this.messages.reduce((sum, msg) => sum + msg.content.length, 0);
-    const averageMessageLength = this.messages.length > 0 ? totalLength / this.messages.length : 0;
-    
-    const allTopics = this.messages.flatMap(msg => msg.metadata?.topic || []);
+    const userMessages = this.messages.filter((msg) => msg.role === "user");
+    const assistantMessages = this.messages.filter(
+      (msg) => msg.role === "assistant",
+    );
+
+    const totalLength = this.messages.reduce(
+      (sum, msg) => sum + msg.content.length,
+      0,
+    );
+    const averageMessageLength =
+      this.messages.length > 0 ? totalLength / this.messages.length : 0;
+
+    const allTopics = this.messages.flatMap((msg) => msg.metadata?.topic || []);
     const uniqueTopics = [...new Set(allTopics)];
-    
+
     const userTokens = userMessages.reduce((sum, msg) => sum + msg.tokens, 0);
-    const assistantTokens = assistantMessages.reduce((sum, msg) => sum + msg.tokens, 0);
+    const assistantTokens = assistantMessages.reduce(
+      (sum, msg) => sum + msg.tokens,
+      0,
+    );
 
     return {
       messageCount: this.messages.length,
@@ -418,8 +464,8 @@ export class ContextWindowManager {
       conversationTopics: uniqueTopics,
       tokenDistribution: {
         user: userTokens,
-        assistant: assistantTokens
-      }
+        assistant: assistantTokens,
+      },
     };
   }
 
@@ -441,16 +487,15 @@ export class ContextWindowManager {
         metadata: {
           totalTokens: this.getTotalTokens(),
           messageCount: this.messages.length,
-          analysis: this.analyzeContext()
-        }
+          analysis: this.analyzeContext(),
+        },
       };
 
       fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
-      
-      this.logger.info('Session saved', { sessionId, sessionFile });
 
+      this.logger.info("Session saved", { sessionId, sessionFile });
     } catch (error) {
-      this.logger.error('Failed to save session', { sessionId, error });
+      this.logger.error("Failed to save session", { sessionId, error });
       throw error;
     }
   }
@@ -461,28 +506,27 @@ export class ContextWindowManager {
   async restoreSession(sessionId: string): Promise<void> {
     try {
       const sessionFile = path.join(this.sessionPath, `${sessionId}.json`);
-      
+
       if (!fs.existsSync(sessionFile)) {
-        this.logger.debug('Session file not found', { sessionId });
+        this.logger.debug("Session file not found", { sessionId });
         return;
       }
 
-      const sessionData = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
-      
+      const sessionData = JSON.parse(fs.readFileSync(sessionFile, "utf8"));
+
       // Restore messages with proper date objects
       this.messages = sessionData.messages.map((msg: any) => ({
         ...msg,
-        timestamp: new Date(msg.timestamp)
+        timestamp: new Date(msg.timestamp),
       }));
 
-      this.logger.info('Session restored', { 
-        sessionId, 
+      this.logger.info("Session restored", {
+        sessionId,
         messageCount: this.messages.length,
-        totalTokens: this.getTotalTokens()
+        totalTokens: this.getTotalTokens(),
       });
-
     } catch (error) {
-      this.logger.error('Failed to restore session', { sessionId, error });
+      this.logger.error("Failed to restore session", { sessionId, error });
       throw error;
     }
   }
@@ -491,12 +535,12 @@ export class ContextWindowManager {
    * Export session to file
    */
   async exportSession(exportPath?: string): Promise<string> {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const defaultPath = path.join(
-      process.cwd(), 
-      `gemini-conversation-${timestamp}.json`
+      process.cwd(),
+      `gemini-conversation-${timestamp}.json`,
     );
-    
+
     const targetPath = exportPath || defaultPath;
 
     const exportData = {
@@ -508,14 +552,14 @@ export class ContextWindowManager {
           totalTokens: this.getTotalTokens(),
           messageCount: this.messages.length,
           maxTokens: this.maxTokens,
-          truncationStrategy: this.truncationStrategy
-        }
-      }
+          truncationStrategy: this.truncationStrategy,
+        },
+      },
     };
 
     fs.writeFileSync(targetPath, JSON.stringify(exportData, null, 2));
-    
-    this.logger.info('Session exported', { exportPath: targetPath });
+
+    this.logger.info("Session exported", { exportPath: targetPath });
     return targetPath;
   }
 }

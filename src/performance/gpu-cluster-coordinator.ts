@@ -3,11 +3,11 @@
  * Handles GPU resource allocation, load balancing, and fault tolerance
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 export interface GPUNode {
   id: string;
-  type: 'nvidia' | 'amd' | 'intel' | 'apple';
+  type: "nvidia" | "amd" | "intel" | "apple";
   model: string;
   vram: number; // GB
   cores: number;
@@ -15,7 +15,7 @@ export interface GPUNode {
   utilization: number; // 0-1
   temperature: number; // Celsius
   powerUsage: number; // Watts
-  status: 'online' | 'offline' | 'maintenance' | 'error';
+  status: "online" | "offline" | "maintenance" | "error";
   capabilities: GPUCapability[];
   lastHeartbeat: number;
   location: {
@@ -34,8 +34,8 @@ export interface GPUCapability {
 
 export interface RenderingTask {
   id: string;
-  type: 'video' | 'image' | 'ml' | 'compute';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  type: "video" | "image" | "ml" | "compute";
+  priority: "low" | "medium" | "high" | "critical";
   requirements: {
     vram: number;
     cores: number;
@@ -76,7 +76,10 @@ export interface ClusterMetrics {
 export class GPUClusterCoordinator extends EventEmitter {
   private nodes: Map<string, GPUNode> = new Map();
   private taskQueue: PriorityQueue<RenderingTask> = new PriorityQueue();
-  private activeTasks: Map<string, { task: RenderingTask; nodeId: string; startTime: number }> = new Map();
+  private activeTasks: Map<
+    string,
+    { task: RenderingTask; nodeId: string; startTime: number }
+  > = new Map();
   private loadBalancer: LoadBalancer;
   private faultTolerance: FaultToleranceManager;
   private resourcePool: ResourcePool;
@@ -99,8 +102,11 @@ export class GPUClusterCoordinator extends EventEmitter {
     await this.validateNode(node);
     this.loadBalancer.registerNode(node);
     this.resourcePool.addResources(node);
-    
-    this.emit('nodeAdded', { nodeId: node.id, capabilities: node.capabilities });
+
+    this.emit("nodeAdded", {
+      nodeId: node.id,
+      capabilities: node.capabilities,
+    });
     console.log(`GPU node ${node.id} (${node.model}) added to cluster`);
   }
 
@@ -113,12 +119,12 @@ export class GPUClusterCoordinator extends EventEmitter {
 
     // Gracefully move active tasks to other nodes
     await this.migrateActiveTasks(nodeId);
-    
+
     this.nodes.delete(nodeId);
     this.loadBalancer.unregisterNode(nodeId);
     this.resourcePool.removeResources(nodeId);
-    
-    this.emit('nodeRemoved', { nodeId });
+
+    this.emit("nodeRemoved", { nodeId });
     console.log(`GPU node ${nodeId} removed from cluster`);
   }
 
@@ -128,14 +134,14 @@ export class GPUClusterCoordinator extends EventEmitter {
   async submitTask(task: RenderingTask): Promise<string> {
     // Validate task requirements
     await this.validateTask(task);
-    
+
     // Add to priority queue
     this.taskQueue.enqueue(task, this.calculateTaskPriority(task));
-    
+
     // Attempt immediate scheduling if resources available
     await this.scheduleNextTask();
-    
-    this.emit('taskSubmitted', { taskId: task.id, priority: task.priority });
+
+    this.emit("taskSubmitted", { taskId: task.id, priority: task.priority });
     return task.id;
   }
 
@@ -158,33 +164,44 @@ export class GPUClusterCoordinator extends EventEmitter {
    */
   async executeTask(task: RenderingTask, nodeId: string): Promise<any> {
     const node = this.nodes.get(nodeId);
-    if (!node || node.status !== 'online') {
+    if (!node || node.status !== "online") {
       throw new Error(`Node ${nodeId} not available for execution`);
     }
 
     // Reserve resources
     await this.resourcePool.reserveResources(nodeId, task.requirements);
-    
+
     try {
       // Track active task
       this.activeTasks.set(task.id, {
         task,
         nodeId,
-        startTime: Date.now()
+        startTime: Date.now(),
       });
 
       // Execute task with monitoring
       const result = await this.executeWithMonitoring(task, node);
-      
-      // Update metrics
-      this.updateNodeMetrics(nodeId, task, Date.now() - this.activeTasks.get(task.id)!.startTime);
-      
-      this.emit('taskCompleted', { taskId: task.id, nodeId, duration: Date.now() - this.activeTasks.get(task.id)!.startTime });
-      return result;
 
+      // Update metrics
+      this.updateNodeMetrics(
+        nodeId,
+        task,
+        Date.now() - this.activeTasks.get(task.id)!.startTime,
+      );
+
+      this.emit("taskCompleted", {
+        taskId: task.id,
+        nodeId,
+        duration: Date.now() - this.activeTasks.get(task.id)!.startTime,
+      });
+      return result;
     } catch (error) {
-      this.emit('taskFailed', { taskId: task.id, nodeId, error: error.message });
-      
+      this.emit("taskFailed", {
+        taskId: task.id,
+        nodeId,
+        error: error.message,
+      });
+
       // Handle failure with fault tolerance
       return await this.faultTolerance.handleTaskFailure(task, nodeId, error);
     } finally {
@@ -199,19 +216,21 @@ export class GPUClusterCoordinator extends EventEmitter {
    */
   getClusterMetrics(): ClusterMetrics {
     const nodes = Array.from(this.nodes.values());
-    const activeNodes = nodes.filter(n => n.status === 'online');
-    
+    const activeNodes = nodes.filter((n) => n.status === "online");
+
     return {
       totalNodes: nodes.length,
       activeNodes: activeNodes.length,
       totalVRAM: nodes.reduce((sum, n) => sum + n.vram, 0),
       availableVRAM: this.resourcePool.getAvailableVRAM(),
-      averageUtilization: activeNodes.reduce((sum, n) => sum + n.utilization, 0) / activeNodes.length,
+      averageUtilization:
+        activeNodes.reduce((sum, n) => sum + n.utilization, 0) /
+        activeNodes.length,
       powerConsumption: nodes.reduce((sum, n) => sum + n.powerUsage, 0),
       tasksCompleted: this.scheduler.getCompletedTaskCount(),
       tasksQueued: this.taskQueue.size(),
       averageLatency: this.calculateAverageLatency(),
-      errorRate: this.faultTolerance.getErrorRate()
+      errorRate: this.faultTolerance.getErrorRate(),
     };
   }
 
@@ -222,7 +241,7 @@ export class GPUClusterCoordinator extends EventEmitter {
     const metrics = this.getClusterMetrics();
     const queueLength = this.taskQueue.size();
     const utilizationThreshold = 0.8;
-    
+
     if (metrics.averageUtilization > utilizationThreshold && queueLength > 10) {
       // Scale up: request additional nodes
       await this.requestAdditionalNodes();
@@ -238,17 +257,20 @@ export class GPUClusterCoordinator extends EventEmitter {
   async monitorHealth(): Promise<void> {
     for (const [nodeId, node] of this.nodes.entries()) {
       // Check heartbeat
-      if (Date.now() - node.lastHeartbeat > 30000) { // 30 seconds
+      if (Date.now() - node.lastHeartbeat > 30000) {
+        // 30 seconds
         await this.handleNodeTimeout(nodeId);
       }
-      
+
       // Check temperature
-      if (node.temperature > 85) { // Critical temperature
+      if (node.temperature > 85) {
+        // Critical temperature
         await this.handleThermalThrottling(nodeId);
       }
-      
+
       // Check utilization patterns
-      if (node.utilization > 0.95) { // Overloaded
+      if (node.utilization > 0.95) {
+        // Overloaded
         await this.redistributeTasks(nodeId);
       }
     }
@@ -260,12 +282,12 @@ export class GPUClusterCoordinator extends EventEmitter {
   async predictResourceNeeds(): Promise<ResourcePrediction> {
     const historicalData = this.scheduler.getHistoricalData();
     const currentTrends = this.analyzeCurrentTrends();
-    
+
     return {
       nextHour: this.predictHourlyNeeds(historicalData, currentTrends),
       nextDay: this.predictDailyNeeds(historicalData, currentTrends),
       peakTimes: this.identifyPeakTimes(historicalData),
-      recommendations: this.generateScalingRecommendations(currentTrends)
+      recommendations: this.generateScalingRecommendations(currentTrends),
     };
   }
 
@@ -293,74 +315,89 @@ export class GPUClusterCoordinator extends EventEmitter {
 
   private calculateTaskPriority(task: RenderingTask): number {
     const priorityWeights = { low: 1, medium: 2, high: 3, critical: 4 };
-    const urgencyWeight = Math.max(0, 1 - (task.qos.deadline - Date.now()) / (24 * 60 * 60 * 1000));
-    
+    const urgencyWeight = Math.max(
+      0,
+      1 - (task.qos.deadline - Date.now()) / (24 * 60 * 60 * 1000),
+    );
+
     return priorityWeights[task.priority] + urgencyWeight;
   }
 
   private findSuitableNodes(task: RenderingTask): GPUNode[] {
-    return Array.from(this.nodes.values()).filter(node => 
-      node.status === 'online' &&
-      node.vram >= task.requirements.vram &&
-      node.cores >= task.requirements.cores &&
-      this.hasRequiredCapabilities(node, task.requirements.capabilities)
+    return Array.from(this.nodes.values()).filter(
+      (node) =>
+        node.status === "online" &&
+        node.vram >= task.requirements.vram &&
+        node.cores >= task.requirements.cores &&
+        this.hasRequiredCapabilities(node, task.requirements.capabilities),
     );
   }
 
   private hasRequiredCapabilities(node: GPUNode, required: string[]): boolean {
-    const nodeCapabilities = node.capabilities.map(c => c.name);
-    return required.every(cap => nodeCapabilities.includes(cap));
+    const nodeCapabilities = node.capabilities.map((c) => c.name);
+    return required.every((cap) => nodeCapabilities.includes(cap));
   }
 
-  private determineBalancingStrategy(task: RenderingTask): 'round-robin' | 'least-loaded' | 'capability-based' | 'cost-optimized' {
-    if (task.priority === 'critical') {
-      return 'least-loaded';
+  private determineBalancingStrategy(
+    task: RenderingTask,
+  ): "round-robin" | "least-loaded" | "capability-based" | "cost-optimized" {
+    if (task.priority === "critical") {
+      return "least-loaded";
     } else if (task.requirements.capabilities.length > 0) {
-      return 'capability-based';
+      return "capability-based";
     } else if (task.qos.costBudget < 100) {
-      return 'cost-optimized';
+      return "cost-optimized";
     } else {
-      return 'round-robin';
+      return "round-robin";
     }
   }
 
   private async scheduleNextTask(): Promise<void> {
     if (this.taskQueue.isEmpty()) return;
-    
+
     const nextTask = this.taskQueue.peek();
     if (!nextTask) return;
-    
+
     const optimalNode = await this.selectOptimalNode(nextTask);
     if (optimalNode) {
       const task = this.taskQueue.dequeue()!;
-      this.executeTask(task, optimalNode).catch(error => {
+      this.executeTask(task, optimalNode).catch((error) => {
         console.error(`Task execution failed: ${error.message}`);
       });
     }
   }
 
-  private async executeWithMonitoring(task: RenderingTask, node: GPUNode): Promise<any> {
+  private async executeWithMonitoring(
+    task: RenderingTask,
+    node: GPUNode,
+  ): Promise<any> {
     // Implementation for monitored task execution
     const startTime = Date.now();
-    
+
     try {
       // Simulate task execution (replace with actual GPU computation)
-      await new Promise(resolve => setTimeout(resolve, task.requirements.estimatedDuration));
-      
+      await new Promise((resolve) =>
+        setTimeout(resolve, task.requirements.estimatedDuration),
+      );
+
       return {
         success: true,
         duration: Date.now() - startTime,
-        output: `Processed ${task.type} task on ${node.model}`
+        output: `Processed ${task.type} task on ${node.model}`,
       };
     } catch (error) {
       throw new Error(`Execution failed on node ${node.id}: ${error.message}`);
     }
   }
 
-  private updateNodeMetrics(nodeId: string, task: RenderingTask, duration: number): void {
+  private updateNodeMetrics(
+    nodeId: string,
+    task: RenderingTask,
+    duration: number,
+  ): void {
     const node = this.nodes.get(nodeId);
     if (!node) return;
-    
+
     // Update utilization, temperature, etc.
     node.utilization = Math.min(1, node.utilization + 0.1);
     node.temperature += 2; // Simulated temperature increase
@@ -371,7 +408,7 @@ export class GPUClusterCoordinator extends EventEmitter {
     const tasksToMigrate = Array.from(this.activeTasks.entries())
       .filter(([_, info]) => info.nodeId === nodeId)
       .map(([taskId, info]) => info.task);
-    
+
     for (const task of tasksToMigrate) {
       const alternativeNode = await this.selectOptimalNode(task);
       if (alternativeNode) {
@@ -386,9 +423,9 @@ export class GPUClusterCoordinator extends EventEmitter {
   private async handleNodeTimeout(nodeId: string): Promise<void> {
     const node = this.nodes.get(nodeId);
     if (node) {
-      node.status = 'offline';
+      node.status = "offline";
       await this.migrateActiveTasks(nodeId);
-      this.emit('nodeTimeout', { nodeId });
+      this.emit("nodeTimeout", { nodeId });
     }
   }
 
@@ -397,7 +434,7 @@ export class GPUClusterCoordinator extends EventEmitter {
     if (node) {
       // Reduce task allocation to this node
       this.loadBalancer.setNodeWeight(nodeId, 0.5);
-      this.emit('thermalThrottling', { nodeId, temperature: node.temperature });
+      this.emit("thermalThrottling", { nodeId, temperature: node.temperature });
     }
   }
 
@@ -407,7 +444,7 @@ export class GPUClusterCoordinator extends EventEmitter {
   }
 
   private getMaxNodeVRAM(): number {
-    return Math.max(...Array.from(this.nodes.values()).map(n => n.vram));
+    return Math.max(...Array.from(this.nodes.values()).map((n) => n.vram));
   }
 
   private calculateAverageLatency(): number {
@@ -416,11 +453,11 @@ export class GPUClusterCoordinator extends EventEmitter {
   }
 
   private async requestAdditionalNodes(): Promise<void> {
-    this.emit('scaleUpRequest', { reason: 'high-utilization' });
+    this.emit("scaleUpRequest", { reason: "high-utilization" });
   }
 
   private async releaseUnderutilizedNodes(): Promise<void> {
-    this.emit('scaleDownRequest', { reason: 'low-utilization' });
+    this.emit("scaleDownRequest", { reason: "low-utilization" });
   }
 
   private analyzeCurrentTrends(): any {
@@ -428,11 +465,17 @@ export class GPUClusterCoordinator extends EventEmitter {
     return {};
   }
 
-  private predictHourlyNeeds(historical: any, trends: any): ResourcePrediction['nextHour'] {
+  private predictHourlyNeeds(
+    historical: any,
+    trends: any,
+  ): ResourcePrediction["nextHour"] {
     return { vram: 100, cores: 50, estimatedTasks: 500 };
   }
 
-  private predictDailyNeeds(historical: any, trends: any): ResourcePrediction['nextDay'] {
+  private predictDailyNeeds(
+    historical: any,
+    trends: any,
+  ): ResourcePrediction["nextDay"] {
     return { vram: 2000, cores: 1000, estimatedTasks: 10000 };
   }
 
@@ -441,7 +484,10 @@ export class GPUClusterCoordinator extends EventEmitter {
   }
 
   private generateScalingRecommendations(trends: any): string[] {
-    return ['Add 2 high-memory nodes', 'Consider GPU instances in different regions'];
+    return [
+      "Add 2 high-memory nodes",
+      "Consider GPU instances in different regions",
+    ];
   }
 }
 
@@ -487,30 +533,30 @@ class LoadBalancer {
   }
 
   selectNode(
-    candidates: GPUNode[], 
-    strategy: string, 
-    task: RenderingTask
+    candidates: GPUNode[],
+    strategy: string,
+    task: RenderingTask,
   ): string | null {
     if (candidates.length === 0) return null;
 
     switch (strategy) {
-      case 'least-loaded':
-        return candidates.reduce((best, current) => 
-          current.utilization < best.utilization ? current : best
+      case "least-loaded":
+        return candidates.reduce((best, current) =>
+          current.utilization < best.utilization ? current : best,
         ).id;
-      
-      case 'capability-based':
+
+      case "capability-based":
         return candidates.reduce((best, current) => {
           const bestScore = this.calculateCapabilityScore(best, task);
           const currentScore = this.calculateCapabilityScore(current, task);
           return currentScore > bestScore ? current : best;
         }).id;
-      
-      case 'cost-optimized':
-        return candidates.reduce((best, current) => 
-          current.powerUsage < best.powerUsage ? current : best
+
+      case "cost-optimized":
+        return candidates.reduce((best, current) =>
+          current.powerUsage < best.powerUsage ? current : best,
         ).id;
-      
+
       default: // round-robin
         return candidates[Math.floor(Math.random() * candidates.length)].id;
     }
@@ -518,7 +564,7 @@ class LoadBalancer {
 
   private calculateCapabilityScore(node: GPUNode, task: RenderingTask): number {
     return node.capabilities
-      .filter(cap => task.requirements.capabilities.includes(cap.name))
+      .filter((cap) => task.requirements.capabilities.includes(cap.name))
       .reduce((score, cap) => score + cap.performance, 0);
   }
 }
@@ -527,17 +573,23 @@ class FaultToleranceManager {
   private errorCounts: Map<string, number> = new Map();
   private retryAttempts: Map<string, number> = new Map();
 
-  async handleTaskFailure(task: RenderingTask, nodeId: string, error: any): Promise<any> {
+  async handleTaskFailure(
+    task: RenderingTask,
+    nodeId: string,
+    error: any,
+  ): Promise<any> {
     const currentRetries = this.retryAttempts.get(task.id) || 0;
-    
+
     if (currentRetries < task.qos.maxRetries) {
       this.retryAttempts.set(task.id, currentRetries + 1);
       // Retry on different node
-      throw new Error('Retrying task on different node');
+      throw new Error("Retrying task on different node");
     } else {
       // Task failed permanently
       this.recordError(nodeId);
-      throw new Error(`Task ${task.id} failed permanently after ${currentRetries} retries`);
+      throw new Error(
+        `Task ${task.id} failed permanently after ${currentRetries} retries`,
+      );
     }
   }
 
@@ -547,15 +599,20 @@ class FaultToleranceManager {
   }
 
   getErrorRate(): number {
-    const totalErrors = Array.from(this.errorCounts.values()).reduce((sum, count) => sum + count, 0);
+    const totalErrors = Array.from(this.errorCounts.values()).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
     const totalNodes = this.errorCounts.size;
     return totalNodes > 0 ? totalErrors / totalNodes : 0;
   }
 }
 
 class ResourcePool {
-  private reservedResources: Map<string, { vram: number; cores: number }> = new Map();
-  private totalResources: Map<string, { vram: number; cores: number }> = new Map();
+  private reservedResources: Map<string, { vram: number; cores: number }> =
+    new Map();
+  private totalResources: Map<string, { vram: number; cores: number }> =
+    new Map();
 
   addResources(node: GPUNode): void {
     this.totalResources.set(node.id, { vram: node.vram, cores: node.cores });
@@ -567,12 +624,20 @@ class ResourcePool {
     this.reservedResources.delete(nodeId);
   }
 
-  async reserveResources(nodeId: string, requirements: { vram: number; cores: number }): Promise<void> {
-    const reserved = this.reservedResources.get(nodeId) || { vram: 0, cores: 0 };
+  async reserveResources(
+    nodeId: string,
+    requirements: { vram: number; cores: number },
+  ): Promise<void> {
+    const reserved = this.reservedResources.get(nodeId) || {
+      vram: 0,
+      cores: 0,
+    };
     const total = this.totalResources.get(nodeId) || { vram: 0, cores: 0 };
 
-    if (reserved.vram + requirements.vram > total.vram ||
-        reserved.cores + requirements.cores > total.cores) {
+    if (
+      reserved.vram + requirements.vram > total.vram ||
+      reserved.cores + requirements.cores > total.cores
+    ) {
       throw new Error(`Insufficient resources on node ${nodeId}`);
     }
 
@@ -581,8 +646,14 @@ class ResourcePool {
     this.reservedResources.set(nodeId, reserved);
   }
 
-  async releaseResources(nodeId: string, requirements: { vram: number; cores: number }): Promise<void> {
-    const reserved = this.reservedResources.get(nodeId) || { vram: 0, cores: 0 };
+  async releaseResources(
+    nodeId: string,
+    requirements: { vram: number; cores: number },
+  ): Promise<void> {
+    const reserved = this.reservedResources.get(nodeId) || {
+      vram: 0,
+      cores: 0,
+    };
     reserved.vram = Math.max(0, reserved.vram - requirements.vram);
     reserved.cores = Math.max(0, reserved.cores - requirements.cores);
     this.reservedResources.set(nodeId, reserved);
@@ -591,7 +662,10 @@ class ResourcePool {
   getAvailableVRAM(): number {
     let total = 0;
     for (const [nodeId, totalRes] of this.totalResources.entries()) {
-      const reserved = this.reservedResources.get(nodeId) || { vram: 0, cores: 0 };
+      const reserved = this.reservedResources.get(nodeId) || {
+        vram: 0,
+        cores: 0,
+      };
       total += totalRes.vram - reserved.vram;
     }
     return total;
@@ -636,5 +710,5 @@ export {
   ResourcePool,
   TaskScheduler,
   PriorityQueue,
-  ResourcePrediction
+  ResourcePrediction,
 };

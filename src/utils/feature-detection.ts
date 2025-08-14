@@ -1,6 +1,6 @@
 /**
  * Feature Detection Utility
- * 
+ *
  * Detects available optional dependencies and enterprise features
  * Provides fallback mechanisms for core CLI functionality
  */
@@ -51,18 +51,18 @@ async function detectModule(moduleName: string): Promise<boolean> {
  */
 export async function detectFeatures(): Promise<FeatureDetectionResult> {
   const modules = [
-    '@google-cloud/vertexai',
-    'google-auth-library',
-    'googleapis',
-    'better-sqlite3',
-    'sqlite3',
-    'sql.js'
+    "@google-cloud/vertexai",
+    "google-auth-library",
+    "googleapis",
+    "better-sqlite3",
+    "sqlite3",
+    "sql.js",
   ];
 
   const result: FeatureDetectionResult = {
     available: [],
     missing: [],
-    errors: {}
+    errors: {},
   };
 
   for (const moduleName of modules) {
@@ -87,21 +87,23 @@ export async function detectFeatures(): Promise<FeatureDetectionResult> {
  */
 export async function getFeatureCapabilities(): Promise<FeatureCapabilities> {
   const detection = await detectFeatures();
-  
+
   return {
-    googleCloud: detection.available.includes('@google-cloud/vertexai'),
-    vertexAI: detection.available.includes('@google-cloud/vertexai'),
-    googleAuth: detection.available.includes('google-auth-library'),
-    googleAPIs: detection.available.includes('googleapis'),
-    betterSQLite3: detection.available.includes('better-sqlite3'),
-    sqlite3: detection.available.includes('sqlite3'),
-    sqlJS: detection.available.includes('sql.js'),
-    hasAnySQL: detection.available.some(mod => 
-      ['better-sqlite3', 'sqlite3', 'sql.js'].includes(mod)
+    googleCloud: detection.available.includes("@google-cloud/vertexai"),
+    vertexAI: detection.available.includes("@google-cloud/vertexai"),
+    googleAuth: detection.available.includes("google-auth-library"),
+    googleAPIs: detection.available.includes("googleapis"),
+    betterSQLite3: detection.available.includes("better-sqlite3"),
+    sqlite3: detection.available.includes("sqlite3"),
+    sqlJS: detection.available.includes("sql.js"),
+    hasAnySQL: detection.available.some((mod) =>
+      ["better-sqlite3", "sqlite3", "sql.js"].includes(mod),
     ),
-    hasGoogleServices: detection.available.some(mod => 
-      ['@google-cloud/vertexai', 'google-auth-library', 'googleapis'].includes(mod)
-    )
+    hasGoogleServices: detection.available.some((mod) =>
+      ["@google-cloud/vertexai", "google-auth-library", "googleapis"].includes(
+        mod,
+      ),
+    ),
   };
 }
 
@@ -116,12 +118,17 @@ export async function hasEnterpriseFeatures(): Promise<boolean> {
 /**
  * Dynamic import with fallback
  */
-export async function safeImport<T = any>(moduleName: string): Promise<T | null> {
+export async function safeImport<T = any>(
+  moduleName: string,
+): Promise<T | null> {
   try {
     const module = await import(moduleName);
     return module;
   } catch (error) {
-    console.warn(`Optional dependency '${moduleName}' not available:`, error instanceof Error ? error.message : error);
+    console.warn(
+      `Optional dependency '${moduleName}' not available:`,
+      error instanceof Error ? error.message : error,
+    );
     return null;
   }
 }
@@ -130,16 +137,19 @@ export async function safeImport<T = any>(moduleName: string): Promise<T | null>
  * Conditional class instantiation
  */
 export async function conditionalImport<T>(
-  moduleName: string, 
-  factory: (module: any) => T
+  moduleName: string,
+  factory: (module: any) => T,
 ): Promise<T | null> {
   const module = await safeImport(moduleName);
   if (!module) return null;
-  
+
   try {
     return factory(module);
   } catch (error) {
-    console.warn(`Failed to instantiate from '${moduleName}':`, error instanceof Error ? error.message : error);
+    console.warn(
+      `Failed to instantiate from '${moduleName}':`,
+      error instanceof Error ? error.message : error,
+    );
     return null;
   }
 }
@@ -149,11 +159,11 @@ export async function conditionalImport<T>(
  */
 export async function getRecommendedSQLiteImpl(): Promise<string | null> {
   const capabilities = await getFeatureCapabilities();
-  
-  if (capabilities.betterSQLite3) return 'better-sqlite3';
-  if (capabilities.sqlite3) return 'sqlite3';
-  if (capabilities.sqlJS) return 'sql.js';
-  
+
+  if (capabilities.betterSQLite3) return "better-sqlite3";
+  if (capabilities.sqlite3) return "sqlite3";
+  if (capabilities.sqlJS) return "sql.js";
+
   return null;
 }
 

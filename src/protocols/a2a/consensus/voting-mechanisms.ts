@@ -3,14 +3,14 @@
  * Implements various voting algorithms including weighted, quadratic, and liquid democracy
  */
 
-import { EventEmitter } from 'events';
-import { createHash } from 'crypto';
+import { EventEmitter } from "events";
+import { createHash } from "crypto";
 
 export interface Vote {
   id: string;
   voterId: string;
   proposalId: string;
-  decision: 'approve' | 'reject' | 'abstain';
+  decision: "approve" | "reject" | "abstain";
   weight: number;
   strength?: number; // For quadratic voting
   timestamp: Date;
@@ -29,16 +29,16 @@ export interface VotingProposal {
   votingType: VotingType;
   minimumParticipation: number;
   passingThreshold: number;
-  status: 'active' | 'passed' | 'rejected' | 'expired';
+  status: "active" | "passed" | "rejected" | "expired";
 }
 
-export type VotingType = 
-  | 'simple-majority' 
-  | 'weighted' 
-  | 'quadratic' 
-  | 'approval' 
-  | 'liquid-democracy'
-  | 'stake-weighted';
+export type VotingType =
+  | "simple-majority"
+  | "weighted"
+  | "quadratic"
+  | "approval"
+  | "liquid-democracy"
+  | "stake-weighted";
 
 export interface Voter {
   id: string;
@@ -83,58 +83,62 @@ export class VotingMechanisms extends EventEmitter {
   public registerVoter(voter: Voter): void {
     this.voters.set(voter.id, voter);
     this.delegationGraph.set(voter.id, new Set());
-    this.emit('voter-registered', voter);
+    this.emit("voter-registered", voter);
   }
 
   /**
    * Create a new voting proposal
    */
-  public async createProposal(proposal: Omit<VotingProposal, 'id' | 'status'>): Promise<string> {
+  public async createProposal(
+    proposal: Omit<VotingProposal, "id" | "status">,
+  ): Promise<string> {
     const proposalId = this.generateProposalId(proposal);
     const fullProposal: VotingProposal = {
       ...proposal,
       id: proposalId,
-      status: 'active'
+      status: "active",
     };
 
     this.proposals.set(proposalId, fullProposal);
     this.votes.set(proposalId, []);
-    
+
     // Set up automatic finalization
     setTimeout(() => {
       this.finalizeProposal(proposalId);
     }, proposal.deadline.getTime() - Date.now());
 
-    this.emit('proposal-created', fullProposal);
+    this.emit("proposal-created", fullProposal);
     return proposalId;
   }
 
   /**
    * Cast a vote on a proposal
    */
-  public async castVote(vote: Omit<Vote, 'id' | 'signature'>): Promise<boolean> {
+  public async castVote(
+    vote: Omit<Vote, "id" | "signature">,
+  ): Promise<boolean> {
     const proposal = this.proposals.get(vote.proposalId);
     if (!proposal) {
-      throw new Error('Proposal not found');
+      throw new Error("Proposal not found");
     }
 
-    if (proposal.status !== 'active') {
-      throw new Error('Proposal is not active');
+    if (proposal.status !== "active") {
+      throw new Error("Proposal is not active");
     }
 
     if (new Date() > proposal.deadline) {
-      throw new Error('Voting deadline has passed');
+      throw new Error("Voting deadline has passed");
     }
 
     const voter = this.voters.get(vote.voterId);
     if (!voter) {
-      throw new Error('Voter not registered');
+      throw new Error("Voter not registered");
     }
 
     // Check for duplicate votes
     const existingVotes = this.votes.get(vote.proposalId) || [];
-    if (existingVotes.some(v => v.voterId === vote.voterId)) {
-      throw new Error('Voter has already voted on this proposal');
+    if (existingVotes.some((v) => v.voterId === vote.voterId)) {
+      throw new Error("Voter has already voted on this proposal");
     }
 
     // Validate vote based on voting type
@@ -146,17 +150,17 @@ export class VotingMechanisms extends EventEmitter {
     const fullVote: Vote = {
       ...vote,
       id: this.generateVoteId(vote),
-      signature: this.signVote(vote)
+      signature: this.signVote(vote),
     };
 
     this.votes.get(vote.proposalId)!.push(fullVote);
-    
+
     // Handle liquid democracy delegation
-    if (proposal.votingType === 'liquid-democracy') {
+    if (proposal.votingType === "liquid-democracy") {
       await this.processDelegatedVotes(fullVote, proposal);
     }
 
-    this.emit('vote-cast', fullVote);
+    this.emit("vote-cast", fullVote);
     return true;
   }
 
@@ -164,18 +168,18 @@ export class VotingMechanisms extends EventEmitter {
    * Validate a vote based on the voting mechanism
    */
   private async validateVote(
-    vote: Omit<Vote, 'id' | 'signature'>, 
-    proposal: VotingProposal, 
-    voter: Voter
+    vote: Omit<Vote, "id" | "signature">,
+    proposal: VotingProposal,
+    voter: Voter,
   ): Promise<boolean> {
     switch (proposal.votingType) {
-      case 'quadratic':
+      case "quadratic":
         return this.validateQuadraticVote(vote, voter);
-      case 'stake-weighted':
+      case "stake-weighted":
         return this.validateStakeWeightedVote(vote, voter, proposal);
-      case 'weighted':
+      case "weighted":
         return vote.weight <= voter.weight;
-      case 'liquid-democracy':
+      case "liquid-democracy":
         return this.validateLiquidDemocracyVote(vote, voter);
       default:
         return true;
@@ -185,7 +189,10 @@ export class VotingMechanisms extends EventEmitter {
   /**
    * Validate quadratic voting constraints
    */
-  private validateQuadraticVote(vote: Omit<Vote, 'id' | 'signature'>, voter: Voter): boolean {
+  private validateQuadraticVote(
+    vote: Omit<Vote, "id" | "signature">,
+    voter: Voter,
+  ): boolean {
     if (!vote.strength) {
       return false;
     }
@@ -198,9 +205,9 @@ export class VotingMechanisms extends EventEmitter {
    * Validate stake-weighted voting
    */
   private validateStakeWeightedVote(
-    vote: Omit<Vote, 'id' | 'signature'>, 
-    voter: Voter, 
-    proposal: VotingProposal
+    vote: Omit<Vote, "id" | "signature">,
+    voter: Voter,
+    proposal: VotingProposal,
   ): boolean {
     const stakes = voter.stakes.get(proposal.id) || 0;
     return vote.weight <= stakes;
@@ -210,8 +217,8 @@ export class VotingMechanisms extends EventEmitter {
    * Validate liquid democracy vote
    */
   private validateLiquidDemocracyVote(
-    vote: Omit<Vote, 'id' | 'signature'>, 
-    voter: Voter
+    vote: Omit<Vote, "id" | "signature">,
+    voter: Voter,
   ): boolean {
     // Can't vote if delegated to someone else
     return !voter.delegatedTo;
@@ -220,7 +227,10 @@ export class VotingMechanisms extends EventEmitter {
   /**
    * Process delegated votes in liquid democracy
    */
-  private async processDelegatedVotes(vote: Vote, proposal: VotingProposal): Promise<void> {
+  private async processDelegatedVotes(
+    vote: Vote,
+    proposal: VotingProposal,
+  ): Promise<void> {
     const voter = this.voters.get(vote.voterId)!;
     const delegates = voter.delegates;
 
@@ -239,11 +249,11 @@ export class VotingMechanisms extends EventEmitter {
         weight: delegate.weight,
         timestamp: new Date(),
         signature: this.signVote({ ...vote, voterId: delegateId }),
-        metadata: { delegatedFrom: vote.voterId }
+        metadata: { delegatedFrom: vote.voterId },
       };
 
       this.votes.get(vote.proposalId)!.push(delegatedVote);
-      this.emit('delegated-vote-cast', delegatedVote);
+      this.emit("delegated-vote-cast", delegatedVote);
     }
   }
 
@@ -265,15 +275,18 @@ export class VotingMechanisms extends EventEmitter {
 
     delegator.delegatedTo = delegateId;
     delegate.delegates.add(delegatorId);
-    
-    this.emit('vote-delegated', { delegatorId, delegateId });
+
+    this.emit("vote-delegated", { delegatorId, delegateId });
     return true;
   }
 
   /**
    * Check for circular delegation
    */
-  private wouldCreateCircularDelegation(delegatorId: string, delegateId: string): boolean {
+  private wouldCreateCircularDelegation(
+    delegatorId: string,
+    delegateId: string,
+  ): boolean {
     const visited = new Set<string>();
     let current = delegateId;
 
@@ -281,11 +294,11 @@ export class VotingMechanisms extends EventEmitter {
       visited.add(current);
       const voter = this.voters.get(current);
       if (!voter) break;
-      
+
       if (voter.delegatedTo === delegatorId) {
         return true;
       }
-      current = voter.delegatedTo || '';
+      current = voter.delegatedTo || "";
     }
 
     return false;
@@ -297,11 +310,11 @@ export class VotingMechanisms extends EventEmitter {
   public calculateResults(proposalId: string): VotingResult {
     const proposal = this.proposals.get(proposalId);
     if (!proposal) {
-      throw new Error('Proposal not found');
+      throw new Error("Proposal not found");
     }
 
     const votes = this.votes.get(proposalId) || [];
-    
+
     let totalVotes = 0;
     let approveVotes = 0;
     let rejectVotes = 0;
@@ -315,15 +328,15 @@ export class VotingMechanisms extends EventEmitter {
       totalWeight += vote.weight;
 
       switch (vote.decision) {
-        case 'approve':
+        case "approve":
           approveVotes++;
           approveWeight += this.calculateVoteWeight(vote, proposal);
           break;
-        case 'reject':
+        case "reject":
           rejectVotes++;
           rejectWeight += this.calculateVoteWeight(vote, proposal);
           break;
-        case 'abstain':
+        case "abstain":
           abstainVotes++;
           break;
       }
@@ -331,13 +344,13 @@ export class VotingMechanisms extends EventEmitter {
 
     const totalRegisteredVoters = this.voters.size;
     const participationRate = totalVotes / totalRegisteredVoters;
-    
+
     const passed = this.determineOutcome(
-      proposal, 
-      approveWeight, 
-      rejectWeight, 
-      totalWeight, 
-      participationRate
+      proposal,
+      approveWeight,
+      rejectWeight,
+      totalWeight,
+      participationRate,
     );
 
     const result: VotingResult = {
@@ -351,7 +364,7 @@ export class VotingMechanisms extends EventEmitter {
       rejectWeight,
       participationRate,
       passed,
-      finalizedAt: new Date()
+      finalizedAt: new Date(),
     };
 
     this.results.set(proposalId, result);
@@ -363,12 +376,12 @@ export class VotingMechanisms extends EventEmitter {
    */
   private calculateVoteWeight(vote: Vote, proposal: VotingProposal): number {
     switch (proposal.votingType) {
-      case 'quadratic':
+      case "quadratic":
         return vote.strength || 1;
-      case 'weighted':
-      case 'stake-weighted':
+      case "weighted":
+      case "stake-weighted":
         return vote.weight;
-      case 'liquid-democracy':
+      case "liquid-democracy":
         // Weight includes delegated votes
         const voter = this.voters.get(vote.voterId)!;
         return vote.weight + (vote.metadata?.delegatedWeight || 0);
@@ -385,7 +398,7 @@ export class VotingMechanisms extends EventEmitter {
     approveWeight: number,
     rejectWeight: number,
     totalWeight: number,
-    participationRate: number
+    participationRate: number,
   ): boolean {
     // Check minimum participation
     if (participationRate < proposal.minimumParticipation) {
@@ -402,32 +415,34 @@ export class VotingMechanisms extends EventEmitter {
   public async finalizeProposal(proposalId: string): Promise<VotingResult> {
     const proposal = this.proposals.get(proposalId);
     if (!proposal) {
-      throw new Error('Proposal not found');
+      throw new Error("Proposal not found");
     }
 
-    if (proposal.status !== 'active') {
-      throw new Error('Proposal is not active');
+    if (proposal.status !== "active") {
+      throw new Error("Proposal is not active");
     }
 
     const result = this.calculateResults(proposalId);
-    
-    proposal.status = result.passed ? 'passed' : 'rejected';
-    
+
+    proposal.status = result.passed ? "passed" : "rejected";
+
     // Update voter credits for quadratic voting
-    if (proposal.votingType === 'quadratic') {
+    if (proposal.votingType === "quadratic") {
       await this.updateQuadraticVotingCredits(proposalId);
     }
 
-    this.emit('proposal-finalized', { proposal, result });
+    this.emit("proposal-finalized", { proposal, result });
     return result;
   }
 
   /**
    * Update voice credits after quadratic voting
    */
-  private async updateQuadraticVotingCredits(proposalId: string): Promise<void> {
+  private async updateQuadraticVotingCredits(
+    proposalId: string,
+  ): Promise<void> {
     const votes = this.votes.get(proposalId) || [];
-    
+
     for (const vote of votes) {
       if (vote.strength) {
         const voter = this.voters.get(vote.voterId);
@@ -453,17 +468,26 @@ export class VotingMechanisms extends EventEmitter {
     const proposals = Array.from(this.proposals.values());
     const results = Array.from(this.results.values());
 
-    const activeProposals = proposals.filter(p => p.status === 'active').length;
-    const passedProposals = proposals.filter(p => p.status === 'passed').length;
-    const rejectedProposals = proposals.filter(p => p.status === 'rejected').length;
+    const activeProposals = proposals.filter(
+      (p) => p.status === "active",
+    ).length;
+    const passedProposals = proposals.filter(
+      (p) => p.status === "passed",
+    ).length;
+    const rejectedProposals = proposals.filter(
+      (p) => p.status === "rejected",
+    ).length;
 
-    const averageParticipation = results.length > 0 
-      ? results.reduce((sum, r) => sum + r.participationRate, 0) / results.length 
-      : 0;
+    const averageParticipation =
+      results.length > 0
+        ? results.reduce((sum, r) => sum + r.participationRate, 0) /
+          results.length
+        : 0;
 
     const votingDistribution: Record<string, number> = {};
-    proposals.forEach(p => {
-      votingDistribution[p.votingType] = (votingDistribution[p.votingType] || 0) + 1;
+    proposals.forEach((p) => {
+      votingDistribution[p.votingType] =
+        (votingDistribution[p.votingType] || 0) + 1;
     });
 
     return {
@@ -472,7 +496,7 @@ export class VotingMechanisms extends EventEmitter {
       passedProposals,
       rejectedProposals,
       averageParticipation,
-      votingDistribution
+      votingDistribution,
     };
   }
 
@@ -489,38 +513,48 @@ export class VotingMechanisms extends EventEmitter {
     const unusualPatterns: string[] = [];
 
     // Check for votes cast very close together (potential coordination)
-    const voteTimestamps = votes.map(v => v.timestamp.getTime()).sort();
+    const voteTimestamps = votes.map((v) => v.timestamp.getTime()).sort();
     let coordinated = false;
-    
+
     for (let i = 1; i < voteTimestamps.length; i++) {
-      if (voteTimestamps[i] - voteTimestamps[i-1] < 1000) { // Less than 1 second apart
+      if (voteTimestamps[i] - voteTimestamps[i - 1] < 1000) {
+        // Less than 1 second apart
         coordinated = true;
         break;
       }
     }
 
     // Check for unusual voting patterns
-    const votesByDecision = votes.reduce((acc, vote) => {
-      acc[vote.decision] = (acc[vote.decision] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const votesByDecision = votes.reduce(
+      (acc, vote) => {
+        acc[vote.decision] = (acc[vote.decision] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     if (votesByDecision.approve && votesByDecision.reject) {
       const ratio = votesByDecision.approve / votesByDecision.reject;
       if (ratio > 10 || ratio < 0.1) {
-        unusualPatterns.push('Extreme voting ratio detected');
+        unusualPatterns.push("Extreme voting ratio detected");
       }
     }
 
     // Check for voters with suspiciously high activity
     const voterActivity = new Map<string, number>();
-    votes.forEach(vote => {
-      voterActivity.set(vote.voterId, (voterActivity.get(vote.voterId) || 0) + 1);
+    votes.forEach((vote) => {
+      voterActivity.set(
+        vote.voterId,
+        (voterActivity.get(vote.voterId) || 0) + 1,
+      );
     });
 
     voterActivity.forEach((count, voterId) => {
-      if (count > votes.length * 0.1) { // More than 10% of all votes
-        const suspiciousVotesByVoter = votes.filter(v => v.voterId === voterId);
+      if (count > votes.length * 0.1) {
+        // More than 10% of all votes
+        const suspiciousVotesByVoter = votes.filter(
+          (v) => v.voterId === voterId,
+        );
         suspiciousVotes.push(...suspiciousVotesByVoter);
       }
     });
@@ -528,26 +562,28 @@ export class VotingMechanisms extends EventEmitter {
     return {
       suspiciousVotes,
       coordinatedVoting: coordinated,
-      unusualPatterns
+      unusualPatterns,
     };
   }
 
-  private generateProposalId(proposal: Omit<VotingProposal, 'id' | 'status'>): string {
-    return createHash('sha256')
+  private generateProposalId(
+    proposal: Omit<VotingProposal, "id" | "status">,
+  ): string {
+    return createHash("sha256")
       .update(JSON.stringify(proposal) + Date.now())
-      .digest('hex');
+      .digest("hex");
   }
 
-  private generateVoteId(vote: Omit<Vote, 'id' | 'signature'>): string {
-    return createHash('sha256')
+  private generateVoteId(vote: Omit<Vote, "id" | "signature">): string {
+    return createHash("sha256")
       .update(JSON.stringify(vote) + Date.now())
-      .digest('hex');
+      .digest("hex");
   }
 
-  private signVote(vote: Omit<Vote, 'id' | 'signature'>): string {
-    return createHash('sha256')
+  private signVote(vote: Omit<Vote, "id" | "signature">): string {
+    return createHash("sha256")
       .update(JSON.stringify(vote) + this.consensusSystemId)
-      .digest('hex');
+      .digest("hex");
   }
 
   /**

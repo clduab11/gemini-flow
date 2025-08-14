@@ -1,12 +1,12 @@
 /**
  * Base Model Adapter Interface
- * 
+ *
  * Unified interface for all Google AI model adapters
  * Provides streaming, error handling, and capability detection
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger.js";
 
 export interface ModelCapabilities {
   textGeneration: boolean;
@@ -42,8 +42,8 @@ export interface RequestContext {
   requestId?: string; // Made optional for easier API usage - auto-generated if not provided
   userId?: string;
   sessionId?: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  userTier: 'free' | 'pro' | 'enterprise';
+  priority: "low" | "medium" | "high" | "critical";
+  userTier: "free" | "pro" | "enterprise";
   latencyTarget: number;
   tokenBudget?: number;
   streaming?: boolean;
@@ -109,7 +109,7 @@ export interface AdapterError extends Error {
 }
 
 export interface HealthCheck {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   latency: number;
   lastChecked: Date;
   errors: string[];
@@ -148,7 +148,9 @@ export abstract class BaseModelAdapter extends EventEmitter {
   /**
    * Stream response from model
    */
-  abstract generateStream(request: ModelRequest): AsyncIterableIterator<StreamChunk>;
+  abstract generateStream(
+    request: ModelRequest,
+  ): AsyncIterableIterator<StreamChunk>;
 
   /**
    * Validate request format
@@ -163,63 +165,68 @@ export abstract class BaseModelAdapter extends EventEmitter {
   /**
    * Transform response from model-specific format
    */
-  protected abstract transformResponse(response: any, request: ModelRequest): ModelResponse;
+  protected abstract transformResponse(
+    response: any,
+    request: ModelRequest,
+  ): ModelResponse;
 
   /**
    * Handle model-specific errors
    */
-  protected abstract handleError(error: any, request: ModelRequest): AdapterError;
+  protected abstract handleError(
+    error: any,
+    request: ModelRequest,
+  ): AdapterError;
 
   /**
    * Perform health check
    */
   async healthCheck(): Promise<HealthCheck> {
     const startTime = performance.now();
-    
+
     try {
       const testRequest: ModelRequest = {
-        prompt: 'Hello, this is a health check.',
+        prompt: "Hello, this is a health check.",
         context: {
           requestId: `health-${Date.now()}`,
-          priority: 'low',
-          userTier: 'free',
-          latencyTarget: 5000
+          priority: "low",
+          userTier: "free",
+          latencyTarget: 5000,
         },
         parameters: {
           maxTokens: 10,
-          temperature: 0.1
-        }
+          temperature: 0.1,
+        },
       };
 
       const response = await this.generate(testRequest);
       const latency = performance.now() - startTime;
 
       this.lastHealthCheck = {
-        status: 'healthy',
+        status: "healthy",
         latency,
         lastChecked: new Date(),
         errors: [],
         metadata: {
           responseLength: response.content.length,
-          tokenUsage: response.usage.totalTokens
-        }
+          tokenUsage: response.usage.totalTokens,
+        },
       };
 
-      this.emit('health_check', this.lastHealthCheck);
+      this.emit("health_check", this.lastHealthCheck);
       return this.lastHealthCheck;
-
     } catch (error) {
       const latency = performance.now() - startTime;
-      
+
       this.lastHealthCheck = {
-        status: 'unhealthy',
+        status: "unhealthy",
         latency,
         lastChecked: new Date(),
         errors: [error instanceof Error ? error.message : String(error)],
-        metadata: { error: error }
+        metadata: { error: error },
       };
 
-      this.emit('health_check', this.lastHealthCheck);
+      this.emit("health_check", this.lastHealthCheck);
       return this.lastHealthCheck;
     }
   }
@@ -250,7 +257,7 @@ export abstract class BaseModelAdapter extends EventEmitter {
    */
   updateConfig(updates: Partial<AdapterConfig>): void {
     this.config = { ...this.config, ...updates };
-    this.logger.info('Configuration updated', { updates });
+    this.logger.info("Configuration updated", { updates });
   }
 
   /**
@@ -268,7 +275,7 @@ export abstract class BaseModelAdapter extends EventEmitter {
     code: string,
     statusCode?: number,
     retryable: boolean = false,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): AdapterError {
     const error = new Error(message) as AdapterError;
     error.code = code;
@@ -293,19 +300,19 @@ export abstract class BaseModelAdapter extends EventEmitter {
     if (!context) {
       return {
         requestId: this.generateRequestId(),
-        priority: 'medium',
-        userTier: 'free',
-        latencyTarget: 10000
+        priority: "medium",
+        userTier: "free",
+        latencyTarget: 10000,
       };
     }
-    
+
     if (!context.requestId) {
       return {
         ...context,
-        requestId: this.generateRequestId()
+        requestId: this.generateRequestId(),
       };
     }
-    
+
     return context;
   }
 
@@ -315,9 +322,9 @@ export abstract class BaseModelAdapter extends EventEmitter {
   createContext(overrides?: Partial<RequestContext>): RequestContext {
     const defaultContext: RequestContext = {
       requestId: this.generateRequestId(),
-      priority: 'medium',
-      userTier: 'free',
-      latencyTarget: 10000
+      priority: "medium",
+      userTier: "free",
+      latencyTarget: 10000,
     };
 
     return { ...defaultContext, ...overrides };
@@ -326,7 +333,10 @@ export abstract class BaseModelAdapter extends EventEmitter {
   /**
    * Calculate cost based on token usage
    */
-  protected calculateCost(usage: { totalTokens: number }, costPerToken: number): number {
+  protected calculateCost(
+    usage: { totalTokens: number },
+    costPerToken: number,
+  ): number {
     return usage.totalTokens * costPerToken;
   }
 
@@ -337,23 +347,23 @@ export abstract class BaseModelAdapter extends EventEmitter {
     operation: string,
     latency: number,
     success: boolean,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): void {
-    this.logger.info('Performance metric', {
+    this.logger.info("Performance metric", {
       operation,
       model: this.config.modelName,
       latency,
       success,
-      ...metadata
+      ...metadata,
     });
 
-    this.emit('performance', {
+    this.emit("performance", {
       operation,
       model: this.config.modelName,
       latency,
       success,
       timestamp: new Date(),
-      metadata
+      metadata,
     });
   }
 
@@ -363,10 +373,10 @@ export abstract class BaseModelAdapter extends EventEmitter {
   protected ensureInitialized(): void {
     if (!this.isInitialized) {
       throw this.createError(
-        'Adapter not initialized',
-        'ADAPTER_NOT_INITIALIZED',
+        "Adapter not initialized",
+        "ADAPTER_NOT_INITIALIZED",
         500,
-        false
+        false,
       );
     }
   }
@@ -377,6 +387,6 @@ export abstract class BaseModelAdapter extends EventEmitter {
   async cleanup(): Promise<void> {
     this.removeAllListeners();
     this.isInitialized = false;
-    this.logger.info('Adapter cleaned up');
+    this.logger.info("Adapter cleaned up");
   }
 }

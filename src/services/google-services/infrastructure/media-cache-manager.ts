@@ -1,22 +1,22 @@
 /**
  * Media Cache Manager with CDN Integration
- * 
+ *
  * Advanced media caching system with intelligent cache management,
  * multi-tier caching, and global CDN integration.
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../../utils/logger.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../../utils/logger.js";
 import {
   MediaCacheConfig,
   ServiceResponse,
   ServiceError,
-  PerformanceMetrics
-} from '../interfaces.js';
+  PerformanceMetrics,
+} from "../interfaces.js";
 
 export interface CacheNode {
   id: string;
-  type: 'edge' | 'regional' | 'origin' | 'memory' | 'disk';
+  type: "edge" | "regional" | "origin" | "memory" | "disk";
   location: NodeLocation;
   capacity: CacheCapacity;
   utilization: CacheUtilization;
@@ -86,11 +86,11 @@ export interface ErrorEvent {
   timestamp: Date;
   type: string;
   message: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
 }
 
 export interface NodeHealth {
-  status: 'healthy' | 'degraded' | 'unhealthy' | 'offline';
+  status: "healthy" | "degraded" | "unhealthy" | "offline";
   score: number; // 0-100
   issues: HealthIssue[];
   lastCheck: Date;
@@ -98,8 +98,8 @@ export interface NodeHealth {
 }
 
 export interface HealthIssue {
-  type: 'performance' | 'capacity' | 'connectivity' | 'error';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: "performance" | "capacity" | "connectivity" | "error";
+  severity: "low" | "medium" | "high" | "critical";
   description: string;
   timestamp: Date;
   resolved: boolean;
@@ -115,7 +115,7 @@ export interface NodeConfiguration {
 
 export interface CachePolicy {
   name: string;
-  type: 'eviction' | 'compression' | 'encryption' | 'replication';
+  type: "eviction" | "compression" | "encryption" | "replication";
   enabled: boolean;
   parameters: PolicyParameters;
 }
@@ -126,14 +126,14 @@ export interface PolicyParameters {
 
 export interface CacheRule {
   pattern: string;
-  action: 'cache' | 'bypass' | 'redirect' | 'block';
+  action: "cache" | "bypass" | "redirect" | "block";
   ttl?: number;
   conditions: RuleCondition[];
 }
 
 export interface RuleCondition {
   field: string;
-  operator: '==' | '!=' | '>' | '<' | '>=' | '<=' | 'contains' | 'matches';
+  operator: "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains" | "matches";
   value: any;
 }
 
@@ -207,7 +207,7 @@ export interface CacheLocation {
 
 export interface CacheRequest {
   key: string;
-  method: 'GET' | 'PUT' | 'DELETE' | 'HEAD';
+  method: "GET" | "PUT" | "DELETE" | "HEAD";
   headers?: Record<string, string>;
   metadata?: CacheRequestMetadata;
   options?: CacheOptions;
@@ -357,7 +357,7 @@ export interface PricingTier {
 }
 
 export interface RoutingConfiguration {
-  strategy: 'performance' | 'cost' | 'geographic' | 'balanced';
+  strategy: "performance" | "cost" | "geographic" | "balanced";
   failover: FailoverConfiguration;
   loadBalancing: LoadBalancingConfiguration;
 }
@@ -370,7 +370,7 @@ export interface FailoverConfiguration {
 }
 
 export interface LoadBalancingConfiguration {
-  algorithm: 'round_robin' | 'least_connections' | 'weighted' | 'geographic';
+  algorithm: "round_robin" | "least_connections" | "weighted" | "geographic";
   weights: Record<string, number>;
   stickySession: boolean;
 }
@@ -389,7 +389,7 @@ export interface AuthenticationConfig {
 }
 
 export interface AuthMethod {
-  type: 'api_key' | 'jwt' | 'oauth' | 'signature';
+  type: "api_key" | "jwt" | "oauth" | "signature";
   enabled: boolean;
   configuration: any;
 }
@@ -403,7 +403,7 @@ export interface TokenValidationConfig {
 export interface AuthorizationConfig {
   enabled: boolean;
   policies: AuthorizationPolicy[];
-  defaultAction: 'allow' | 'deny';
+  defaultAction: "allow" | "deny";
 }
 
 export interface AuthorizationPolicy {
@@ -416,7 +416,7 @@ export interface AuthorizationRule {
   resource: string;
   action: string;
   principal: string;
-  effect: 'allow' | 'deny';
+  effect: "allow" | "deny";
   conditions?: any;
 }
 
@@ -448,28 +448,28 @@ export interface DDoSProtectionConfig {
 export interface WAFConfiguration {
   enabled: boolean;
   rules: WAFRule[];
-  mode: 'block' | 'challenge' | 'log';
+  mode: "block" | "challenge" | "log";
 }
 
 export interface WAFRule {
   id: string;
   name: string;
   pattern: string;
-  action: 'block' | 'challenge' | 'allow';
+  action: "block" | "challenge" | "allow";
   severity: string;
 }
 
 export interface RateLimitConfig {
   enabled: boolean;
   limits: RateLimit[];
-  enforcement: 'strict' | 'soft';
+  enforcement: "strict" | "soft";
 }
 
 export interface RateLimit {
   resource: string;
   limit: number;
   window: number; // seconds
-  action: 'block' | 'throttle' | 'queue';
+  action: "block" | "throttle" | "queue";
 }
 
 export interface MonitoringConfiguration {
@@ -513,7 +513,7 @@ export interface AlertChannel {
 
 export interface LoggingConfiguration {
   enabled: boolean;
-  level: 'debug' | 'info' | 'warn' | 'error';
+  level: "debug" | "info" | "warn" | "error";
   destinations: LogDestination[];
 }
 
@@ -534,26 +534,26 @@ export class MediaCacheManager extends EventEmitter {
   private analyticsEngine: AnalyticsEngine;
   private optimizationEngine: OptimizationEngine;
   private securityManager: CacheSecurityManager;
-  
+
   constructor(config: MediaCacheConfig) {
     super();
     this.config = config;
-    this.logger = new Logger('MediaCacheManager');
-    
+    this.logger = new Logger("MediaCacheManager");
+
     this.initializeComponents();
     this.setupEventHandlers();
   }
-  
+
   /**
    * Initializes the cache manager
    */
   async initialize(): Promise<void> {
     try {
-      this.logger.info('Initializing Media Cache Manager');
-      
+      this.logger.info("Initializing Media Cache Manager");
+
       // Initialize cache nodes
       await this.initializeCacheNodes();
-      
+
       // Initialize engines
       await this.cacheEngine.initialize();
       await this.distributionEngine.initialize();
@@ -561,41 +561,43 @@ export class MediaCacheManager extends EventEmitter {
       await this.analyticsEngine.initialize();
       await this.optimizationEngine.initialize();
       await this.securityManager.initialize();
-      
+
       // Start monitoring
       await this.startMonitoring();
-      
-      this.emit('initialized');
-      
+
+      this.emit("initialized");
     } catch (error) {
-      this.logger.error('Failed to initialize cache manager', error);
+      this.logger.error("Failed to initialize cache manager", error);
       throw error;
     }
   }
-  
+
   /**
    * Gets cached content
    */
   async get(request: CacheRequest): Promise<ServiceResponse<CacheResponse>> {
     const startTime = Date.now();
-    
+
     try {
-      this.logger.debug('Cache get request', { key: request.key, method: request.method });
-      
+      this.logger.debug("Cache get request", {
+        key: request.key,
+        method: request.method,
+      });
+
       // Security validation
       await this.securityManager.validateRequest(request);
-      
+
       // Find optimal cache node
       const node = await this.selectOptimalNode(request);
-      
+
       // Get from cache
       const response = await this.cacheEngine.get(node, request);
-      
+
       // Update statistics
       await this.analyticsEngine.recordAccess(request, response);
-      
-      this.emit('cache:access', { request, response, node: node.id });
-      
+
+      this.emit("cache:access", { request, response, node: node.id });
+
       return {
         success: true,
         data: response,
@@ -603,117 +605,117 @@ export class MediaCacheManager extends EventEmitter {
           requestId: this.generateRequestId(),
           timestamp: new Date(),
           processingTime: Date.now() - startTime,
-          region: node.location.region
-        }
+          region: node.location.region,
+        },
       };
-      
     } catch (error) {
-      this.logger.error('Cache get failed', { key: request.key, error });
-      return this.createErrorResponse('CACHE_GET_FAILED', error.message);
+      this.logger.error("Cache get failed", { key: request.key, error });
+      return this.createErrorResponse("CACHE_GET_FAILED", error.message);
     }
   }
-  
+
   /**
    * Stores content in cache
    */
   async put(
     request: CacheRequest,
-    content: CacheContent
+    content: CacheContent,
   ): Promise<ServiceResponse<void>> {
     try {
-      this.logger.debug('Cache put request', { 
-        key: request.key, 
+      this.logger.debug("Cache put request", {
+        key: request.key,
         size: content.size,
-        contentType: content.contentType 
+        contentType: content.contentType,
       });
-      
+
       // Security validation
       await this.securityManager.validateRequest(request);
       await this.securityManager.validateContent(content);
-      
+
       // Create cache entry
       const entry = await this.createCacheEntry(request, content);
-      
+
       // Distribute to cache nodes
       await this.distributionEngine.distribute(entry, request.options);
-      
+
       // Store entry
       this.entries.set(request.key, entry);
-      
+
       // Update statistics
       await this.analyticsEngine.recordStore(request, entry);
-      
-      this.emit('cache:stored', { key: request.key, entry });
-      
+
+      this.emit("cache:stored", { key: request.key, entry });
+
       return {
         success: true,
         metadata: {
           requestId: this.generateRequestId(),
           timestamp: new Date(),
           processingTime: 0,
-          region: 'global'
-        }
+          region: "global",
+        },
       };
-      
     } catch (error) {
-      this.logger.error('Cache put failed', { key: request.key, error });
-      return this.createErrorResponse('CACHE_PUT_FAILED', error.message);
+      this.logger.error("Cache put failed", { key: request.key, error });
+      return this.createErrorResponse("CACHE_PUT_FAILED", error.message);
     }
   }
-  
+
   /**
    * Deletes content from cache
    */
   async delete(key: string): Promise<ServiceResponse<void>> {
     try {
-      this.logger.debug('Cache delete request', { key });
-      
+      this.logger.debug("Cache delete request", { key });
+
       const entry = this.entries.get(key);
       if (!entry) {
         throw new Error(`Cache entry not found: ${key}`);
       }
-      
+
       // Remove from all cache locations
       await this.distributionEngine.remove(entry);
-      
+
       // Remove entry
       this.entries.delete(key);
-      
+
       // Update statistics
       await this.analyticsEngine.recordDelete(key);
-      
-      this.emit('cache:deleted', { key });
-      
+
+      this.emit("cache:deleted", { key });
+
       return {
         success: true,
         metadata: {
           requestId: this.generateRequestId(),
           timestamp: new Date(),
           processingTime: 0,
-          region: 'global'
-        }
+          region: "global",
+        },
       };
-      
     } catch (error) {
-      this.logger.error('Cache delete failed', { key, error });
-      return this.createErrorResponse('CACHE_DELETE_FAILED', error.message);
+      this.logger.error("Cache delete failed", { key, error });
+      return this.createErrorResponse("CACHE_DELETE_FAILED", error.message);
     }
   }
-  
+
   /**
    * Invalidates cache entries based on patterns or tags
    */
-  async invalidate(invalidation: CacheInvalidation): Promise<ServiceResponse<number>> {
+  async invalidate(
+    invalidation: CacheInvalidation,
+  ): Promise<ServiceResponse<number>> {
     try {
-      this.logger.info('Cache invalidation request', { 
+      this.logger.info("Cache invalidation request", {
         patterns: invalidation.patterns,
-        tags: invalidation.tags 
+        tags: invalidation.tags,
       });
-      
-      const invalidatedCount = await this.invalidationEngine.invalidate(invalidation);
-      
-      this.emit('cache:invalidated', { invalidation, count: invalidatedCount });
-      
+
+      const invalidatedCount =
+        await this.invalidationEngine.invalidate(invalidation);
+
+      this.emit("cache:invalidated", { invalidation, count: invalidatedCount });
+
       return {
         success: true,
         data: invalidatedCount,
@@ -721,23 +723,25 @@ export class MediaCacheManager extends EventEmitter {
           requestId: this.generateRequestId(),
           timestamp: new Date(),
           processingTime: 0,
-          region: 'global'
-        }
+          region: "global",
+        },
       };
-      
     } catch (error) {
-      this.logger.error('Cache invalidation failed', { invalidation, error });
-      return this.createErrorResponse('CACHE_INVALIDATION_FAILED', error.message);
+      this.logger.error("Cache invalidation failed", { invalidation, error });
+      return this.createErrorResponse(
+        "CACHE_INVALIDATION_FAILED",
+        error.message,
+      );
     }
   }
-  
+
   /**
    * Gets cache statistics
    */
   async getStatistics(): Promise<ServiceResponse<CacheStatistics>> {
     try {
       const stats = await this.analyticsEngine.getStatistics();
-      
+
       return {
         success: true,
         data: stats,
@@ -745,23 +749,22 @@ export class MediaCacheManager extends EventEmitter {
           requestId: this.generateRequestId(),
           timestamp: new Date(),
           processingTime: 0,
-          region: 'global'
-        }
+          region: "global",
+        },
       };
-      
     } catch (error) {
-      this.logger.error('Failed to get statistics', error);
-      return this.createErrorResponse('STATISTICS_GET_FAILED', error.message);
+      this.logger.error("Failed to get statistics", error);
+      return this.createErrorResponse("STATISTICS_GET_FAILED", error.message);
     }
   }
-  
+
   /**
    * Lists cache nodes
    */
   async listNodes(): Promise<ServiceResponse<CacheNode[]>> {
     try {
       const nodes = Array.from(this.nodes.values());
-      
+
       return {
         success: true,
         data: nodes,
@@ -769,23 +772,22 @@ export class MediaCacheManager extends EventEmitter {
           requestId: this.generateRequestId(),
           timestamp: new Date(),
           processingTime: 0,
-          region: 'global'
-        }
+          region: "global",
+        },
       };
-      
     } catch (error) {
-      this.logger.error('Failed to list nodes', error);
-      return this.createErrorResponse('NODES_LIST_FAILED', error.message);
+      this.logger.error("Failed to list nodes", error);
+      return this.createErrorResponse("NODES_LIST_FAILED", error.message);
     }
   }
-  
+
   /**
    * Gets performance metrics
    */
   async getMetrics(): Promise<ServiceResponse<PerformanceMetrics>> {
     try {
       const metrics = await this.analyticsEngine.getMetrics();
-      
+
       return {
         success: true,
         data: metrics,
@@ -793,28 +795,27 @@ export class MediaCacheManager extends EventEmitter {
           requestId: this.generateRequestId(),
           timestamp: new Date(),
           processingTime: 0,
-          region: 'global'
-        }
+          region: "global",
+        },
       };
-      
     } catch (error) {
-      this.logger.error('Failed to get metrics', error);
-      return this.createErrorResponse('METRICS_GET_FAILED', error.message);
+      this.logger.error("Failed to get metrics", error);
+      return this.createErrorResponse("METRICS_GET_FAILED", error.message);
     }
   }
-  
+
   /**
    * Optimizes cache configuration
    */
   async optimize(): Promise<ServiceResponse<OptimizationResult>> {
     try {
-      this.logger.info('Starting cache optimization');
-      
+      this.logger.info("Starting cache optimization");
+
       const result = await this.optimizationEngine.optimize(
         Array.from(this.nodes.values()),
-        Array.from(this.entries.values())
+        Array.from(this.entries.values()),
       );
-      
+
       return {
         success: true,
         data: result,
@@ -822,18 +823,17 @@ export class MediaCacheManager extends EventEmitter {
           requestId: this.generateRequestId(),
           timestamp: new Date(),
           processingTime: 0,
-          region: 'global'
-        }
+          region: "global",
+        },
       };
-      
     } catch (error) {
-      this.logger.error('Cache optimization failed', error);
-      return this.createErrorResponse('OPTIMIZATION_FAILED', error.message);
+      this.logger.error("Cache optimization failed", error);
+      return this.createErrorResponse("OPTIMIZATION_FAILED", error.message);
     }
   }
-  
+
   // ==================== Private Helper Methods ====================
-  
+
   private initializeComponents(): void {
     this.cacheEngine = new CacheEngine(this.config);
     this.distributionEngine = new DistributionEngine(this.config);
@@ -842,14 +842,20 @@ export class MediaCacheManager extends EventEmitter {
     this.optimizationEngine = new OptimizationEngine(this.config);
     this.securityManager = new CacheSecurityManager();
   }
-  
+
   private setupEventHandlers(): void {
-    this.cacheEngine.on('cache:hit', this.handleCacheHit.bind(this));
-    this.cacheEngine.on('cache:miss', this.handleCacheMiss.bind(this));
-    this.distributionEngine.on('distribution:completed', this.handleDistributionCompleted.bind(this));
-    this.optimizationEngine.on('optimization:completed', this.handleOptimizationCompleted.bind(this));
+    this.cacheEngine.on("cache:hit", this.handleCacheHit.bind(this));
+    this.cacheEngine.on("cache:miss", this.handleCacheMiss.bind(this));
+    this.distributionEngine.on(
+      "distribution:completed",
+      this.handleDistributionCompleted.bind(this),
+    );
+    this.optimizationEngine.on(
+      "optimization:completed",
+      this.handleOptimizationCompleted.bind(this),
+    );
   }
-  
+
   private async initializeCacheNodes(): Promise<void> {
     // Initialize cache nodes based on configuration
     for (const layer of this.config.layers) {
@@ -861,28 +867,28 @@ export class MediaCacheManager extends EventEmitter {
           storage: layer.size * 1024 * 1024, // Convert MB to bytes
           bandwidth: 1000 * 1024 * 1024, // 1GB/s
           connections: 10000,
-          requests: 1000
+          requests: 1000,
         },
         utilization: {
           storage: 0,
           bandwidth: 0,
           connections: 0,
           requests: 0,
-          efficiency: 100
+          efficiency: 100,
         },
         performance: {
           hitRate: 0,
           missRate: 0,
           latency: { mean: 0, p50: 0, p95: 0, p99: 0, max: 0 },
           throughput: { current: 0, peak: 0, average: 0 },
-          errors: { rate: 0, types: {}, recent: [] }
+          errors: { rate: 0, types: {}, recent: [] },
         },
         health: {
-          status: 'healthy',
+          status: "healthy",
           score: 100,
           issues: [],
           lastCheck: new Date(),
-          uptime: 0
+          uptime: 0,
         },
         configuration: {
           tier: 1,
@@ -893,64 +899,65 @@ export class MediaCacheManager extends EventEmitter {
             maxFileSize: 100 * 1024 * 1024, // 100MB
             maxRequestRate: 1000,
             maxBandwidth: 1000 * 1024 * 1024,
-            maxConnections: 10000
-          }
-        }
+            maxConnections: 10000,
+          },
+        },
       };
-      
+
       this.nodes.set(node.id, node);
     }
   }
-  
+
   private async selectOptimalNode(request: CacheRequest): Promise<CacheNode> {
-    const nodes = Array.from(this.nodes.values()).filter(node => 
-      node.health.status === 'healthy' || node.health.status === 'degraded'
+    const nodes = Array.from(this.nodes.values()).filter(
+      (node) =>
+        node.health.status === "healthy" || node.health.status === "degraded",
     );
-    
+
     if (nodes.length === 0) {
-      throw new Error('No healthy cache nodes available');
+      throw new Error("No healthy cache nodes available");
     }
-    
+
     // Score nodes based on performance and proximity
-    const scoredNodes = nodes.map(node => ({
+    const scoredNodes = nodes.map((node) => ({
       node,
-      score: this.calculateNodeScore(node, request)
+      score: this.calculateNodeScore(node, request),
     }));
-    
+
     // Sort by score descending
     scoredNodes.sort((a, b) => b.score - a.score);
-    
+
     return scoredNodes[0].node;
   }
-  
+
   private calculateNodeScore(node: CacheNode, request: CacheRequest): number {
     let score = 0;
-    
+
     // Performance score (0-40)
     score += (node.performance.hitRate / 100) * 20;
     score += (1 - node.performance.latency.mean / 1000) * 20;
-    
+
     // Health score (0-30)
     score += (node.health.score / 100) * 30;
-    
+
     // Utilization score (0-30) - lower utilization is better
-    const avgUtilization = (
-      node.utilization.storage + 
-      node.utilization.bandwidth + 
-      node.utilization.connections
-    ) / 3;
+    const avgUtilization =
+      (node.utilization.storage +
+        node.utilization.bandwidth +
+        node.utilization.connections) /
+      3;
     score += (1 - avgUtilization / 100) * 30;
-    
+
     return score;
   }
-  
+
   private async createCacheEntry(
     request: CacheRequest,
-    content: CacheContent
+    content: CacheContent,
   ): Promise<CacheEntry> {
     const now = new Date();
     const ttl = request.options?.ttl || this.config.strategy.ttl || 3600;
-    
+
     return {
       key: request.key,
       content,
@@ -962,19 +969,19 @@ export class MediaCacheManager extends EventEmitter {
         ttl,
         priority: request.metadata?.priority || 1,
         tags: request.metadata?.tags || [],
-        source: 'cache-manager'
+        source: "cache-manager",
       },
       stats: {
         hits: 0,
         misses: 0,
         bytes: 0,
         requests: [],
-        geographic: []
+        geographic: [],
       },
-      locations: []
+      locations: [],
     };
   }
-  
+
   private async startMonitoring(): Promise<void> {
     // Start periodic monitoring of cache nodes
     setInterval(async () => {
@@ -984,129 +991,149 @@ export class MediaCacheManager extends EventEmitter {
       }
     }, 30000); // Every 30 seconds
   }
-  
+
   private async updateNodeHealth(node: CacheNode): Promise<void> {
     // Simulate health check
     node.health.lastCheck = new Date();
     node.health.uptime += 30; // Add 30 seconds
-    
+
     // Check for issues
     if (node.utilization.storage > 90) {
       const issue: HealthIssue = {
-        type: 'capacity',
-        severity: 'high',
-        description: 'Storage utilization above 90%',
+        type: "capacity",
+        severity: "high",
+        description: "Storage utilization above 90%",
         timestamp: new Date(),
-        resolved: false
+        resolved: false,
       };
-      
-      if (!node.health.issues.find(i => i.type === 'capacity' && !i.resolved)) {
+
+      if (
+        !node.health.issues.find((i) => i.type === "capacity" && !i.resolved)
+      ) {
         node.health.issues.push(issue);
       }
     }
-    
+
     // Update health score
     node.health.score = this.calculateHealthScore(node);
   }
-  
+
   private async updateNodePerformance(node: CacheNode): Promise<void> {
     // Update performance metrics based on recent activity
     // This would typically come from actual monitoring data
   }
-  
+
   private calculateHealthScore(node: CacheNode): number {
     let score = 100;
-    
+
     // Deduct points for issues
     for (const issue of node.health.issues) {
       if (!issue.resolved) {
         switch (issue.severity) {
-          case 'critical': score -= 25; break;
-          case 'high': score -= 15; break;
-          case 'medium': score -= 10; break;
-          case 'low': score -= 5; break;
+          case "critical":
+            score -= 25;
+            break;
+          case "high":
+            score -= 15;
+            break;
+          case "medium":
+            score -= 10;
+            break;
+          case "low":
+            score -= 5;
+            break;
         }
       }
     }
-    
+
     // Deduct points for high utilization
-    const avgUtilization = (
-      node.utilization.storage + 
-      node.utilization.bandwidth + 
-      node.utilization.connections
-    ) / 3;
-    
+    const avgUtilization =
+      (node.utilization.storage +
+        node.utilization.bandwidth +
+        node.utilization.connections) /
+      3;
+
     if (avgUtilization > 80) score -= (avgUtilization - 80) / 2;
-    
+
     return Math.max(0, Math.min(100, score));
   }
-  
+
   // Utility methods
-  private mapLayerType(type: string): 'edge' | 'regional' | 'origin' | 'memory' | 'disk' {
+  private mapLayerType(
+    type: string,
+  ): "edge" | "regional" | "origin" | "memory" | "disk" {
     switch (type) {
-      case 'memory': return 'memory';
-      case 'disk': return 'disk';
-      case 'distributed': return 'regional';
-      case 'cdn': return 'edge';
-      default: return 'disk';
+      case "memory":
+        return "memory";
+      case "disk":
+        return "disk";
+      case "distributed":
+        return "regional";
+      case "cdn":
+        return "edge";
+      default:
+        return "disk";
     }
   }
-  
+
   private getDefaultLocation(): NodeLocation {
     return {
-      region: 'us-east-1',
-      zone: 'us-east-1a',
-      city: 'Virginia',
-      country: 'US',
+      region: "us-east-1",
+      zone: "us-east-1a",
+      city: "Virginia",
+      country: "US",
       coordinates: { latitude: 38.9072, longitude: -77.0369 },
-      provider: 'local'
+      provider: "local",
     };
   }
-  
+
   private generateNodeId(name: string): string {
     return `node_${name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-  
+
   private generateRequestId(): string {
     return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-  
-  private createErrorResponse(code: string, message: string): ServiceResponse<any> {
+
+  private createErrorResponse(
+    code: string,
+    message: string,
+  ): ServiceResponse<any> {
     return {
       success: false,
       error: {
         code,
         message,
         retryable: false,
-        timestamp: new Date()
+        timestamp: new Date(),
       },
       metadata: {
         requestId: this.generateRequestId(),
         timestamp: new Date(),
         processingTime: 0,
-        region: 'global'
-      }
+        region: "global",
+      },
     };
   }
-  
+
   private handleCacheHit(event: any): void {
-    this.logger.debug('Cache hit', event);
-    this.emit('cache:hit', event);
+    this.logger.debug("Cache hit", event);
+    this.emit("cache:hit", event);
   }
-  
+
   private handleCacheMiss(event: any): void {
-    this.logger.debug('Cache miss', event);
-    this.emit('cache:miss', event);
+    this.logger.debug("Cache miss", event);
+    this.emit("cache:miss", event);
   }
-  
+
   private handleDistributionCompleted(event: any): void {
-    this.logger.debug('Distribution completed', event);
-    this.emit('distribution:completed', event);
+    this.logger.debug("Distribution completed", event);
+    this.emit("distribution:completed", event);
   }
-  
+
   private handleOptimizationCompleted(event: any): void {
-    this.logger.info('Optimization completed', event);
-    this.emit('optimization:completed', event);
+    this.logger.info("Optimization completed", event);
+    this.emit("optimization:completed", event);
   }
 }
 
@@ -1119,7 +1146,7 @@ interface OptimizationResult {
 }
 
 interface CacheImprovement {
-  type: 'hit_rate' | 'latency' | 'bandwidth' | 'cost';
+  type: "hit_rate" | "latency" | "bandwidth" | "cost";
   description: string;
   before: number;
   after: number;
@@ -1129,9 +1156,9 @@ interface CacheImprovement {
 interface CacheRecommendation {
   title: string;
   description: string;
-  priority: 'low' | 'medium' | 'high';
-  effort: 'low' | 'medium' | 'high';
-  impact: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
+  effort: "low" | "medium" | "high";
+  impact: "low" | "medium" | "high";
 }
 
 interface OptimizationImpact {
@@ -1147,43 +1174,48 @@ interface OptimizationImpact {
 class CacheEngine extends EventEmitter {
   private config: MediaCacheConfig;
   private logger: Logger;
-  
+
   constructor(config: MediaCacheConfig) {
     super();
     this.config = config;
-    this.logger = new Logger('CacheEngine');
+    this.logger = new Logger("CacheEngine");
   }
-  
+
   async initialize(): Promise<void> {
-    this.logger.info('Initializing cache engine');
+    this.logger.info("Initializing cache engine");
   }
-  
+
   async get(node: CacheNode, request: CacheRequest): Promise<CacheResponse> {
     // Cache get implementation
     const hit = Math.random() > 0.3; // 70% hit rate simulation
-    
-    this.emit(hit ? 'cache:hit' : 'cache:miss', { node: node.id, key: request.key });
-    
+
+    this.emit(hit ? "cache:hit" : "cache:miss", {
+      node: node.id,
+      key: request.key,
+    });
+
     return {
       hit,
-      content: hit ? {
-        data: Buffer.from('cached content'),
-        headers: { 'content-type': 'text/plain' },
-        contentType: 'text/plain',
-        size: 100,
-        etag: 'etag123',
-        compressed: false,
-        encrypted: false
-      } : undefined,
-      source: hit ? node.id : 'origin',
+      content: hit
+        ? {
+            data: Buffer.from("cached content"),
+            headers: { "content-type": "text/plain" },
+            contentType: "text/plain",
+            size: 100,
+            etag: "etag123",
+            compressed: false,
+            encrypted: false,
+          }
+        : undefined,
+      source: hit ? node.id : "origin",
       latency: Math.random() * 100,
       metadata: {
         cached: new Date(),
         expires: new Date(Date.now() + 3600000),
         age: 60,
         fresh: true,
-        etag: 'etag123'
-      }
+        etag: "etag123",
+      },
     };
   }
 }
@@ -1191,22 +1223,22 @@ class CacheEngine extends EventEmitter {
 class DistributionEngine extends EventEmitter {
   private config: MediaCacheConfig;
   private logger: Logger;
-  
+
   constructor(config: MediaCacheConfig) {
     super();
     this.config = config;
-    this.logger = new Logger('DistributionEngine');
+    this.logger = new Logger("DistributionEngine");
   }
-  
+
   async initialize(): Promise<void> {
-    this.logger.info('Initializing distribution engine');
+    this.logger.info("Initializing distribution engine");
   }
-  
+
   async distribute(entry: CacheEntry, options?: CacheOptions): Promise<void> {
     // Distribution implementation
-    this.emit('distribution:completed', { key: entry.key });
+    this.emit("distribution:completed", { key: entry.key });
   }
-  
+
   async remove(entry: CacheEntry): Promise<void> {
     // Removal implementation
   }
@@ -1215,16 +1247,16 @@ class DistributionEngine extends EventEmitter {
 class InvalidationEngine {
   private config: MediaCacheConfig;
   private logger: Logger;
-  
+
   constructor(config: MediaCacheConfig) {
     this.config = config;
-    this.logger = new Logger('InvalidationEngine');
+    this.logger = new Logger("InvalidationEngine");
   }
-  
+
   async initialize(): Promise<void> {
-    this.logger.info('Initializing invalidation engine');
+    this.logger.info("Initializing invalidation engine");
   }
-  
+
   async invalidate(invalidation: CacheInvalidation): Promise<number> {
     // Invalidation implementation
     return 0;
@@ -1234,28 +1266,31 @@ class InvalidationEngine {
 class AnalyticsEngine {
   private config: MediaCacheConfig;
   private logger: Logger;
-  
+
   constructor(config: MediaCacheConfig) {
     this.config = config;
-    this.logger = new Logger('AnalyticsEngine');
+    this.logger = new Logger("AnalyticsEngine");
   }
-  
+
   async initialize(): Promise<void> {
-    this.logger.info('Initializing analytics engine');
+    this.logger.info("Initializing analytics engine");
   }
-  
-  async recordAccess(request: CacheRequest, response: CacheResponse): Promise<void> {
+
+  async recordAccess(
+    request: CacheRequest,
+    response: CacheResponse,
+  ): Promise<void> {
     // Access recording implementation
   }
-  
+
   async recordStore(request: CacheRequest, entry: CacheEntry): Promise<void> {
     // Store recording implementation
   }
-  
+
   async recordDelete(key: string): Promise<void> {
     // Delete recording implementation
   }
-  
+
   async getStatistics(): Promise<CacheStatistics> {
     // Statistics implementation
     return {
@@ -1265,20 +1300,24 @@ class AnalyticsEngine {
         hitRate: 70,
         missRate: 30,
         bandwidth: { ingress: 0, egress: 0, saved: 0 },
-        requests: { total: 0, perSecond: 0, peak: 0, average: 0 }
+        requests: { total: 0, perSecond: 0, peak: 0, average: 0 },
       },
       nodes: [],
       content: [],
-      geographic: []
+      geographic: [],
     };
   }
-  
+
   async getMetrics(): Promise<PerformanceMetrics> {
     return {
       latency: { mean: 0, p50: 0, p95: 0, p99: 0, max: 0 },
-      throughput: { requestsPerSecond: 0, bytesPerSecond: 0, operationsPerSecond: 0 },
+      throughput: {
+        requestsPerSecond: 0,
+        bytesPerSecond: 0,
+        operationsPerSecond: 0,
+      },
       utilization: { cpu: 0, memory: 0, disk: 0, network: 0 },
-      errors: { rate: 0, percentage: 0, types: {} }
+      errors: { rate: 0, percentage: 0, types: {} },
     };
   }
 }
@@ -1286,44 +1325,50 @@ class AnalyticsEngine {
 class OptimizationEngine extends EventEmitter {
   private config: MediaCacheConfig;
   private logger: Logger;
-  
+
   constructor(config: MediaCacheConfig) {
     super();
     this.config = config;
-    this.logger = new Logger('OptimizationEngine');
+    this.logger = new Logger("OptimizationEngine");
   }
-  
+
   async initialize(): Promise<void> {
-    this.logger.info('Initializing optimization engine');
+    this.logger.info("Initializing optimization engine");
   }
-  
-  async optimize(nodes: CacheNode[], entries: CacheEntry[]): Promise<OptimizationResult> {
+
+  async optimize(
+    nodes: CacheNode[],
+    entries: CacheEntry[],
+  ): Promise<OptimizationResult> {
     // Optimization implementation
-    this.emit('optimization:completed', { nodes: nodes.length, entries: entries.length });
-    
+    this.emit("optimization:completed", {
+      nodes: nodes.length,
+      entries: entries.length,
+    });
+
     return {
       improvements: [],
       recommendations: [],
-      impact: { performance: 0, cost: 0, efficiency: 0, reliability: 0 }
+      impact: { performance: 0, cost: 0, efficiency: 0, reliability: 0 },
     };
   }
 }
 
 class CacheSecurityManager {
   private logger: Logger;
-  
+
   constructor() {
-    this.logger = new Logger('CacheSecurityManager');
+    this.logger = new Logger("CacheSecurityManager");
   }
-  
+
   async initialize(): Promise<void> {
-    this.logger.info('Initializing cache security manager');
+    this.logger.info("Initializing cache security manager");
   }
-  
+
   async validateRequest(request: CacheRequest): Promise<void> {
     // Request validation implementation
   }
-  
+
   async validateContent(content: CacheContent): Promise<void> {
     // Content validation implementation
   }

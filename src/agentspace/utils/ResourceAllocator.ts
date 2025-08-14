@@ -1,6 +1,6 @@
 /**
  * Resource Allocator - Advanced resource allocation algorithms
- * 
+ *
  * Provides intelligent resource management with:
  * - Dynamic resource allocation
  * - Load balancing across agents
@@ -9,16 +9,21 @@
  * - Performance optimization
  */
 
-import { Logger } from '../../utils/logger.js';
+import { Logger } from "../../utils/logger.js";
 import {
   ResourceRequirement,
   WorkspaceResources,
   ResourceLimits,
-  AgentWorkspace
-} from '../types/AgentSpaceTypes.js';
+  AgentWorkspace,
+} from "../types/AgentSpaceTypes.js";
 
 export interface ResourceAllocationStrategy {
-  type: 'round_robin' | 'priority_based' | 'load_balanced' | 'intelligent' | 'ml_optimized';
+  type:
+    | "round_robin"
+    | "priority_based"
+    | "load_balanced"
+    | "intelligent"
+    | "ml_optimized";
   parameters: any;
 }
 
@@ -61,13 +66,13 @@ export interface ResourceAllocation {
   amount: number;
   actualAmount: number;
   source: string;
-  shareLevel: 'exclusive' | 'shared' | 'pooled';
+  shareLevel: "exclusive" | "shared" | "pooled";
   constraints: ResourceConstraint[];
   performance: AllocationPerformance;
 }
 
 export interface ResourceConstraint {
-  type: 'time' | 'location' | 'dependency' | 'compatibility';
+  type: "time" | "location" | "dependency" | "compatibility";
   condition: any;
   priority: number;
 }
@@ -90,13 +95,13 @@ export interface ResourcePrediction {
 }
 
 export interface SeasonalPattern {
-  pattern: 'hourly' | 'daily' | 'weekly' | 'monthly';
+  pattern: "hourly" | "daily" | "weekly" | "monthly";
   multiplier: number;
   confidence: number;
 }
 
 export interface ResourceRecommendation {
-  action: 'scale_up' | 'scale_down' | 'reallocate' | 'optimize' | 'reserve';
+  action: "scale_up" | "scale_down" | "reallocate" | "optimize" | "reserve";
   resourceType: string;
   amount: number;
   timing: Date;
@@ -121,7 +126,7 @@ export class ResourceAllocator {
   private allocationHistory: AllocationPlan[] = [];
   private activeAllocations: Map<string, ResourceAllocationUnit[]> = new Map();
   private predictionModels: Map<string, any> = new Map();
-  
+
   private metrics: AllocationMetrics = {
     totalRequests: 0,
     successfulAllocations: 0,
@@ -130,11 +135,11 @@ export class ResourceAllocator {
     resourceUtilization: {},
     wasteRate: 0,
     satisfactionScore: 0.8,
-    costEfficiency: 0.75
+    costEfficiency: 0.75,
   };
 
   constructor() {
-    this.logger = new Logger('ResourceAllocator');
+    this.logger = new Logger("ResourceAllocator");
     this.initializeResourcePools();
     this.startResourceMonitoring();
   }
@@ -146,7 +151,10 @@ export class ResourceAllocator {
     agentId: string,
     workspaceId: string,
     requirements: ResourceRequirement[],
-    strategy: ResourceAllocationStrategy = { type: 'intelligent', parameters: {} }
+    strategy: ResourceAllocationStrategy = {
+      type: "intelligent",
+      parameters: {},
+    },
   ): Promise<AllocationPlan> {
     const startTime = Date.now();
     this.metrics.totalRequests++;
@@ -154,19 +162,21 @@ export class ResourceAllocator {
     try {
       // Analyze requirements
       const analyzedRequirements = await this.analyzeRequirements(requirements);
-      
+
       // Generate allocation plan
       const plan = await this.generateAllocationPlan(
         agentId,
         workspaceId,
         analyzedRequirements,
-        strategy
+        strategy,
       );
 
       // Validate allocation feasibility
       const validationResult = await this.validateAllocation(plan);
       if (!validationResult.valid) {
-        throw new Error(`Allocation validation failed: ${validationResult.reason}`);
+        throw new Error(
+          `Allocation validation failed: ${validationResult.reason}`,
+        );
       }
 
       // Execute allocation
@@ -176,20 +186,19 @@ export class ResourceAllocator {
       const allocationTime = Date.now() - startTime;
       this.updateAllocationMetrics(plan, allocationTime, true);
 
-      this.logger.info('Resources allocated successfully', {
+      this.logger.info("Resources allocated successfully", {
         agentId,
         requestId: plan.requestId,
         allocatedResources: plan.allocatedResources.length,
-        allocationTime
+        allocationTime,
       });
 
       return plan;
-
     } catch (error) {
       this.metrics.failedAllocations++;
-      this.logger.error('Resource allocation failed', {
+      this.logger.error("Resource allocation failed", {
         agentId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -198,11 +207,16 @@ export class ResourceAllocator {
   /**
    * Deallocate resources for an agent
    */
-  async deallocateResources(agentId: string, resourceTypes?: string[]): Promise<void> {
+  async deallocateResources(
+    agentId: string,
+    resourceTypes?: string[],
+  ): Promise<void> {
     const allocations = this.activeAllocations.get(agentId) || [];
-    
-    const toRemove = resourceTypes 
-      ? allocations.filter(alloc => resourceTypes.includes(alloc.resourceType))
+
+    const toRemove = resourceTypes
+      ? allocations.filter((alloc) =>
+          resourceTypes.includes(alloc.resourceType),
+        )
       : allocations;
 
     for (const allocation of toRemove) {
@@ -211,16 +225,18 @@ export class ResourceAllocator {
 
     // Update active allocations
     if (resourceTypes) {
-      const remaining = allocations.filter(alloc => !resourceTypes.includes(alloc.resourceType));
+      const remaining = allocations.filter(
+        (alloc) => !resourceTypes.includes(alloc.resourceType),
+      );
       this.activeAllocations.set(agentId, remaining);
     } else {
       this.activeAllocations.delete(agentId);
     }
 
-    this.logger.info('Resources deallocated', {
+    this.logger.info("Resources deallocated", {
       agentId,
-      deallocatedTypes: resourceTypes || 'all',
-      deallocatedCount: toRemove.length
+      deallocatedTypes: resourceTypes || "all",
+      deallocatedCount: toRemove.length,
     });
   }
 
@@ -230,21 +246,23 @@ export class ResourceAllocator {
   async scaleResources(
     agentId: string,
     resourceType: string,
-    scaleFactor: number
+    scaleFactor: number,
   ): Promise<void> {
     const allocations = this.activeAllocations.get(agentId) || [];
-    const resourceAllocations = allocations.filter(alloc => alloc.resourceType === resourceType);
+    const resourceAllocations = allocations.filter(
+      (alloc) => alloc.resourceType === resourceType,
+    );
 
     for (const allocation of resourceAllocations) {
       const newAmount = Math.floor(allocation.amount * scaleFactor);
       await this.adjustResourceAllocation(allocation.id, newAmount);
     }
 
-    this.logger.info('Resources scaled', {
+    this.logger.info("Resources scaled", {
       agentId,
       resourceType,
       scaleFactor,
-      affectedAllocations: resourceAllocations.length
+      affectedAllocations: resourceAllocations.length,
     });
   }
 
@@ -252,15 +270,16 @@ export class ResourceAllocator {
    * Optimize resource allocations across all agents
    */
   async optimizeAllocations(): Promise<void> {
-    this.logger.info('Starting resource allocation optimization');
+    this.logger.info("Starting resource allocation optimization");
 
     try {
       // Analyze current utilization
       const utilizationAnalysis = this.analyzeResourceUtilization();
-      
+
       // Identify optimization opportunities
-      const opportunities = this.identifyOptimizationOpportunities(utilizationAnalysis);
-      
+      const opportunities =
+        this.identifyOptimizationOpportunities(utilizationAnalysis);
+
       // Execute optimizations
       for (const opportunity of opportunities) {
         await this.executeOptimization(opportunity);
@@ -269,14 +288,13 @@ export class ResourceAllocator {
       // Update resource pools
       await this.rebalanceResourcePools();
 
-      this.logger.info('Resource optimization completed', {
+      this.logger.info("Resource optimization completed", {
         opportunities: opportunities.length,
-        utilizationImprovement: this.calculateUtilizationImprovement()
+        utilizationImprovement: this.calculateUtilizationImprovement(),
       });
-
     } catch (error) {
-      this.logger.error('Resource optimization failed', {
-        error: error.message
+      this.logger.error("Resource optimization failed", {
+        error: error.message,
       });
       throw error;
     }
@@ -287,27 +305,32 @@ export class ResourceAllocator {
    */
   async predictResourceNeeds(
     timeHorizon: number = 3600000, // 1 hour
-    agentId?: string
+    agentId?: string,
   ): Promise<ResourcePrediction[]> {
     const predictions: ResourcePrediction[] = [];
 
     for (const [resourceType, pool] of this.resourcePools) {
       const historical = pool.utilizationHistory;
       const currentUtilization = pool.allocatedCapacity / pool.totalCapacity;
-      
+
       // Simple trend analysis
       const trend = this.calculateTrend(historical);
       const seasonality = this.analyzeSeasonality(historical);
-      
-      const predictedDemand = currentUtilization + (trend * timeHorizon / 3600000);
-      
+
+      const predictedDemand =
+        currentUtilization + (trend * timeHorizon) / 3600000;
+
       predictions.push({
         resourceType,
         predictedDemand: Math.max(0, Math.min(1, predictedDemand)),
         confidence: this.calculatePredictionConfidence(historical),
         timeHorizon,
         seasonality,
-        recommendations: this.generateResourceRecommendations(resourceType, predictedDemand, currentUtilization)
+        recommendations: this.generateResourceRecommendations(
+          resourceType,
+          predictedDemand,
+          currentUtilization,
+        ),
       });
     }
 
@@ -319,21 +342,23 @@ export class ResourceAllocator {
    */
   async resolveResourceContention(
     contentionId: string,
-    competingRequests: ResourceRequirement[][]
+    competingRequests: ResourceRequirement[][],
   ): Promise<AllocationPlan[]> {
-    this.logger.info('Resolving resource contention', {
+    this.logger.info("Resolving resource contention", {
       contentionId,
-      competingRequests: competingRequests.length
+      competingRequests: competingRequests.length,
     });
 
     // Analyze contention
-    const contentionAnalysis = this.analyzeResourceContention(competingRequests);
-    
+    const contentionAnalysis =
+      this.analyzeResourceContention(competingRequests);
+
     // Apply resolution strategy
-    const resolutionStrategy = this.selectContentionResolutionStrategy(contentionAnalysis);
+    const resolutionStrategy =
+      this.selectContentionResolutionStrategy(contentionAnalysis);
     const resolvedPlans = await this.applyContentionResolution(
       competingRequests,
-      resolutionStrategy
+      resolutionStrategy,
     );
 
     return resolvedPlans;
@@ -363,8 +388,15 @@ export class ResourceAllocator {
    */
 
   private initializeResourcePools(): void {
-    const resourceTypes = ['memory', 'cpu', 'network', 'storage', 'gpu', 'bandwidth'];
-    
+    const resourceTypes = [
+      "memory",
+      "cpu",
+      "network",
+      "storage",
+      "gpu",
+      "bandwidth",
+    ];
+
     for (const resourceType of resourceTypes) {
       const pool: ResourcePool = {
         resourceType,
@@ -373,15 +405,15 @@ export class ResourceAllocator {
         allocatedCapacity: 0,
         reservedCapacity: 0,
         allocationUnits: [],
-        utilizationHistory: []
+        utilizationHistory: [],
       };
-      
+
       this.resourcePools.set(resourceType, pool);
     }
 
-    this.logger.debug('Resource pools initialized', {
+    this.logger.debug("Resource pools initialized", {
       poolCount: this.resourcePools.size,
-      resourceTypes: Array.from(this.resourcePools.keys())
+      resourceTypes: Array.from(this.resourcePools.keys()),
     });
   }
 
@@ -392,9 +424,9 @@ export class ResourceAllocator {
       network: 1000, // 1000 Mbps
       storage: 51200, // 50GB
       gpu: 10, // 10 GPU units
-      bandwidth: 1000 // 1000 Mbps
+      bandwidth: 1000, // 1000 Mbps
     };
-    
+
     return capacities[resourceType] || 1000;
   }
 
@@ -406,7 +438,7 @@ export class ResourceAllocator {
   }
 
   private async analyzeRequirements(
-    requirements: ResourceRequirement[]
+    requirements: ResourceRequirement[],
   ): Promise<ResourceRequirement[]> {
     // Analyze and validate resource requirements
     const analyzed: ResourceRequirement[] = [];
@@ -414,18 +446,21 @@ export class ResourceAllocator {
     for (const requirement of requirements) {
       const pool = this.resourcePools.get(requirement.resourceType);
       if (!pool) {
-        this.logger.warn('Unknown resource type requested', {
-          resourceType: requirement.resourceType
+        this.logger.warn("Unknown resource type requested", {
+          resourceType: requirement.resourceType,
         });
         continue;
       }
 
       // Validate amount
-      const validatedAmount = Math.min(requirement.amount, pool.availableCapacity);
-      
+      const validatedAmount = Math.min(
+        requirement.amount,
+        pool.availableCapacity,
+      );
+
       analyzed.push({
         ...requirement,
-        amount: validatedAmount
+        amount: validatedAmount,
       });
     }
 
@@ -436,10 +471,10 @@ export class ResourceAllocator {
     agentId: string,
     workspaceId: string,
     requirements: ResourceRequirement[],
-    strategy: ResourceAllocationStrategy
+    strategy: ResourceAllocationStrategy,
   ): Promise<AllocationPlan> {
     const requestId = `alloc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const allocatedResources: ResourceAllocation[] = [];
     const fallbackAllocations: ResourceAllocation[] = [];
 
@@ -447,21 +482,24 @@ export class ResourceAllocator {
       const primaryAllocation = await this.allocateResourceType(
         requirement,
         strategy,
-        'primary'
+        "primary",
       );
-      
+
       if (primaryAllocation) {
         allocatedResources.push(primaryAllocation);
       }
 
       // Generate fallback if primary is less than requested
-      if (!primaryAllocation || primaryAllocation.actualAmount < requirement.amount) {
+      if (
+        !primaryAllocation ||
+        primaryAllocation.actualAmount < requirement.amount
+      ) {
         const fallback = await this.allocateResourceType(
           { ...requirement, amount: requirement.amount * 0.7 }, // 70% fallback
           strategy,
-          'fallback'
+          "fallback",
         );
-        
+
         if (fallback) {
           fallbackAllocations.push(fallback);
         }
@@ -475,15 +513,18 @@ export class ResourceAllocator {
       allocatedResources,
       fallbackAllocations,
       estimatedCost: this.calculateAllocationCost(allocatedResources),
-      allocationScore: this.calculateAllocationScore(requirements, allocatedResources),
-      implementationOrder: this.generateImplementationOrder(allocatedResources)
+      allocationScore: this.calculateAllocationScore(
+        requirements,
+        allocatedResources,
+      ),
+      implementationOrder: this.generateImplementationOrder(allocatedResources),
     };
   }
 
   private async allocateResourceType(
     requirement: ResourceRequirement,
     strategy: ResourceAllocationStrategy,
-    type: 'primary' | 'fallback'
+    type: "primary" | "fallback",
   ): Promise<ResourceAllocation | null> {
     const pool = this.resourcePools.get(requirement.resourceType);
     if (!pool || pool.availableCapacity < requirement.amount) {
@@ -495,28 +536,30 @@ export class ResourceAllocator {
       amount: requirement.amount,
       actualAmount: Math.min(requirement.amount, pool.availableCapacity),
       source: `pool_${requirement.resourceType}`,
-      shareLevel: requirement.sharable ? 'shared' : 'exclusive',
+      shareLevel: requirement.sharable ? "shared" : "exclusive",
       constraints: [],
       performance: {
         efficiency: 0.85,
         responseTime: 100,
         throughput: 1000,
         reliability: 0.99,
-        costEffectiveness: 0.8
-      }
+        costEffectiveness: 0.8,
+      },
     };
 
     return allocation;
   }
 
-  private async validateAllocation(plan: AllocationPlan): Promise<{ valid: boolean; reason?: string }> {
+  private async validateAllocation(
+    plan: AllocationPlan,
+  ): Promise<{ valid: boolean; reason?: string }> {
     // Check resource availability
     for (const allocation of plan.allocatedResources) {
       const pool = this.resourcePools.get(allocation.resourceType);
       if (!pool || pool.availableCapacity < allocation.actualAmount) {
         return {
           valid: false,
-          reason: `Insufficient ${allocation.resourceType}: requested ${allocation.actualAmount}, available ${pool?.availableCapacity || 0}`
+          reason: `Insufficient ${allocation.resourceType}: requested ${allocation.actualAmount}, available ${pool?.availableCapacity || 0}`,
         };
       }
     }
@@ -524,10 +567,10 @@ export class ResourceAllocator {
     // Check constraints
     for (const allocation of plan.allocatedResources) {
       for (const constraint of allocation.constraints) {
-        if (!await this.validateConstraint(constraint, allocation)) {
+        if (!(await this.validateConstraint(constraint, allocation))) {
           return {
             valid: false,
-            reason: `Constraint validation failed: ${constraint.type}`
+            reason: `Constraint validation failed: ${constraint.type}`,
           };
         }
       }
@@ -543,13 +586,13 @@ export class ResourceAllocator {
       const unit: ResourceAllocationUnit = {
         id: `unit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         agentId: plan.agentId,
-        workspaceId: '',
+        workspaceId: "",
         amount: allocation.actualAmount,
         allocatedAt: new Date(),
         priority: 5,
-        sharable: allocation.shareLevel !== 'exclusive',
+        sharable: allocation.shareLevel !== "exclusive",
         actualUsage: 0,
-        efficiency: allocation.performance.efficiency
+        efficiency: allocation.performance.efficiency,
       };
 
       // Update resource pool
@@ -566,7 +609,9 @@ export class ResourceAllocator {
     this.allocationHistory.push(plan);
   }
 
-  private async releaseResourceUnit(unit: ResourceAllocationUnit): Promise<void> {
+  private async releaseResourceUnit(
+    unit: ResourceAllocationUnit,
+  ): Promise<void> {
     const pool = this.resourcePools.get(unit.resourceType);
     if (!pool) return;
 
@@ -575,27 +620,27 @@ export class ResourceAllocator {
     pool.allocatedCapacity -= unit.amount;
 
     // Remove from pool
-    const index = pool.allocationUnits.findIndex(u => u.id === unit.id);
+    const index = pool.allocationUnits.findIndex((u) => u.id === unit.id);
     if (index > -1) {
       pool.allocationUnits.splice(index, 1);
     }
 
-    this.logger.debug('Resource unit released', {
+    this.logger.debug("Resource unit released", {
       unitId: unit.id,
       resourceType: unit.resourceType,
-      amount: unit.amount
+      amount: unit.amount,
     });
   }
 
   private async adjustResourceAllocation(
     unitId: string,
-    newAmount: number
+    newAmount: number,
   ): Promise<void> {
     for (const pool of this.resourcePools.values()) {
-      const unit = pool.allocationUnits.find(u => u.id === unitId);
+      const unit = pool.allocationUnits.find((u) => u.id === unitId);
       if (unit) {
         const difference = newAmount - unit.amount;
-        
+
         if (difference > 0 && pool.availableCapacity >= difference) {
           // Increase allocation
           pool.availableCapacity -= difference;
@@ -617,7 +662,7 @@ export class ResourceAllocator {
     for (const [resourceType, pool] of this.resourcePools) {
       const utilization = pool.allocatedCapacity / pool.totalCapacity;
       pool.utilizationHistory.push(utilization);
-      
+
       // Keep only last 100 data points
       if (pool.utilizationHistory.length > 100) {
         pool.utilizationHistory.shift();
@@ -630,7 +675,7 @@ export class ResourceAllocator {
     for (const pool of this.resourcePools.values()) {
       const now = new Date();
       const expired = pool.allocationUnits.filter(
-        unit => unit.expiresAt && unit.expiresAt < now
+        (unit) => unit.expiresAt && unit.expiresAt < now,
       );
 
       for (const unit of expired) {
@@ -647,7 +692,7 @@ export class ResourceAllocator {
       overallocated: [] as string[],
       underutilized: [] as string[],
       balanced: [] as string[],
-      trends: new Map<string, number>()
+      trends: new Map<string, number>(),
     };
 
     for (const [resourceType, pool] of this.resourcePools) {
@@ -674,20 +719,20 @@ export class ResourceAllocator {
     // Over-allocated resources
     for (const resourceType of analysis.overallocated) {
       opportunities.push({
-        type: 'scale_up',
+        type: "scale_up",
         resourceType,
-        action: 'increase_capacity',
-        priority: 'high'
+        action: "increase_capacity",
+        priority: "high",
       });
     }
 
     // Under-utilized resources
     for (const resourceType of analysis.underutilized) {
       opportunities.push({
-        type: 'scale_down',
+        type: "scale_down",
         resourceType,
-        action: 'reduce_capacity',
-        priority: 'medium'
+        action: "reduce_capacity",
+        priority: "medium",
       });
     }
 
@@ -695,47 +740,53 @@ export class ResourceAllocator {
   }
 
   private async executeOptimization(opportunity: any): Promise<void> {
-    this.logger.debug('Executing optimization', opportunity);
-    
+    this.logger.debug("Executing optimization", opportunity);
+
     switch (opportunity.action) {
-      case 'increase_capacity':
+      case "increase_capacity":
         await this.increasePoolCapacity(opportunity.resourceType, 1.2);
         break;
-      case 'reduce_capacity':
+      case "reduce_capacity":
         await this.reducePoolCapacity(opportunity.resourceType, 0.8);
         break;
     }
   }
 
-  private async increasePoolCapacity(resourceType: string, factor: number): Promise<void> {
+  private async increasePoolCapacity(
+    resourceType: string,
+    factor: number,
+  ): Promise<void> {
     const pool = this.resourcePools.get(resourceType);
     if (pool) {
       const increase = pool.totalCapacity * (factor - 1);
       pool.totalCapacity += increase;
       pool.availableCapacity += increase;
-      
-      this.logger.info('Resource pool capacity increased', {
+
+      this.logger.info("Resource pool capacity increased", {
         resourceType,
         increase,
-        newCapacity: pool.totalCapacity
+        newCapacity: pool.totalCapacity,
       });
     }
   }
 
-  private async reducePoolCapacity(resourceType: string, factor: number): Promise<void> {
+  private async reducePoolCapacity(
+    resourceType: string,
+    factor: number,
+  ): Promise<void> {
     const pool = this.resourcePools.get(resourceType);
     if (pool) {
       const decrease = pool.totalCapacity * (1 - factor);
       const newCapacity = pool.totalCapacity - decrease;
-      
+
       if (newCapacity >= pool.allocatedCapacity) {
         pool.totalCapacity = newCapacity;
         pool.availableCapacity = newCapacity - pool.allocatedCapacity;
-        
-        this.logger.info('Resource pool capacity reduced', {
+
+        this.logger.info("Resource pool capacity reduced", {
           resourceType,
           decrease,
-          newCapacity
+          newCapacity,
         });
       }
     }
@@ -743,37 +794,44 @@ export class ResourceAllocator {
 
   private async rebalanceResourcePools(): Promise<void> {
     // Rebalance resources across pools based on demand patterns
-    this.logger.debug('Rebalancing resource pools');
+    this.logger.debug("Rebalancing resource pools");
   }
 
   private calculateTrend(history: number[]): number {
     if (history.length < 2) return 0;
-    
+
     const recent = history.slice(-10);
     const older = history.slice(-20, -10);
-    
+
     const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
-    const olderAvg = older.length > 0 ? older.reduce((a, b) => a + b, 0) / older.length : recentAvg;
-    
+    const olderAvg =
+      older.length > 0
+        ? older.reduce((a, b) => a + b, 0) / older.length
+        : recentAvg;
+
     return recentAvg - olderAvg;
   }
 
   private analyzeSeasonality(history: number[]): SeasonalPattern[] {
     // Simplified seasonality analysis
-    return [{
-      pattern: 'hourly',
-      multiplier: 1.2,
-      confidence: 0.7
-    }];
+    return [
+      {
+        pattern: "hourly",
+        multiplier: 1.2,
+        confidence: 0.7,
+      },
+    ];
   }
 
   private calculatePredictionConfidence(history: number[]): number {
     if (history.length < 10) return 0.3;
-    
+
     // Calculate variance
     const mean = history.reduce((a, b) => a + b, 0) / history.length;
-    const variance = history.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / history.length;
-    
+    const variance =
+      history.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) /
+      history.length;
+
     // Lower variance = higher confidence
     return Math.max(0.1, Math.min(0.95, 1 - variance));
   }
@@ -781,29 +839,29 @@ export class ResourceAllocator {
   private generateResourceRecommendations(
     resourceType: string,
     predictedDemand: number,
-    currentUtilization: number
+    currentUtilization: number,
   ): ResourceRecommendation[] {
     const recommendations: ResourceRecommendation[] = [];
 
     if (predictedDemand > 0.8) {
       recommendations.push({
-        action: 'scale_up',
+        action: "scale_up",
         resourceType,
         amount: Math.ceil((predictedDemand - 0.8) * 100),
         timing: new Date(Date.now() + 1800000), // 30 minutes
-        rationale: 'High demand predicted',
-        expectedBenefit: 0.2
+        rationale: "High demand predicted",
+        expectedBenefit: 0.2,
       });
     }
 
     if (predictedDemand < 0.3 && currentUtilization < 0.4) {
       recommendations.push({
-        action: 'scale_down',
+        action: "scale_down",
         resourceType,
         amount: Math.floor((0.3 - predictedDemand) * 100),
         timing: new Date(Date.now() + 3600000), // 1 hour
-        rationale: 'Low demand predicted',
-        expectedBenefit: 0.15
+        rationale: "Low demand predicted",
+        expectedBenefit: 0.15,
       });
     }
 
@@ -812,20 +870,20 @@ export class ResourceAllocator {
 
   private analyzeResourceContention(requests: ResourceRequirement[][]): any {
     return {
-      contentionLevel: 'medium',
-      conflictingResources: ['memory', 'cpu'],
+      contentionLevel: "medium",
+      conflictingResources: ["memory", "cpu"],
       totalDemand: 150,
-      availableCapacity: 100
+      availableCapacity: 100,
     };
   }
 
   private selectContentionResolutionStrategy(analysis: any): string {
-    return 'priority_based'; // Simplified strategy selection
+    return "priority_based"; // Simplified strategy selection
   }
 
   private async applyContentionResolution(
     requests: ResourceRequirement[][],
-    strategy: string
+    strategy: string,
   ): Promise<AllocationPlan[]> {
     // Simplified contention resolution
     return [];
@@ -840,35 +898,49 @@ export class ResourceAllocator {
 
   private calculateAllocationScore(
     requirements: ResourceRequirement[],
-    allocations: ResourceAllocation[]
+    allocations: ResourceAllocation[],
   ): number {
     if (requirements.length === 0) return 0;
-    
+
     const fulfillmentRate = allocations.length / requirements.length;
-    const efficiencyScore = allocations.reduce((score, alloc) => 
-      score + alloc.performance.efficiency, 0) / allocations.length;
-    
+    const efficiencyScore =
+      allocations.reduce(
+        (score, alloc) => score + alloc.performance.efficiency,
+        0,
+      ) / allocations.length;
+
     return (fulfillmentRate + efficiencyScore) / 2;
   }
 
-  private generateImplementationOrder(allocations: ResourceAllocation[]): number[] {
+  private generateImplementationOrder(
+    allocations: ResourceAllocation[],
+  ): number[] {
     // Priority-based ordering: critical resources first
-    return allocations.map((_, index) => index).sort((a, b) => {
-      const priorityA = allocations[a].resourceType === 'memory' ? 1 : 2;
-      const priorityB = allocations[b].resourceType === 'memory' ? 1 : 2;
-      return priorityA - priorityB;
-    });
+    return allocations
+      .map((_, index) => index)
+      .sort((a, b) => {
+        const priorityA = allocations[a].resourceType === "memory" ? 1 : 2;
+        const priorityB = allocations[b].resourceType === "memory" ? 1 : 2;
+        return priorityA - priorityB;
+      });
   }
 
-  private async validateConstraint(constraint: ResourceConstraint, allocation: ResourceAllocation): Promise<boolean> {
+  private async validateConstraint(
+    constraint: ResourceConstraint,
+    allocation: ResourceAllocation,
+  ): Promise<boolean> {
     // Simplified constraint validation
     return true;
   }
 
-  private updateAllocationMetrics(plan: AllocationPlan, allocationTime: number, success: boolean): void {
-    this.metrics.averageAllocationTime = 
+  private updateAllocationMetrics(
+    plan: AllocationPlan,
+    allocationTime: number,
+    success: boolean,
+  ): void {
+    this.metrics.averageAllocationTime =
       (this.metrics.averageAllocationTime + allocationTime) / 2;
-    
+
     if (success) {
       this.metrics.successfulAllocations++;
     }
@@ -876,7 +948,7 @@ export class ResourceAllocator {
 
   private updateUtilizationMetrics(): void {
     for (const [resourceType, pool] of this.resourcePools) {
-      this.metrics.resourceUtilization[resourceType] = 
+      this.metrics.resourceUtilization[resourceType] =
         pool.allocatedCapacity / pool.totalCapacity;
     }
   }
@@ -892,7 +964,8 @@ export class ResourceAllocator {
       }
     }
 
-    this.metrics.wasteRate = totalAllocated > 0 ? totalWaste / totalAllocated : 0;
+    this.metrics.wasteRate =
+      totalAllocated > 0 ? totalWaste / totalAllocated : 0;
   }
 
   private calculateUtilizationImprovement(): number {
@@ -913,6 +986,6 @@ export class ResourceAllocator {
     this.allocationHistory.length = 0;
     this.activeAllocations.clear();
 
-    this.logger.info('Resource Allocator shutdown complete');
+    this.logger.info("Resource Allocator shutdown complete");
   }
 }

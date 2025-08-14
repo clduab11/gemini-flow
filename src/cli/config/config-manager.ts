@@ -3,11 +3,11 @@
  * Handles configuration loading, validation, and management
  */
 
-import { readFile, writeFile, mkdir, access } from 'fs/promises';
-import { join, dirname } from 'path';
-import { homedir } from 'os';
-import chalk from 'chalk';
-import { Logger } from '../../utils/logger.js';
+import { readFile, writeFile, mkdir, access } from "fs/promises";
+import { join, dirname } from "path";
+import { homedir } from "os";
+import chalk from "chalk";
+import { Logger } from "../../utils/logger.js";
 
 export interface GeminiFlowConfig {
   version: string;
@@ -27,7 +27,7 @@ export interface ProfileConfig {
 }
 
 export interface GlobalConfig {
-  logLevel: 'error' | 'warn' | 'info' | 'debug';
+  logLevel: "error" | "warn" | "info" | "debug";
   cacheDir: string;
   dataDir: string;
   tempDir: string;
@@ -56,7 +56,7 @@ export interface AgentTypeConfig {
 }
 
 export interface SwarmConfig {
-  defaultTopology: 'hierarchical' | 'mesh' | 'ring' | 'star';
+  defaultTopology: "hierarchical" | "mesh" | "ring" | "star";
   consensusAlgorithm: string;
   coordinationTimeout: number;
   syncInterval: number;
@@ -88,8 +88,8 @@ export class ConfigManager {
   private globalOptions: any = {};
 
   constructor() {
-    this.logger = new Logger('ConfigManager');
-    this.configPath = join(homedir(), '.gemini-flow', 'config.json');
+    this.logger = new Logger("ConfigManager");
+    this.configPath = join(homedir(), ".gemini-flow", "config.json");
   }
 
   /**
@@ -100,7 +100,7 @@ export class ConfigManager {
       await this.ensureConfigDirectory();
       await this.loadConfig();
     } catch (error) {
-      this.logger.error('Failed to initialize configuration:', error);
+      this.logger.error("Failed to initialize configuration:", error);
       throw error;
     }
   }
@@ -111,12 +111,12 @@ export class ConfigManager {
   async loadConfig(): Promise<GeminiFlowConfig> {
     try {
       await access(this.configPath);
-      const configContent = await readFile(this.configPath, 'utf-8');
+      const configContent = await readFile(this.configPath, "utf-8");
       this.config = JSON.parse(configContent);
-      this.logger.debug('Configuration loaded from:', this.configPath);
+      this.logger.debug("Configuration loaded from:", this.configPath);
     } catch (error) {
       // Create default configuration if file doesn't exist
-      this.logger.info('Creating default configuration...');
+      this.logger.info("Creating default configuration...");
       this.config = this.createDefaultConfig();
       await this.saveConfig();
     }
@@ -129,16 +129,16 @@ export class ConfigManager {
    */
   async saveConfig(): Promise<void> {
     if (!this.config) {
-      throw new Error('No configuration to save');
+      throw new Error("No configuration to save");
     }
 
     try {
       await this.ensureConfigDirectory();
       const configContent = JSON.stringify(this.config, null, 2);
-      await writeFile(this.configPath, configContent, 'utf-8');
-      this.logger.debug('Configuration saved to:', this.configPath);
+      await writeFile(this.configPath, configContent, "utf-8");
+      this.logger.debug("Configuration saved to:", this.configPath);
     } catch (error) {
-      this.logger.error('Failed to save configuration:', error);
+      this.logger.error("Failed to save configuration:", error);
       throw error;
     }
   }
@@ -148,7 +148,7 @@ export class ConfigManager {
    */
   getConfig(): GeminiFlowConfig {
     if (!this.config) {
-      throw new Error('Configuration not loaded');
+      throw new Error("Configuration not loaded");
     }
     return this.config;
   }
@@ -166,7 +166,7 @@ export class ConfigManager {
    */
   async setProfile(profileName: string, profile: ProfileConfig): Promise<void> {
     if (!this.config) {
-      throw new Error('Configuration not loaded');
+      throw new Error("Configuration not loaded");
     }
 
     this.config.profiles[profileName] = profile;
@@ -179,7 +179,7 @@ export class ConfigManager {
    */
   async deleteProfile(profileName: string): Promise<void> {
     if (!this.config) {
-      throw new Error('Configuration not loaded');
+      throw new Error("Configuration not loaded");
     }
 
     if (!(profileName in this.config.profiles)) {
@@ -204,12 +204,12 @@ export class ConfigManager {
    */
   async updateGlobal(updates: Partial<GlobalConfig>): Promise<void> {
     if (!this.config) {
-      throw new Error('Configuration not loaded');
+      throw new Error("Configuration not loaded");
     }
 
     this.config.global = { ...this.config.global, ...updates };
     await this.saveConfig();
-    this.logger.info('Global configuration updated');
+    this.logger.info("Global configuration updated");
   }
 
   /**
@@ -217,12 +217,12 @@ export class ConfigManager {
    */
   async updateGoogle(updates: Partial<GoogleConfig>): Promise<void> {
     if (!this.config) {
-      throw new Error('Configuration not loaded');
+      throw new Error("Configuration not loaded");
     }
 
     this.config.google = { ...this.config.google, ...updates };
     await this.saveConfig();
-    this.logger.info('Google configuration updated');
+    this.logger.info("Google configuration updated");
   }
 
   /**
@@ -232,40 +232,44 @@ export class ConfigManager {
     const issues: string[] = [];
 
     if (!this.config) {
-      issues.push('Configuration not loaded');
+      issues.push("Configuration not loaded");
       return { valid: false, issues };
     }
 
     // Validate Google configuration
     if (!this.config.google.projectId && !process.env.GOOGLE_CLOUD_PROJECT_ID) {
-      issues.push('Google Cloud Project ID not configured');
+      issues.push("Google Cloud Project ID not configured");
     }
 
     // Validate directories
     try {
       await access(this.config.global.cacheDir);
     } catch {
-      issues.push(`Cache directory not accessible: ${this.config.global.cacheDir}`);
+      issues.push(
+        `Cache directory not accessible: ${this.config.global.cacheDir}`,
+      );
     }
 
     try {
       await access(this.config.global.dataDir);
     } catch {
-      issues.push(`Data directory not accessible: ${this.config.global.dataDir}`);
+      issues.push(
+        `Data directory not accessible: ${this.config.global.dataDir}`,
+      );
     }
 
     // Validate agent configuration
     if (this.config.agents.maxAgents < 1) {
-      issues.push('Maximum agents must be at least 1');
+      issues.push("Maximum agents must be at least 1");
     }
 
     if (this.config.agents.defaultCount > this.config.agents.maxAgents) {
-      issues.push('Default agent count cannot exceed maximum agents');
+      issues.push("Default agent count cannot exceed maximum agents");
     }
 
     return {
       valid: issues.length === 0,
-      issues
+      issues,
     };
   }
 
@@ -288,24 +292,24 @@ export class ConfigManager {
    */
   private createDefaultConfig(): GeminiFlowConfig {
     const homeDir = homedir();
-    const geminiFlowDir = join(homeDir, '.gemini-flow');
+    const geminiFlowDir = join(homeDir, ".gemini-flow");
 
     return {
-      version: '2.0.0',
+      version: "2.0.0",
       profiles: {
         default: {
-          name: 'default',
-          description: 'Default configuration profile'
-        }
+          name: "default",
+          description: "Default configuration profile",
+        },
       },
       global: {
-        logLevel: 'info',
-        cacheDir: join(geminiFlowDir, 'cache'),
-        dataDir: join(geminiFlowDir, 'data'),
-        tempDir: join(geminiFlowDir, 'temp'),
+        logLevel: "info",
+        cacheDir: join(geminiFlowDir, "cache"),
+        dataDir: join(geminiFlowDir, "data"),
+        tempDir: join(geminiFlowDir, "temp"),
         parallelExecution: true,
         maxConcurrency: 8,
-        timeout: 30000
+        timeout: 30000,
       },
       agents: {
         defaultCount: 5,
@@ -315,57 +319,61 @@ export class ConfigManager {
         memoryLimit: 512,
         types: {
           coder: {
-            name: 'coder',
-            description: 'Code implementation specialist',
-            capabilities: ['code-generation', 'debugging', 'refactoring'],
-            resources: { memory: 256, cpu: 1 }
+            name: "coder",
+            description: "Code implementation specialist",
+            capabilities: ["code-generation", "debugging", "refactoring"],
+            resources: { memory: 256, cpu: 1 },
           },
           researcher: {
-            name: 'researcher',
-            description: 'Information gathering and analysis',
-            capabilities: ['web-search', 'data-analysis', 'documentation'],
-            resources: { memory: 128, cpu: 1 }
+            name: "researcher",
+            description: "Information gathering and analysis",
+            capabilities: ["web-search", "data-analysis", "documentation"],
+            resources: { memory: 128, cpu: 1 },
           },
           tester: {
-            name: 'tester',
-            description: 'Test creation and validation',
-            capabilities: ['test-generation', 'validation', 'qa'],
-            resources: { memory: 128, cpu: 1 }
+            name: "tester",
+            description: "Test creation and validation",
+            capabilities: ["test-generation", "validation", "qa"],
+            resources: { memory: 128, cpu: 1 },
           },
           reviewer: {
-            name: 'reviewer',
-            description: 'Code review and quality assurance',
-            capabilities: ['code-review', 'quality-assurance', 'best-practices'],
-            resources: { memory: 128, cpu: 1 }
+            name: "reviewer",
+            description: "Code review and quality assurance",
+            capabilities: [
+              "code-review",
+              "quality-assurance",
+              "best-practices",
+            ],
+            resources: { memory: 128, cpu: 1 },
           },
           planner: {
-            name: 'planner',
-            description: 'Strategic planning and coordination',
-            capabilities: ['task-planning', 'coordination', 'strategy'],
-            resources: { memory: 256, cpu: 1 }
-          }
-        }
+            name: "planner",
+            description: "Strategic planning and coordination",
+            capabilities: ["task-planning", "coordination", "strategy"],
+            resources: { memory: 256, cpu: 1 },
+          },
+        },
       },
       swarm: {
-        defaultTopology: 'hierarchical',
-        consensusAlgorithm: 'majority',
+        defaultTopology: "hierarchical",
+        consensusAlgorithm: "majority",
         coordinationTimeout: 5000,
         syncInterval: 1000,
-        maxRetries: 3
+        maxRetries: 3,
       },
       google: {
-        region: 'us-central1',
+        region: "us-central1",
         models: {
           gemini: {
-            version: 'gemini-pro',
-            maxTokens: 8192
+            version: "gemini-pro",
+            maxTokens: 8192,
           },
           vertex: {
-            region: 'us-central1',
-            models: ['gemini-pro', 'gemini-pro-vision']
-          }
-        }
-      }
+            region: "us-central1",
+            models: ["gemini-pro", "gemini-pro-vision"],
+          },
+        },
+      },
     };
   }
 
@@ -374,12 +382,12 @@ export class ConfigManager {
    */
   private async ensureConfigDirectory(): Promise<void> {
     const configDir = dirname(this.configPath);
-    
+
     try {
       await access(configDir);
     } catch {
       await mkdir(configDir, { recursive: true });
-      this.logger.debug('Created configuration directory:', configDir);
+      this.logger.debug("Created configuration directory:", configDir);
     }
   }
 
@@ -396,6 +404,6 @@ export class ConfigManager {
   async resetToDefaults(): Promise<void> {
     this.config = this.createDefaultConfig();
     await this.saveConfig();
-    this.logger.info('Configuration reset to defaults');
+    this.logger.info("Configuration reset to defaults");
   }
 }

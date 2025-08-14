@@ -1,6 +1,6 @@
 /**
  * WebRTC Integration Architecture
- * 
+ *
  * Production-ready WebRTC implementation with:
  * - Peer-to-peer streaming capabilities
  * - Advanced signaling with failover
@@ -9,8 +9,8 @@
  * - Performance optimization
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger.js";
 import {
   WebRTCConfig,
   VideoStreamRequest,
@@ -22,8 +22,8 @@ import {
   PerformanceMetrics,
   StreamingError,
   QualityAdaptationRule,
-  SynchronizationConfig
-} from '../types/streaming.js';
+  SynchronizationConfig,
+} from "../types/streaming.js";
 
 export interface WebRTCPeer {
   id: string;
@@ -39,7 +39,7 @@ export interface WebRTCPeer {
 }
 
 export interface SignalingMessage {
-  type: 'offer' | 'answer' | 'ice-candidate' | 'renegotiation' | 'bye';
+  type: "offer" | "answer" | "ice-candidate" | "renegotiation" | "bye";
   from: string;
   to: string;
   data: any;
@@ -60,13 +60,13 @@ export class WebRTCArchitecture extends EventEmitter {
 
   constructor(config: WebRTCConfig) {
     super();
-    this.logger = new Logger('WebRTCArchitecture');
+    this.logger = new Logger("WebRTCArchitecture");
     this.config = config;
     this.iceServers = config.iceServers;
     this.performanceMonitor = new PerformanceMonitor();
     this.qualityAdapter = new QualityAdapter();
     this.syncManager = new SynchronizationManager();
-    
+
     this.setupSignaling();
     this.startMonitoring();
   }
@@ -74,65 +74,73 @@ export class WebRTCArchitecture extends EventEmitter {
   /**
    * Create a new peer connection with optimized configuration
    */
-  async createPeerConnection(peerId: string, options?: RTCConfiguration): Promise<WebRTCPeer> {
+  async createPeerConnection(
+    peerId: string,
+    options?: RTCConfiguration,
+  ): Promise<WebRTCPeer> {
     const peerConfig: RTCConfiguration = {
       iceServers: this.iceServers,
-      iceTransportPolicy: this.config.iceTransportPolicy || 'all',
-      bundlePolicy: this.config.bundlePolicy || 'balanced',
-      rtcpMuxPolicy: this.config.rtcpMuxPolicy || 'require',
+      iceTransportPolicy: this.config.iceTransportPolicy || "all",
+      bundlePolicy: this.config.bundlePolicy || "balanced",
+      rtcpMuxPolicy: this.config.rtcpMuxPolicy || "require",
       iceCandidatePoolSize: this.config.iceCandidatePoolSize || 10,
-      ...options
+      ...options,
     };
 
     const connection = new RTCPeerConnection(peerConfig);
-    
+
     // Optimize connection settings
     this.optimizeConnection(connection);
-    
+
     const peer: WebRTCPeer = {
       id: peerId,
       connection,
-      state: 'new',
-      capabilities: RTCRtpReceiver.getCapabilities('video') || {} as RTCRtpCapabilities,
+      state: "new",
+      capabilities:
+        RTCRtpReceiver.getCapabilities("video") || ({} as RTCRtpCapabilities),
       streams: {
         outgoing: [],
-        incoming: []
+        incoming: [],
       },
       stats: new Map(),
-      lastActivity: Date.now()
+      lastActivity: Date.now(),
     };
 
     // Setup event handlers
     this.setupPeerHandlers(peer);
-    
+
     this.peers.set(peerId, peer);
-    this.logger.info('Peer connection created', { peerId, state: peer.state });
-    
+    this.logger.info("Peer connection created", { peerId, state: peer.state });
+
     return peer;
   }
 
   /**
    * Initiate video streaming with adaptive quality
    */
-  async startVideoStream(request: VideoStreamRequest): Promise<VideoStreamResponse> {
+  async startVideoStream(
+    request: VideoStreamRequest,
+  ): Promise<VideoStreamResponse> {
     try {
       const stream = await this.createVideoStream(request);
-      const peer = this.peers.get(request.id) || await this.createPeerConnection(request.id);
-      
+      const peer =
+        this.peers.get(request.id) ||
+        (await this.createPeerConnection(request.id));
+
       // Add stream to peer connection
-      stream.getTracks().forEach(track => {
+      stream.getTracks().forEach((track) => {
         const sender = peer.connection.addTrack(track, stream);
         this.configureVideoSender(sender, request.quality.video!);
       });
-      
+
       peer.streams.outgoing.push(stream);
-      
+
       // Start quality adaptation
-      this.qualityAdapter.startAdaptation(request.id, 'video', request.quality);
-      
+      this.qualityAdapter.startAdaptation(request.id, "video", request.quality);
+
       const response: VideoStreamResponse = {
         id: request.id,
-        status: 'streaming',
+        status: "streaming",
         stream,
         quality: request.quality,
         stats: {
@@ -142,27 +150,26 @@ export class WebRTCArchitecture extends EventEmitter {
           currentBitrate: request.quality.video!.bitrate,
           averageLatency: 0,
           jitter: 0,
-          packetsLost: 0
+          packetsLost: 0,
         },
         endpoints: {
-          webrtc: peer.connection
-        }
+          webrtc: peer.connection,
+        },
       };
 
-      this.emit('video_stream_started', response);
+      this.emit("video_stream_started", response);
       return response;
-
     } catch (error) {
       const streamError: StreamingError = this.createStreamingError(
-        'VIDEO_STREAM_FAILED',
+        "VIDEO_STREAM_FAILED",
         `Failed to start video stream: ${(error as Error).message}`,
-        'high',
+        "high",
         true,
-        'encoding',
-        { streamId: request.id }
+        "encoding",
+        { streamId: request.id },
       );
-      
-      this.emit('streaming_error', streamError);
+
+      this.emit("streaming_error", streamError);
       throw streamError;
     }
   }
@@ -170,25 +177,29 @@ export class WebRTCArchitecture extends EventEmitter {
   /**
    * Initiate audio streaming with processing
    */
-  async startAudioStream(request: AudioStreamRequest): Promise<AudioStreamResponse> {
+  async startAudioStream(
+    request: AudioStreamRequest,
+  ): Promise<AudioStreamResponse> {
     try {
       const stream = await this.createAudioStream(request);
-      const peer = this.peers.get(request.id) || await this.createPeerConnection(request.id);
-      
+      const peer =
+        this.peers.get(request.id) ||
+        (await this.createPeerConnection(request.id));
+
       // Add stream to peer connection
-      stream.getTracks().forEach(track => {
+      stream.getTracks().forEach((track) => {
         const sender = peer.connection.addTrack(track, stream);
         this.configureAudioSender(sender, request.quality.audio!);
       });
-      
+
       peer.streams.outgoing.push(stream);
-      
+
       // Start quality adaptation
-      this.qualityAdapter.startAdaptation(request.id, 'audio', request.quality);
-      
+      this.qualityAdapter.startAdaptation(request.id, "audio", request.quality);
+
       const response: AudioStreamResponse = {
         id: request.id,
-        status: 'streaming',
+        status: "streaming",
         stream,
         quality: request.quality,
         stats: {
@@ -198,11 +209,11 @@ export class WebRTCArchitecture extends EventEmitter {
           currentBitrate: request.quality.audio!.bitrate,
           averageLatency: 0,
           signalLevel: 0,
-          noiseLevel: 0
+          noiseLevel: 0,
         },
         endpoints: {
-          webrtc: peer.connection
-        }
+          webrtc: peer.connection,
+        },
       };
 
       // Setup transcription if requested
@@ -210,20 +221,19 @@ export class WebRTCArchitecture extends EventEmitter {
         this.setupTranscription(response, request.metadata.language);
       }
 
-      this.emit('audio_stream_started', response);
+      this.emit("audio_stream_started", response);
       return response;
-
     } catch (error) {
       const streamError: StreamingError = this.createStreamingError(
-        'AUDIO_STREAM_FAILED',
+        "AUDIO_STREAM_FAILED",
         `Failed to start audio stream: ${(error as Error).message}`,
-        'high',
+        "high",
         true,
-        'encoding',
-        { streamId: request.id }
+        "encoding",
+        { streamId: request.id },
       );
-      
-      this.emit('streaming_error', streamError);
+
+      this.emit("streaming_error", streamError);
       throw streamError;
     }
   }
@@ -231,7 +241,10 @@ export class WebRTCArchitecture extends EventEmitter {
   /**
    * Create optimized offer with codec preferences
    */
-  async createOffer(peerId: string, options?: RTCOfferOptions): Promise<RTCSessionDescriptionInit> {
+  async createOffer(
+    peerId: string,
+    options?: RTCOfferOptions,
+  ): Promise<RTCSessionDescriptionInit> {
     const peer = this.peers.get(peerId);
     if (!peer) {
       throw new Error(`Peer not found: ${peerId}`);
@@ -241,63 +254,79 @@ export class WebRTCArchitecture extends EventEmitter {
       offerToReceiveAudio: true,
       offerToReceiveVideo: true,
       iceRestart: false,
-      ...options
+      ...options,
     };
 
     const offer = await peer.connection.createOffer(offerOptions);
-    
+
     // Optimize SDP for better performance
-    offer.sdp = this.optimizeSDP(offer.sdp!, 'offer');
-    
+    offer.sdp = this.optimizeSDP(offer.sdp!, "offer");
+
     await peer.connection.setLocalDescription(offer);
-    
-    this.logger.info('Offer created', { peerId, sdp: offer.sdp?.substring(0, 100) });
+
+    this.logger.info("Offer created", {
+      peerId,
+      sdp: offer.sdp?.substring(0, 100),
+    });
     return offer;
   }
 
   /**
    * Handle incoming offer and create answer
    */
-  async handleOffer(peerId: string, offer: RTCSessionDescriptionInit): Promise<RTCSessionDescriptionInit> {
-    const peer = this.peers.get(peerId) || await this.createPeerConnection(peerId);
-    
+  async handleOffer(
+    peerId: string,
+    offer: RTCSessionDescriptionInit,
+  ): Promise<RTCSessionDescriptionInit> {
+    const peer =
+      this.peers.get(peerId) || (await this.createPeerConnection(peerId));
+
     // Optimize incoming SDP
-    offer.sdp = this.optimizeSDP(offer.sdp!, 'offer');
-    
+    offer.sdp = this.optimizeSDP(offer.sdp!, "offer");
+
     await peer.connection.setRemoteDescription(offer);
-    
+
     const answer = await peer.connection.createAnswer();
-    
+
     // Optimize answer SDP
-    answer.sdp = this.optimizeSDP(answer.sdp!, 'answer');
-    
+    answer.sdp = this.optimizeSDP(answer.sdp!, "answer");
+
     await peer.connection.setLocalDescription(answer);
-    
-    this.logger.info('Answer created', { peerId, sdp: answer.sdp?.substring(0, 100) });
+
+    this.logger.info("Answer created", {
+      peerId,
+      sdp: answer.sdp?.substring(0, 100),
+    });
     return answer;
   }
 
   /**
    * Handle incoming answer
    */
-  async handleAnswer(peerId: string, answer: RTCSessionDescriptionInit): Promise<void> {
+  async handleAnswer(
+    peerId: string,
+    answer: RTCSessionDescriptionInit,
+  ): Promise<void> {
     const peer = this.peers.get(peerId);
     if (!peer) {
       throw new Error(`Peer not found: ${peerId}`);
     }
 
     // Optimize answer SDP
-    answer.sdp = this.optimizeSDP(answer.sdp!, 'answer');
-    
+    answer.sdp = this.optimizeSDP(answer.sdp!, "answer");
+
     await peer.connection.setRemoteDescription(answer);
-    
-    this.logger.info('Answer handled', { peerId });
+
+    this.logger.info("Answer handled", { peerId });
   }
 
   /**
    * Add ICE candidate with validation
    */
-  async addIceCandidate(peerId: string, candidate: RTCIceCandidateInit): Promise<void> {
+  async addIceCandidate(
+    peerId: string,
+    candidate: RTCIceCandidateInit,
+  ): Promise<void> {
     const peer = this.peers.get(peerId);
     if (!peer) {
       throw new Error(`Peer not found: ${peerId}`);
@@ -306,9 +335,12 @@ export class WebRTCArchitecture extends EventEmitter {
     // Validate candidate before adding
     if (this.validateIceCandidate(candidate)) {
       await peer.connection.addIceCandidate(candidate);
-      this.logger.debug('ICE candidate added', { peerId, candidate: candidate.candidate });
+      this.logger.debug("ICE candidate added", {
+        peerId,
+        candidate: candidate.candidate,
+      });
     } else {
-      this.logger.warn('Invalid ICE candidate rejected', { peerId, candidate });
+      this.logger.warn("Invalid ICE candidate rejected", { peerId, candidate });
     }
   }
 
@@ -324,7 +356,7 @@ export class WebRTCArchitecture extends EventEmitter {
     const stats = await peer.connection.getStats();
     peer.stats = stats;
     peer.lastActivity = Date.now();
-    
+
     return stats;
   }
 
@@ -334,30 +366,33 @@ export class WebRTCArchitecture extends EventEmitter {
   async monitorNetworkConditions(peerId: string): Promise<NetworkConditions> {
     const stats = await this.getPeerStats(peerId);
     const conditions = this.performanceMonitor.analyzeStats(stats);
-    
+
     // Trigger quality adaptation if needed
     this.qualityAdapter.evaluateConditions(peerId, conditions);
-    
+
     return conditions;
   }
 
   /**
    * Setup multi-agent coordination session
    */
-  async createCoordinationSession(sessionId: string, participants: string[]): Promise<StreamingSession> {
+  async createCoordinationSession(
+    sessionId: string,
+    participants: string[],
+  ): Promise<StreamingSession> {
     const session: StreamingSession = {
       id: sessionId,
-      type: 'multicast',
-      participants: participants.map(id => ({
+      type: "multicast",
+      participants: participants.map((id) => ({
         id,
-        role: 'prosumer',
-        capabilities: ['video', 'audio', 'data'],
-        connection: this.peers.get(id)?.connection || new RTCPeerConnection()
+        role: "prosumer",
+        capabilities: ["video", "audio", "data"],
+        connection: this.peers.get(id)?.connection || new RTCPeerConnection(),
       })),
       streams: {
         video: [],
         audio: [],
-        data: []
+        data: [],
       },
       coordination: {
         master: participants[0], // First participant is master
@@ -367,9 +402,9 @@ export class WebRTCArchitecture extends EventEmitter {
           tolerance: 50, // 50ms
           maxDrift: 200,
           resyncThreshold: 500,
-          method: 'rtp',
-          masterClock: 'audio'
-        }
+          method: "rtp",
+          masterClock: "audio",
+        },
       },
       metrics: {
         startTime: Date.now(),
@@ -377,14 +412,17 @@ export class WebRTCArchitecture extends EventEmitter {
         totalBytes: 0,
         qualityChanges: 0,
         errors: 0,
-        averageLatency: 0
-      }
+        averageLatency: 0,
+      },
     };
 
     this.sessions.set(sessionId, session);
     this.syncManager.initializeSession(session);
-    
-    this.logger.info('Coordination session created', { sessionId, participants });
+
+    this.logger.info("Coordination session created", {
+      sessionId,
+      participants,
+    });
     return session;
   }
 
@@ -393,14 +431,14 @@ export class WebRTCArchitecture extends EventEmitter {
    */
   private optimizeConnection(connection: RTCPeerConnection): void {
     // Set up data channel for low-latency coordination
-    const dataChannel = connection.createDataChannel('coordination', {
+    const dataChannel = connection.createDataChannel("coordination", {
       ordered: false,
       maxRetransmits: 0,
-      priority: 'high'
+      priority: "high",
     });
 
     dataChannel.onopen = () => {
-      this.logger.debug('Coordination data channel opened');
+      this.logger.debug("Coordination data channel opened");
     };
 
     dataChannel.onmessage = (event) => {
@@ -416,34 +454,34 @@ export class WebRTCArchitecture extends EventEmitter {
 
     connection.onicecandidate = (event) => {
       if (event.candidate) {
-        this.emit('ice_candidate', {
+        this.emit("ice_candidate", {
           peerId: peer.id,
-          candidate: event.candidate
+          candidate: event.candidate,
         });
       }
     };
 
     connection.onconnectionstatechange = () => {
       peer.state = connection.connectionState;
-      this.logger.info('Peer connection state changed', {
+      this.logger.info("Peer connection state changed", {
         peerId: peer.id,
-        state: peer.state
+        state: peer.state,
       });
-      
-      this.emit('peer_state_changed', {
+
+      this.emit("peer_state_changed", {
         peerId: peer.id,
-        state: peer.state
+        state: peer.state,
       });
     };
 
     connection.ontrack = (event) => {
       const [stream] = event.streams;
       peer.streams.incoming.push(stream);
-      
-      this.emit('track_received', {
+
+      this.emit("track_received", {
         peerId: peer.id,
         track: event.track,
-        stream
+        stream,
       });
     };
 
@@ -458,19 +496,21 @@ export class WebRTCArchitecture extends EventEmitter {
   /**
    * Create video stream with specified constraints
    */
-  private async createVideoStream(request: VideoStreamRequest): Promise<MediaStream> {
+  private async createVideoStream(
+    request: VideoStreamRequest,
+  ): Promise<MediaStream> {
     const constraints: MediaStreamConstraints = {
       video: {
         width: { ideal: request.quality.video!.resolution.width },
         height: { ideal: request.quality.video!.resolution.height },
         frameRate: { ideal: request.quality.video!.framerate },
-        ...request.constraints?.video
-      }
+        ...request.constraints?.video,
+      },
     };
 
-    if (request.source === 'camera') {
+    if (request.source === "camera") {
       return navigator.mediaDevices.getUserMedia(constraints);
-    } else if (request.source === 'screen') {
+    } else if (request.source === "screen") {
       return navigator.mediaDevices.getDisplayMedia(constraints);
     } else {
       throw new Error(`Unsupported video source: ${request.source}`);
@@ -480,7 +520,9 @@ export class WebRTCArchitecture extends EventEmitter {
   /**
    * Create audio stream with processing options
    */
-  private async createAudioStream(request: AudioStreamRequest): Promise<MediaStream> {
+  private async createAudioStream(
+    request: AudioStreamRequest,
+  ): Promise<MediaStream> {
     const constraints: MediaStreamConstraints = {
       audio: {
         sampleRate: { ideal: request.quality.audio!.sampleRate },
@@ -488,11 +530,11 @@ export class WebRTCArchitecture extends EventEmitter {
         echoCancellation: request.processing?.echoCancellation ?? true,
         noiseSuppression: request.processing?.noiseSuppression ?? true,
         autoGainControl: request.processing?.autoGainControl ?? true,
-        ...request.constraints?.audio
-      }
+        ...request.constraints?.audio,
+      },
     };
 
-    if (request.source === 'microphone') {
+    if (request.source === "microphone") {
       return navigator.mediaDevices.getUserMedia(constraints);
     } else {
       throw new Error(`Unsupported audio source: ${request.source}`);
@@ -504,13 +546,13 @@ export class WebRTCArchitecture extends EventEmitter {
    */
   private configureVideoSender(sender: RTCRtpSender, config: any): void {
     const params = sender.getParameters();
-    
+
     // Set bitrate constraints
     if (params.encodings.length > 0) {
       params.encodings[0].maxBitrate = config.bitrate;
       params.encodings[0].maxFramerate = config.framerate;
     }
-    
+
     sender.setParameters(params);
   }
 
@@ -519,55 +561,62 @@ export class WebRTCArchitecture extends EventEmitter {
    */
   private configureAudioSender(sender: RTCRtpSender, config: any): void {
     const params = sender.getParameters();
-    
+
     // Set bitrate constraints
     if (params.encodings.length > 0) {
       params.encodings[0].maxBitrate = config.bitrate;
     }
-    
+
     sender.setParameters(params);
   }
 
   /**
    * Optimize SDP for better performance and codec preferences
    */
-  private optimizeSDP(sdp: string, type: 'offer' | 'answer'): string {
+  private optimizeSDP(sdp: string, type: "offer" | "answer"): string {
     let optimizedSdp = sdp;
-    
+
     // Prefer VP9 for video
-    optimizedSdp = this.preferCodec(optimizedSdp, 'video', 'VP9');
-    
+    optimizedSdp = this.preferCodec(optimizedSdp, "video", "VP9");
+
     // Prefer Opus for audio
-    optimizedSdp = this.preferCodec(optimizedSdp, 'audio', 'opus');
-    
+    optimizedSdp = this.preferCodec(optimizedSdp, "audio", "opus");
+
     // Enable hardware acceleration hints
     optimizedSdp = optimizedSdp.replace(
       /a=fmtp:(\d+) /g,
-      'a=fmtp:$1 profile-id=1;'
+      "a=fmtp:$1 profile-id=1;",
     );
-    
+
     return optimizedSdp;
   }
 
   /**
    * Prefer specific codec in SDP
    */
-  private preferCodec(sdp: string, type: 'video' | 'audio', codec: string): string {
-    const lines = sdp.split('\r\n');
-    const mLineIndex = lines.findIndex(line => line.startsWith(`m=${type}`));
-    
+  private preferCodec(
+    sdp: string,
+    type: "video" | "audio",
+    codec: string,
+  ): string {
+    const lines = sdp.split("\r\n");
+    const mLineIndex = lines.findIndex((line) => line.startsWith(`m=${type}`));
+
     if (mLineIndex === -1) return sdp;
-    
+
     const mLine = lines[mLineIndex];
     const codecPayloads = this.extractCodecPayloads(lines, codec);
-    
+
     if (codecPayloads.length > 0) {
-      const otherPayloads = mLine.split(' ').slice(3).filter(p => !codecPayloads.includes(p));
-      const newMLine = `${mLine.split(' ').slice(0, 3).join(' ')} ${codecPayloads.join(' ')} ${otherPayloads.join(' ')}`;
+      const otherPayloads = mLine
+        .split(" ")
+        .slice(3)
+        .filter((p) => !codecPayloads.includes(p));
+      const newMLine = `${mLine.split(" ").slice(0, 3).join(" ")} ${codecPayloads.join(" ")} ${otherPayloads.join(" ")}`;
       lines[mLineIndex] = newMLine;
     }
-    
-    return lines.join('\r\n');
+
+    return lines.join("\r\n");
   }
 
   /**
@@ -575,14 +624,17 @@ export class WebRTCArchitecture extends EventEmitter {
    */
   private extractCodecPayloads(lines: string[], codec: string): string[] {
     const payloads: string[] = [];
-    
+
     for (const line of lines) {
-      if (line.includes(`a=rtpmap:`) && line.toLowerCase().includes(codec.toLowerCase())) {
-        const payload = line.split(':')[1].split(' ')[0];
+      if (
+        line.includes(`a=rtpmap:`) &&
+        line.toLowerCase().includes(codec.toLowerCase())
+      ) {
+        const payload = line.split(":")[1].split(" ")[0];
         payloads.push(payload);
       }
     }
-    
+
     return payloads;
   }
 
@@ -591,10 +643,10 @@ export class WebRTCArchitecture extends EventEmitter {
    */
   private validateIceCandidate(candidate: RTCIceCandidateInit): boolean {
     if (!candidate.candidate) return false;
-    
+
     // Basic validation - could be enhanced with security checks
-    const parts = candidate.candidate.split(' ');
-    return parts.length >= 6 && parts[0] === 'candidate';
+    const parts = candidate.candidate.split(" ");
+    return parts.length >= 6 && parts[0] === "candidate";
   }
 
   /**
@@ -603,7 +655,7 @@ export class WebRTCArchitecture extends EventEmitter {
   private setupSignaling(): void {
     // WebSocket signaling implementation would go here
     // This is a placeholder for the signaling architecture
-    this.logger.info('Signaling setup completed');
+    this.logger.info("Signaling setup completed");
   }
 
   /**
@@ -615,7 +667,10 @@ export class WebRTCArchitecture extends EventEmitter {
         try {
           await this.monitorNetworkConditions(peerId);
         } catch (error) {
-          this.logger.warn('Monitoring error', { peerId, error: (error as Error).message });
+          this.logger.warn("Monitoring error", {
+            peerId,
+            error: (error as Error).message,
+          });
         }
       }
     }, 5000); // Monitor every 5 seconds
@@ -625,20 +680,23 @@ export class WebRTCArchitecture extends EventEmitter {
    * Handle coordination messages
    */
   private handleCoordinationMessage(message: any): void {
-    this.emit('coordination_message', message);
+    this.emit("coordination_message", message);
   }
 
   /**
    * Setup transcription for audio stream
    */
-  private setupTranscription(response: AudioStreamResponse, language?: string): void {
+  private setupTranscription(
+    response: AudioStreamResponse,
+    language?: string,
+  ): void {
     // Speech recognition implementation would go here
     response.transcription = {
       enabled: true,
-      language: language || 'en-US',
+      language: language || "en-US",
       confidence: 0,
-      interim: '',
-      final: ''
+      interim: "",
+      final: "",
     };
   }
 
@@ -648,10 +706,16 @@ export class WebRTCArchitecture extends EventEmitter {
   private createStreamingError(
     code: string,
     message: string,
-    severity: 'low' | 'medium' | 'high' | 'critical',
+    severity: "low" | "medium" | "high" | "critical",
     recoverable: boolean,
-    category: 'network' | 'encoding' | 'decoding' | 'sync' | 'coordination' | 'permission',
-    context: any
+    category:
+      | "network"
+      | "encoding"
+      | "decoding"
+      | "sync"
+      | "coordination"
+      | "permission",
+    context: any,
   ): StreamingError {
     return {
       code,
@@ -662,11 +726,11 @@ export class WebRTCArchitecture extends EventEmitter {
       timestamp: Date.now(),
       context,
       recovery: {
-        suggested: ['retry', 'reduce_quality', 'switch_codec'],
+        suggested: ["retry", "reduce_quality", "switch_codec"],
         automatic: recoverable,
         retryable: recoverable,
-        fallback: 'websocket'
-      }
+        fallback: "websocket",
+      },
     };
   }
 
@@ -678,7 +742,7 @@ export class WebRTCArchitecture extends EventEmitter {
     if (peer) {
       peer.connection.close();
       this.peers.delete(peerId);
-      this.logger.info('Peer connection closed', { peerId });
+      this.logger.info("Peer connection closed", { peerId });
     }
   }
 
@@ -689,11 +753,11 @@ export class WebRTCArchitecture extends EventEmitter {
     for (const [peerId] of this.peers) {
       await this.closePeer(peerId);
     }
-    
-    this.signalingEndpoints.forEach(ws => ws.close());
+
+    this.signalingEndpoints.forEach((ws) => ws.close());
     this.removeAllListeners();
-    
-    this.logger.info('WebRTC architecture cleaned up');
+
+    this.logger.info("WebRTC architecture cleaned up");
   }
 }
 
@@ -706,21 +770,22 @@ class PerformanceMonitor {
       bandwidth: { upload: 0, download: 0, available: 0 },
       latency: { rtt: 0, jitter: 0 },
       quality: { packetLoss: 0, stability: 1, congestion: 0 },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     stats.forEach((report) => {
-      if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+      if (report.type === "candidate-pair" && report.state === "succeeded") {
         conditions.latency.rtt = report.currentRoundTripTime * 1000;
       }
-      
-      if (report.type === 'inbound-rtp') {
-        conditions.quality.packetLoss = report.packetsLost / (report.packetsLost + report.packetsReceived);
+
+      if (report.type === "inbound-rtp") {
+        conditions.quality.packetLoss =
+          report.packetsLost / (report.packetsLost + report.packetsReceived);
         conditions.latency.jitter = report.jitter;
       }
-      
-      if (report.type === 'outbound-rtp') {
-        conditions.bandwidth.upload = report.bytesSent / report.timestamp * 8;
+
+      if (report.type === "outbound-rtp") {
+        conditions.bandwidth.upload = (report.bytesSent / report.timestamp) * 8;
       }
     });
 
@@ -735,7 +800,11 @@ class QualityAdapter {
   private adaptationRules: QualityAdaptationRule[] = [];
   private cooldowns = new Map<string, number>();
 
-  startAdaptation(streamId: string, type: 'video' | 'audio', initialQuality: any): void {
+  startAdaptation(
+    streamId: string,
+    type: "video" | "audio",
+    initialQuality: any,
+  ): void {
     // Initialize adaptation monitoring
   }
 

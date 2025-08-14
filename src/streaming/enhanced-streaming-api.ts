@@ -1,6 +1,6 @@
 /**
  * Enhanced Streaming API
- * 
+ *
  * Production-ready multi-modal streaming API with:
  * - Complete multimedia support (video, audio, data)
  * - Real-time performance optimization (<100ms text, <500ms multimedia)
@@ -10,14 +10,14 @@
  * - Machine learning-based adaptation
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
-import { WebRTCArchitecture } from './webrtc-architecture.js';
-import { CodecManager } from './codec-manager.js';
-import { BufferSyncManager } from './buffer-sync-manager.js';
-import { A2AMultimediaExtension } from './a2a-multimedia-extension.js';
-import { QualityAdaptationEngine } from './quality-adaptation-engine.js';
-import { EdgeCacheCDN } from './edge-cache-cdn.js';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger.js";
+import { WebRTCArchitecture } from "./webrtc-architecture.js";
+import { CodecManager } from "./codec-manager.js";
+import { BufferSyncManager } from "./buffer-sync-manager.js";
+import { A2AMultimediaExtension } from "./a2a-multimedia-extension.js";
+import { QualityAdaptationEngine } from "./quality-adaptation-engine.js";
+import { EdgeCacheCDN } from "./edge-cache-cdn.js";
 import {
   VideoStreamRequest,
   AudioStreamRequest,
@@ -33,8 +33,8 @@ import {
   CDNConfiguration,
   SynchronizationConfig,
   UserPreferences,
-  QualityConstraints
-} from '../types/streaming.js';
+  QualityConstraints,
+} from "../types/streaming.js";
 
 export interface EnhancedStreamingConfig {
   webrtc: {
@@ -48,7 +48,7 @@ export interface EnhancedStreamingConfig {
   quality: {
     enableAdaptation: boolean;
     targetLatency: number;
-    adaptationSpeed: 'slow' | 'medium' | 'fast';
+    adaptationSpeed: "slow" | "medium" | "fast";
     mlPrediction: boolean;
   };
   a2a: {
@@ -57,7 +57,7 @@ export interface EnhancedStreamingConfig {
     failoverTimeout: number;
   };
   performance: {
-    textLatencyTarget: number;     // <100ms
+    textLatencyTarget: number; // <100ms
     multimediaLatencyTarget: number; // <500ms
     enableOptimizations: boolean;
     monitoringInterval: number;
@@ -71,8 +71,14 @@ export interface EnhancedStreamingConfig {
 
 export interface StreamSession {
   id: string;
-  type: 'video' | 'audio' | 'multimodal' | 'data';
-  status: 'initializing' | 'active' | 'paused' | 'degraded' | 'failed' | 'ended';
+  type: "video" | "audio" | "multimodal" | "data";
+  status:
+    | "initializing"
+    | "active"
+    | "paused"
+    | "degraded"
+    | "failed"
+    | "ended";
   participants: string[];
   streams: {
     video: Map<string, VideoStreamResponse>;
@@ -126,7 +132,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
 
   constructor(config: EnhancedStreamingConfig) {
     super();
-    this.logger = new Logger('EnhancedStreamingAPI');
+    this.logger = new Logger("EnhancedStreamingAPI");
     this.config = config;
 
     // Initialize core components
@@ -140,7 +146,9 @@ export class EnhancedStreamingAPI extends EventEmitter {
     // Initialize supporting systems
     this.performanceMonitor = new PerformanceMonitor(config.performance);
     this.errorHandler = new StreamingErrorHandler();
-    this.optimizationEngine = new PerformanceOptimizationEngine(config.performance);
+    this.optimizationEngine = new PerformanceOptimizationEngine(
+      config.performance,
+    );
     this.securityManager = new StreamingSecurityManager(config.security);
 
     this.setupEventHandlers();
@@ -152,13 +160,13 @@ export class EnhancedStreamingAPI extends EventEmitter {
    */
   async createSession(
     sessionId: string,
-    type: 'video' | 'audio' | 'multimodal' | 'data',
-    context: StreamingContext
+    type: "video" | "audio" | "multimodal" | "data",
+    context: StreamingContext,
   ): Promise<StreamSession> {
     const startTime = performance.now();
 
     try {
-      this.logger.info('Creating streaming session', { sessionId, type });
+      this.logger.info("Creating streaming session", { sessionId, type });
 
       // Validate context and constraints
       await this.validateStreamingContext(context);
@@ -167,45 +175,48 @@ export class EnhancedStreamingAPI extends EventEmitter {
       const session: StreamSession = {
         id: sessionId,
         type,
-        status: 'initializing',
+        status: "initializing",
         participants: [],
         streams: {
           video: new Map(),
           audio: new Map(),
-          data: new Map()
+          data: new Map(),
         },
         quality: await this.determineInitialQuality(context),
         metrics: this.initializeMetrics(),
         coordination: {
-          consensusRequired: this.config.a2a.enableCoordination
+          consensusRequired: this.config.a2a.enableCoordination,
         },
         security: {
           encrypted: this.config.security.enableEncryption,
           authenticated: this.config.security.enableAuthentication,
-          integrityProtected: this.config.security.enableIntegrityChecks
+          integrityProtected: this.config.security.enableIntegrityChecks,
         },
         timestamps: {
           created: Date.now(),
-          lastActivity: Date.now()
-        }
+          lastActivity: Date.now(),
+        },
       };
 
       // Setup A2A coordination if enabled
       if (this.config.a2a.enableCoordination) {
-        session.coordination.a2aSession = await this.a2aExtension.createCoordinatedSession(
-          sessionId,
-          context.userPreferences.qualityPriority === 'balanced' ? ['agent1', 'agent2'] : ['agent1'],
-          'multicast'
-        );
+        session.coordination.a2aSession =
+          await this.a2aExtension.createCoordinatedSession(
+            sessionId,
+            context.userPreferences.qualityPriority === "balanced"
+              ? ["agent1", "agent2"]
+              : ["agent1"],
+            "multicast",
+          );
       }
 
       // Initialize quality adaptation
       this.qualityEngine.initializeStream(
         sessionId,
-        type === 'multimodal' ? 'video' : type,
+        type === "multimodal" ? "video" : type,
         session.quality,
         context.userPreferences,
-        context.constraints
+        context.constraints,
       );
 
       // Setup security if enabled
@@ -214,31 +225,30 @@ export class EnhancedStreamingAPI extends EventEmitter {
       }
 
       this.sessions.set(sessionId, session);
-      session.status = 'active';
+      session.status = "active";
       session.timestamps.started = Date.now();
 
       const initializationTime = performance.now() - startTime;
-      this.logger.info('Session created successfully', {
+      this.logger.info("Session created successfully", {
         sessionId,
         type,
         initializationTime,
-        quality: session.quality.level
+        quality: session.quality.level,
       });
 
-      this.emit('session_created', session);
+      this.emit("session_created", session);
       return session;
-
     } catch (error) {
       const sessionError = this.errorHandler.createError(
-        'SESSION_CREATION_FAILED',
+        "SESSION_CREATION_FAILED",
         `Failed to create session: ${(error as Error).message}`,
-        'high',
+        "high",
         true,
-        'coordination',
-        { sessionId, type, context }
+        "coordination",
+        { sessionId, type, context },
       );
 
-      this.emit('session_error', sessionError);
+      this.emit("session_error", sessionError);
       throw sessionError;
     }
   }
@@ -249,7 +259,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
   async startVideoStream(
     sessionId: string,
     request: VideoStreamRequest,
-    context: StreamingContext
+    context: StreamingContext,
   ): Promise<VideoStreamResponse> {
     const startTime = performance.now();
 
@@ -259,19 +269,22 @@ export class EnhancedStreamingAPI extends EventEmitter {
         throw new Error(`Session not found: ${sessionId}`);
       }
 
-      this.logger.info('Starting video stream', { sessionId, streamId: request.id });
+      this.logger.info("Starting video stream", {
+        sessionId,
+        streamId: request.id,
+      });
 
       // Optimize codec selection
-      const optimalCodec = this.codecManager.getOptimalCodec('video', {
+      const optimalCodec = this.codecManager.getOptimalCodec("video", {
         quality: session.quality,
         bandwidth: context.networkConditions.bandwidth.available,
         latency: this.config.performance.multimediaLatencyTarget,
-        compatibility: ['webm', 'mp4'],
-        hardwareAcceleration: true
+        compatibility: ["webm", "mp4"],
+        hardwareAcceleration: true,
       });
 
       if (!optimalCodec) {
-        throw new Error('No suitable video codec available');
+        throw new Error("No suitable video codec available");
       }
 
       // Update request with optimal settings
@@ -281,9 +294,9 @@ export class EnhancedStreamingAPI extends EventEmitter {
           ...request.quality,
           video: {
             ...request.quality.video!,
-            codec: optimalCodec
-          }
-        }
+            codec: optimalCodec,
+          },
+        },
       };
 
       // Check cache for similar content
@@ -292,50 +305,56 @@ export class EnhancedStreamingAPI extends EventEmitter {
         {
           userLocation: { lat: 0, lng: 0 }, // Would be real location
           quality: session.quality.level,
-          acceptEncoding: ['gzip', 'br']
-        }
+          acceptEncoding: ["gzip", "br"],
+        },
       );
 
       let response: VideoStreamResponse;
 
-      if (cachedContent && cachedContent.source === 'cache') {
+      if (cachedContent && cachedContent.source === "cache") {
         // Use cached content
-        response = this.createVideoResponseFromCache(optimizedRequest, cachedContent);
-        this.logger.debug('Video stream served from cache', { sessionId, streamId: request.id });
+        response = this.createVideoResponseFromCache(
+          optimizedRequest,
+          cachedContent,
+        );
+        this.logger.debug("Video stream served from cache", {
+          sessionId,
+          streamId: request.id,
+        });
       } else {
         // Start live stream
         response = await this.webrtc.startVideoStream(optimizedRequest);
-        
+
         // Cache the stream metadata for future use
         await this.edgeCache.cacheContent(
           this.generateCacheKey(optimizedRequest),
           JSON.stringify(response),
           {
-            mimeType: 'application/json',
+            mimeType: "application/json",
             quality: session.quality.level,
-            resolution: `${optimizedRequest.quality.video!.resolution.width}x${optimizedRequest.quality.video!.resolution.height}`
+            resolution: `${optimizedRequest.quality.video!.resolution.width}x${optimizedRequest.quality.video!.resolution.height}`,
           },
           {
-            strategy: 'adaptive',
+            strategy: "adaptive",
             ttl: 3600000, // 1 hour
-            tags: ['video', 'stream', session.type],
-            priority: 8
-          }
+            tags: ["video", "stream", session.type],
+            priority: 8,
+          },
         );
       }
 
       // Setup buffer management
-      this.bufferSync.createBufferPool(request.id, 'video', {
-        type: 'adaptive',
+      this.bufferSync.createBufferPool(request.id, "video", {
+        type: "adaptive",
         targetLatency: this.config.performance.multimediaLatencyTarget,
-        bufferSize: this.calculateOptimalBufferSize('video', context),
+        bufferSize: this.calculateOptimalBufferSize("video", context),
         rebufferingThreshold: 0.3,
         adaptationSpeed: 1.0,
-        qualityLevels: [session.quality]
+        qualityLevels: [session.quality],
       });
 
       // Start quality monitoring and adaptation
-      this.startStreamMonitoring(sessionId, request.id, 'video');
+      this.startStreamMonitoring(sessionId, request.id, "video");
 
       // Register with A2A coordination
       if (session.coordination.a2aSession) {
@@ -346,31 +365,38 @@ export class EnhancedStreamingAPI extends EventEmitter {
       session.timestamps.lastActivity = Date.now();
 
       const streamStartTime = performance.now() - startTime;
-      this.validateLatencyTarget(streamStartTime, this.config.performance.multimediaLatencyTarget, 'video_start');
+      this.validateLatencyTarget(
+        streamStartTime,
+        this.config.performance.multimediaLatencyTarget,
+        "video_start",
+      );
 
-      this.logger.info('Video stream started successfully', {
+      this.logger.info("Video stream started successfully", {
         sessionId,
         streamId: request.id,
         startTime: streamStartTime,
         quality: session.quality.level,
         codec: optimalCodec.name,
-        fromCache: cachedContent?.source === 'cache'
+        fromCache: cachedContent?.source === "cache",
       });
 
-      this.emit('video_stream_started', { sessionId, response, performance: streamStartTime });
+      this.emit("video_stream_started", {
+        sessionId,
+        response,
+        performance: streamStartTime,
+      });
       return response;
-
     } catch (error) {
       const streamError = this.errorHandler.createError(
-        'VIDEO_STREAM_FAILED',
+        "VIDEO_STREAM_FAILED",
         `Failed to start video stream: ${(error as Error).message}`,
-        'high',
+        "high",
         true,
-        'encoding',
-        { sessionId, request, context }
+        "encoding",
+        { sessionId, request, context },
       );
 
-      this.emit('video_stream_error', streamError);
+      this.emit("video_stream_error", streamError);
       throw streamError;
     }
   }
@@ -381,7 +407,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
   async startAudioStream(
     sessionId: string,
     request: AudioStreamRequest,
-    context: StreamingContext
+    context: StreamingContext,
   ): Promise<AudioStreamResponse> {
     const startTime = performance.now();
 
@@ -391,19 +417,22 @@ export class EnhancedStreamingAPI extends EventEmitter {
         throw new Error(`Session not found: ${sessionId}`);
       }
 
-      this.logger.info('Starting audio stream', { sessionId, streamId: request.id });
+      this.logger.info("Starting audio stream", {
+        sessionId,
+        streamId: request.id,
+      });
 
       // Optimize for low latency
-      const optimalCodec = this.codecManager.getOptimalCodec('audio', {
+      const optimalCodec = this.codecManager.getOptimalCodec("audio", {
         quality: session.quality,
         bandwidth: context.networkConditions.bandwidth.available,
         latency: 50, // Aggressive audio latency target
-        compatibility: ['opus', 'aac'],
-        hardwareAcceleration: false // Audio doesn't typically use hardware acceleration
+        compatibility: ["opus", "aac"],
+        hardwareAcceleration: false, // Audio doesn't typically use hardware acceleration
       });
 
       if (!optimalCodec) {
-        throw new Error('No suitable audio codec available');
+        throw new Error("No suitable audio codec available");
       }
 
       // Create optimized request
@@ -414,22 +443,22 @@ export class EnhancedStreamingAPI extends EventEmitter {
           audio: {
             ...request.quality.audio!,
             codec: optimalCodec,
-            bufferSize: 2048 // Smaller buffer for lower latency
-          }
-        }
+            bufferSize: 2048, // Smaller buffer for lower latency
+          },
+        },
       };
 
       // Start audio stream
       const response = await this.webrtc.startAudioStream(optimizedRequest);
 
       // Setup low-latency buffer
-      this.bufferSync.createBufferPool(request.id, 'audio', {
-        type: 'fixed',
+      this.bufferSync.createBufferPool(request.id, "audio", {
+        type: "fixed",
         targetLatency: 50,
-        bufferSize: this.calculateOptimalBufferSize('audio', context),
+        bufferSize: this.calculateOptimalBufferSize("audio", context),
         rebufferingThreshold: 0.2,
         adaptationSpeed: 2.0, // Faster adaptation for audio
-        qualityLevels: [session.quality]
+        qualityLevels: [session.quality],
       });
 
       // Setup transcription if requested
@@ -441,31 +470,38 @@ export class EnhancedStreamingAPI extends EventEmitter {
       session.timestamps.lastActivity = Date.now();
 
       const streamStartTime = performance.now() - startTime;
-      this.validateLatencyTarget(streamStartTime, this.config.performance.multimediaLatencyTarget, 'audio_start');
+      this.validateLatencyTarget(
+        streamStartTime,
+        this.config.performance.multimediaLatencyTarget,
+        "audio_start",
+      );
 
-      this.logger.info('Audio stream started successfully', {
+      this.logger.info("Audio stream started successfully", {
         sessionId,
         streamId: request.id,
         startTime: streamStartTime,
         quality: session.quality.level,
         codec: optimalCodec.name,
-        transcription: request.metadata?.transcriptionEnabled
+        transcription: request.metadata?.transcriptionEnabled,
       });
 
-      this.emit('audio_stream_started', { sessionId, response, performance: streamStartTime });
+      this.emit("audio_stream_started", {
+        sessionId,
+        response,
+        performance: streamStartTime,
+      });
       return response;
-
     } catch (error) {
       const streamError = this.errorHandler.createError(
-        'AUDIO_STREAM_FAILED',
+        "AUDIO_STREAM_FAILED",
         `Failed to start audio stream: ${(error as Error).message}`,
-        'high',
+        "high",
         true,
-        'encoding',
-        { sessionId, request, context }
+        "encoding",
+        { sessionId, request, context },
       );
 
-      this.emit('audio_stream_error', streamError);
+      this.emit("audio_stream_error", streamError);
       throw streamError;
     }
   }
@@ -475,7 +511,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
    */
   async processMultiModalChunk(
     sessionId: string,
-    chunk: MultiModalChunk
+    chunk: MultiModalChunk,
   ): Promise<boolean> {
     const startTime = performance.now();
 
@@ -493,18 +529,18 @@ export class EnhancedStreamingAPI extends EventEmitter {
       // Add to appropriate buffer
       const success = await this.bufferSync.addChunk(
         chunk.stream?.videoStreamId || chunk.stream?.audioStreamId || chunk.id,
-        chunk
+        chunk,
       );
 
       if (!success) {
-        throw new Error('Failed to buffer chunk');
+        throw new Error("Failed to buffer chunk");
       }
 
       // Handle synchronization
       if (chunk.sync && session.coordination.a2aSession) {
         await this.a2aExtension.synchronizeMultiAgentStreams(
           sessionId,
-          chunk.sync.presentationTimestamp
+          chunk.sync.presentationTimestamp,
         );
       }
 
@@ -513,22 +549,29 @@ export class EnhancedStreamingAPI extends EventEmitter {
       session.timestamps.lastActivity = Date.now();
 
       const processingTime = performance.now() - startTime;
-      this.validateLatencyTarget(processingTime, this.config.performance.textLatencyTarget, 'chunk_processing');
-
-      this.emit('chunk_processed', { sessionId, chunk, performance: processingTime });
-      return true;
-
-    } catch (error) {
-      const chunkError = this.errorHandler.createError(
-        'CHUNK_PROCESSING_FAILED',
-        `Failed to process chunk: ${(error as Error).message}`,
-        'medium',
-        true,
-        'sync',
-        { sessionId, chunkId: chunk.id }
+      this.validateLatencyTarget(
+        processingTime,
+        this.config.performance.textLatencyTarget,
+        "chunk_processing",
       );
 
-      this.emit('chunk_error', chunkError);
+      this.emit("chunk_processed", {
+        sessionId,
+        chunk,
+        performance: processingTime,
+      });
+      return true;
+    } catch (error) {
+      const chunkError = this.errorHandler.createError(
+        "CHUNK_PROCESSING_FAILED",
+        `Failed to process chunk: ${(error as Error).message}`,
+        "medium",
+        true,
+        "sync",
+        { sessionId, chunkId: chunk.id },
+      );
+
+      this.emit("chunk_error", chunkError);
       return false;
     }
   }
@@ -539,7 +582,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
   async adaptStreamQuality(
     sessionId: string,
     streamId: string,
-    conditions?: NetworkConditions
+    conditions?: NetworkConditions,
   ): Promise<boolean> {
     try {
       const session = this.sessions.get(sessionId);
@@ -547,21 +590,28 @@ export class EnhancedStreamingAPI extends EventEmitter {
 
       // Get adaptation decision
       const decision = await this.qualityEngine.evaluateAdaptation(streamId);
-      
-      if (!decision || decision.action === 'maintain') {
+
+      if (!decision || decision.action === "maintain") {
         return true;
       }
 
       // Apply quality change with coordination
-      if (session.coordination.consensusRequired && session.coordination.a2aSession) {
-        const consensusApproved = await this.a2aExtension.coordinateQualityChange(
-          sessionId,
-          decision.newQuality,
-          decision.reason
-        );
+      if (
+        session.coordination.consensusRequired &&
+        session.coordination.a2aSession
+      ) {
+        const consensusApproved =
+          await this.a2aExtension.coordinateQualityChange(
+            sessionId,
+            decision.newQuality,
+            decision.reason,
+          );
 
         if (!consensusApproved) {
-          this.logger.warn('Quality change rejected by consensus', { sessionId, decision });
+          this.logger.warn("Quality change rejected by consensus", {
+            sessionId,
+            decision,
+          });
           return false;
         }
       }
@@ -570,23 +620,22 @@ export class EnhancedStreamingAPI extends EventEmitter {
       session.quality = decision.newQuality;
       session.metrics.coordination.qualityChanges++;
 
-      this.logger.info('Stream quality adapted', {
+      this.logger.info("Stream quality adapted", {
         sessionId,
         streamId,
         action: decision.action,
         newQuality: decision.newQuality.level,
         reason: decision.reason,
-        confidence: decision.confidence
+        confidence: decision.confidence,
       });
 
-      this.emit('quality_adapted', { sessionId, streamId, decision });
+      this.emit("quality_adapted", { sessionId, streamId, decision });
       return true;
-
     } catch (error) {
-      this.logger.error('Quality adaptation failed', {
+      this.logger.error("Quality adaptation failed", {
         sessionId,
         streamId,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
       return false;
     }
@@ -610,8 +659,8 @@ export class EnhancedStreamingAPI extends EventEmitter {
         agentCount: session.coordination.a2aSession?.participants.length || 1,
         syncAccuracy: this.calculateSyncAccuracy(session),
         consensusTime: this.calculateAverageConsensusTime(session),
-        messageLatency: this.calculateMessageLatency(session)
-      }
+        messageLatency: this.calculateMessageLatency(session),
+      },
     };
 
     // Update session duration
@@ -629,46 +678,64 @@ export class EnhancedStreamingAPI extends EventEmitter {
       const session = this.sessions.get(sessionId);
       if (!session) return false;
 
-      this.logger.warn('Emergency degradation triggered', { sessionId, reason });
+      this.logger.warn("Emergency degradation triggered", {
+        sessionId,
+        reason,
+      });
 
       // Force quality to lowest level
       const lowestQuality: StreamQuality = {
-        level: 'low',
-        video: session.quality.video ? {
-          ...session.quality.video,
-          resolution: { width: 426, height: 240 },
-          bitrate: 300000,
-          framerate: 15
-        } : undefined,
-        audio: session.quality.audio ? {
-          ...session.quality.audio,
-          bitrate: 64000,
-          sampleRate: 22050
-        } : undefined,
+        level: "low",
+        video: session.quality.video
+          ? {
+              ...session.quality.video,
+              resolution: { width: 426, height: 240 },
+              bitrate: 300000,
+              framerate: 15,
+            }
+          : undefined,
+        audio: session.quality.audio
+          ? {
+              ...session.quality.audio,
+              bitrate: 64000,
+              sampleRate: 22050,
+            }
+          : undefined,
         bandwidth: 400000,
-        latency: 300
+        latency: 300,
       };
 
       // Apply emergency quality change
       for (const [streamId] of session.streams.video) {
-        await this.qualityEngine.forceQualityChange(streamId, lowestQuality, `Emergency: ${reason}`);
+        await this.qualityEngine.forceQualityChange(
+          streamId,
+          lowestQuality,
+          `Emergency: ${reason}`,
+        );
       }
 
       for (const [streamId] of session.streams.audio) {
-        await this.qualityEngine.forceQualityChange(streamId, lowestQuality, `Emergency: ${reason}`);
+        await this.qualityEngine.forceQualityChange(
+          streamId,
+          lowestQuality,
+          `Emergency: ${reason}`,
+        );
       }
 
-      session.status = 'degraded';
+      session.status = "degraded";
       session.quality = lowestQuality;
 
-      this.emit('emergency_degradation', { sessionId, reason, newQuality: lowestQuality });
-      return true;
-
-    } catch (error) {
-      this.logger.error('Emergency degradation failed', {
+      this.emit("emergency_degradation", {
         sessionId,
         reason,
-        error: (error as Error).message
+        newQuality: lowestQuality,
+      });
+      return true;
+    } catch (error) {
+      this.logger.error("Emergency degradation failed", {
+        sessionId,
+        reason,
+        error: (error as Error).message,
       });
       return false;
     }
@@ -682,7 +749,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
       const session = this.sessions.get(sessionId);
       if (!session) return false;
 
-      this.logger.info('Ending streaming session', { sessionId });
+      this.logger.info("Ending streaming session", { sessionId });
 
       // Stop all streams
       for (const [streamId, response] of session.streams.video) {
@@ -707,32 +774,31 @@ export class EnhancedStreamingAPI extends EventEmitter {
       }
 
       // Update session status
-      session.status = 'ended';
+      session.status = "ended";
       session.timestamps.ended = Date.now();
 
       // Calculate final metrics
       const finalMetrics = this.getSessionMetrics(sessionId);
-      
-      this.logger.info('Session ended successfully', {
+
+      this.logger.info("Session ended successfully", {
         sessionId,
         duration: session.timestamps.ended - session.timestamps.created,
         streams: {
           video: session.streams.video.size,
-          audio: session.streams.audio.size
+          audio: session.streams.audio.size,
         },
-        finalMetrics
+        finalMetrics,
       });
 
       // Remove from active sessions
       this.sessions.delete(sessionId);
 
-      this.emit('session_ended', { sessionId, session, finalMetrics });
+      this.emit("session_ended", { sessionId, session, finalMetrics });
       return true;
-
     } catch (error) {
-      this.logger.error('Session cleanup failed', {
+      this.logger.error("Session cleanup failed", {
         sessionId,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
       return false;
     }
@@ -746,23 +812,25 @@ export class EnhancedStreamingAPI extends EventEmitter {
       sessions: {
         total: this.sessions.size,
         byStatus: {} as Record<string, number>,
-        byType: {} as Record<string, number>
+        byType: {} as Record<string, number>,
       },
       performance: {
         averageLatency: this.performanceMonitor.getAverageLatency(),
         successRate: this.performanceMonitor.getSuccessRate(),
-        errorRate: this.performanceMonitor.getErrorRate()
+        errorRate: this.performanceMonitor.getErrorRate(),
       },
       quality: this.qualityEngine.getAdaptationStatistics(),
       cache: this.edgeCache.getAnalytics(),
       memory: this.getMemoryUsage(),
-      uptime: this.performanceMonitor.getUptime()
+      uptime: this.performanceMonitor.getUptime(),
     };
 
     // Calculate session statistics
     for (const session of this.sessions.values()) {
-      stats.sessions.byStatus[session.status] = (stats.sessions.byStatus[session.status] || 0) + 1;
-      stats.sessions.byType[session.type] = (stats.sessions.byType[session.type] || 0) + 1;
+      stats.sessions.byStatus[session.status] =
+        (stats.sessions.byStatus[session.status] || 0) + 1;
+      stats.sessions.byType[session.type] =
+        (stats.sessions.byType[session.type] || 0) + 1;
     }
 
     return stats;
@@ -773,36 +841,36 @@ export class EnhancedStreamingAPI extends EventEmitter {
    */
   private setupEventHandlers(): void {
     // WebRTC events
-    this.webrtc.on('peer_state_changed', (event) => {
-      this.emit('peer_state_changed', event);
+    this.webrtc.on("peer_state_changed", (event) => {
+      this.emit("peer_state_changed", event);
     });
 
-    this.webrtc.on('streaming_error', (error) => {
+    this.webrtc.on("streaming_error", (error) => {
       this.errorHandler.handleError(error);
     });
 
     // Quality adaptation events
-    this.qualityEngine.on('quality_adapted', (event) => {
-      this.emit('quality_adapted', event);
+    this.qualityEngine.on("quality_adapted", (event) => {
+      this.emit("quality_adapted", event);
     });
 
     // A2A coordination events
-    this.a2aExtension.on('agent_failure_handled', (event) => {
+    this.a2aExtension.on("agent_failure_handled", (event) => {
       this.handleAgentFailure(event);
     });
 
     // Buffer events
-    this.bufferSync.on('buffer_underrun', (event) => {
+    this.bufferSync.on("buffer_underrun", (event) => {
       this.handleBufferUnderrun(event);
     });
 
     // Cache events
-    this.edgeCache.on('content_cached', (event) => {
-      this.emit('content_cached', event);
+    this.edgeCache.on("content_cached", (event) => {
+      this.emit("content_cached", event);
     });
 
     // Performance monitoring events
-    this.performanceMonitor.on('performance_alert', (alert) => {
+    this.performanceMonitor.on("performance_alert", (alert) => {
       this.handlePerformanceAlert(alert);
     });
   }
@@ -810,36 +878,40 @@ export class EnhancedStreamingAPI extends EventEmitter {
   /**
    * Validate streaming context
    */
-  private async validateStreamingContext(context: StreamingContext): Promise<void> {
+  private async validateStreamingContext(
+    context: StreamingContext,
+  ): Promise<void> {
     if (!context.sessionId) {
-      throw new Error('Session ID is required');
+      throw new Error("Session ID is required");
     }
 
     if (!context.userPreferences) {
-      throw new Error('User preferences are required');
+      throw new Error("User preferences are required");
     }
 
     if (!context.constraints) {
-      throw new Error('Quality constraints are required');
+      throw new Error("Quality constraints are required");
     }
 
     // Validate constraint values
     if (context.constraints.minBitrate >= context.constraints.maxBitrate) {
-      throw new Error('Invalid bitrate constraints');
+      throw new Error("Invalid bitrate constraints");
     }
 
     if (context.constraints.latencyBudget <= 0) {
-      throw new Error('Invalid latency budget');
+      throw new Error("Invalid latency budget");
     }
   }
 
   /**
    * Determine initial quality based on context
    */
-  private async determineInitialQuality(context: StreamingContext): Promise<StreamQuality> {
+  private async determineInitialQuality(
+    context: StreamingContext,
+  ): Promise<StreamQuality> {
     const optimalQuality = this.qualityEngine.getOptimalQuality(
       context.sessionId,
-      context.networkConditions
+      context.networkConditions,
     );
 
     if (optimalQuality) {
@@ -848,10 +920,10 @@ export class EnhancedStreamingAPI extends EventEmitter {
 
     // Fallback quality based on user preferences
     const fallbackQualities = {
-      battery: { level: 'low' as const, bandwidth: 500000, latency: 200 },
-      data: { level: 'medium' as const, bandwidth: 1000000, latency: 150 },
-      quality: { level: 'high' as const, bandwidth: 3000000, latency: 100 },
-      balanced: { level: 'medium' as const, bandwidth: 1500000, latency: 120 }
+      battery: { level: "low" as const, bandwidth: 500000, latency: 200 },
+      data: { level: "medium" as const, bandwidth: 1000000, latency: 150 },
+      quality: { level: "high" as const, bandwidth: 3000000, latency: 100 },
+      balanced: { level: "medium" as const, bandwidth: 1500000, latency: 120 },
     };
 
     return fallbackQualities[context.userPreferences.qualityPriority];
@@ -867,44 +939,50 @@ export class EnhancedStreamingAPI extends EventEmitter {
         keyframeInterval: 0,
         bitrate: 0,
         cpuUsage: 0,
-        memoryUsage: 0
+        memoryUsage: 0,
       },
       network: {
         throughput: 0,
         latency: 0,
         jitter: 0,
-        packetLoss: 0
+        packetLoss: 0,
       },
       playback: {
         droppedFrames: 0,
         bufferHealth: 1.0,
-        qualityLevel: 'medium',
-        stallEvents: 0
+        qualityLevel: "medium",
+        stallEvents: 0,
       },
       coordination: {
         agentCount: 1,
         syncAccuracy: 1.0,
         consensusTime: 0,
-        messageLatency: 0
-      }
+        messageLatency: 0,
+      },
     };
   }
 
   /**
    * Calculate optimal buffer size
    */
-  private calculateOptimalBufferSize(type: 'video' | 'audio', context: StreamingContext): number {
-    const baseSize = type === 'video' ? 5000000 : 500000; // 5MB for video, 500KB for audio
+  private calculateOptimalBufferSize(
+    type: "video" | "audio",
+    context: StreamingContext,
+  ): number {
+    const baseSize = type === "video" ? 5000000 : 500000; // 5MB for video, 500KB for audio
     const latencyFactor = context.constraints.latencyBudget / 1000; // Convert to seconds
-    const qualityFactor = context.userPreferences.qualityPriority === 'quality' ? 1.5 : 1.0;
-    
+    const qualityFactor =
+      context.userPreferences.qualityPriority === "quality" ? 1.5 : 1.0;
+
     return Math.floor(baseSize * latencyFactor * qualityFactor);
   }
 
   /**
    * Generate cache key for content
    */
-  private generateCacheKey(request: VideoStreamRequest | AudioStreamRequest): string {
+  private generateCacheKey(
+    request: VideoStreamRequest | AudioStreamRequest,
+  ): string {
     const quality = request.quality.video || request.quality.audio;
     return `stream-${request.source}-${quality?.bitrate}-${JSON.stringify(quality?.codec)}`;
   }
@@ -914,7 +992,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
    */
   private createVideoResponseFromCache(
     request: VideoStreamRequest,
-    cachedContent: any
+    cachedContent: any,
   ): VideoStreamResponse {
     // Create response from cached metadata
     return JSON.parse(cachedContent.data);
@@ -923,18 +1001,25 @@ export class EnhancedStreamingAPI extends EventEmitter {
   /**
    * Setup transcription for audio stream
    */
-  private async setupTranscription(response: AudioStreamResponse, language?: string): Promise<void> {
+  private async setupTranscription(
+    response: AudioStreamResponse,
+    language?: string,
+  ): Promise<void> {
     // Transcription setup implementation
     if (response.transcription) {
       response.transcription.enabled = true;
-      response.transcription.language = language || 'en-US';
+      response.transcription.language = language || "en-US";
     }
   }
 
   /**
    * Start monitoring for a stream
    */
-  private startStreamMonitoring(sessionId: string, streamId: string, type: 'video' | 'audio'): void {
+  private startStreamMonitoring(
+    sessionId: string,
+    streamId: string,
+    type: "video" | "audio",
+  ): void {
     // Start monitoring specific stream
     this.performanceMonitor.addStream(sessionId, streamId, type);
   }
@@ -942,19 +1027,23 @@ export class EnhancedStreamingAPI extends EventEmitter {
   /**
    * Validate latency against target
    */
-  private validateLatencyTarget(actualLatency: number, targetLatency: number, operation: string): void {
+  private validateLatencyTarget(
+    actualLatency: number,
+    targetLatency: number,
+    operation: string,
+  ): void {
     if (actualLatency > targetLatency) {
-      this.logger.warn('Latency target exceeded', {
+      this.logger.warn("Latency target exceeded", {
         operation,
         actual: actualLatency,
         target: targetLatency,
-        exceeded: actualLatency - targetLatency
+        exceeded: actualLatency - targetLatency,
       });
 
-      this.emit('latency_target_exceeded', {
+      this.emit("latency_target_exceeded", {
         operation,
         actual: actualLatency,
-        target: targetLatency
+        target: targetLatency,
       });
     }
   }
@@ -1011,7 +1100,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
    * Handle agent failure event
    */
   private async handleAgentFailure(event: any): Promise<void> {
-    this.logger.warn('Handling agent failure', event);
+    this.logger.warn("Handling agent failure", event);
     // Agent failure handling logic
   }
 
@@ -1019,7 +1108,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
    * Handle buffer underrun event
    */
   private async handleBufferUnderrun(event: any): Promise<void> {
-    this.logger.warn('Buffer underrun detected', event);
+    this.logger.warn("Buffer underrun detected", event);
     // Buffer underrun handling logic
   }
 
@@ -1027,7 +1116,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
    * Handle performance alert
    */
   private async handlePerformanceAlert(alert: any): Promise<void> {
-    this.logger.warn('Performance alert', alert);
+    this.logger.warn("Performance alert", alert);
     // Performance alert handling logic
   }
 
@@ -1036,7 +1125,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
    */
   private startMonitoring(): void {
     this.performanceMonitor.start();
-    
+
     // Periodic session health check
     setInterval(() => {
       this.checkSessionHealth();
@@ -1050,15 +1139,15 @@ export class EnhancedStreamingAPI extends EventEmitter {
     for (const [sessionId, session] of this.sessions) {
       const now = Date.now();
       const timeSinceLastActivity = now - session.timestamps.lastActivity;
-      
+
       // Mark session as inactive if no activity for 5 minutes
-      if (timeSinceLastActivity > 300000 && session.status === 'active') {
-        session.status = 'paused';
-        this.emit('session_inactive', { sessionId, timeSinceLastActivity });
+      if (timeSinceLastActivity > 300000 && session.status === "active") {
+        session.status = "paused";
+        this.emit("session_inactive", { sessionId, timeSinceLastActivity });
       }
-      
+
       // Auto-cleanup very old inactive sessions (1 hour)
-      if (timeSinceLastActivity > 3600000 && session.status === 'paused') {
+      if (timeSinceLastActivity > 3600000 && session.status === "paused") {
         this.endSession(sessionId);
       }
     }
@@ -1068,7 +1157,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
    * Clean up all resources
    */
   async cleanup(): Promise<void> {
-    this.logger.info('Cleaning up Enhanced Streaming API');
+    this.logger.info("Cleaning up Enhanced Streaming API");
 
     // End all active sessions
     const sessionIds = Array.from(this.sessions.keys());
@@ -1086,7 +1175,7 @@ export class EnhancedStreamingAPI extends EventEmitter {
     this.performanceMonitor.cleanup();
 
     this.removeAllListeners();
-    this.logger.info('Enhanced Streaming API cleanup completed');
+    this.logger.info("Enhanced Streaming API cleanup completed");
   }
 }
 
@@ -1143,7 +1232,7 @@ class StreamingErrorHandler {
     severity: string,
     recoverable: boolean,
     category: string,
-    context: any
+    context: any,
   ): StreamingError {
     return {
       code,
@@ -1154,11 +1243,11 @@ class StreamingErrorHandler {
       timestamp: Date.now(),
       context,
       recovery: {
-        suggested: ['retry', 'reduce_quality'],
+        suggested: ["retry", "reduce_quality"],
         automatic: recoverable,
         retryable: recoverable,
-        fallback: 'degraded_mode'
-      }
+        fallback: "degraded_mode",
+      },
     };
   }
 

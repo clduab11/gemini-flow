@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
+    "allowJs": true,
     "lib": ["ES2022", "DOM"],
     "outDir": "./dist",
     "rootDir": "./src",
@@ -22,7 +23,8 @@
       "@/*": ["src/*"],
       "@/tests/*": ["tests/*"]
     },
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "isolatedModules": true
   },
   "include": [
     "src/**/*",
@@ -31,9 +33,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "coverage",
-    "**/*.spec.ts",
-    "**/*.test.ts"
+    "coverage"
   ],
   "ts-node": {
     "esm": true

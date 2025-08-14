@@ -1,6 +1,6 @@
 /**
  * Security-Focused Optimization Manager
- * 
+ *
  * Implements advanced optimization flags with comprehensive security mechanisms:
  * - --auto-route: Intelligent model routing with security validation
  * - --cost-optimize: Cost optimization with audit trails
@@ -10,19 +10,23 @@
  * - --meta-optimization: Recursive optimization with safety limits
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
-import { ModelOrchestrator, RoutingContext, ModelConfig } from './model-orchestrator.js';
-import { PerformanceMonitor } from './performance-monitor.js';
-import { AuthenticationManager } from './auth-manager.js';
-import { ModelRouter } from './model-router.js';
-import crypto from 'crypto';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger.js";
+import {
+  ModelOrchestrator,
+  RoutingContext,
+  ModelConfig,
+} from "./model-orchestrator.js";
+import { PerformanceMonitor } from "./performance-monitor.js";
+import { AuthenticationManager } from "./auth-manager.js";
+import { ModelRouter } from "./model-router.js";
+import crypto from "crypto";
 
 export interface SecurityPolicy {
   maxCostPerRequest: number;
   allowedModelTiers: string[];
   requiresApproval: boolean;
-  auditLevel: 'minimal' | 'standard' | 'comprehensive';
+  auditLevel: "minimal" | "standard" | "comprehensive";
   emergencyOverrides: boolean;
   accessControl: {
     roles: string[];
@@ -88,9 +92,9 @@ export interface AuditEvent {
   action: string;
   userId?: string;
   resource: string;
-  result: 'success' | 'failure' | 'blocked';
+  result: "success" | "failure" | "blocked";
   details: any;
-  risk: 'low' | 'medium' | 'high' | 'critical';
+  risk: "low" | "medium" | "high" | "critical";
   signature: string;
 }
 
@@ -100,24 +104,24 @@ export class SecurityOptimizationManager extends EventEmitter {
   private performance: PerformanceMonitor;
   private auth: AuthenticationManager;
   private router: ModelRouter;
-  
+
   // Security and optimization state
   private securityPolicy: SecurityPolicy;
   private optimizationFlags: OptimizationFlags;
   private canaryDeployments: Map<string, CanaryDeployment> = new Map();
   private costOptimizations: Map<string, CostOptimization> = new Map();
   private auditLog: AuditEvent[] = [];
-  
+
   // Notification and monitoring
   private notificationConfig: NotificationConfig;
   private costTracker: Map<string, number> = new Map();
   private securityAlerts: Set<string> = new Set();
-  
+
   // Self-analysis and meta-optimization
   private analysisHistory: MetaAnalysis[] = [];
   private optimizationLearning: Map<string, any> = new Map();
   private emergencyProtocols: Map<string, Function> = new Map();
-  
+
   // Performance and security metrics
   private metrics = {
     totalOptimizations: 0,
@@ -125,33 +129,37 @@ export class SecurityOptimizationManager extends EventEmitter {
     costSavings: 0,
     emergencyOverrides: 0,
     canarySuccessRate: 0,
-    metaImprovements: 0
+    metaImprovements: 0,
   };
 
   constructor(
     orchestrator: ModelOrchestrator,
     performance: PerformanceMonitor,
     auth: AuthenticationManager,
-    router: ModelRouter
+    router: ModelRouter,
   ) {
     super();
-    this.logger = new Logger('SecurityOptimizationManager');
+    this.logger = new Logger("SecurityOptimizationManager");
     this.orchestrator = orchestrator;
     this.performance = performance;
     this.auth = auth;
     this.router = router;
-    
+
     this.initializeSecurityPolicy();
     this.initializeOptimizationFlags();
     this.setupEmergencyProtocols();
     this.startSecurityMonitoring();
-    
-    this.logger.info('Security Optimization Manager initialized', {
+
+    this.logger.info("Security Optimization Manager initialized", {
       features: [
-        'auto-route', 'cost-optimize', 'canary-deploy',
-        'slack-updates', 'analyze-self', 'meta-optimization'
+        "auto-route",
+        "cost-optimize",
+        "canary-deploy",
+        "slack-updates",
+        "analyze-self",
+        "meta-optimization",
       ],
-      securityLevel: 'enterprise-grade'
+      securityLevel: "enterprise-grade",
     });
   }
 
@@ -160,15 +168,15 @@ export class SecurityOptimizationManager extends EventEmitter {
    */
   private initializeSecurityPolicy(): void {
     this.securityPolicy = {
-      maxCostPerRequest: 0.50, // $0.50 maximum per request
-      allowedModelTiers: ['free', 'pro', 'enterprise'],
+      maxCostPerRequest: 0.5, // $0.50 maximum per request
+      allowedModelTiers: ["free", "pro", "enterprise"],
       requiresApproval: false,
-      auditLevel: 'comprehensive',
+      auditLevel: "comprehensive",
       emergencyOverrides: true,
       accessControl: {
-        roles: ['admin', 'operator', 'developer'],
-        permissions: ['optimize', 'deploy', 'analyze', 'override']
-      }
+        roles: ["admin", "operator", "developer"],
+        permissions: ["optimize", "deploy", "analyze", "override"],
+      },
     };
   }
 
@@ -183,7 +191,7 @@ export class SecurityOptimizationManager extends EventEmitter {
       slackUpdates: false,
       analyzeSelf: false,
       metaOptimization: false,
-      securityOverride: false
+      securityOverride: false,
     };
   }
 
@@ -191,49 +199,57 @@ export class SecurityOptimizationManager extends EventEmitter {
    * 🚀 IMPLEMENT --auto-route FLAG
    * Intelligent model routing with performance-based selection and security validation
    */
-  async enableAutoRoute(options: {
-    performanceBased?: boolean;
-    costAware?: boolean;
-    fallbackStrategy?: string;
-    securityLevel?: string;
-  } = {}): Promise<boolean> {
+  async enableAutoRoute(
+    options: {
+      performanceBased?: boolean;
+      costAware?: boolean;
+      fallbackStrategy?: string;
+      securityLevel?: string;
+    } = {},
+  ): Promise<boolean> {
     try {
       // Security validation
-      await this.validateAccess('optimize', 'auto-route');
-      
+      await this.validateAccess("optimize", "auto-route");
+
       // Audit log
-      const auditEvent = await this.createAuditEvent('enable_auto_route', 'optimization', {
-        options,
-        previousState: this.optimizationFlags.autoRoute
-      });
+      const auditEvent = await this.createAuditEvent(
+        "enable_auto_route",
+        "optimization",
+        {
+          options,
+          previousState: this.optimizationFlags.autoRoute,
+        },
+      );
 
       this.optimizationFlags.autoRoute = true;
-      
+
       // Configure intelligent routing parameters
       const routingConfig = {
         performanceBased: options.performanceBased ?? true,
         costAware: options.costAware ?? true,
-        fallbackStrategy: options.fallbackStrategy ?? 'tier-based',
-        securityLevel: options.securityLevel ?? 'standard',
+        fallbackStrategy: options.fallbackStrategy ?? "tier-based",
+        securityLevel: options.securityLevel ?? "standard",
         maxRoutingTime: 50, // Enhanced: reduced from 75ms to 50ms
         cacheOptimization: true,
         failoverThreshold: 3,
-        healthCheckInterval: 30000
+        healthCheckInterval: 30000,
       };
 
       // Enhanced routing intelligence
-      this.router.on('routing_decision', (decision) => {
+      this.router.on("routing_decision", (decision) => {
         this.trackRoutingDecision(decision, routingConfig);
       });
 
       // Security-aware model selection
       this.router.addRule({
-        id: 'security-auto-route',
-        name: 'Security-Aware Auto Route',
+        id: "security-auto-route",
+        name: "Security-Aware Auto Route",
         condition: (ctx) => this.optimizationFlags.autoRoute,
-        modelPreference: await this.getSecurityValidatedModels(options.securityLevel),
+        modelPreference: await this.getSecurityValidatedModels(
+          options.securityLevel,
+        ),
         weight: 9,
-        active: true
+        active: true,
       });
 
       // Cost monitoring integration
@@ -241,29 +257,33 @@ export class SecurityOptimizationManager extends EventEmitter {
         this.setupCostAwareRouting();
       }
 
-      auditEvent.result = 'success';
+      auditEvent.result = "success";
       this.recordAuditEvent(auditEvent);
-      
-      this.logger.info('Auto-route optimization enabled', {
+
+      this.logger.info("Auto-route optimization enabled", {
         config: routingConfig,
-        securityLevel: options.securityLevel
+        securityLevel: options.securityLevel,
       });
 
-      this.emit('optimization_enabled', {
-        flag: 'auto-route',
+      this.emit("optimization_enabled", {
+        flag: "auto-route",
         config: routingConfig,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       return true;
-
     } catch (error) {
-      this.logger.error('Failed to enable auto-route', { error });
-      
-      await this.createAuditEvent('enable_auto_route_failed', 'optimization', {
-        error: error.message
-      }, 'failure');
-      
+      this.logger.error("Failed to enable auto-route", { error });
+
+      await this.createAuditEvent(
+        "enable_auto_route_failed",
+        "optimization",
+        {
+          error: error.message,
+        },
+        "failure",
+      );
+
       throw error;
     }
   }
@@ -272,58 +292,65 @@ export class SecurityOptimizationManager extends EventEmitter {
    * 💰 IMPLEMENT --cost-optimize FLAG
    * Model selection optimization with token usage minimization and budget controls
    */
-  async enableCostOptimization(options: {
-    targetReduction?: number;
-    maxLatencyIncrease?: number;
-    budgetLimit?: number;
-    preserveQuality?: boolean;
-  } = {}): Promise<boolean> {
+  async enableCostOptimization(
+    options: {
+      targetReduction?: number;
+      maxLatencyIncrease?: number;
+      budgetLimit?: number;
+      preserveQuality?: boolean;
+    } = {},
+  ): Promise<boolean> {
     try {
-      await this.validateAccess('optimize', 'cost-optimization');
-      
+      await this.validateAccess("optimize", "cost-optimization");
+
       const optimization: CostOptimization = {
-        targetReduction: options.targetReduction ?? 0.30, // 30% cost reduction target
+        targetReduction: options.targetReduction ?? 0.3, // 30% cost reduction target
         maxLatencyIncrease: options.maxLatencyIncrease ?? 500, // 500ms max latency increase
         preserveQuality: options.preserveQuality ?? true,
-        budgetLimit: options.budgetLimit ?? this.securityPolicy.maxCostPerRequest,
+        budgetLimit:
+          options.budgetLimit ?? this.securityPolicy.maxCostPerRequest,
         alertThresholds: [0.7, 0.85, 0.95], // Alert at 70%, 85%, 95% of budget
-        fallbackStrategy: 'quality-preserving'
+        fallbackStrategy: "quality-preserving",
       };
 
-      this.costOptimizations.set('global', optimization);
+      this.costOptimizations.set("global", optimization);
       this.optimizationFlags.costOptimize = true;
 
       // Setup cost-aware routing
       this.router.addRule({
-        id: 'cost-optimization',
-        name: 'Cost Optimization Routing',
+        id: "cost-optimization",
+        name: "Cost Optimization Routing",
         condition: (ctx) => this.optimizationFlags.costOptimize,
         modelPreference: await this.getCostOptimizedModels(optimization),
         weight: 8,
-        active: true
+        active: true,
       });
 
       // Real-time cost monitoring
       this.setupCostMonitoring(optimization);
-      
+
       // Budget enforcement
       this.setupBudgetEnforcement(optimization);
 
-      await this.createAuditEvent('enable_cost_optimization', 'optimization', {
-        optimization
-      }, 'success');
+      await this.createAuditEvent(
+        "enable_cost_optimization",
+        "optimization",
+        {
+          optimization,
+        },
+        "success",
+      );
 
-      this.logger.info('Cost optimization enabled', {
+      this.logger.info("Cost optimization enabled", {
         targetReduction: `${(optimization.targetReduction * 100).toFixed(1)}%`,
         budgetLimit: `$${optimization.budgetLimit}`,
-        maxLatencyIncrease: `${optimization.maxLatencyIncrease}ms`
+        maxLatencyIncrease: `${optimization.maxLatencyIncrease}ms`,
       });
 
-      this.emit('cost_optimization_enabled', { optimization });
+      this.emit("cost_optimization_enabled", { optimization });
       return true;
-
     } catch (error) {
-      this.logger.error('Failed to enable cost optimization', { error });
+      this.logger.error("Failed to enable cost optimization", { error });
       throw error;
     }
   }
@@ -341,8 +368,8 @@ export class SecurityOptimizationManager extends EventEmitter {
     autoRollback?: boolean;
   }): Promise<string> {
     try {
-      await this.validateAccess('deploy', 'canary-deployment');
-      
+      await this.validateAccess("deploy", "canary-deployment");
+
       const deploymentId = crypto.randomUUID();
       const deployment: CanaryDeployment = {
         id: deploymentId,
@@ -351,20 +378,20 @@ export class SecurityOptimizationManager extends EventEmitter {
         trafficPercent: options.trafficPercent ?? 5, // Start with 5% traffic
         healthThreshold: options.healthThreshold ?? 0.95, // 95% health required
         rollbackConditions: [
-          'error_rate_high',
-          'latency_degraded',
-          'security_alert',
-          'cost_exceeded'
+          "error_rate_high",
+          "latency_degraded",
+          "security_alert",
+          "cost_exceeded",
         ],
         securityChecks: [
-          'authentication_bypass',
-          'authorization_escalation',
-          'data_leakage',
-          'malicious_payload'
+          "authentication_bypass",
+          "authorization_escalation",
+          "data_leakage",
+          "malicious_payload",
         ],
         autoRollback: options.autoRollback ?? true,
         maxDuration: options.maxDuration ?? 3600000, // 1 hour max
-        startTime: new Date()
+        startTime: new Date(),
       };
 
       this.canaryDeployments.set(deploymentId, deployment);
@@ -372,32 +399,36 @@ export class SecurityOptimizationManager extends EventEmitter {
 
       // Setup health monitoring
       this.startCanaryHealthMonitoring(deployment);
-      
+
       // Setup security monitoring for canary
       this.startCanarySecurityMonitoring(deployment);
-      
+
       // Setup automatic rollback conditions
       this.setupCanaryRollbackConditions(deployment);
 
-      await this.createAuditEvent('canary_deployment_started', 'deployment', {
-        deployment
-      }, 'success');
+      await this.createAuditEvent(
+        "canary_deployment_started",
+        "deployment",
+        {
+          deployment,
+        },
+        "success",
+      );
 
-      this.logger.info('Canary deployment started', {
+      this.logger.info("Canary deployment started", {
         id: deploymentId,
         name: options.name,
         version: options.version,
-        trafficPercent: deployment.trafficPercent
+        trafficPercent: deployment.trafficPercent,
       });
 
       // Schedule traffic increase
       this.scheduleTrafficIncrease(deployment);
 
-      this.emit('canary_deployment_started', { deployment });
+      this.emit("canary_deployment_started", { deployment });
       return deploymentId;
-
     } catch (error) {
-      this.logger.error('Failed to start canary deployment', { error });
+      this.logger.error("Failed to start canary deployment", { error });
       throw error;
     }
   }
@@ -413,53 +444,64 @@ export class SecurityOptimizationManager extends EventEmitter {
     urgencyLevels?: string[];
   }): Promise<boolean> {
     try {
-      await this.validateAccess('notify', 'slack-integration');
-      
+      await this.validateAccess("notify", "slack-integration");
+
       this.notificationConfig = {
         webhookUrl: config.webhookUrl || process.env.SLACK_WEBHOOK_URL,
-        channel: config.channel || '#gemini-flow-alerts',
+        channel: config.channel || "#gemini-flow-alerts",
         securityFilters: config.securityFilters || [
-          'no-credentials',
-          'no-personal-data',
-          'no-api-keys',
-          'sanitize-errors'
+          "no-credentials",
+          "no-personal-data",
+          "no-api-keys",
+          "sanitize-errors",
         ],
         rateLimits: {
           maxPerHour: 50,
-          maxPerDay: 200
+          maxPerDay: 200,
         },
-        urgencyLevels: config.urgencyLevels || ['info', 'warning', 'error', 'critical']
+        urgencyLevels: config.urgencyLevels || [
+          "info",
+          "warning",
+          "error",
+          "critical",
+        ],
       };
 
       this.optimizationFlags.slackUpdates = true;
 
       // Setup event listeners for notifications
       this.setupNotificationListeners();
-      
+
       // Validate webhook security
       await this.validateWebhookSecurity(this.notificationConfig.webhookUrl);
 
-      await this.createAuditEvent('slack_notifications_enabled', 'notification', {
-        config: { ...this.notificationConfig, webhookUrl: '[REDACTED]' }
-      }, 'success');
+      await this.createAuditEvent(
+        "slack_notifications_enabled",
+        "notification",
+        {
+          config: { ...this.notificationConfig, webhookUrl: "[REDACTED]" },
+        },
+        "success",
+      );
 
-      this.logger.info('Slack notifications enabled', {
+      this.logger.info("Slack notifications enabled", {
         channel: this.notificationConfig.channel,
-        securityFilters: this.notificationConfig.securityFilters.length
+        securityFilters: this.notificationConfig.securityFilters.length,
       });
 
       // Send test notification
       await this.sendSlackNotification({
-        text: '🚀 Gemini-Flow notifications enabled',
-        urgency: 'info',
-        details: { timestamp: new Date().toISOString() }
+        text: "🚀 Gemini-Flow notifications enabled",
+        urgency: "info",
+        details: { timestamp: new Date().toISOString() },
       });
 
-      this.emit('slack_notifications_enabled', { config: this.notificationConfig });
+      this.emit("slack_notifications_enabled", {
+        config: this.notificationConfig,
+      });
       return true;
-
     } catch (error) {
-      this.logger.error('Failed to enable Slack notifications', { error });
+      this.logger.error("Failed to enable Slack notifications", { error });
       throw error;
     }
   }
@@ -468,61 +510,72 @@ export class SecurityOptimizationManager extends EventEmitter {
    * 🔍 IMPLEMENT --analyze-self FLAG
    * Meta-analysis capabilities with security boundaries
    */
-  async enableSelfAnalysis(options: {
-    depth?: string;
-    securityBoundaries?: boolean;
-    improvementSuggestions?: boolean;
-    performanceTracking?: boolean;
-  } = {}): Promise<MetaAnalysis> {
+  async enableSelfAnalysis(
+    options: {
+      depth?: string;
+      securityBoundaries?: boolean;
+      improvementSuggestions?: boolean;
+      performanceTracking?: boolean;
+    } = {},
+  ): Promise<MetaAnalysis> {
     try {
-      await this.validateAccess('analyze', 'self-analysis');
-      
+      await this.validateAccess("analyze", "self-analysis");
+
       this.optimizationFlags.analyzeSelf = true;
-      
+
       const analysis: MetaAnalysis = {
         performanceMetrics: await this.analyzePerformanceMetrics(),
         securityMetrics: await this.analyzeSecurityMetrics(),
         optimizationSuggestions: await this.generateOptimizationSuggestions(),
         riskAssessment: await this.assessSystemRisks(),
         confidenceScore: 0.85,
-        selfImprovementActions: []
+        selfImprovementActions: [],
       };
 
       // Security boundary checks
       if (options.securityBoundaries !== false) {
-        analysis.performanceMetrics = this.sanitizeMetrics(analysis.performanceMetrics);
-        analysis.securityMetrics = this.sanitizeSecurityMetrics(analysis.securityMetrics);
+        analysis.performanceMetrics = this.sanitizeMetrics(
+          analysis.performanceMetrics,
+        );
+        analysis.securityMetrics = this.sanitizeSecurityMetrics(
+          analysis.securityMetrics,
+        );
       }
 
       // Generate improvement suggestions
       if (options.improvementSuggestions !== false) {
-        analysis.selfImprovementActions = await this.generateSelfImprovements(analysis);
+        analysis.selfImprovementActions =
+          await this.generateSelfImprovements(analysis);
       }
 
       this.analysisHistory.push(analysis);
-      
+
       // Limit history size for security
       if (this.analysisHistory.length > 100) {
         this.analysisHistory = this.analysisHistory.slice(-50);
       }
 
-      await this.createAuditEvent('self_analysis_completed', 'analysis', {
-        depth: options.depth,
-        confidenceScore: analysis.confidenceScore,
-        suggestionsCount: analysis.optimizationSuggestions.length
-      }, 'success');
+      await this.createAuditEvent(
+        "self_analysis_completed",
+        "analysis",
+        {
+          depth: options.depth,
+          confidenceScore: analysis.confidenceScore,
+          suggestionsCount: analysis.optimizationSuggestions.length,
+        },
+        "success",
+      );
 
-      this.logger.info('Self-analysis completed', {
+      this.logger.info("Self-analysis completed", {
         confidenceScore: analysis.confidenceScore,
         suggestions: analysis.optimizationSuggestions.length,
-        riskLevel: analysis.riskAssessment
+        riskLevel: analysis.riskAssessment,
       });
 
-      this.emit('self_analysis_completed', { analysis });
+      this.emit("self_analysis_completed", { analysis });
       return analysis;
-
     } catch (error) {
-      this.logger.error('Failed to complete self-analysis', { error });
+      this.logger.error("Failed to complete self-analysis", { error });
       throw error;
     }
   }
@@ -531,50 +584,56 @@ export class SecurityOptimizationManager extends EventEmitter {
    * 🔄 IMPLEMENT --meta-optimization FLAG
    * Recursive optimization with learning from patterns and safety limits
    */
-  async enableMetaOptimization(options: {
-    maxIterations?: number;
-    learningRate?: number;
-    safetyLimits?: boolean;
-    recursionDepth?: number;
-  } = {}): Promise<boolean> {
+  async enableMetaOptimization(
+    options: {
+      maxIterations?: number;
+      learningRate?: number;
+      safetyLimits?: boolean;
+      recursionDepth?: number;
+    } = {},
+  ): Promise<boolean> {
     try {
-      await this.validateAccess('optimize', 'meta-optimization');
-      
+      await this.validateAccess("optimize", "meta-optimization");
+
       this.optimizationFlags.metaOptimization = true;
-      
+
       const metaConfig = {
         maxIterations: options.maxIterations ?? 10,
         learningRate: options.learningRate ?? 0.1,
         safetyLimits: options.safetyLimits ?? true,
         recursionDepth: Math.min(options.recursionDepth ?? 3, 5), // Max 5 levels for safety
         convergenceThreshold: 0.01,
-        improvementThreshold: 0.05
+        improvementThreshold: 0.05,
       };
 
       // Start recursive optimization cycle
       this.startMetaOptimizationCycle(metaConfig);
-      
+
       // Setup learning from optimization patterns
       this.setupOptimizationLearning();
-      
+
       // Safety monitoring for recursive optimization
       this.setupMetaOptimizationSafety(metaConfig);
 
-      await this.createAuditEvent('meta_optimization_enabled', 'optimization', {
-        config: metaConfig
-      }, 'success');
+      await this.createAuditEvent(
+        "meta_optimization_enabled",
+        "optimization",
+        {
+          config: metaConfig,
+        },
+        "success",
+      );
 
-      this.logger.info('Meta-optimization enabled', {
+      this.logger.info("Meta-optimization enabled", {
         maxIterations: metaConfig.maxIterations,
         learningRate: metaConfig.learningRate,
-        safetyLimits: metaConfig.safetyLimits
+        safetyLimits: metaConfig.safetyLimits,
       });
 
-      this.emit('meta_optimization_enabled', { config: metaConfig });
+      this.emit("meta_optimization_enabled", { config: metaConfig });
       return true;
-
     } catch (error) {
-      this.logger.error('Failed to enable meta-optimization', { error });
+      this.logger.error("Failed to enable meta-optimization", { error });
       throw error;
     }
   }
@@ -582,20 +641,25 @@ export class SecurityOptimizationManager extends EventEmitter {
   /**
    * Security validation for access control
    */
-  private async validateAccess(permission: string, resource: string): Promise<boolean> {
+  private async validateAccess(
+    permission: string,
+    resource: string,
+  ): Promise<boolean> {
     try {
       // Get current user context
       const userContext = await this.auth.getCurrentUserContext();
-      
+
       // Check if user has required permissions
       if (!this.securityPolicy.accessControl.permissions.includes(permission)) {
-        throw new Error(`Permission '${permission}' not allowed by security policy`);
+        throw new Error(
+          `Permission '${permission}' not allowed by security policy`,
+        );
       }
 
       // Role-based access control
-      const userRoles = (userContext as any).roles || ['guest'];
-      const hasRequiredRole = this.securityPolicy.accessControl.roles.some(role => 
-        userRoles.includes(role)
+      const userRoles = (userContext as any).roles || ["guest"];
+      const hasRequiredRole = this.securityPolicy.accessControl.roles.some(
+        (role) => userRoles.includes(role),
       );
 
       if (!hasRequiredRole) {
@@ -603,17 +667,25 @@ export class SecurityOptimizationManager extends EventEmitter {
       }
 
       // Additional security checks for sensitive operations
-      if (permission === 'override' && !this.securityPolicy.emergencyOverrides) {
-        throw new Error('Emergency overrides disabled by security policy');
+      if (
+        permission === "override" &&
+        !this.securityPolicy.emergencyOverrides
+      ) {
+        throw new Error("Emergency overrides disabled by security policy");
       }
 
       return true;
     } catch (error) {
-      await this.createAuditEvent('access_denied', resource, {
-        permission,
-        reason: error.message
-      }, 'blocked');
-      
+      await this.createAuditEvent(
+        "access_denied",
+        resource,
+        {
+          permission,
+          reason: error.message,
+        },
+        "blocked",
+      );
+
       throw error;
     }
   }
@@ -625,7 +697,7 @@ export class SecurityOptimizationManager extends EventEmitter {
     action: string,
     resource: string,
     details: any,
-    result: 'success' | 'failure' | 'blocked' = 'success'
+    result: "success" | "failure" | "blocked" = "success",
   ): Promise<AuditEvent> {
     const event: AuditEvent = {
       id: crypto.randomUUID(),
@@ -636,7 +708,7 @@ export class SecurityOptimizationManager extends EventEmitter {
       result,
       details: this.sanitizeAuditDetails(details),
       risk: this.assessAuditRisk(action, resource, result),
-      signature: this.signAuditEvent(action, resource, details)
+      signature: this.signAuditEvent(action, resource, details),
     };
 
     return event;
@@ -647,7 +719,7 @@ export class SecurityOptimizationManager extends EventEmitter {
    */
   private recordAuditEvent(event: AuditEvent): void {
     this.auditLog.push(event);
-    
+
     // Limit audit log size and archive old events
     if (this.auditLog.length > 10000) {
       this.archiveAuditEvents(this.auditLog.slice(0, 5000));
@@ -655,12 +727,12 @@ export class SecurityOptimizationManager extends EventEmitter {
     }
 
     // Real-time security monitoring
-    if (event.risk === 'high' || event.risk === 'critical') {
+    if (event.risk === "high" || event.risk === "critical") {
       this.triggerSecurityAlert(event);
     }
 
     // Emit for monitoring systems
-    this.emit('audit_event', event);
+    this.emit("audit_event", event);
   }
 
   /**
@@ -668,7 +740,7 @@ export class SecurityOptimizationManager extends EventEmitter {
    */
   private setupEmergencyProtocols(): void {
     // Emergency stop protocol
-    this.emergencyProtocols.set('stop_all', async () => {
+    this.emergencyProtocols.set("stop_all", async () => {
       this.optimizationFlags = {
         autoRoute: false,
         costOptimize: false,
@@ -676,28 +748,38 @@ export class SecurityOptimizationManager extends EventEmitter {
         slackUpdates: false,
         analyzeSelf: false,
         metaOptimization: false,
-        securityOverride: false
+        securityOverride: false,
       };
-      
+
       // Rollback all canary deployments
       for (const [id, deployment] of this.canaryDeployments) {
-        await this.rollbackCanaryDeployment(id, 'emergency_stop');
+        await this.rollbackCanaryDeployment(id, "emergency_stop");
       }
-      
-      await this.createAuditEvent('emergency_stop_activated', 'system', {
-        timestamp: Date.now()
-      }, 'success');
+
+      await this.createAuditEvent(
+        "emergency_stop_activated",
+        "system",
+        {
+          timestamp: Date.now(),
+        },
+        "success",
+      );
     });
 
     // Security lockdown protocol
-    this.emergencyProtocols.set('security_lockdown', async () => {
+    this.emergencyProtocols.set("security_lockdown", async () => {
       this.securityPolicy.emergencyOverrides = false;
       this.securityPolicy.requiresApproval = true;
-      this.securityPolicy.auditLevel = 'comprehensive';
-      
-      await this.createAuditEvent('security_lockdown_activated', 'system', {
-        reason: 'security_incident'
-      }, 'success');
+      this.securityPolicy.auditLevel = "comprehensive";
+
+      await this.createAuditEvent(
+        "security_lockdown_activated",
+        "system",
+        {
+          reason: "security_incident",
+        },
+        "success",
+      );
     });
   }
 
@@ -725,47 +807,54 @@ export class SecurityOptimizationManager extends EventEmitter {
    * Helper methods for specific optimizations
    */
 
-  private async getSecurityValidatedModels(securityLevel: string = 'standard'): Promise<string[]> {
+  private async getSecurityValidatedModels(
+    securityLevel: string = "standard",
+  ): Promise<string[]> {
     const securityRequirements = {
-      minimal: ['gemini-2.0-flash'],
-      standard: ['gemini-2.0-flash', 'gemini-2.0-flash-thinking'],
-      high: ['gemini-2.0-flash-thinking', 'gemini-pro-vertex'],
-      maximum: ['gemini-pro-vertex', 'gemini-2.5-deepmind']
+      minimal: ["gemini-2.0-flash"],
+      standard: ["gemini-2.0-flash", "gemini-2.0-flash-thinking"],
+      high: ["gemini-2.0-flash-thinking", "gemini-pro-vertex"],
+      maximum: ["gemini-pro-vertex", "gemini-2.5-deepmind"],
     };
 
-    return securityRequirements[securityLevel as keyof typeof securityRequirements] || 
-           securityRequirements.standard;
+    return (
+      securityRequirements[
+        securityLevel as keyof typeof securityRequirements
+      ] || securityRequirements.standard
+    );
   }
 
   private setupCostAwareRouting(): void {
-    this.router.on('routing_decision', (decision) => {
+    this.router.on("routing_decision", (decision) => {
       // Track routing decisions for cost analysis
       this.trackRoutingCost(decision);
     });
   }
 
-  private async getCostOptimizedModels(optimization: CostOptimization): Promise<string[]> {
+  private async getCostOptimizedModels(
+    optimization: CostOptimization,
+  ): Promise<string[]> {
     // Return models sorted by cost efficiency
-    const models = ['gemini-2.0-flash', 'gemini-2.0-flash-thinking'];
-    
+    const models = ["gemini-2.0-flash", "gemini-2.0-flash-thinking"];
+
     if (!optimization.preserveQuality) {
-      models.unshift('gemini-2.0-flash'); // Prefer faster, cheaper model
+      models.unshift("gemini-2.0-flash"); // Prefer faster, cheaper model
     }
-    
+
     return models;
   }
 
   private setupCostMonitoring(optimization: CostOptimization): void {
-    this.orchestrator.on('request_completed', (data) => {
+    this.orchestrator.on("request_completed", (data) => {
       this.trackRequestCost(data, optimization);
     });
   }
 
   private setupBudgetEnforcement(optimization: CostOptimization): void {
-    this.orchestrator.on('pre_request', async (context) => {
+    this.orchestrator.on("pre_request", async (context) => {
       const currentSpend = this.getCurrentSpend();
       if (currentSpend > optimization.budgetLimit * 0.95) {
-        throw new Error('Budget limit exceeded');
+        throw new Error("Budget limit exceeded");
       }
     });
   }
@@ -773,16 +862,16 @@ export class SecurityOptimizationManager extends EventEmitter {
   private startCanaryHealthMonitoring(deployment: CanaryDeployment): void {
     const healthCheck = setInterval(async () => {
       const health = await this.checkCanaryHealth(deployment);
-      
+
       if (health < deployment.healthThreshold) {
-        this.logger.warn('Canary deployment health degraded', {
+        this.logger.warn("Canary deployment health degraded", {
           deploymentId: deployment.id,
           health,
-          threshold: deployment.healthThreshold
+          threshold: deployment.healthThreshold,
         });
-        
+
         if (deployment.autoRollback) {
-          await this.rollbackCanaryDeployment(deployment.id, 'health_degraded');
+          await this.rollbackCanaryDeployment(deployment.id, "health_degraded");
         }
       }
     }, 30000);
@@ -795,13 +884,13 @@ export class SecurityOptimizationManager extends EventEmitter {
 
   private startCanarySecurityMonitoring(deployment: CanaryDeployment): void {
     // Monitor for security issues specific to canary deployment
-    deployment.securityChecks.forEach(check => {
+    deployment.securityChecks.forEach((check) => {
       this.setupSecurityCheck(deployment, check);
     });
   }
 
   private setupCanaryRollbackConditions(deployment: CanaryDeployment): void {
-    deployment.rollbackConditions.forEach(condition => {
+    deployment.rollbackConditions.forEach((condition) => {
       this.setupRollbackCondition(deployment, condition);
     });
   }
@@ -809,13 +898,13 @@ export class SecurityOptimizationManager extends EventEmitter {
   private scheduleTrafficIncrease(deployment: CanaryDeployment): void {
     // Gradually increase traffic: 5% -> 10% -> 25% -> 50% -> 100%
     const schedule = [
-      { delay: 5 * 60000, percent: 10 },  // 5 minutes: 10%
+      { delay: 5 * 60000, percent: 10 }, // 5 minutes: 10%
       { delay: 15 * 60000, percent: 25 }, // 15 minutes: 25%
       { delay: 30 * 60000, percent: 50 }, // 30 minutes: 50%
-      { delay: 60 * 60000, percent: 100 } // 60 minutes: 100%
+      { delay: 60 * 60000, percent: 100 }, // 60 minutes: 100%
     ];
 
-    schedule.forEach(step => {
+    schedule.forEach((step) => {
       setTimeout(async () => {
         if (this.canaryDeployments.has(deployment.id)) {
           await this.updateCanaryTraffic(deployment.id, step.percent);
@@ -839,51 +928,73 @@ export class SecurityOptimizationManager extends EventEmitter {
 
   private getCurrentSpend(): number {
     // Implementation for getting current spend
-    return Array.from(this.costTracker.values()).reduce((sum, cost) => sum + cost, 0);
+    return Array.from(this.costTracker.values()).reduce(
+      (sum, cost) => sum + cost,
+      0,
+    );
   }
 
-  private async checkCanaryHealth(deployment: CanaryDeployment): Promise<number> {
+  private async checkCanaryHealth(
+    deployment: CanaryDeployment,
+  ): Promise<number> {
     // Implementation for checking canary health
     return 0.98; // Mock health score
   }
 
-  private async rollbackCanaryDeployment(deploymentId: string, reason: string): Promise<void> {
+  private async rollbackCanaryDeployment(
+    deploymentId: string,
+    reason: string,
+  ): Promise<void> {
     const deployment = this.canaryDeployments.get(deploymentId);
     if (!deployment) return;
 
-    this.logger.warn('Rolling back canary deployment', {
+    this.logger.warn("Rolling back canary deployment", {
       deploymentId,
       reason,
-      deployment: deployment.name
+      deployment: deployment.name,
     });
 
     // Implementation for rollback logic
     this.canaryDeployments.delete(deploymentId);
-    
-    await this.createAuditEvent('canary_rollback', 'deployment', {
-      deploymentId,
-      reason,
-      deployment
-    }, 'success');
+
+    await this.createAuditEvent(
+      "canary_rollback",
+      "deployment",
+      {
+        deploymentId,
+        reason,
+        deployment,
+      },
+      "success",
+    );
   }
 
-  private setupSecurityCheck(deployment: CanaryDeployment, check: string): void {
+  private setupSecurityCheck(
+    deployment: CanaryDeployment,
+    check: string,
+  ): void {
     // Implementation for setting up security checks
   }
 
-  private setupRollbackCondition(deployment: CanaryDeployment, condition: string): void {
+  private setupRollbackCondition(
+    deployment: CanaryDeployment,
+    condition: string,
+  ): void {
     // Implementation for setting up rollback conditions
   }
 
-  private async updateCanaryTraffic(deploymentId: string, percent: number): Promise<void> {
+  private async updateCanaryTraffic(
+    deploymentId: string,
+    percent: number,
+  ): Promise<void> {
     const deployment = this.canaryDeployments.get(deploymentId);
     if (!deployment) return;
 
     deployment.trafficPercent = percent;
-    
-    this.logger.info('Updated canary traffic', {
+
+    this.logger.info("Updated canary traffic", {
       deploymentId,
-      trafficPercent: percent
+      trafficPercent: percent,
     });
   }
 
@@ -895,18 +1006,27 @@ export class SecurityOptimizationManager extends EventEmitter {
     return sanitized;
   }
 
-  private assessAuditRisk(action: string, resource: string, result: string): 'low' | 'medium' | 'high' | 'critical' {
+  private assessAuditRisk(
+    action: string,
+    resource: string,
+    result: string,
+  ): "low" | "medium" | "high" | "critical" {
     // Risk assessment logic
-    if (result === 'blocked') return 'high';
-    if (action.includes('emergency') || action.includes('override')) return 'critical';
-    if (resource === 'deployment') return 'medium';
-    return 'low';
+    if (result === "blocked") return "high";
+    if (action.includes("emergency") || action.includes("override"))
+      return "critical";
+    if (resource === "deployment") return "medium";
+    return "low";
   }
 
-  private signAuditEvent(action: string, resource: string, details: any): string {
+  private signAuditEvent(
+    action: string,
+    resource: string,
+    details: any,
+  ): string {
     // Create cryptographic signature for audit integrity
     const data = `${action}:${resource}:${JSON.stringify(details)}`;
-    return crypto.createHash('sha256').update(data).digest('hex');
+    return crypto.createHash("sha256").update(data).digest("hex");
   }
 
   private archiveAuditEvents(events: AuditEvent[]): void {
@@ -915,7 +1035,7 @@ export class SecurityOptimizationManager extends EventEmitter {
 
   private triggerSecurityAlert(event: AuditEvent): void {
     this.securityAlerts.add(event.id);
-    this.emit('security_alert', event);
+    this.emit("security_alert", event);
   }
 
   private monitorSuspiciousActivities(): void {
@@ -933,30 +1053,30 @@ export class SecurityOptimizationManager extends EventEmitter {
   // Notification system methods
   private setupNotificationListeners(): void {
     // Setup listeners for various events to send notifications
-    this.on('security_alert', (event) => {
+    this.on("security_alert", (event) => {
       this.sendSlackNotification({
         text: `🚨 Security Alert: ${event.action}`,
-        urgency: 'critical',
-        details: event
+        urgency: "critical",
+        details: event,
       });
     });
 
-    this.on('cost_threshold_exceeded', (data) => {
+    this.on("cost_threshold_exceeded", (data) => {
       this.sendSlackNotification({
         text: `💰 Cost threshold exceeded: ${data.threshold}`,
-        urgency: 'warning',
-        details: data
+        urgency: "warning",
+        details: data,
       });
     });
   }
 
   private async validateWebhookSecurity(webhookUrl?: string): Promise<void> {
     if (!webhookUrl) return;
-    
+
     // Validate webhook URL security
     const url = new URL(webhookUrl);
-    if (url.protocol !== 'https:') {
-      throw new Error('Webhook URL must use HTTPS');
+    if (url.protocol !== "https:") {
+      throw new Error("Webhook URL must use HTTPS");
     }
   }
 
@@ -965,13 +1085,16 @@ export class SecurityOptimizationManager extends EventEmitter {
     urgency: string;
     details: any;
   }): Promise<void> {
-    if (!this.optimizationFlags.slackUpdates || !this.notificationConfig.webhookUrl) {
+    if (
+      !this.optimizationFlags.slackUpdates ||
+      !this.notificationConfig.webhookUrl
+    ) {
       return;
     }
 
     // Apply security filters
     const filtered = this.applySecurityFilters(notification);
-    
+
     // Check rate limits
     if (!this.checkRateLimit()) {
       return;
@@ -979,12 +1102,12 @@ export class SecurityOptimizationManager extends EventEmitter {
 
     try {
       // Implementation for sending Slack notification
-      this.logger.debug('Slack notification sent', {
+      this.logger.debug("Slack notification sent", {
         urgency: notification.urgency,
-        text: notification.text.substring(0, 50)
+        text: notification.text.substring(0, 50),
       });
     } catch (error) {
-      this.logger.error('Failed to send Slack notification', { error });
+      this.logger.error("Failed to send Slack notification", { error });
     }
   }
 
@@ -1007,23 +1130,23 @@ export class SecurityOptimizationManager extends EventEmitter {
     return {
       auditEvents: this.auditLog.length,
       securityAlerts: this.securityAlerts.size,
-      lastSecurityCheck: Date.now()
+      lastSecurityCheck: Date.now(),
     };
   }
 
   private async generateOptimizationSuggestions(): Promise<string[]> {
     return [
-      'Consider enabling auto-route for better performance',
-      'Cost optimization could reduce expenses by 15%',
-      'Canary deployments recommended for safer releases'
+      "Consider enabling auto-route for better performance",
+      "Cost optimization could reduce expenses by 15%",
+      "Canary deployments recommended for safer releases",
     ];
   }
 
   private async assessSystemRisks(): Promise<string> {
     const alerts = this.securityAlerts.size;
-    if (alerts > 10) return 'high';
-    if (alerts > 5) return 'medium';
-    return 'low';
+    if (alerts > 10) return "high";
+    if (alerts > 5) return "medium";
+    return "low";
   }
 
   private sanitizeMetrics(metrics: any): any {
@@ -1036,11 +1159,13 @@ export class SecurityOptimizationManager extends EventEmitter {
     return metrics;
   }
 
-  private async generateSelfImprovements(analysis: MetaAnalysis): Promise<string[]> {
+  private async generateSelfImprovements(
+    analysis: MetaAnalysis,
+  ): Promise<string[]> {
     return [
-      'Optimize routing cache for better performance',
-      'Implement additional security monitoring',
-      'Enhance cost prediction algorithms'
+      "Optimize routing cache for better performance",
+      "Implement additional security monitoring",
+      "Enhance cost prediction algorithms",
     ];
   }
 
@@ -1082,26 +1207,26 @@ export class SecurityOptimizationManager extends EventEmitter {
   }
 
   async emergencyStop(reason: string): Promise<void> {
-    await this.validateAccess('override', 'emergency_stop');
-    
-    const stopProtocol = this.emergencyProtocols.get('stop_all');
+    await this.validateAccess("override", "emergency_stop");
+
+    const stopProtocol = this.emergencyProtocols.get("stop_all");
     if (stopProtocol) {
       await stopProtocol();
     }
 
-    this.logger.error('Emergency stop activated', { reason });
-    this.emit('emergency_stop', { reason, timestamp: Date.now() });
+    this.logger.error("Emergency stop activated", { reason });
+    this.emit("emergency_stop", { reason, timestamp: Date.now() });
   }
 
   async securityLockdown(reason: string): Promise<void> {
-    await this.validateAccess('override', 'security_lockdown');
-    
-    const lockdownProtocol = this.emergencyProtocols.get('security_lockdown');
+    await this.validateAccess("override", "security_lockdown");
+
+    const lockdownProtocol = this.emergencyProtocols.get("security_lockdown");
     if (lockdownProtocol) {
       await lockdownProtocol();
     }
 
-    this.logger.error('Security lockdown activated', { reason });
-    this.emit('security_lockdown', { reason, timestamp: Date.now() });
+    this.logger.error("Security lockdown activated", { reason });
+    this.emit("security_lockdown", { reason, timestamp: Date.now() });
   }
 }

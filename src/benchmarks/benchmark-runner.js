@@ -2,40 +2,44 @@
 
 /**
  * Google Services Performance Benchmark Runner
- * 
+ *
  * Main execution script for running comprehensive performance benchmarks
  * across all Google Services with real-time monitoring and optimization
  */
 
-const { GoogleServicesPerformanceBenchmarker } = require('./google-services-performance-framework');
-const { LoadTestingCoordinator } = require('./load-testing-coordinator');
-const { PerformanceOptimizationStrategies } = require('./performance-optimization-strategies');
-const fs = require('fs').promises;
-const path = require('path');
+const {
+  GoogleServicesPerformanceBenchmarker,
+} = require("./google-services-performance-framework");
+const { LoadTestingCoordinator } = require("./load-testing-coordinator");
+const {
+  PerformanceOptimizationStrategies,
+} = require("./performance-optimization-strategies");
+const fs = require("fs").promises;
+const path = require("path");
 
 class BenchmarkRunner {
   constructor(config = {}) {
     this.config = {
-      mode: config.mode || 'comprehensive', // comprehensive, quick, soak, spike
-      services: config.services || 'all',
-      outputDir: config.outputDir || './benchmark-results',
+      mode: config.mode || "comprehensive", // comprehensive, quick, soak, spike
+      services: config.services || "all",
+      outputDir: config.outputDir || "./benchmark-results",
       enableOptimizations: config.enableOptimizations !== false,
       enableRealtimeMonitoring: config.enableRealtimeMonitoring !== false,
-      ...config
+      ...config,
     };
 
     // Initialize components
     this.benchmarker = new GoogleServicesPerformanceBenchmarker(this.config);
     this.loadTester = new LoadTestingCoordinator(this.config);
     this.optimizer = new PerformanceOptimizationStrategies();
-    
+
     // Performance tracking
     this.startTime = null;
     this.results = {
       benchmarks: null,
       loadTests: null,
       optimizations: null,
-      summary: null
+      summary: null,
     };
   }
 
@@ -44,12 +48,14 @@ class BenchmarkRunner {
    */
   async run() {
     this.startTime = Date.now();
-    
-    console.log('🚀 Starting Google Services Performance Benchmark Suite');
+
+    console.log("🚀 Starting Google Services Performance Benchmark Suite");
     console.log(`📊 Mode: ${this.config.mode}`);
-    console.log(`🎯 Services: ${Array.isArray(this.config.services) ? this.config.services.join(', ') : this.config.services}`);
+    console.log(
+      `🎯 Services: ${Array.isArray(this.config.services) ? this.config.services.join(", ") : this.config.services}`,
+    );
     console.log(`📁 Output Directory: ${this.config.outputDir}`);
-    console.log('');
+    console.log("");
 
     try {
       // Ensure output directory exists
@@ -57,19 +63,19 @@ class BenchmarkRunner {
 
       // Execute benchmark suite based on mode
       switch (this.config.mode) {
-        case 'comprehensive':
+        case "comprehensive":
           await this.runComprehensiveBenchmarks();
           break;
-        case 'quick':
+        case "quick":
           await this.runQuickBenchmarks();
           break;
-        case 'soak':
+        case "soak":
           await this.runSoakTests();
           break;
-        case 'spike':
+        case "spike":
           await this.runSpikeTests();
           break;
-        case 'optimization':
+        case "optimization":
           await this.runOptimizationTests();
           break;
         default:
@@ -79,15 +85,16 @@ class BenchmarkRunner {
       // Generate final report
       await this.generateFinalReport();
 
-      console.log('');
-      console.log('✅ Benchmark suite completed successfully!');
-      console.log(`📊 Total Duration: ${this.formatDuration(Date.now() - this.startTime)}`);
+      console.log("");
+      console.log("✅ Benchmark suite completed successfully!");
+      console.log(
+        `📊 Total Duration: ${this.formatDuration(Date.now() - this.startTime)}`,
+      );
       console.log(`📁 Results saved to: ${this.config.outputDir}`);
 
       return this.results;
-
     } catch (error) {
-      console.error('❌ Benchmark suite failed:', error.message);
+      console.error("❌ Benchmark suite failed:", error.message);
       await this.generateErrorReport(error);
       throw error;
     }
@@ -97,61 +104,71 @@ class BenchmarkRunner {
    * Run comprehensive benchmarks (all services, all scenarios)
    */
   async runComprehensiveBenchmarks() {
-    console.log('🔄 Running comprehensive performance benchmarks...\n');
+    console.log("🔄 Running comprehensive performance benchmarks...\n");
 
     // Step 1: Service baseline benchmarks
-    console.log('📊 Phase 1: Service Baseline Benchmarks');
+    console.log("📊 Phase 1: Service Baseline Benchmarks");
     const baselineOptions = {
-      scenarios: ['baseline', 'load_1k', 'load_10k']
+      scenarios: ["baseline", "load_1k", "load_10k"],
     };
-    
-    this.results.benchmarks = await this.benchmarker.runComprehensiveBenchmarks(baselineOptions);
-    await this.saveIntermediateResults('baseline-benchmarks', this.results.benchmarks);
+
+    this.results.benchmarks =
+      await this.benchmarker.runComprehensiveBenchmarks(baselineOptions);
+    await this.saveIntermediateResults(
+      "baseline-benchmarks",
+      this.results.benchmarks,
+    );
 
     // Step 2: Load testing scenarios
-    console.log('\n⚡ Phase 2: Load Testing Scenarios');
+    console.log("\n⚡ Phase 2: Load Testing Scenarios");
     const loadTestScenarios = [
-      'concurrent_1k',
-      'concurrent_10k',
-      'sustained_24h',
-      'spike_10x'
+      "concurrent_1k",
+      "concurrent_10k",
+      "sustained_24h",
+      "spike_10x",
     ];
-    
-    this.results.loadTests = await this.loadTester.executeComprehensiveLoadTests(loadTestScenarios);
-    await this.saveIntermediateResults('load-tests', this.results.loadTests);
+
+    this.results.loadTests =
+      await this.loadTester.executeComprehensiveLoadTests(loadTestScenarios);
+    await this.saveIntermediateResults("load-tests", this.results.loadTests);
 
     // Step 3: Performance optimizations (if enabled)
     if (this.config.enableOptimizations) {
-      console.log('\n🔧 Phase 3: Performance Optimizations');
-      
+      console.log("\n🔧 Phase 3: Performance Optimizations");
+
       // Generate optimization recommendations
       const optimizationReport = this.optimizer.generateOptimizationReport();
-      
+
       // Apply optimizations for selected services
       const servicesToOptimize = this.getServicesList();
-      this.results.optimizations = await this.optimizer.applyOptimizations(servicesToOptimize);
-      
-      await this.saveIntermediateResults('optimizations', {
+      this.results.optimizations =
+        await this.optimizer.applyOptimizations(servicesToOptimize);
+
+      await this.saveIntermediateResults("optimizations", {
         report: optimizationReport,
-        applied: this.results.optimizations
+        applied: this.results.optimizations,
       });
 
       // Step 4: Post-optimization validation
-      console.log('\n✅ Phase 4: Post-Optimization Validation');
-      const validationResults = await this.benchmarker.runComprehensiveBenchmarks(baselineOptions);
-      
+      console.log("\n✅ Phase 4: Post-Optimization Validation");
+      const validationResults =
+        await this.benchmarker.runComprehensiveBenchmarks(baselineOptions);
+
       // Compare pre/post optimization results
       const comparisonResults = await this.compareOptimizationResults(
         this.results.benchmarks,
-        validationResults
+        validationResults,
       );
-      
+
       this.results.optimizationValidation = {
         postOptimizationResults: validationResults,
-        comparison: comparisonResults
+        comparison: comparisonResults,
       };
-      
-      await this.saveIntermediateResults('optimization-validation', this.results.optimizationValidation);
+
+      await this.saveIntermediateResults(
+        "optimization-validation",
+        this.results.optimizationValidation,
+      );
     }
 
     // Step 5: Generate comprehensive summary
@@ -162,23 +179,25 @@ class BenchmarkRunner {
    * Run quick benchmarks (essential services, basic scenarios)
    */
   async runQuickBenchmarks() {
-    console.log('⚡ Running quick performance benchmarks...\n');
+    console.log("⚡ Running quick performance benchmarks...\n");
 
     // Essential services only
-    const essentialServices = ['streaming-api', 'agentspace', 'imagen4'];
-    
+    const essentialServices = ["streaming-api", "agentspace", "imagen4"];
+
     // Quick baseline test
-    console.log('📊 Quick Baseline Test');
+    console.log("📊 Quick Baseline Test");
     const quickOptions = {
-      scenarios: ['baseline'],
-      services: essentialServices
+      scenarios: ["baseline"],
+      services: essentialServices,
     };
-    
-    this.results.benchmarks = await this.benchmarker.runComprehensiveBenchmarks(quickOptions);
+
+    this.results.benchmarks =
+      await this.benchmarker.runComprehensiveBenchmarks(quickOptions);
 
     // Quick load test
-    console.log('\n⚡ Quick Load Test');
-    this.results.loadTests = await this.loadTester.executeComprehensiveLoadTests(['concurrent_1k']);
+    console.log("\n⚡ Quick Load Test");
+    this.results.loadTests =
+      await this.loadTester.executeComprehensiveLoadTests(["concurrent_1k"]);
 
     // Generate quick summary
     this.results.summary = await this.generateQuickSummary();
@@ -188,15 +207,16 @@ class BenchmarkRunner {
    * Run soak tests for memory leak detection
    */
   async runSoakTests() {
-    console.log('🧽 Running soak tests for memory leak detection...\n');
+    console.log("🧽 Running soak tests for memory leak detection...\n");
 
     const soakScenarios = [
-      'soak_memory_leak',
-      'soak_resource_exhaustion',
-      'sustained_72h'
+      "soak_memory_leak",
+      "soak_resource_exhaustion",
+      "sustained_72h",
     ];
 
-    this.results.loadTests = await this.loadTester.executeComprehensiveLoadTests(soakScenarios);
+    this.results.loadTests =
+      await this.loadTester.executeComprehensiveLoadTests(soakScenarios);
     this.results.summary = await this.generateSoakSummary();
   }
 
@@ -204,14 +224,12 @@ class BenchmarkRunner {
    * Run spike tests for elasticity validation
    */
   async runSpikeTests() {
-    console.log('⚡ Running spike tests for elasticity validation...\n');
+    console.log("⚡ Running spike tests for elasticity validation...\n");
 
-    const spikeScenarios = [
-      'spike_10x',
-      'spike_100x'
-    ];
+    const spikeScenarios = ["spike_10x", "spike_100x"];
 
-    this.results.loadTests = await this.loadTester.executeComprehensiveLoadTests(spikeScenarios);
+    this.results.loadTests =
+      await this.loadTester.executeComprehensiveLoadTests(spikeScenarios);
     this.results.summary = await this.generateSpikeSummary();
   }
 
@@ -219,27 +237,31 @@ class BenchmarkRunner {
    * Run optimization-focused tests
    */
   async runOptimizationTests() {
-    console.log('🔧 Running optimization-focused performance tests...\n');
+    console.log("🔧 Running optimization-focused performance tests...\n");
 
     // Step 1: Pre-optimization baseline
-    console.log('📊 Pre-Optimization Baseline');
+    console.log("📊 Pre-Optimization Baseline");
     const preOptimization = await this.benchmarker.runComprehensiveBenchmarks({
-      scenarios: ['baseline', 'load_1k']
+      scenarios: ["baseline", "load_1k"],
     });
 
     // Step 2: Apply all optimizations
-    console.log('\n🔧 Applying Optimizations');
+    console.log("\n🔧 Applying Optimizations");
     const servicesToOptimize = this.getServicesList();
-    this.results.optimizations = await this.optimizer.applyOptimizations(servicesToOptimize);
+    this.results.optimizations =
+      await this.optimizer.applyOptimizations(servicesToOptimize);
 
     // Step 3: Post-optimization validation
-    console.log('\n✅ Post-Optimization Validation');
+    console.log("\n✅ Post-Optimization Validation");
     const postOptimization = await this.benchmarker.runComprehensiveBenchmarks({
-      scenarios: ['baseline', 'load_1k']
+      scenarios: ["baseline", "load_1k"],
     });
 
     // Step 4: Performance comparison
-    const comparison = await this.compareOptimizationResults(preOptimization, postOptimization);
+    const comparison = await this.compareOptimizationResults(
+      preOptimization,
+      postOptimization,
+    );
 
     this.results.benchmarks = { preOptimization, postOptimization };
     this.results.optimizationComparison = comparison;
@@ -257,13 +279,13 @@ class BenchmarkRunner {
         totalImprovedServices: 0,
         averageLatencyImprovement: 0,
         averageThroughputImprovement: 0,
-        overallSuccess: true
-      }
+        overallSuccess: true,
+      },
     };
 
     for (const [serviceId, preServiceResults] of preResults.results) {
       const postServiceResults = postResults.results.get(serviceId);
-      
+
       if (!postServiceResults) continue;
 
       const serviceComparison = {
@@ -271,18 +293,25 @@ class BenchmarkRunner {
         latencyImprovement: 0,
         throughputImprovement: 0,
         errorRateChange: 0,
-        resourceUtilizationChange: 0
+        resourceUtilizationChange: 0,
       };
 
       // Compare each scenario
       for (const [scenarioName, preScenario] of preServiceResults.testResults) {
         const postScenario = postServiceResults.testResults.get(scenarioName);
-        
+
         if (!postScenario || preScenario.error || postScenario.error) continue;
 
         // Calculate improvements
-        const latencyImprovement = ((preScenario.summary.averageResponseTime - postScenario.summary.averageResponseTime) / preScenario.summary.averageResponseTime) * 100;
-        const throughputImprovement = ((postScenario.summary.throughput - preScenario.summary.throughput) / preScenario.summary.throughput) * 100;
+        const latencyImprovement =
+          ((preScenario.summary.averageResponseTime -
+            postScenario.summary.averageResponseTime) /
+            preScenario.summary.averageResponseTime) *
+          100;
+        const throughputImprovement =
+          ((postScenario.summary.throughput - preScenario.summary.throughput) /
+            preScenario.summary.throughput) *
+          100;
 
         serviceComparison.latencyImprovement += latencyImprovement;
         serviceComparison.throughputImprovement += throughputImprovement;
@@ -294,17 +323,25 @@ class BenchmarkRunner {
       serviceComparison.throughputImprovement /= scenarioCount;
 
       // Categorize as improvement or degradation
-      if (serviceComparison.latencyImprovement > 5 || serviceComparison.throughputImprovement > 10) {
+      if (
+        serviceComparison.latencyImprovement > 5 ||
+        serviceComparison.throughputImprovement > 10
+      ) {
         comparison.improvements[serviceId] = serviceComparison;
         comparison.summary.totalImprovedServices++;
-      } else if (serviceComparison.latencyImprovement < -5 || serviceComparison.throughputImprovement < -10) {
+      } else if (
+        serviceComparison.latencyImprovement < -5 ||
+        serviceComparison.throughputImprovement < -10
+      ) {
         comparison.degradations[serviceId] = serviceComparison;
         comparison.summary.overallSuccess = false;
       }
 
       // Add to overall averages
-      comparison.summary.averageLatencyImprovement += serviceComparison.latencyImprovement;
-      comparison.summary.averageThroughputImprovement += serviceComparison.throughputImprovement;
+      comparison.summary.averageLatencyImprovement +=
+        serviceComparison.latencyImprovement;
+      comparison.summary.averageThroughputImprovement +=
+        serviceComparison.throughputImprovement;
     }
 
     // Calculate final averages
@@ -320,33 +357,35 @@ class BenchmarkRunner {
    */
   async generateComprehensiveSummary() {
     const summary = {
-      type: 'comprehensive',
+      type: "comprehensive",
       timestamp: new Date().toISOString(),
       duration: Date.now() - this.startTime,
       services: {
         tested: this.getServicesList().length,
         passed: 0,
         failed: 0,
-        warnings: 0
+        warnings: 0,
       },
       performance: {
         averageLatency: 0,
         averageThroughput: 0,
         averageErrorRate: 0,
-        slaCompliance: 0
+        slaCompliance: 0,
       },
       loadTesting: {
         scenariosExecuted: 0,
         maxConcurrentUsers: 0,
         longestTestDuration: 0,
-        overallSuccess: true
+        overallSuccess: true,
       },
       optimizations: {
-        applied: this.results.optimizations ? this.results.optimizations.length : 0,
+        applied: this.results.optimizations
+          ? this.results.optimizations.length
+          : 0,
         successful: 0,
-        averageImprovement: 0
+        averageImprovement: 0,
       },
-      recommendations: []
+      recommendations: [],
     };
 
     // Analyze benchmark results
@@ -357,7 +396,8 @@ class BenchmarkRunner {
       let slaCompliant = 0;
       let serviceCount = 0;
 
-      for (const [serviceId, serviceResults] of this.results.benchmarks.results) {
+      for (const [serviceId, serviceResults] of this.results.benchmarks
+        .results) {
         serviceCount++;
         let serviceLatency = 0;
         let serviceThroughput = 0;
@@ -387,9 +427,13 @@ class BenchmarkRunner {
 
           // Check SLA compliance (simplified)
           const serviceBaselines = serviceResults.baselines;
-          const latencyBaseline = Object.values(serviceBaselines)[0]?.target || 1000;
-          
-          if (avgServiceLatency <= latencyBaseline && avgServiceErrorRate <= 1.0) {
+          const latencyBaseline =
+            Object.values(serviceBaselines)[0]?.target || 1000;
+
+          if (
+            avgServiceLatency <= latencyBaseline &&
+            avgServiceErrorRate <= 1.0
+          ) {
             slaCompliant++;
             summary.services.passed++;
           } else {
@@ -408,22 +452,24 @@ class BenchmarkRunner {
 
     // Analyze load testing results
     if (this.results.loadTests && this.results.loadTests.scenarios) {
-      summary.loadTesting.scenariosExecuted = this.results.loadTests.scenarios.length;
-      summary.loadTesting.overallSuccess = this.results.loadTests.summary.failed === 0;
-      
+      summary.loadTesting.scenariosExecuted =
+        this.results.loadTests.scenarios.length;
+      summary.loadTesting.overallSuccess =
+        this.results.loadTests.summary.failed === 0;
+
       // Find max concurrent users and longest duration
       for (const scenario of this.results.loadTests.scenarios) {
         const scenarioConfig = this.loadTester.scenarios[scenario.name];
         if (scenarioConfig) {
           summary.loadTesting.maxConcurrentUsers = Math.max(
             summary.loadTesting.maxConcurrentUsers,
-            scenarioConfig.users || scenarioConfig.spikeUsers || 0
+            scenarioConfig.users || scenarioConfig.spikeUsers || 0,
           );
-          
+
           const durationMs = this.parseDurationToMs(scenarioConfig.duration);
           summary.loadTesting.longestTestDuration = Math.max(
             summary.loadTesting.longestTestDuration,
-            durationMs
+            durationMs,
           );
         }
       }
@@ -431,11 +477,17 @@ class BenchmarkRunner {
 
     // Analyze optimization results
     if (this.results.optimizations) {
-      summary.optimizations.successful = this.results.optimizations.filter(opt => opt.status === 'completed').length;
-      
-      if (this.results.optimizationValidation && this.results.optimizationValidation.comparison) {
+      summary.optimizations.successful = this.results.optimizations.filter(
+        (opt) => opt.status === "completed",
+      ).length;
+
+      if (
+        this.results.optimizationValidation &&
+        this.results.optimizationValidation.comparison
+      ) {
         const comparison = this.results.optimizationValidation.comparison;
-        summary.optimizations.averageImprovement = comparison.summary.averageLatencyImprovement;
+        summary.optimizations.averageImprovement =
+          comparison.summary.averageLatencyImprovement;
       }
     }
 
@@ -457,23 +509,24 @@ class BenchmarkRunner {
 
       if (perf.averageLatency > 1000) {
         recommendations.push({
-          category: 'performance',
-          priority: 'high',
-          title: 'Implement comprehensive caching strategy',
-          description: 'Deploy multi-layer caching with 95%+ hit rate targets',
-          expectedImprovement: '60-80% latency reduction',
-          implementation: 'Redis Cluster + CDN + Application-level caching'
+          category: "performance",
+          priority: "high",
+          title: "Implement comprehensive caching strategy",
+          description: "Deploy multi-layer caching with 95%+ hit rate targets",
+          expectedImprovement: "60-80% latency reduction",
+          implementation: "Redis Cluster + CDN + Application-level caching",
         });
       }
 
       if (perf.slaCompliance < 95) {
         recommendations.push({
-          category: 'reliability',
-          priority: 'critical',
-          title: 'Enhance SLA compliance monitoring',
-          description: 'Implement real-time SLA monitoring and automated remediation',
-          expectedImprovement: '99.99% availability target',
-          implementation: 'Prometheus + Grafana + PagerDuty integration'
+          category: "reliability",
+          priority: "critical",
+          title: "Enhance SLA compliance monitoring",
+          description:
+            "Implement real-time SLA monitoring and automated remediation",
+          expectedImprovement: "99.99% availability target",
+          implementation: "Prometheus + Grafana + PagerDuty integration",
         });
       }
     }
@@ -481,27 +534,29 @@ class BenchmarkRunner {
     // Load testing-based recommendations
     if (this.results.loadTests && this.results.loadTests.summary.failed > 0) {
       recommendations.push({
-        category: 'scalability',
-        priority: 'high',
-        title: 'Implement auto-scaling infrastructure',
-        description: 'Deploy Kubernetes HPA/VPA for automatic load handling',
-        expectedImprovement: '10x load capacity increase',
-        implementation: 'Kubernetes + KEDA + custom metrics'
+        category: "scalability",
+        priority: "high",
+        title: "Implement auto-scaling infrastructure",
+        description: "Deploy Kubernetes HPA/VPA for automatic load handling",
+        expectedImprovement: "10x load capacity increase",
+        implementation: "Kubernetes + KEDA + custom metrics",
       });
     }
 
     // Optimization-based recommendations
     if (this.results.optimizations && this.results.optimizations.length > 0) {
-      const successfulOptimizations = this.results.optimizations.filter(opt => opt.status === 'completed');
-      
+      const successfulOptimizations = this.results.optimizations.filter(
+        (opt) => opt.status === "completed",
+      );
+
       if (successfulOptimizations.length < this.results.optimizations.length) {
         recommendations.push({
-          category: 'optimization',
-          priority: 'medium',
-          title: 'Review failed optimizations',
-          description: 'Investigate and retry failed performance optimizations',
-          expectedImprovement: 'Additional 20-30% performance gains',
-          implementation: 'Manual review and targeted fixes'
+          category: "optimization",
+          priority: "medium",
+          title: "Review failed optimizations",
+          description: "Investigate and retry failed performance optimizations",
+          expectedImprovement: "Additional 20-30% performance gains",
+          implementation: "Manual review and targeted fixes",
         });
       }
     }
@@ -518,27 +573,36 @@ class BenchmarkRunner {
         generatedAt: new Date().toISOString(),
         benchmarkMode: this.config.mode,
         totalDuration: Date.now() - this.startTime,
-        configuration: this.config
+        configuration: this.config,
       },
       summary: this.results.summary,
       benchmarks: this.results.benchmarks,
       loadTests: this.results.loadTests,
       optimizations: this.results.optimizations,
-      recommendations: this.results.summary?.recommendations || []
+      recommendations: this.results.summary?.recommendations || [],
     };
 
     // Save JSON report
-    const jsonReportPath = path.join(this.config.outputDir, 'final-performance-report.json');
+    const jsonReportPath = path.join(
+      this.config.outputDir,
+      "final-performance-report.json",
+    );
     await fs.writeFile(jsonReportPath, JSON.stringify(reportData, null, 2));
 
     // Generate human-readable HTML report
     const htmlReport = await this.generateHTMLReport(reportData);
-    const htmlReportPath = path.join(this.config.outputDir, 'final-performance-report.html');
+    const htmlReportPath = path.join(
+      this.config.outputDir,
+      "final-performance-report.html",
+    );
     await fs.writeFile(htmlReportPath, htmlReport);
 
     // Generate executive summary
     const executiveSummary = await this.generateExecutiveSummary(reportData);
-    const summaryPath = path.join(this.config.outputDir, 'executive-summary.md');
+    const summaryPath = path.join(
+      this.config.outputDir,
+      "executive-summary.md",
+    );
     await fs.writeFile(summaryPath, executiveSummary);
 
     console.log(`📊 Final report saved to: ${jsonReportPath}`);
@@ -608,30 +672,34 @@ class BenchmarkRunner {
             </tr>
             <tr>
                 <td>Service Benchmarks</td>
-                <td><span class="status-${reportData.summary?.services?.failed === 0 ? 'passed' : 'failed'}">${reportData.summary?.services?.failed === 0 ? 'PASSED' : 'FAILED'}</span></td>
+                <td><span class="status-${reportData.summary?.services?.failed === 0 ? "passed" : "failed"}">${reportData.summary?.services?.failed === 0 ? "PASSED" : "FAILED"}</span></td>
                 <td>Tested ${reportData.summary?.services?.tested || 0} services</td>
             </tr>
             <tr>
                 <td>Load Testing</td>
-                <td><span class="status-${reportData.summary?.loadTesting?.overallSuccess ? 'passed' : 'failed'}">${reportData.summary?.loadTesting?.overallSuccess ? 'PASSED' : 'FAILED'}</span></td>
+                <td><span class="status-${reportData.summary?.loadTesting?.overallSuccess ? "passed" : "failed"}">${reportData.summary?.loadTesting?.overallSuccess ? "PASSED" : "FAILED"}</span></td>
                 <td>${reportData.summary?.loadTesting?.scenariosExecuted || 0} scenarios executed</td>
             </tr>
             <tr>
                 <td>Optimizations</td>
-                <td><span class="status-${reportData.summary?.optimizations?.successful > 0 ? 'passed' : 'warning'}">APPLIED</span></td>
+                <td><span class="status-${reportData.summary?.optimizations?.successful > 0 ? "passed" : "warning"}">APPLIED</span></td>
                 <td>${reportData.summary?.optimizations?.applied || 0} optimizations applied</td>
             </tr>
         </table>
 
         <h2>🎯 Performance Recommendations</h2>
         <div class="recommendations">
-            ${(reportData.recommendations || []).map(rec => `
+            ${(reportData.recommendations || [])
+              .map(
+                (rec) => `
                 <div class="recommendation">
                     <strong>${rec.title}</strong> (${rec.priority.toUpperCase()})
                     <p>${rec.description}</p>
                     <small><strong>Expected Improvement:</strong> ${rec.expectedImprovement}</small>
                 </div>
-            `).join('')}
+            `,
+              )
+              .join("")}
         </div>
 
         <div class="chart-placeholder">
@@ -675,60 +743,68 @@ class BenchmarkRunner {
 ### Load Testing
 - **Scenarios Executed:** ${reportData.summary?.loadTesting?.scenariosExecuted || 0}
 - **Max Concurrent Users:** ${reportData.summary?.loadTesting?.maxConcurrentUsers?.toLocaleString() || 0}
-- **Overall Success:** ${reportData.summary?.loadTesting?.overallSuccess ? 'Yes' : 'No'}
+- **Overall Success:** ${reportData.summary?.loadTesting?.overallSuccess ? "Yes" : "No"}
 
 ## 🚀 Service-Specific Baselines
 
 ### Streaming API
 - **Text Latency Target:** <100ms
 - **Multimedia Latency Target:** <500ms
-- **Status:** ${this.getServiceStatus('streaming-api', reportData)}
+- **Status:** ${this.getServiceStatus("streaming-api", reportData)}
 
 ### AgentSpace
 - **Coordination Overhead Target:** <50ms
 - **Agent Spawn Time Target:** <200ms
-- **Status:** ${this.getServiceStatus('agentspace', reportData)}
+- **Status:** ${this.getServiceStatus("agentspace", reportData)}
 
 ### Veo3 Video Generation
 - **Generation Time Target:** <30s/minute
-- **Status:** ${this.getServiceStatus('veo3', reportData)}
+- **Status:** ${this.getServiceStatus("veo3", reportData)}
 
 ### Imagen4
 - **Image Generation Target:** <3s
 - **Quality Target:** >95%
-- **Status:** ${this.getServiceStatus('imagen4', reportData)}
+- **Status:** ${this.getServiceStatus("imagen4", reportData)}
 
 ### Co-Scientist
 - **Hypothesis Validation Target:** <5s
-- **Status:** ${this.getServiceStatus('co-scientist', reportData)}
+- **Status:** ${this.getServiceStatus("co-scientist", reportData)}
 
 ### Chirp Audio
 - **Audio Generation Target:** <1s
-- **Status:** ${this.getServiceStatus('chirp', reportData)}
+- **Status:** ${this.getServiceStatus("chirp", reportData)}
 
 ### Lyria Music
 - **Music Composition Target:** <5s
-- **Status:** ${this.getServiceStatus('lyria', reportData)}
+- **Status:** ${this.getServiceStatus("lyria", reportData)}
 
 ### Mariner Web Automation
 - **Automation Cycle Target:** <2s
-- **Status:** ${this.getServiceStatus('mariner', reportData)}
+- **Status:** ${this.getServiceStatus("mariner", reportData)}
 
 ## 🔧 Top Recommendations
 
-${(reportData.recommendations || []).map((rec, index) => `
+${(reportData.recommendations || [])
+  .map(
+    (rec, index) => `
 ${index + 1}. **${rec.title}** (${rec.priority.toUpperCase()})
    - ${rec.description}
    - Expected Improvement: ${rec.expectedImprovement}
    - Implementation: ${rec.implementation}
-`).join('')}
+`,
+  )
+  .join("")}
 
 ## 📈 Optimization Results
-${reportData.summary?.optimizations?.applied > 0 ? `
+${
+  reportData.summary?.optimizations?.applied > 0
+    ? `
 - **Optimizations Applied:** ${reportData.summary.optimizations.applied}
 - **Successful:** ${reportData.summary.optimizations.successful}
 - **Average Improvement:** ${Math.round(reportData.summary.optimizations.averageImprovement || 0)}%
-` : 'No optimizations applied in this run.'}
+`
+    : "No optimizations applied in this run."
+}
 
 ## 🎯 Next Steps
 1. Review failed services and address performance bottlenecks
@@ -758,17 +834,28 @@ ${reportData.summary?.optimizations?.applied > 0 ? `
   }
 
   getServicesList() {
-    if (this.config.services === 'all') {
-      return ['streaming-api', 'agentspace', 'mariner', 'veo3', 'co-scientist', 'imagen4', 'chirp', 'lyria'];
+    if (this.config.services === "all") {
+      return [
+        "streaming-api",
+        "agentspace",
+        "mariner",
+        "veo3",
+        "co-scientist",
+        "imagen4",
+        "chirp",
+        "lyria",
+      ];
     }
-    return Array.isArray(this.config.services) ? this.config.services : [this.config.services];
+    return Array.isArray(this.config.services)
+      ? this.config.services
+      : [this.config.services];
   }
 
   formatDuration(ms) {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
     } else if (minutes > 0) {
@@ -786,7 +873,9 @@ ${reportData.summary?.optimizations?.applied > 0 ? `
 
   getServiceStatus(serviceId, reportData) {
     // Simplified status check
-    return reportData.summary?.services?.failed === 0 ? '✅ PASSED' : '❌ NEEDS ATTENTION';
+    return reportData.summary?.services?.failed === 0
+      ? "✅ PASSED"
+      : "❌ NEEDS ATTENTION";
   }
 
   async generateErrorReport(error) {
@@ -794,50 +883,53 @@ ${reportData.summary?.optimizations?.applied > 0 ? `
       timestamp: new Date().toISOString(),
       error: {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       },
       configuration: this.config,
-      partialResults: this.results
+      partialResults: this.results,
     };
 
-    const errorReportPath = path.join(this.config.outputDir, 'error-report.json');
+    const errorReportPath = path.join(
+      this.config.outputDir,
+      "error-report.json",
+    );
     await fs.writeFile(errorReportPath, JSON.stringify(errorReport, null, 2));
     console.log(`❌ Error report saved: ${errorReportPath}`);
   }
 
   async generateQuickSummary() {
     return {
-      type: 'quick',
-      message: 'Quick benchmark completed successfully',
+      type: "quick",
+      message: "Quick benchmark completed successfully",
       servicesTest: this.getServicesList().length,
-      duration: Date.now() - this.startTime
+      duration: Date.now() - this.startTime,
     };
   }
 
   async generateSoakSummary() {
     return {
-      type: 'soak',
-      message: 'Soak testing completed',
-      focus: 'Memory leak detection and resource exhaustion testing',
-      duration: Date.now() - this.startTime
+      type: "soak",
+      message: "Soak testing completed",
+      focus: "Memory leak detection and resource exhaustion testing",
+      duration: Date.now() - this.startTime,
     };
   }
 
   async generateSpikeSummary() {
     return {
-      type: 'spike',
-      message: 'Spike testing completed',
-      focus: 'Elasticity and auto-scaling validation',
-      duration: Date.now() - this.startTime
+      type: "spike",
+      message: "Spike testing completed",
+      focus: "Elasticity and auto-scaling validation",
+      duration: Date.now() - this.startTime,
     };
   }
 
   async generateOptimizationSummary() {
     return {
-      type: 'optimization',
-      message: 'Optimization testing completed',
-      focus: 'Performance optimization validation and comparison',
-      duration: Date.now() - this.startTime
+      type: "optimization",
+      message: "Optimization testing completed",
+      focus: "Performance optimization validation and comparison",
+      duration: Date.now() - this.startTime,
     };
   }
 }
@@ -849,28 +941,29 @@ if (require.main === module) {
 
   // Parse CLI arguments
   for (let i = 0; i < args.length; i += 2) {
-    const key = args[i].replace('--', '');
+    const key = args[i].replace("--", "");
     const value = args[i + 1];
-    
-    if (key === 'services') {
-      config.services = value.split(',');
-    } else if (key === 'mode') {
+
+    if (key === "services") {
+      config.services = value.split(",");
+    } else if (key === "mode") {
       config.mode = value;
-    } else if (key === 'output-dir') {
+    } else if (key === "output-dir") {
       config.outputDir = value;
-    } else if (key === 'disable-optimizations') {
+    } else if (key === "disable-optimizations") {
       config.enableOptimizations = false;
     }
   }
 
   const runner = new BenchmarkRunner(config);
-  runner.run()
+  runner
+    .run()
     .then(() => {
-      console.log('🎉 Benchmark suite completed successfully!');
+      console.log("🎉 Benchmark suite completed successfully!");
       process.exit(0);
     })
     .catch((error) => {
-      console.error('💥 Benchmark suite failed:', error.message);
+      console.error("💥 Benchmark suite failed:", error.message);
       process.exit(1);
     });
 }

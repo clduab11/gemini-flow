@@ -1,12 +1,12 @@
 /**
  * MCP Web Research Adapter
- * 
+ *
  * Bridges MCP web research tools with Gemini Flow's query system
  * Enables intelligent web searching, fact-checking, and knowledge synthesis
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger.js";
 
 export interface MCPWebResearchTool {
   name: string;
@@ -37,7 +37,7 @@ export class MCPWebResearchAdapter extends EventEmitter {
 
   constructor() {
     super();
-    this.logger = new Logger('MCPWebResearch');
+    this.logger = new Logger("MCPWebResearch");
     this.initializeTools();
   }
 
@@ -47,51 +47,51 @@ export class MCPWebResearchAdapter extends EventEmitter {
   private initializeTools(): void {
     // Web Search Tool
     this.registerTool({
-      name: 'web_search',
-      description: 'Search the web for information',
+      name: "web_search",
+      description: "Search the web for information",
       execute: async (query: string, options?: any) => {
         return this.executeWebSearch(query, options);
-      }
+      },
     });
 
     // Knowledge Base Tool
     this.registerTool({
-      name: 'knowledge_base',
-      description: 'Query structured knowledge bases',
+      name: "knowledge_base",
+      description: "Query structured knowledge bases",
       execute: async (query: string, options?: any) => {
         return this.queryKnowledgeBase(query, options);
-      }
+      },
     });
 
     // Fact Check Tool
     this.registerTool({
-      name: 'fact_check',
-      description: 'Verify facts and claims',
+      name: "fact_check",
+      description: "Verify facts and claims",
       execute: async (query: string, options?: any) => {
         return this.factCheck(query, options);
-      }
+      },
     });
 
     // Academic Search Tool
     this.registerTool({
-      name: 'academic_search',
-      description: 'Search academic papers and research',
+      name: "academic_search",
+      description: "Search academic papers and research",
       execute: async (query: string, options?: any) => {
         return this.searchAcademic(query, options);
-      }
+      },
     });
 
     // News Search Tool
     this.registerTool({
-      name: 'news_search',
-      description: 'Search recent news and current events',
+      name: "news_search",
+      description: "Search recent news and current events",
       execute: async (query: string, options?: any) => {
         return this.searchNews(query, options);
-      }
+      },
     });
 
-    this.logger.info('MCP web research tools initialized', { 
-      toolCount: this.tools.size 
+    this.logger.info("MCP web research tools initialized", {
+      toolCount: this.tools.size,
     });
   }
 
@@ -100,69 +100,71 @@ export class MCPWebResearchAdapter extends EventEmitter {
    */
   registerTool(tool: MCPWebResearchTool): void {
     this.tools.set(tool.name, tool);
-    this.logger.debug('Tool registered', { name: tool.name });
+    this.logger.debug("Tool registered", { name: tool.name });
   }
 
   /**
    * Execute web research with specified tools
    */
   async executeResearch(
-    query: string, 
-    toolNames?: string[], 
-    options?: any
+    query: string,
+    toolNames?: string[],
+    options?: any,
   ): Promise<WebResearchResult> {
     const startTime = performance.now();
-    
+
     // Check cache first
     const cacheKey = this.getCacheKey(query, toolNames);
     const cached = this.getFromCache(cacheKey);
     if (cached) {
-      this.logger.debug('Cache hit for query', { query });
+      this.logger.debug("Cache hit for query", { query });
       return cached;
     }
 
     // Select tools to use
-    const selectedTools = toolNames 
-      ? toolNames.filter(name => this.tools.has(name))
-      : ['web_search', 'knowledge_base']; // Default tools
+    const selectedTools = toolNames
+      ? toolNames.filter((name) => this.tools.has(name))
+      : ["web_search", "knowledge_base"]; // Default tools
 
-    this.logger.info('Executing web research', { 
-      query, 
-      tools: selectedTools 
+    this.logger.info("Executing web research", {
+      query,
+      tools: selectedTools,
     });
 
     // Execute tools in parallel
     const toolResults = await Promise.allSettled(
-      selectedTools.map(toolName => {
+      selectedTools.map((toolName) => {
         const tool = this.tools.get(toolName);
-        return tool ? tool.execute(query, options) : Promise.reject('Tool not found');
-      })
+        return tool
+          ? tool.execute(query, options)
+          : Promise.reject("Tool not found");
+      }),
     );
 
     // Aggregate results
     const aggregatedResults = this.aggregateResults(
       query,
       selectedTools,
-      toolResults
+      toolResults,
     );
 
     const searchTime = performance.now() - startTime;
-    
+
     const result: WebResearchResult = {
       query,
       results: aggregatedResults,
       totalResults: aggregatedResults.length,
       searchTime,
-      toolsUsed: selectedTools
+      toolsUsed: selectedTools,
     };
 
     // Cache result
     this.cacheResult(cacheKey, result);
 
-    this.emit('research_completed', {
+    this.emit("research_completed", {
       query,
       resultCount: result.totalResults,
-      duration: searchTime
+      duration: searchTime,
     });
 
     return result;
@@ -174,26 +176,29 @@ export class MCPWebResearchAdapter extends EventEmitter {
   private async executeWebSearch(query: string, options?: any): Promise<any> {
     // In production, this would call actual web search APIs
     // For now, simulate search results
-    
-    this.logger.debug('Executing web search', { query });
+
+    this.logger.debug("Executing web search", { query });
 
     const searchResults = [
       {
-        source: 'web_search',
+        source: "web_search",
         title: `${query} - Comprehensive Overview`,
         snippet: `Detailed information about ${query} from reliable web sources...`,
         url: `https://example.com/search?q=${encodeURIComponent(query)}`,
         relevance: 0.95,
-        metadata: { domain: 'example.com', publishDate: new Date().toISOString() }
+        metadata: {
+          domain: "example.com",
+          publishDate: new Date().toISOString(),
+        },
       },
       {
-        source: 'web_search',
+        source: "web_search",
         title: `Understanding ${query}`,
         snippet: `Expert insights and analysis on ${query}...`,
-        url: `https://expert.example.com/${query.replace(/\s+/g, '-')}`,
+        url: `https://expert.example.com/${query.replace(/\s+/g, "-")}`,
         relevance: 0.88,
-        metadata: { domain: 'expert.example.com', authoritative: true }
-      }
+        metadata: { domain: "expert.example.com", authoritative: true },
+      },
     ];
 
     return searchResults;
@@ -203,20 +208,20 @@ export class MCPWebResearchAdapter extends EventEmitter {
    * Query knowledge base
    */
   private async queryKnowledgeBase(query: string, options?: any): Promise<any> {
-    this.logger.debug('Querying knowledge base', { query });
+    this.logger.debug("Querying knowledge base", { query });
 
     const kbResults = [
       {
-        source: 'knowledge_base',
+        source: "knowledge_base",
         title: `${query} - Knowledge Base Entry`,
         snippet: `Structured information about ${query} from curated knowledge base...`,
         relevance: 0.97,
-        metadata: { 
+        metadata: {
           lastUpdated: new Date().toISOString(),
           verified: true,
-          citations: 5
-        }
-      }
+          citations: 5,
+        },
+      },
     ];
 
     return kbResults;
@@ -226,20 +231,20 @@ export class MCPWebResearchAdapter extends EventEmitter {
    * Fact check claims
    */
   private async factCheck(query: string, options?: any): Promise<any> {
-    this.logger.debug('Fact checking', { query });
+    this.logger.debug("Fact checking", { query });
 
     const factCheckResults = [
       {
-        source: 'fact_check',
+        source: "fact_check",
         title: `Fact Check: ${query}`,
         snippet: `Verification status and supporting evidence for ${query}...`,
         relevance: 0.93,
         metadata: {
-          verificationStatus: 'verified',
+          verificationStatus: "verified",
           confidence: 0.95,
-          sources: 3
-        }
-      }
+          sources: 3,
+        },
+      },
     ];
 
     return factCheckResults;
@@ -249,22 +254,22 @@ export class MCPWebResearchAdapter extends EventEmitter {
    * Search academic sources
    */
   private async searchAcademic(query: string, options?: any): Promise<any> {
-    this.logger.debug('Searching academic sources', { query });
+    this.logger.debug("Searching academic sources", { query });
 
     const academicResults = [
       {
-        source: 'academic_search',
+        source: "academic_search",
         title: `Research on ${query}`,
         snippet: `Recent academic findings and peer-reviewed research on ${query}...`,
         url: `https://scholar.example.com/search?q=${encodeURIComponent(query)}`,
         relevance: 0.91,
         metadata: {
-          journal: 'Example Journal',
+          journal: "Example Journal",
           year: 2024,
           citations: 42,
-          peerReviewed: true
-        }
-      }
+          peerReviewed: true,
+        },
+      },
     ];
 
     return academicResults;
@@ -274,21 +279,21 @@ export class MCPWebResearchAdapter extends EventEmitter {
    * Search news sources
    */
   private async searchNews(query: string, options?: any): Promise<any> {
-    this.logger.debug('Searching news', { query });
+    this.logger.debug("Searching news", { query });
 
     const newsResults = [
       {
-        source: 'news_search',
+        source: "news_search",
         title: `Latest Updates on ${query}`,
         snippet: `Breaking news and recent developments regarding ${query}...`,
-        url: `https://news.example.com/${query.replace(/\s+/g, '-')}`,
+        url: `https://news.example.com/${query.replace(/\s+/g, "-")}`,
         relevance: 0.85,
         metadata: {
           publishDate: new Date().toISOString(),
-          source: 'Example News',
-          category: 'Technology'
-        }
-      }
+          source: "Example News",
+          category: "Technology",
+        },
+      },
     ];
 
     return newsResults;
@@ -300,7 +305,7 @@ export class MCPWebResearchAdapter extends EventEmitter {
   private aggregateResults(
     query: string,
     toolNames: string[],
-    toolResults: PromiseSettledResult<any>[]
+    toolResults: PromiseSettledResult<any>[],
   ): any[] {
     const aggregated = [];
 
@@ -308,12 +313,12 @@ export class MCPWebResearchAdapter extends EventEmitter {
       const result = toolResults[i];
       const toolName = toolNames[i];
 
-      if (result.status === 'fulfilled' && Array.isArray(result.value)) {
+      if (result.status === "fulfilled" && Array.isArray(result.value)) {
         aggregated.push(...result.value);
-      } else if (result.status === 'rejected') {
-        this.logger.warn('Tool execution failed', { 
-          tool: toolName, 
-          error: result.reason 
+      } else if (result.status === "rejected") {
+        this.logger.warn("Tool execution failed", {
+          tool: toolName,
+          error: result.reason,
         });
       }
     }
@@ -326,7 +331,7 @@ export class MCPWebResearchAdapter extends EventEmitter {
    * Generate cache key
    */
   private getCacheKey(query: string, toolNames?: string[]): string {
-    const tools = toolNames ? toolNames.sort().join(',') : 'default';
+    const tools = toolNames ? toolNames.sort().join(",") : "default";
     return `${query}:${tools}`;
   }
 
@@ -335,7 +340,7 @@ export class MCPWebResearchAdapter extends EventEmitter {
    */
   private getFromCache(key: string): WebResearchResult | null {
     const cached = this.cache.get(key);
-    if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       return cached.result;
     }
     return null;
@@ -347,7 +352,7 @@ export class MCPWebResearchAdapter extends EventEmitter {
   private cacheResult(key: string, result: WebResearchResult): void {
     this.cache.set(key, {
       result,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Clean old cache entries

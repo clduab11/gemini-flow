@@ -1,13 +1,13 @@
 /**
  * Token Cache Implementation
- * 
+ *
  * High-performance token caching system with TTL support, automatic rotation,
  * and comprehensive cache management for authentication credentials
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
-import { AuthCredentials, TokenCache, AuthError } from '../../types/auth.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
+import { AuthCredentials, TokenCache, AuthError } from "../../types/auth.js";
 
 /**
  * Cache configuration
@@ -58,7 +58,7 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
   private logger: Logger;
   private cleanupTimer?: ReturnType<typeof setInterval>;
   private accessCounter = 0;
-  
+
   // Metrics
   private metrics = {
     hitCount: 0,
@@ -66,29 +66,29 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
     evictionCount: 0,
     expiredCount: 0,
     totalAccessTime: 0,
-    accessCount: 0
+    accessCount: 0,
   };
 
   constructor(config: Partial<TokenCacheConfig> = {}) {
     super();
-    
+
     this.config = {
       maxSize: config.maxSize || 1000,
-      defaultTTL: config.defaultTTL || (60 * 60 * 1000), // 1 hour
-      cleanupInterval: config.cleanupInterval || (5 * 60 * 1000), // 5 minutes
+      defaultTTL: config.defaultTTL || 60 * 60 * 1000, // 1 hour
+      cleanupInterval: config.cleanupInterval || 5 * 60 * 1000, // 5 minutes
       enableMetrics: config.enableMetrics ?? true,
-      enableEvents: config.enableEvents ?? true
+      enableEvents: config.enableEvents ?? true,
     };
-    
-    this.logger = new Logger('TokenCache');
-    
+
+    this.logger = new Logger("TokenCache");
+
     // Start cleanup timer
     this.startCleanupTimer();
-    
-    this.logger.info('Token cache initialized', {
+
+    this.logger.info("Token cache initialized", {
       maxSize: this.config.maxSize,
       defaultTTL: this.config.defaultTTL,
-      cleanupInterval: this.config.cleanupInterval
+      cleanupInterval: this.config.cleanupInterval,
     });
   }
 
@@ -97,10 +97,10 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
    */
   async get(key: string): Promise<AuthCredentials | null> {
     const startTime = Date.now();
-    
+
     try {
       this.validateKey(key);
-      
+
       const entry = this.cache.get(key);
       if (!entry) {
         this.recordMiss();
@@ -122,21 +122,23 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
       this.accessOrder.set(key, ++this.accessCounter);
 
       this.recordHit();
-      
+
       if (this.config.enableEvents) {
-        this.emit('cache_hit', { key: this.maskKey(key), provider: entry.credentials.provider });
+        this.emit("cache_hit", {
+          key: this.maskKey(key),
+          provider: entry.credentials.provider,
+        });
       }
 
-      this.logger.debug('Cache hit', { 
+      this.logger.debug("Cache hit", {
         key: this.maskKey(key),
         provider: entry.credentials.provider,
-        accessCount: entry.accessCount
+        accessCount: entry.accessCount,
       });
 
       return { ...entry.credentials }; // Return copy to prevent mutations
-
     } catch (error) {
-      this.logger.error('Cache get failed', { key: this.maskKey(key), error });
+      this.logger.error("Cache get failed", { key: this.maskKey(key), error });
       this.recordMiss();
       return null;
     } finally {
@@ -149,14 +151,18 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
   /**
    * Set credentials in cache
    */
-  async set(key: string, credentials: AuthCredentials, ttl? : number): Promise<void> {
+  async set(
+    key: string,
+    credentials: AuthCredentials,
+    ttl?: number,
+  ): Promise<void> {
     try {
       this.validateKey(key);
       this.validateCredentials(credentials);
 
       const now = Date.now();
       const effectiveTTL = ttl || this.config.defaultTTL;
-      
+
       // Check if we need to evict entries to make space
       if (this.cache.size >= this.config.maxSize && !this.cache.has(key)) {
         await this.evictLeastRecentlyUsed();
@@ -168,30 +174,33 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
         createdAt: now,
         accessCount: 0,
         lastAccessed: now,
-        ttl: effectiveTTL
+        ttl: effectiveTTL,
       };
 
       this.cache.set(key, entry);
       this.accessOrder.set(key, ++this.accessCounter);
 
       if (this.config.enableEvents) {
-        this.emit('cache_set', { 
-          key: this.maskKey(key), 
+        this.emit("cache_set", {
+          key: this.maskKey(key),
           provider: credentials.provider,
-          ttl: effectiveTTL
+          ttl: effectiveTTL,
         });
       }
 
-      this.logger.debug('Cache set', { 
+      this.logger.debug("Cache set", {
         key: this.maskKey(key),
         provider: credentials.provider,
         ttl: effectiveTTL,
-        cacheSize: this.cache.size
+        cacheSize: this.cache.size,
       });
-
     } catch (error) {
-      this.logger.error('Cache set failed', { key: this.maskKey(key), error });
-      throw this.createCacheError('CACHE_SET_FAILED', 'Failed to set cache entry', error as Error);
+      this.logger.error("Cache set failed", { key: this.maskKey(key), error });
+      throw this.createCacheError(
+        "CACHE_SET_FAILED",
+        "Failed to set cache entry",
+        error as Error,
+      );
     }
   }
 
@@ -207,21 +216,27 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
       this.accessOrder.delete(key);
 
       if (deleted && this.config.enableEvents) {
-        this.emit('cache_delete', { 
+        this.emit("cache_delete", {
           key: this.maskKey(key),
-          provider: entry?.credentials.provider
+          provider: entry?.credentials.provider,
         });
       }
 
-      this.logger.debug('Cache delete', { 
+      this.logger.debug("Cache delete", {
         key: this.maskKey(key),
         deleted,
-        cacheSize: this.cache.size
+        cacheSize: this.cache.size,
       });
-
     } catch (error) {
-      this.logger.error('Cache delete failed', { key: this.maskKey(key), error });
-      throw this.createCacheError('CACHE_DELETE_FAILED', 'Failed to delete cache entry', error as Error);
+      this.logger.error("Cache delete failed", {
+        key: this.maskKey(key),
+        error,
+      });
+      throw this.createCacheError(
+        "CACHE_DELETE_FAILED",
+        "Failed to delete cache entry",
+        error as Error,
+      );
     }
   }
 
@@ -234,7 +249,7 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
       this.cache.clear();
       this.accessOrder.clear();
       this.accessCounter = 0;
-      
+
       // Reset metrics
       this.metrics = {
         hitCount: 0,
@@ -242,18 +257,21 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
         evictionCount: 0,
         expiredCount: 0,
         totalAccessTime: 0,
-        accessCount: 0
+        accessCount: 0,
       };
 
       if (this.config.enableEvents) {
-        this.emit('cache_cleared', { count });
+        this.emit("cache_cleared", { count });
       }
 
-      this.logger.info('Cache cleared', { entriesRemoved: count });
-
+      this.logger.info("Cache cleared", { entriesRemoved: count });
     } catch (error) {
-      this.logger.error('Cache clear failed', { error });
-      throw this.createCacheError('CACHE_CLEAR_FAILED', 'Failed to clear cache', error as Error);
+      this.logger.error("Cache clear failed", { error });
+      throw this.createCacheError(
+        "CACHE_CLEAR_FAILED",
+        "Failed to clear cache",
+        error as Error,
+      );
     }
   }
 
@@ -270,7 +288,7 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
   getMetrics(): CacheMetrics {
     const entries = Array.from(this.cache.values());
     const now = Date.now();
-    
+
     return {
       totalEntries: this.cache.size,
       hitCount: this.metrics.hitCount,
@@ -280,8 +298,14 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
       hitRate: this.calculateHitRate(),
       averageAccessTime: this.calculateAverageAccessTime(),
       memoryUsage: this.estimateMemoryUsage(),
-      oldestEntry: entries.length > 0 ? Math.min(...entries.map(e => e.createdAt)) : undefined,
-      newestEntry: entries.length > 0 ? Math.max(...entries.map(e => e.createdAt)) : undefined
+      oldestEntry:
+        entries.length > 0
+          ? Math.min(...entries.map((e) => e.createdAt))
+          : undefined,
+      newestEntry:
+        entries.length > 0
+          ? Math.max(...entries.map((e) => e.createdAt))
+          : undefined,
     };
   }
 
@@ -291,17 +315,26 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
   getStats() {
     const entries = Array.from(this.cache.entries());
     const now = Date.now();
-    
+
     return {
       size: this.cache.size,
       maxSize: this.config.maxSize,
       utilizationRate: (this.cache.size / this.config.maxSize) * 100,
-      expiredEntries: entries.filter(([_, entry]) => entry.expiresAt <= now).length,
-      averageAge: entries.length > 0 ? 
-        (now - entries.reduce((sum, [_, entry]) => sum + entry.createdAt, 0) / entries.length) / 1000 : 0,
-      totalAccesses: entries.reduce((sum, [_, entry]) => sum + entry.accessCount, 0),
+      expiredEntries: entries.filter(([_, entry]) => entry.expiresAt <= now)
+        .length,
+      averageAge:
+        entries.length > 0
+          ? (now -
+              entries.reduce((sum, [_, entry]) => sum + entry.createdAt, 0) /
+                entries.length) /
+            1000
+          : 0,
+      totalAccesses: entries.reduce(
+        (sum, [_, entry]) => sum + entry.accessCount,
+        0,
+      ),
       mostAccessedKey: this.getMostAccessedKey(),
-      leastAccessedKey: this.getLeastAccessedKey()
+      leastAccessedKey: this.getLeastAccessedKey(),
     };
   }
 
@@ -320,10 +353,10 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
     }
 
     if (expiredCount > 0) {
-      this.logger.debug('Cleanup completed', { expiredEntries: expiredCount });
-      
+      this.logger.debug("Cleanup completed", { expiredEntries: expiredCount });
+
       if (this.config.enableEvents) {
-        this.emit('cache_cleanup', { expiredEntries: expiredCount });
+        this.emit("cache_cleanup", { expiredEntries: expiredCount });
       }
     }
 
@@ -337,13 +370,13 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
     try {
       const entry = this.cache.get(key);
       if (!entry) return false;
-      
+
       // Check expiration
       if (entry.expiresAt <= Date.now()) {
         await this.delete(key);
         return false;
       }
-      
+
       return true;
     } catch {
       return false;
@@ -361,11 +394,13 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
       entry.ttl = ttl;
       entry.expiresAt = Date.now() + ttl;
 
-      this.logger.debug('TTL updated', { key: this.maskKey(key), newTTL: ttl });
+      this.logger.debug("TTL updated", { key: this.maskKey(key), newTTL: ttl });
       return true;
-
     } catch (error) {
-      this.logger.error('Failed to update TTL', { key: this.maskKey(key), error });
+      this.logger.error("Failed to update TTL", {
+        key: this.maskKey(key),
+        error,
+      });
       return false;
     }
   }
@@ -378,12 +413,12 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
       clearInterval(this.cleanupTimer);
       this.cleanupTimer = undefined;
     }
-    
+
     this.cache.clear();
     this.accessOrder.clear();
     this.removeAllListeners();
-    
-    this.logger.debug('Token cache destroyed');
+
+    this.logger.debug("Token cache destroyed");
   }
 
   /**
@@ -391,8 +426,8 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
    */
   private startCleanupTimer(): void {
     this.cleanupTimer = setInterval(() => {
-      this.cleanup().catch(error => {
-        this.logger.error('Cleanup timer error', { error });
+      this.cleanup().catch((error) => {
+        this.logger.error("Cleanup timer error", { error });
       });
     }, this.config.cleanupInterval);
   }
@@ -417,10 +452,10 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
     if (lruKey) {
       await this.delete(lruKey);
       this.recordEviction();
-      
-      this.logger.debug('LRU eviction', { 
+
+      this.logger.debug("LRU eviction", {
         key: this.maskKey(lruKey),
-        cacheSize: this.cache.size
+        cacheSize: this.cache.size,
       });
     }
   }
@@ -471,8 +506,9 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
    * Calculate average access time
    */
   private calculateAverageAccessTime(): number {
-    return this.metrics.accessCount > 0 ? 
-      this.metrics.totalAccessTime / this.metrics.accessCount : 0;
+    return this.metrics.accessCount > 0
+      ? this.metrics.totalAccessTime / this.metrics.accessCount
+      : 0;
   }
 
   /**
@@ -480,14 +516,14 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
    */
   private estimateMemoryUsage(): number {
     let totalSize = 0;
-    
+
     for (const [key, entry] of this.cache.entries()) {
       // Rough estimation: key size + JSON size of credentials
       totalSize += key.length * 2; // UTF-16 characters
       totalSize += JSON.stringify(entry.credentials).length * 2;
       totalSize += 200; // Approximate overhead for entry metadata
     }
-    
+
     return totalSize;
   }
 
@@ -539,8 +575,8 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
    * Validate cache key
    */
   private validateKey(key: string): void {
-    if (!key || typeof key !== 'string' || key.trim() === '') {
-      throw new Error('Invalid cache key');
+    if (!key || typeof key !== "string" || key.trim() === "") {
+      throw new Error("Invalid cache key");
     }
   }
 
@@ -548,12 +584,12 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
    * Validate credentials object
    */
   private validateCredentials(credentials: AuthCredentials): void {
-    if (!credentials || typeof credentials !== 'object') {
-      throw new Error('Invalid credentials object');
+    if (!credentials || typeof credentials !== "object") {
+      throw new Error("Invalid credentials object");
     }
 
     if (!credentials.type || !credentials.provider) {
-      throw new Error('Credentials missing required fields: type and provider');
+      throw new Error("Credentials missing required fields: type and provider");
     }
   }
 
@@ -561,24 +597,28 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
    * Mask key for logging security
    */
   private maskKey(key: string): string {
-    if (key.length <= 8) return '***';
-    return key.substring(0, 4) + '***' + key.substring(key.length - 4);
+    if (key.length <= 8) return "***";
+    return key.substring(0, 4) + "***" + key.substring(key.length - 4);
   }
 
   /**
    * Create cache-specific error
    */
-  private createCacheError(code: string, message: string, originalError?: Error): AuthError {
+  private createCacheError(
+    code: string,
+    message: string,
+    originalError?: Error,
+  ): AuthError {
     const error = new Error(message) as AuthError;
     error.code = code;
-    error.type = 'configuration';
+    error.type = "configuration";
     error.retryable = false;
     error.originalError = originalError;
     error.context = {
-      cacheType: 'in-memory',
+      cacheType: "in-memory",
       cacheSize: this.cache.size,
       maxSize: this.config.maxSize,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
     return error;
   }
@@ -587,6 +627,8 @@ export class InMemoryTokenCache extends EventEmitter implements TokenCache {
 /**
  * Factory function to create token cache instances
  */
-export function createTokenCache(config: Partial<TokenCacheConfig> = {}): TokenCache {
+export function createTokenCache(
+  config: Partial<TokenCacheConfig> = {},
+): TokenCache {
   return new InMemoryTokenCache(config);
 }

@@ -1,15 +1,19 @@
 /**
  * A2A Capability Manager
- * 
+ *
  * Manages the exposure, registration, and discovery of A2A capabilities.
  * Provides patterns for dynamic capability composition, aggregation, and versioning.
  * Handles capability matching, dependency resolution, and security policy enforcement.
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../../utils/logger.js';
-import { CacheManager } from '../../../core/cache-manager.js';
-import { A2ACapability, A2AToolContext, A2AToolWrapper } from './a2a-tool-wrapper.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../../utils/logger.js";
+import { CacheManager } from "../../../core/cache-manager.js";
+import {
+  A2ACapability,
+  A2AToolContext,
+  A2AToolWrapper,
+} from "./a2a-tool-wrapper.js";
 
 export interface CapabilityRegistration {
   id: string;
@@ -22,7 +26,7 @@ export interface CapabilityRegistration {
     successRate: number;
     avgLatency: number;
   };
-  status: 'active' | 'deprecated' | 'disabled' | 'maintenance';
+  status: "active" | "deprecated" | "disabled" | "maintenance";
   metadata: Record<string, any>;
 }
 
@@ -34,7 +38,7 @@ export interface CapabilityQuery {
   requiredCapabilities?: string[];
   resourceConstraints?: {
     maxLatency?: number;
-    maxResourceUsage?: 'low' | 'medium' | 'high';
+    maxResourceUsage?: "low" | "medium" | "high";
   };
   tags?: string[];
 }
@@ -45,8 +49,8 @@ export interface CapabilityComposition {
   description: string;
   capabilities: string[];
   dependencies: Record<string, string[]>;
-  executionStrategy: 'sequential' | 'parallel' | 'conditional' | 'pipeline';
-  errorHandling: 'fail-fast' | 'continue' | 'retry';
+  executionStrategy: "sequential" | "parallel" | "conditional" | "pipeline";
+  errorHandling: "fail-fast" | "continue" | "retry";
   timeout: number;
   securityPolicy: {
     minTrustLevel: string;
@@ -63,7 +67,7 @@ export interface CapabilityAggregation {
   outputSchema: any;
   performance: {
     estimatedLatency: number;
-    resourceUsage: 'low' | 'medium' | 'high';
+    resourceUsage: "low" | "medium" | "high";
     cacheable: boolean;
   };
   security: {
@@ -102,10 +106,10 @@ export class CapabilityManager extends EventEmitter {
 
   constructor() {
     super();
-    this.logger = new Logger('A2ACapabilityManager');
+    this.logger = new Logger("A2ACapabilityManager");
     this.cache = new CacheManager();
-    
-    this.logger.info('A2A Capability Manager initialized');
+
+    this.logger.info("A2A Capability Manager initialized");
   }
 
   /**
@@ -115,22 +119,22 @@ export class CapabilityManager extends EventEmitter {
     id: string,
     capability: A2ACapability,
     wrapper: A2AToolWrapper,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, any> = {},
   ): Promise<void> {
     try {
       // Validate capability definition
       const validation = this.validateCapability(capability);
       if (!validation.valid) {
-        throw new Error(`Invalid capability: ${validation.errors.join(', ')}`);
+        throw new Error(`Invalid capability: ${validation.errors.join(", ")}`);
       }
 
       // Check for existing registration
       if (this.registrations.has(id)) {
         const existing = this.registrations.get(id)!;
-        this.logger.warn('Overwriting existing capability registration', {
+        this.logger.warn("Overwriting existing capability registration", {
           id,
           existingVersion: existing.capability.version,
-          newVersion: capability.version
+          newVersion: capability.version,
         });
       }
 
@@ -143,10 +147,10 @@ export class CapabilityManager extends EventEmitter {
         usage: {
           invocations: 0,
           successRate: 0,
-          avgLatency: 0
+          avgLatency: 0,
         },
-        status: 'active',
-        metadata
+        status: "active",
+        metadata,
       };
 
       this.registrations.set(id, registration);
@@ -164,17 +168,19 @@ export class CapabilityManager extends EventEmitter {
       // Cache capability for quick lookup
       await this.cache.set(`capability:${id}`, capability, 3600000); // 1 hour
 
-      this.logger.info('Capability registered successfully', {
+      this.logger.info("Capability registered successfully", {
         id,
         name: capability.name,
         version: capability.version,
-        category
+        category,
       });
 
-      this.emit('capability_registered', { id, capability, registration });
-
+      this.emit("capability_registered", { id, capability, registration });
     } catch (error: any) {
-      this.logger.error('Failed to register capability', { id, error: error.message });
+      this.logger.error("Failed to register capability", {
+        id,
+        error: error.message,
+      });
       throw error;
     }
   }
@@ -199,24 +205,29 @@ export class CapabilityManager extends EventEmitter {
     // Remove registration
     this.registrations.delete(id);
 
-    this.logger.info('Capability unregistered', { id });
-    this.emit('capability_unregistered', { id, registration });
+    this.logger.info("Capability unregistered", { id });
+    this.emit("capability_unregistered", { id, registration });
   }
 
   /**
    * Query capabilities based on criteria
    */
-  async queryCapabilities(query: CapabilityQuery): Promise<CapabilityRegistration[]> {
+  async queryCapabilities(
+    query: CapabilityQuery,
+  ): Promise<CapabilityRegistration[]> {
     const results: CapabilityRegistration[] = [];
 
     for (const [id, registration] of this.registrations) {
-      if (registration.status !== 'active') continue;
+      if (registration.status !== "active") continue;
 
       const capability = registration.capability;
       let matches = true;
 
       // Name matching
-      if (query.name && !capability.name.toLowerCase().includes(query.name.toLowerCase())) {
+      if (
+        query.name &&
+        !capability.name.toLowerCase().includes(query.name.toLowerCase())
+      ) {
         matches = false;
       }
 
@@ -235,9 +246,17 @@ export class CapabilityManager extends EventEmitter {
 
       // Trust level matching
       if (query.minTrustLevel) {
-        const trustLevels = ['untrusted', 'basic', 'verified', 'trusted', 'privileged'];
+        const trustLevels = [
+          "untrusted",
+          "basic",
+          "verified",
+          "trusted",
+          "privileged",
+        ];
         const requiredIndex = trustLevels.indexOf(query.minTrustLevel);
-        const capabilityIndex = trustLevels.indexOf(capability.security.minTrustLevel);
+        const capabilityIndex = trustLevels.indexOf(
+          capability.security.minTrustLevel,
+        );
         if (capabilityIndex > requiredIndex) {
           matches = false;
         }
@@ -245,8 +264,8 @@ export class CapabilityManager extends EventEmitter {
 
       // Required capabilities matching
       if (query.requiredCapabilities) {
-        const hasAllCapabilities = query.requiredCapabilities.every(cap =>
-          capability.security.requiredCapabilities.includes(cap)
+        const hasAllCapabilities = query.requiredCapabilities.every((cap) =>
+          capability.security.requiredCapabilities.includes(cap),
         );
         if (!hasAllCapabilities) {
           matches = false;
@@ -255,15 +274,22 @@ export class CapabilityManager extends EventEmitter {
 
       // Resource constraints matching
       if (query.resourceConstraints) {
-        if (query.resourceConstraints.maxLatency && 
-            capability.performance.avgLatency > query.resourceConstraints.maxLatency) {
+        if (
+          query.resourceConstraints.maxLatency &&
+          capability.performance.avgLatency >
+            query.resourceConstraints.maxLatency
+        ) {
           matches = false;
         }
 
         if (query.resourceConstraints.maxResourceUsage) {
-          const resourceLevels = ['low', 'medium', 'high'];
-          const maxIndex = resourceLevels.indexOf(query.resourceConstraints.maxResourceUsage);
-          const capabilityIndex = resourceLevels.indexOf(capability.performance.resourceUsage);
+          const resourceLevels = ["low", "medium", "high"];
+          const maxIndex = resourceLevels.indexOf(
+            query.resourceConstraints.maxResourceUsage,
+          );
+          const capabilityIndex = resourceLevels.indexOf(
+            capability.performance.resourceUsage,
+          );
           if (capabilityIndex > maxIndex) {
             matches = false;
           }
@@ -272,8 +298,8 @@ export class CapabilityManager extends EventEmitter {
 
       // Tags matching (from metadata)
       if (query.tags && registration.metadata.tags) {
-        const hasAllTags = query.tags.every(tag =>
-          registration.metadata.tags.includes(tag)
+        const hasAllTags = query.tags.every((tag) =>
+          registration.metadata.tags.includes(tag),
         );
         if (!hasAllTags) {
           matches = false;
@@ -287,14 +313,16 @@ export class CapabilityManager extends EventEmitter {
 
     // Sort by usage and performance
     results.sort((a, b) => {
-      const aScore = a.usage.successRate * (1 / Math.max(a.usage.avgLatency, 1));
-      const bScore = b.usage.successRate * (1 / Math.max(b.usage.avgLatency, 1));
+      const aScore =
+        a.usage.successRate * (1 / Math.max(a.usage.avgLatency, 1));
+      const bScore =
+        b.usage.successRate * (1 / Math.max(b.usage.avgLatency, 1));
       return bScore - aScore;
     });
 
-    this.logger.debug('Capability query completed', {
+    this.logger.debug("Capability query completed", {
       query,
-      resultCount: results.length
+      resultCount: results.length,
     });
 
     return results;
@@ -310,13 +338,15 @@ export class CapabilityManager extends EventEmitter {
   /**
    * List all registered capabilities
    */
-  listCapabilities(status?: CapabilityRegistration['status']): CapabilityRegistration[] {
+  listCapabilities(
+    status?: CapabilityRegistration["status"],
+  ): CapabilityRegistration[] {
     const capabilities = Array.from(this.registrations.values());
-    
+
     if (status) {
-      return capabilities.filter(reg => reg.status === status);
+      return capabilities.filter((reg) => reg.status === status);
     }
-    
+
     return capabilities;
   }
 
@@ -336,7 +366,7 @@ export class CapabilityManager extends EventEmitter {
       if (!composition.capabilities.includes(capId)) {
         throw new Error(`Dependency source not in composition: ${capId}`);
       }
-      
+
       for (const dep of deps) {
         if (!composition.capabilities.includes(dep)) {
           throw new Error(`Dependency target not in composition: ${dep}`);
@@ -346,18 +376,18 @@ export class CapabilityManager extends EventEmitter {
 
     // Check for circular dependencies
     if (this.hasCircularDependencies(composition.dependencies)) {
-      throw new Error('Circular dependencies detected in composition');
+      throw new Error("Circular dependencies detected in composition");
     }
 
     this.compositions.set(composition.id, composition);
 
-    this.logger.info('Capability composition created', {
+    this.logger.info("Capability composition created", {
       id: composition.id,
       name: composition.name,
-      capabilityCount: composition.capabilities.length
+      capabilityCount: composition.capabilities.length,
     });
 
-    this.emit('composition_created', composition);
+    this.emit("composition_created", composition);
   }
 
   /**
@@ -366,7 +396,7 @@ export class CapabilityManager extends EventEmitter {
   async executeComposition(
     compositionId: string,
     parameters: Record<string, any>,
-    context: A2AToolContext
+    context: A2AToolContext,
   ): Promise<any> {
     const composition = this.compositions.get(compositionId);
     if (!composition) {
@@ -382,24 +412,50 @@ export class CapabilityManager extends EventEmitter {
 
     try {
       switch (composition.executionStrategy) {
-        case 'sequential':
-          await this.executeSequential(composition, parameters, context, results, errors);
+        case "sequential":
+          await this.executeSequential(
+            composition,
+            parameters,
+            context,
+            results,
+            errors,
+          );
           break;
-          
-        case 'parallel':
-          await this.executeParallel(composition, parameters, context, results, errors);
+
+        case "parallel":
+          await this.executeParallel(
+            composition,
+            parameters,
+            context,
+            results,
+            errors,
+          );
           break;
-          
-        case 'conditional':
-          await this.executeConditional(composition, parameters, context, results, errors);
+
+        case "conditional":
+          await this.executeConditional(
+            composition,
+            parameters,
+            context,
+            results,
+            errors,
+          );
           break;
-          
-        case 'pipeline':
-          await this.executePipeline(composition, parameters, context, results, errors);
+
+        case "pipeline":
+          await this.executePipeline(
+            composition,
+            parameters,
+            context,
+            results,
+            errors,
+          );
           break;
-          
+
         default:
-          throw new Error(`Unknown execution strategy: ${composition.executionStrategy}`);
+          throw new Error(
+            `Unknown execution strategy: ${composition.executionStrategy}`,
+          );
       }
 
       // Handle errors based on error handling strategy
@@ -408,19 +464,18 @@ export class CapabilityManager extends EventEmitter {
       }
 
       const executionTime = Date.now() - startTime;
-      this.logger.info('Composition executed successfully', {
+      this.logger.info("Composition executed successfully", {
         compositionId,
         executionTime,
         resultCount: results.size,
-        errorCount: errors.size
+        errorCount: errors.size,
       });
 
       return this.aggregateResults(results);
-
     } catch (error: any) {
-      this.logger.error('Composition execution failed', {
+      this.logger.error("Composition execution failed", {
         compositionId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -432,10 +487,10 @@ export class CapabilityManager extends EventEmitter {
   async createAggregation(
     capabilityIds: string[],
     name: string,
-    aggregationStrategy: 'merge' | 'compose' | 'overlay' = 'merge'
+    aggregationStrategy: "merge" | "compose" | "overlay" = "merge",
   ): Promise<CapabilityAggregation> {
     const capabilities: A2ACapability[] = [];
-    
+
     // Collect all capabilities
     for (const id of capabilityIds) {
       const registration = this.registrations.get(id);
@@ -450,22 +505,28 @@ export class CapabilityManager extends EventEmitter {
       id: `aggregation_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       name,
       aggregatedCapabilities: capabilities,
-      compositeParameters: this.aggregateParameters(capabilities, aggregationStrategy),
-      outputSchema: this.aggregateOutputSchema(capabilities, aggregationStrategy),
+      compositeParameters: this.aggregateParameters(
+        capabilities,
+        aggregationStrategy,
+      ),
+      outputSchema: this.aggregateOutputSchema(
+        capabilities,
+        aggregationStrategy,
+      ),
       performance: this.aggregatePerformance(capabilities),
-      security: this.aggregateSecurity(capabilities)
+      security: this.aggregateSecurity(capabilities),
     };
 
     this.aggregations.set(aggregation.id, aggregation);
 
-    this.logger.info('Capability aggregation created', {
+    this.logger.info("Capability aggregation created", {
       id: aggregation.id,
       name,
       capabilityCount: capabilities.length,
-      strategy: aggregationStrategy
+      strategy: aggregationStrategy,
     });
 
-    this.emit('aggregation_created', aggregation);
+    this.emit("aggregation_created", aggregation);
 
     return aggregation;
   }
@@ -481,7 +542,7 @@ export class CapabilityManager extends EventEmitter {
     // Collect version and dependency information
     for (const [id, registration] of this.registrations) {
       const capability = registration.capability;
-      
+
       if (!versions[capability.name]) {
         versions[capability.name] = [];
       }
@@ -503,8 +564,8 @@ export class CapabilityManager extends EventEmitter {
       metadata: {
         totalCapabilities: this.registrations.size,
         lastUpdated: new Date(),
-        compatibility: await this.generateCompatibilityMatrix()
-      }
+        compatibility: await this.generateCompatibilityMatrix(),
+      },
     };
   }
 
@@ -514,7 +575,7 @@ export class CapabilityManager extends EventEmitter {
   updateUsageStats(
     capabilityId: string,
     success: boolean,
-    latency: number
+    latency: number,
   ): void {
     const registration = this.registrations.get(capabilityId);
     if (!registration) return;
@@ -523,39 +584,46 @@ export class CapabilityManager extends EventEmitter {
     registration.lastUsed = new Date();
 
     // Update success rate
-    const totalSuccess = Math.floor(registration.usage.successRate * (registration.usage.invocations - 1));
-    registration.usage.successRate = 
+    const totalSuccess = Math.floor(
+      registration.usage.successRate * (registration.usage.invocations - 1),
+    );
+    registration.usage.successRate =
       (totalSuccess + (success ? 1 : 0)) / registration.usage.invocations;
 
     // Update average latency
-    registration.usage.avgLatency = 
-      (registration.usage.avgLatency * (registration.usage.invocations - 1) + latency) / 
+    registration.usage.avgLatency =
+      (registration.usage.avgLatency * (registration.usage.invocations - 1) +
+        latency) /
       registration.usage.invocations;
 
-    this.emit('usage_updated', { capabilityId, registration });
+    this.emit("usage_updated", { capabilityId, registration });
   }
 
   /**
    * Private helper methods
    */
 
-  private validateCapability(capability: A2ACapability): { valid: boolean; errors: string[] } {
+  private validateCapability(capability: A2ACapability): {
+    valid: boolean;
+    errors: string[];
+  } {
     const errors: string[] = [];
 
-    if (!capability.name) errors.push('Name is required');
-    if (!capability.version) errors.push('Version is required');
-    if (!capability.description) errors.push('Description is required');
-    if (!capability.parameters) errors.push('Parameters schema is required');
-    if (!capability.security) errors.push('Security configuration is required');
-    if (!capability.performance) errors.push('Performance configuration is required');
+    if (!capability.name) errors.push("Name is required");
+    if (!capability.version) errors.push("Version is required");
+    if (!capability.description) errors.push("Description is required");
+    if (!capability.parameters) errors.push("Parameters schema is required");
+    if (!capability.security) errors.push("Security configuration is required");
+    if (!capability.performance)
+      errors.push("Performance configuration is required");
 
     return { valid: errors.length === 0, errors };
   }
 
   private extractCategory(capability: A2ACapability): string {
     // Extract category from capability name or metadata
-    const nameParts = capability.name.split('.');
-    return nameParts.length > 1 ? nameParts[0] : 'general';
+    const nameParts = capability.name.split(".");
+    return nameParts.length > 1 ? nameParts[0] : "general";
   }
 
   private updateDependencyGraph(id: string, capability: A2ACapability): void {
@@ -564,7 +632,9 @@ export class CapabilityManager extends EventEmitter {
     this.dependencyGraph.set(id, new Set(deps));
   }
 
-  private hasCircularDependencies(dependencies: Record<string, string[]>): boolean {
+  private hasCircularDependencies(
+    dependencies: Record<string, string[]>,
+  ): boolean {
     const visited = new Set<string>();
     const visiting = new Set<string>();
 
@@ -573,7 +643,7 @@ export class CapabilityManager extends EventEmitter {
       if (visited.has(node)) return false;
 
       visiting.add(node);
-      
+
       const deps = dependencies[node] || [];
       for (const dep of deps) {
         if (visit(dep)) return true;
@@ -593,26 +663,36 @@ export class CapabilityManager extends EventEmitter {
 
   private async validateCompositionSecurity(
     composition: CapabilityComposition,
-    context: A2AToolContext
+    context: A2AToolContext,
   ): Promise<void> {
     const policy = composition.securityPolicy;
 
     // Check trust level
-    const trustLevels = ['untrusted', 'basic', 'verified', 'trusted', 'privileged'];
+    const trustLevels = [
+      "untrusted",
+      "basic",
+      "verified",
+      "trusted",
+      "privileged",
+    ];
     const requiredIndex = trustLevels.indexOf(policy.minTrustLevel);
     const actualIndex = trustLevels.indexOf(context.trustLevel);
 
     if (actualIndex < requiredIndex) {
-      throw new Error(`Insufficient trust level for composition: required ${policy.minTrustLevel}, got ${context.trustLevel}`);
+      throw new Error(
+        `Insufficient trust level for composition: required ${policy.minTrustLevel}, got ${context.trustLevel}`,
+      );
     }
 
     // Check aggregated capabilities
     const missingCapabilities = policy.aggregatedCapabilities.filter(
-      cap => !context.capabilities.includes(cap)
+      (cap) => !context.capabilities.includes(cap),
     );
 
     if (missingCapabilities.length > 0) {
-      throw new Error(`Missing required capabilities for composition: ${missingCapabilities.join(', ')}`);
+      throw new Error(
+        `Missing required capabilities for composition: ${missingCapabilities.join(", ")}`,
+      );
     }
   }
 
@@ -621,16 +701,20 @@ export class CapabilityManager extends EventEmitter {
     parameters: Record<string, any>,
     context: A2AToolContext,
     results: Map<string, any>,
-    errors: Map<string, Error>
+    errors: Map<string, Error>,
   ): Promise<void> {
     for (const capabilityId of composition.capabilities) {
       try {
         const registration = this.registrations.get(capabilityId)!;
-        const result = await this.executeSingleCapability(registration, parameters, context);
+        const result = await this.executeSingleCapability(
+          registration,
+          parameters,
+          context,
+        );
         results.set(capabilityId, result);
       } catch (error: any) {
         errors.set(capabilityId, error);
-        if (composition.errorHandling === 'fail-fast') {
+        if (composition.errorHandling === "fail-fast") {
           throw error;
         }
       }
@@ -642,12 +726,16 @@ export class CapabilityManager extends EventEmitter {
     parameters: Record<string, any>,
     context: A2AToolContext,
     results: Map<string, any>,
-    errors: Map<string, Error>
+    errors: Map<string, Error>,
   ): Promise<void> {
     const promises = composition.capabilities.map(async (capabilityId) => {
       try {
         const registration = this.registrations.get(capabilityId)!;
-        const result = await this.executeSingleCapability(registration, parameters, context);
+        const result = await this.executeSingleCapability(
+          registration,
+          parameters,
+          context,
+        );
         results.set(capabilityId, result);
       } catch (error: any) {
         errors.set(capabilityId, error);
@@ -662,11 +750,17 @@ export class CapabilityManager extends EventEmitter {
     parameters: Record<string, any>,
     context: A2AToolContext,
     results: Map<string, any>,
-    errors: Map<string, Error>
+    errors: Map<string, Error>,
   ): Promise<void> {
     // Conditional execution logic would be implemented based on composition metadata
     // For now, default to sequential execution
-    await this.executeSequential(composition, parameters, context, results, errors);
+    await this.executeSequential(
+      composition,
+      parameters,
+      context,
+      results,
+      errors,
+    );
   }
 
   private async executePipeline(
@@ -674,21 +768,25 @@ export class CapabilityManager extends EventEmitter {
     parameters: Record<string, any>,
     context: A2AToolContext,
     results: Map<string, any>,
-    errors: Map<string, Error>
+    errors: Map<string, Error>,
   ): Promise<void> {
     let currentParameters = parameters;
 
     for (const capabilityId of composition.capabilities) {
       try {
         const registration = this.registrations.get(capabilityId)!;
-        const result = await this.executeSingleCapability(registration, currentParameters, context);
+        const result = await this.executeSingleCapability(
+          registration,
+          currentParameters,
+          context,
+        );
         results.set(capabilityId, result);
-        
+
         // Use result as input for next capability
         currentParameters = { ...currentParameters, ...result };
       } catch (error: any) {
         errors.set(capabilityId, error);
-        if (composition.errorHandling === 'fail-fast') {
+        if (composition.errorHandling === "fail-fast") {
           throw error;
         }
       }
@@ -698,7 +796,7 @@ export class CapabilityManager extends EventEmitter {
   private async executeSingleCapability(
     registration: CapabilityRegistration,
     parameters: Record<string, any>,
-    context: A2AToolContext
+    context: A2AToolContext,
   ): Promise<any> {
     // This would invoke the actual capability wrapper
     // For now, return a placeholder
@@ -707,24 +805,24 @@ export class CapabilityManager extends EventEmitter {
 
   private async handleCompositionErrors(
     composition: CapabilityComposition,
-    errors: Map<string, Error>
+    errors: Map<string, Error>,
   ): Promise<void> {
     switch (composition.errorHandling) {
-      case 'fail-fast':
+      case "fail-fast":
         throw Array.from(errors.values())[0];
-        
-      case 'continue':
+
+      case "continue":
         // Log errors but continue
         for (const [capabilityId, error] of errors) {
-          this.logger.warn('Capability execution failed in composition', {
+          this.logger.warn("Capability execution failed in composition", {
             compositionId: composition.id,
             capabilityId,
-            error: error.message
+            error: error.message,
           });
         }
         break;
-        
-      case 'retry':
+
+      case "retry":
         // Implement retry logic
         break;
     }
@@ -732,9 +830,9 @@ export class CapabilityManager extends EventEmitter {
 
   private aggregateResults(results: Map<string, any>): any {
     const aggregated: Record<string, any> = {};
-    
+
     for (const [capabilityId, result] of results) {
-      if (result && typeof result === 'object' && result.data) {
+      if (result && typeof result === "object" && result.data) {
         aggregated[capabilityId] = result.data;
       } else {
         aggregated[capabilityId] = result;
@@ -746,13 +844,13 @@ export class CapabilityManager extends EventEmitter {
 
   private aggregateParameters(
     capabilities: A2ACapability[],
-    strategy: 'merge' | 'compose' | 'overlay'
+    strategy: "merge" | "compose" | "overlay",
   ): any {
     // Implement parameter aggregation logic based on strategy
     const aggregated = {
-      type: 'object',
+      type: "object",
       properties: {},
-      required: []
+      required: [],
     };
 
     // Simple merge strategy for now
@@ -766,72 +864,93 @@ export class CapabilityManager extends EventEmitter {
 
   private aggregateOutputSchema(
     capabilities: A2ACapability[],
-    strategy: 'merge' | 'compose' | 'overlay'
+    strategy: "merge" | "compose" | "overlay",
   ): any {
     // Implement output schema aggregation
     return {
-      type: 'object',
+      type: "object",
       properties: {
         results: {
-          type: 'object',
-          description: 'Aggregated results from all capabilities'
-        }
-      }
+          type: "object",
+          description: "Aggregated results from all capabilities",
+        },
+      },
     };
   }
 
-  private aggregatePerformance(capabilities: A2ACapability[]): CapabilityAggregation['performance'] {
-    const avgLatency = capabilities.reduce((sum, cap) => sum + cap.performance.avgLatency, 0) / capabilities.length;
-    const maxResourceUsage = capabilities.reduce((max, cap) => {
-      const levels = ['low', 'medium', 'high'];
-      const currentIndex = levels.indexOf(cap.performance.resourceUsage);
-      const maxIndex = levels.indexOf(max);
-      return currentIndex > maxIndex ? cap.performance.resourceUsage : max;
-    }, 'low' as 'low' | 'medium' | 'high');
+  private aggregatePerformance(
+    capabilities: A2ACapability[],
+  ): CapabilityAggregation["performance"] {
+    const avgLatency =
+      capabilities.reduce((sum, cap) => sum + cap.performance.avgLatency, 0) /
+      capabilities.length;
+    const maxResourceUsage = capabilities.reduce(
+      (max, cap) => {
+        const levels = ["low", "medium", "high"];
+        const currentIndex = levels.indexOf(cap.performance.resourceUsage);
+        const maxIndex = levels.indexOf(max);
+        return currentIndex > maxIndex ? cap.performance.resourceUsage : max;
+      },
+      "low" as "low" | "medium" | "high",
+    );
 
     return {
       estimatedLatency: avgLatency,
       resourceUsage: maxResourceUsage,
-      cacheable: capabilities.every(cap => cap.performance.cacheable)
+      cacheable: capabilities.every((cap) => cap.performance.cacheable),
     };
   }
 
-  private aggregateSecurity(capabilities: A2ACapability[]): CapabilityAggregation['security'] {
-    const trustLevels = ['untrusted', 'basic', 'verified', 'trusted', 'privileged'];
+  private aggregateSecurity(
+    capabilities: A2ACapability[],
+  ): CapabilityAggregation["security"] {
+    const trustLevels = [
+      "untrusted",
+      "basic",
+      "verified",
+      "trusted",
+      "privileged",
+    ];
     const maxTrustLevel = capabilities.reduce((max, cap) => {
       const currentIndex = trustLevels.indexOf(cap.security.minTrustLevel);
       const maxIndex = trustLevels.indexOf(max);
       return currentIndex > maxIndex ? cap.security.minTrustLevel : max;
-    }, 'untrusted');
+    }, "untrusted");
 
     const combinedCapabilities = new Set<string>();
-    capabilities.forEach(cap => {
-      cap.security.requiredCapabilities.forEach(c => combinedCapabilities.add(c));
+    capabilities.forEach((cap) => {
+      cap.security.requiredCapabilities.forEach((c) =>
+        combinedCapabilities.add(c),
+      );
     });
 
     return {
       effectiveTrustLevel: maxTrustLevel,
-      combinedCapabilities: Array.from(combinedCapabilities)
+      combinedCapabilities: Array.from(combinedCapabilities),
     };
   }
 
-  private async generateRecommendations(): Promise<CapabilityDiscovery['recommendations']> {
+  private async generateRecommendations(): Promise<
+    CapabilityDiscovery["recommendations"]
+  > {
     // Generate capability recommendations based on usage patterns
     const usageStats = Array.from(this.registrations.entries())
       .map(([id, reg]) => ({ id, usage: reg.usage.invocations }))
       .sort((a, b) => b.usage - a.usage);
 
     return {
-      popular: usageStats.slice(0, 10).map(s => s.id),
-      trending: usageStats.slice(0, 5).map(s => s.id), // Simplified
-      related: {} // Would implement based on co-usage patterns
+      popular: usageStats.slice(0, 10).map((s) => s.id),
+      trending: usageStats.slice(0, 5).map((s) => s.id), // Simplified
+      related: {}, // Would implement based on co-usage patterns
     };
   }
 
-  private async generateCompatibilityMatrix(): Promise<Record<string, string[]>> {
+  private async generateCompatibilityMatrix(): Promise<
+    Record<string, string[]>
+  > {
     // Generate compatibility information between capabilities
     const matrix: Record<string, string[]> = {};
-    
+
     for (const [id, registration] of this.registrations) {
       matrix[id] = Array.from(this.dependencyGraph.get(id) || []);
     }

@@ -1,27 +1,27 @@
 /**
  * AI-Powered Prompt Engineer
- * 
+ *
  * Enhances image generation prompts using AI to improve quality,
  * style consistency, and artistic direction
  */
 
-import { Logger } from '../../utils/logger.js';
-import { 
-  ImageStyle, 
+import { Logger } from "../../utils/logger.js";
+import {
+  ImageStyle,
   ArtisticControls,
   CompositionGuide,
   LightingConfig,
   ColorPalette,
   TextureConfig,
   MoodConfig,
-  CameraSettings
-} from '../../types/multimedia.js';
+  CameraSettings,
+} from "../../types/multimedia.js";
 
 export interface PromptEnhancementRequest {
   style?: ImageStyle;
   artisticControls?: ArtisticControls;
-  targetQuality: 'draft' | 'standard' | 'high' | 'studio';
-  targetAudience: 'general' | 'artistic' | 'commercial' | 'technical';
+  targetQuality: "draft" | "standard" | "high" | "studio";
+  targetAudience: "general" | "artistic" | "commercial" | "technical";
   contextualHints?: string[];
   avoidanceTerms?: string[];
 }
@@ -37,7 +37,13 @@ export interface PromptEnhancementResponse {
 }
 
 export interface PromptEnhancement {
-  type: 'style' | 'technical' | 'artistic' | 'composition' | 'quality' | 'detail';
+  type:
+    | "style"
+    | "technical"
+    | "artistic"
+    | "composition"
+    | "quality"
+    | "detail";
   enhancement: string;
   weight: number;
   reasoning: string;
@@ -62,7 +68,7 @@ export class PromptEngineer {
   private isInitialized: boolean = false;
 
   constructor() {
-    this.logger = new Logger('PromptEngineer');
+    this.logger = new Logger("PromptEngineer");
   }
 
   /**
@@ -70,20 +76,19 @@ export class PromptEngineer {
    */
   async initialize(): Promise<void> {
     try {
-      this.logger.info('Initializing prompt engineer...');
+      this.logger.info("Initializing prompt engineer...");
 
       await Promise.all([
         this.loadPromptTemplates(),
         this.loadStyleKeywords(),
         this.loadQualityModifiers(),
-        this.loadTechnicalTerms()
+        this.loadTechnicalTerms(),
       ]);
 
       this.isInitialized = true;
-      this.logger.info('Prompt engineer initialized successfully');
-
+      this.logger.info("Prompt engineer initialized successfully");
     } catch (error) {
-      this.logger.error('Failed to initialize prompt engineer', error);
+      this.logger.error("Failed to initialize prompt engineer", error);
       throw error;
     }
   }
@@ -93,32 +98,44 @@ export class PromptEngineer {
    */
   async enhancePrompt(
     originalPrompt: string,
-    options: PromptEnhancementRequest
+    options: PromptEnhancementRequest,
   ): Promise<PromptEnhancementResponse> {
     this.ensureInitialized();
 
     try {
-      this.logger.debug('Enhancing prompt', {
+      this.logger.debug("Enhancing prompt", {
         originalLength: originalPrompt.length,
         targetQuality: options.targetQuality,
         hasStyle: !!options.style,
-        hasArtisticControls: !!options.artisticControls
+        hasArtisticControls: !!options.artisticControls,
       });
 
       // Analyze the original prompt
       const analysis = this.analyzePrompt(originalPrompt);
-      
+
       // Generate enhancements
-      const enhancements = await this.generateEnhancements(originalPrompt, options, analysis);
-      
+      const enhancements = await this.generateEnhancements(
+        originalPrompt,
+        options,
+        analysis,
+      );
+
       // Build enhanced prompt
-      const enhancedPrompt = this.buildEnhancedPrompt(originalPrompt, enhancements, options);
-      
+      const enhancedPrompt = this.buildEnhancedPrompt(
+        originalPrompt,
+        enhancements,
+        options,
+      );
+
       // Calculate quality scores
       const scores = this.calculateQualityScores(enhancedPrompt, options);
-      
+
       // Generate suggestions for further improvement
-      const suggestions = this.generateSuggestions(enhancedPrompt, options, scores);
+      const suggestions = this.generateSuggestions(
+        enhancedPrompt,
+        options,
+        scores,
+      );
 
       const response: PromptEnhancementResponse = {
         enhancedPrompt,
@@ -127,20 +144,19 @@ export class PromptEngineer {
         qualityScore: scores.quality,
         styleConsistency: scores.styleConsistency,
         technicalScore: scores.technical,
-        suggestions
+        suggestions,
       };
 
-      this.logger.debug('Prompt enhancement completed', {
+      this.logger.debug("Prompt enhancement completed", {
         originalLength: originalPrompt.length,
         enhancedLength: enhancedPrompt.length,
         enhancementCount: enhancements.length,
-        qualityScore: scores.quality
+        qualityScore: scores.quality,
       });
 
       return response;
-
     } catch (error) {
-      this.logger.error('Prompt enhancement failed', error);
+      this.logger.error("Prompt enhancement failed", error);
       throw error;
     }
   }
@@ -150,8 +166,8 @@ export class PromptEngineer {
    */
   private analyzePrompt(prompt: string): PromptAnalysis {
     const words = prompt.toLowerCase().split(/\s+/);
-    const sentences = prompt.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    
+    const sentences = prompt.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+
     return {
       wordCount: words.length,
       sentenceCount: sentences.length,
@@ -162,7 +178,7 @@ export class PromptEngineer {
       hasCompositionTerms: this.hasCompositionTerms(words),
       complexity: this.calculateComplexity(words, sentences),
       clarity: this.calculateClarity(prompt),
-      specificity: this.calculateSpecificity(words)
+      specificity: this.calculateSpecificity(words),
     };
   }
 
@@ -172,22 +188,31 @@ export class PromptEngineer {
   private async generateEnhancements(
     prompt: string,
     options: PromptEnhancementRequest,
-    analysis: PromptAnalysis
+    analysis: PromptAnalysis,
   ): Promise<PromptEnhancement[]> {
     const enhancements: PromptEnhancement[] = [];
 
     // Style enhancements
     if (options.style) {
-      enhancements.push(...this.generateStyleEnhancements(options.style, analysis));
+      enhancements.push(
+        ...this.generateStyleEnhancements(options.style, analysis),
+      );
     }
 
     // Artistic control enhancements
     if (options.artisticControls) {
-      enhancements.push(...this.generateArtisticEnhancements(options.artisticControls, analysis));
+      enhancements.push(
+        ...this.generateArtisticEnhancements(
+          options.artisticControls,
+          analysis,
+        ),
+      );
     }
 
     // Quality enhancements
-    enhancements.push(...this.generateQualityEnhancements(options.targetQuality, analysis));
+    enhancements.push(
+      ...this.generateQualityEnhancements(options.targetQuality, analysis),
+    );
 
     // Technical enhancements
     enhancements.push(...this.generateTechnicalEnhancements(options, analysis));
@@ -199,7 +224,11 @@ export class PromptEngineer {
 
     // Composition enhancements
     if (!analysis.hasCompositionTerms) {
-      enhancements.push(...this.generateCompositionEnhancements(options.artisticControls?.composition));
+      enhancements.push(
+        ...this.generateCompositionEnhancements(
+          options.artisticControls?.composition,
+        ),
+      );
     }
 
     // Filter and rank enhancements
@@ -209,38 +238,41 @@ export class PromptEngineer {
   /**
    * Generate style-specific enhancements
    */
-  private generateStyleEnhancements(style: ImageStyle, analysis: PromptAnalysis): PromptEnhancement[] {
+  private generateStyleEnhancements(
+    style: ImageStyle,
+    analysis: PromptAnalysis,
+  ): PromptEnhancement[] {
     const enhancements: PromptEnhancement[] = [];
 
     if (style.preset) {
       const styleKeywords = this.styleKeywords.get(style.preset) || [];
       const relevantKeywords = styleKeywords.slice(0, 3); // Top 3 keywords
-      
+
       for (const keyword of relevantKeywords) {
         enhancements.push({
-          type: 'style',
+          type: "style",
           enhancement: keyword,
           weight: 0.8,
-          reasoning: `Adds ${style.preset} style characteristics`
+          reasoning: `Adds ${style.preset} style characteristics`,
         });
       }
     }
 
     if (style.customStyle) {
       enhancements.push({
-        type: 'style',
+        type: "style",
         enhancement: `in the style of ${style.customStyle}`,
         weight: 0.9,
-        reasoning: 'Applies custom style direction'
+        reasoning: "Applies custom style direction",
       });
     }
 
     if (style.intensity && style.intensity > 0.7) {
       enhancements.push({
-        type: 'style',
-        enhancement: 'highly stylized, strong artistic interpretation',
+        type: "style",
+        enhancement: "highly stylized, strong artistic interpretation",
         weight: style.intensity,
-        reasoning: 'Emphasizes strong style application'
+        reasoning: "Emphasizes strong style application",
       });
     }
 
@@ -251,19 +283,23 @@ export class PromptEngineer {
    * Generate artistic control enhancements
    */
   private generateArtisticEnhancements(
-    controls: ArtisticControls, 
-    analysis: PromptAnalysis
+    controls: ArtisticControls,
+    analysis: PromptAnalysis,
   ): PromptEnhancement[] {
     const enhancements: PromptEnhancement[] = [];
 
     // Composition enhancements
     if (controls.composition) {
-      enhancements.push(...this.generateCompositionEnhancements(controls.composition));
+      enhancements.push(
+        ...this.generateCompositionEnhancements(controls.composition),
+      );
     }
 
     // Lighting enhancements
     if (controls.lighting) {
-      enhancements.push(...this.generateLightingEnhancements(controls.lighting));
+      enhancements.push(
+        ...this.generateLightingEnhancements(controls.lighting),
+      );
     }
 
     // Color enhancements
@@ -292,44 +328,46 @@ export class PromptEngineer {
   /**
    * Generate composition enhancements
    */
-  private generateCompositionEnhancements(composition?: CompositionGuide): PromptEnhancement[] {
+  private generateCompositionEnhancements(
+    composition?: CompositionGuide,
+  ): PromptEnhancement[] {
     if (!composition) return [];
 
     const enhancements: PromptEnhancement[] = [];
 
     if (composition.rule) {
       const ruleDescriptions = {
-        rule_of_thirds: 'rule of thirds composition, balanced placement',
-        golden_ratio: 'golden ratio composition, harmonious proportions',
-        center: 'centered composition, symmetrical balance',
-        symmetrical: 'symmetrical composition, mirrored elements',
-        dynamic: 'dynamic composition, energetic movement'
+        rule_of_thirds: "rule of thirds composition, balanced placement",
+        golden_ratio: "golden ratio composition, harmonious proportions",
+        center: "centered composition, symmetrical balance",
+        symmetrical: "symmetrical composition, mirrored elements",
+        dynamic: "dynamic composition, energetic movement",
       };
 
       enhancements.push({
-        type: 'composition',
-        enhancement: ruleDescriptions[composition.rule] || '',
+        type: "composition",
+        enhancement: ruleDescriptions[composition.rule] || "",
         weight: 0.7,
-        reasoning: `Applies ${composition.rule} composition rule`
+        reasoning: `Applies ${composition.rule} composition rule`,
       });
     }
 
     if (composition.framing) {
       enhancements.push({
-        type: 'composition',
+        type: "composition",
         enhancement: `${composition.framing} framing`,
         weight: 0.6,
-        reasoning: 'Specifies framing approach'
+        reasoning: "Specifies framing approach",
       });
     }
 
     if (composition.perspective) {
-      const perspectiveDesc = composition.perspective.replace('_', ' ');
+      const perspectiveDesc = composition.perspective.replace("_", " ");
       enhancements.push({
-        type: 'composition',
+        type: "composition",
         enhancement: `${perspectiveDesc} perspective`,
         weight: 0.6,
-        reasoning: 'Defines viewing angle and perspective'
+        reasoning: "Defines viewing angle and perspective",
       });
     }
 
@@ -339,42 +377,45 @@ export class PromptEngineer {
   /**
    * Generate lighting enhancements
    */
-  private generateLightingEnhancements(lighting: LightingConfig): PromptEnhancement[] {
+  private generateLightingEnhancements(
+    lighting: LightingConfig,
+  ): PromptEnhancement[] {
     const enhancements: PromptEnhancement[] = [];
 
     if (lighting.type) {
       enhancements.push({
-        type: 'artistic',
+        type: "artistic",
         enhancement: `${lighting.type} lighting`,
         weight: 0.7,
-        reasoning: 'Specifies lighting type and mood'
+        reasoning: "Specifies lighting type and mood",
       });
     }
 
     if (lighting.direction && lighting.type) {
       enhancements.push({
-        type: 'technical',
+        type: "technical",
         enhancement: `${lighting.direction} lit`,
         weight: 0.5,
-        reasoning: 'Defines lighting direction'
+        reasoning: "Defines lighting direction",
       });
     }
 
     if (lighting.time) {
       const timeDescriptions = {
-        dawn: 'soft dawn light, golden hour glow',
-        morning: 'bright morning light, clear illumination',
-        noon: 'direct sunlight, strong shadows',
-        afternoon: 'warm afternoon light, long shadows',
-        sunset: 'golden sunset light, dramatic colors',
-        night: 'night lighting, artificial illumination'
+        dawn: "soft dawn light, golden hour glow",
+        morning: "bright morning light, clear illumination",
+        noon: "direct sunlight, strong shadows",
+        afternoon: "warm afternoon light, long shadows",
+        sunset: "golden sunset light, dramatic colors",
+        night: "night lighting, artificial illumination",
       };
 
       enhancements.push({
-        type: 'artistic',
-        enhancement: timeDescriptions[lighting.time] || `${lighting.time} lighting`,
+        type: "artistic",
+        enhancement:
+          timeDescriptions[lighting.time] || `${lighting.time} lighting`,
         weight: 0.6,
-        reasoning: 'Sets time-specific lighting mood'
+        reasoning: "Sets time-specific lighting mood",
       });
     }
 
@@ -389,39 +430,40 @@ export class PromptEngineer {
 
     if (color.scheme) {
       const schemeDescriptions = {
-        monochromatic: 'monochromatic color scheme, unified tones',
-        analogous: 'analogous colors, harmonious palette',
-        complementary: 'complementary colors, vibrant contrast',
-        triadic: 'triadic color scheme, balanced variety',
-        vibrant: 'vibrant colors, high saturation',
-        muted: 'muted colors, subdued palette',
-        pastel: 'pastel colors, soft tones'
+        monochromatic: "monochromatic color scheme, unified tones",
+        analogous: "analogous colors, harmonious palette",
+        complementary: "complementary colors, vibrant contrast",
+        triadic: "triadic color scheme, balanced variety",
+        vibrant: "vibrant colors, high saturation",
+        muted: "muted colors, subdued palette",
+        pastel: "pastel colors, soft tones",
       };
 
       enhancements.push({
-        type: 'artistic',
-        enhancement: schemeDescriptions[color.scheme] || `${color.scheme} colors`,
+        type: "artistic",
+        enhancement:
+          schemeDescriptions[color.scheme] || `${color.scheme} colors`,
         weight: 0.6,
-        reasoning: 'Defines color scheme approach'
+        reasoning: "Defines color scheme approach",
       });
     }
 
     if (color.temperature) {
       enhancements.push({
-        type: 'artistic',
+        type: "artistic",
         enhancement: `${color.temperature} color temperature`,
         weight: 0.5,
-        reasoning: 'Sets overall color warmth'
+        reasoning: "Sets overall color warmth",
       });
     }
 
     if (color.dominantColors && color.dominantColors.length > 0) {
-      const colorList = color.dominantColors.slice(0, 3).join(', ');
+      const colorList = color.dominantColors.slice(0, 3).join(", ");
       enhancements.push({
-        type: 'artistic',
+        type: "artistic",
         enhancement: `dominant colors: ${colorList}`,
         weight: 0.7,
-        reasoning: 'Specifies key colors in composition'
+        reasoning: "Specifies key colors in composition",
       });
     }
 
@@ -431,39 +473,42 @@ export class PromptEngineer {
   /**
    * Generate texture enhancements
    */
-  private generateTextureEnhancements(texture: TextureConfig): PromptEnhancement[] {
+  private generateTextureEnhancements(
+    texture: TextureConfig,
+  ): PromptEnhancement[] {
     const enhancements: PromptEnhancement[] = [];
 
     if (texture.surface) {
       enhancements.push({
-        type: 'detail',
+        type: "detail",
         enhancement: `${texture.surface} surface texture`,
         weight: 0.5,
-        reasoning: 'Defines surface characteristics'
+        reasoning: "Defines surface characteristics",
       });
     }
 
     if (texture.material) {
       enhancements.push({
-        type: 'detail',
+        type: "detail",
         enhancement: `${texture.material} material properties`,
         weight: 0.6,
-        reasoning: 'Specifies material type and appearance'
+        reasoning: "Specifies material type and appearance",
       });
     }
 
     if (texture.detail) {
       const detailModifiers = {
-        minimal: 'clean, minimal detail',
-        moderate: 'balanced detail level',
-        intricate: 'intricate details, fine textures'
+        minimal: "clean, minimal detail",
+        moderate: "balanced detail level",
+        intricate: "intricate details, fine textures",
       };
 
       enhancements.push({
-        type: 'detail',
-        enhancement: detailModifiers[texture.detail] || `${texture.detail} detail`,
+        type: "detail",
+        enhancement:
+          detailModifiers[texture.detail] || `${texture.detail} detail`,
         weight: 0.4,
-        reasoning: 'Controls level of surface detail'
+        reasoning: "Controls level of surface detail",
       });
     }
 
@@ -478,29 +523,30 @@ export class PromptEngineer {
 
     if (mood.emotion) {
       const emotionDescriptions = {
-        joyful: 'joyful mood, uplifting atmosphere',
-        melancholic: 'melancholic mood, thoughtful atmosphere',
-        energetic: 'energetic mood, dynamic feeling',
-        calm: 'calm mood, peaceful atmosphere',
-        mysterious: 'mysterious mood, enigmatic atmosphere',
-        dramatic: 'dramatic mood, intense atmosphere',
-        romantic: 'romantic mood, intimate atmosphere'
+        joyful: "joyful mood, uplifting atmosphere",
+        melancholic: "melancholic mood, thoughtful atmosphere",
+        energetic: "energetic mood, dynamic feeling",
+        calm: "calm mood, peaceful atmosphere",
+        mysterious: "mysterious mood, enigmatic atmosphere",
+        dramatic: "dramatic mood, intense atmosphere",
+        romantic: "romantic mood, intimate atmosphere",
       };
 
       enhancements.push({
-        type: 'artistic',
-        enhancement: emotionDescriptions[mood.emotion] || `${mood.emotion} mood`,
+        type: "artistic",
+        enhancement:
+          emotionDescriptions[mood.emotion] || `${mood.emotion} mood`,
         weight: 0.6,
-        reasoning: 'Sets emotional tone and atmosphere'
+        reasoning: "Sets emotional tone and atmosphere",
       });
     }
 
     if (mood.atmosphere) {
       enhancements.push({
-        type: 'artistic',
+        type: "artistic",
         enhancement: `${mood.atmosphere} atmosphere`,
         weight: 0.5,
-        reasoning: 'Defines environmental atmosphere'
+        reasoning: "Defines environmental atmosphere",
       });
     }
 
@@ -510,38 +556,40 @@ export class PromptEngineer {
   /**
    * Generate camera enhancements
    */
-  private generateCameraEnhancements(camera: CameraSettings): PromptEnhancement[] {
+  private generateCameraEnhancements(
+    camera: CameraSettings,
+  ): PromptEnhancement[] {
     const enhancements: PromptEnhancement[] = [];
 
     if (camera.lens) {
       const lensDescriptions = {
-        wide_angle: 'wide angle lens, expansive view',
-        standard: 'standard lens, natural perspective',
-        telephoto: 'telephoto lens, compressed perspective',
-        macro: 'macro lens, extreme close-up detail',
-        fisheye: 'fisheye lens, distorted wide perspective'
+        wide_angle: "wide angle lens, expansive view",
+        standard: "standard lens, natural perspective",
+        telephoto: "telephoto lens, compressed perspective",
+        macro: "macro lens, extreme close-up detail",
+        fisheye: "fisheye lens, distorted wide perspective",
       };
 
       enhancements.push({
-        type: 'technical',
+        type: "technical",
         enhancement: lensDescriptions[camera.lens] || `${camera.lens} lens`,
         weight: 0.5,
-        reasoning: 'Specifies lens type and perspective'
+        reasoning: "Specifies lens type and perspective",
       });
     }
 
     if (camera.aperture) {
       const apertureDescriptions = {
-        shallow_dof: 'shallow depth of field, blurred background',
-        medium_dof: 'medium depth of field, balanced focus',
-        deep_dof: 'deep depth of field, everything in focus'
+        shallow_dof: "shallow depth of field, blurred background",
+        medium_dof: "medium depth of field, balanced focus",
+        deep_dof: "deep depth of field, everything in focus",
       };
 
       enhancements.push({
-        type: 'technical',
+        type: "technical",
         enhancement: apertureDescriptions[camera.aperture] || camera.aperture,
         weight: 0.6,
-        reasoning: 'Controls depth of field and focus'
+        reasoning: "Controls depth of field and focus",
       });
     }
 
@@ -553,30 +601,30 @@ export class PromptEngineer {
    */
   private generateQualityEnhancements(
     targetQuality: string,
-    analysis: PromptAnalysis
+    analysis: PromptAnalysis,
   ): PromptEnhancement[] {
     const qualityKeywords = this.qualityModifiers.get(targetQuality) || [];
     const enhancements: PromptEnhancement[] = [];
 
     // Add quality modifiers based on target quality
     const selectedKeywords = qualityKeywords.slice(0, 2); // Top 2 for quality
-    
+
     for (const keyword of selectedKeywords) {
       enhancements.push({
-        type: 'quality',
+        type: "quality",
         enhancement: keyword,
         weight: 0.7,
-        reasoning: `Enhances output quality for ${targetQuality} level`
+        reasoning: `Enhances output quality for ${targetQuality} level`,
       });
     }
 
     // Add technical quality terms if missing
-    if (!analysis.hasTechnicalTerms && targetQuality !== 'draft') {
+    if (!analysis.hasTechnicalTerms && targetQuality !== "draft") {
       enhancements.push({
-        type: 'technical',
-        enhancement: 'high resolution, detailed, professional quality',
+        type: "technical",
+        enhancement: "high resolution, detailed, professional quality",
         weight: 0.6,
-        reasoning: 'Adds technical quality specifications'
+        reasoning: "Adds technical quality specifications",
       });
     }
 
@@ -588,18 +636,21 @@ export class PromptEngineer {
    */
   private generateTechnicalEnhancements(
     options: PromptEnhancementRequest,
-    analysis: PromptAnalysis
+    analysis: PromptAnalysis,
   ): PromptEnhancement[] {
     const enhancements: PromptEnhancement[] = [];
 
-    if (options.targetQuality === 'studio' || options.targetQuality === 'high') {
-      const technicalTerms = this.technicalTerms.get('advanced') || [];
-      
+    if (
+      options.targetQuality === "studio" ||
+      options.targetQuality === "high"
+    ) {
+      const technicalTerms = this.technicalTerms.get("advanced") || [];
+
       enhancements.push({
-        type: 'technical',
-        enhancement: technicalTerms.slice(0, 2).join(', '),
+        type: "technical",
+        enhancement: technicalTerms.slice(0, 2).join(", "),
         weight: 0.5,
-        reasoning: 'Adds advanced technical specifications'
+        reasoning: "Adds advanced technical specifications",
       });
     }
 
@@ -611,35 +662,49 @@ export class PromptEngineer {
    */
   private generateDetailEnhancements(
     prompt: string,
-    options: PromptEnhancementRequest
+    options: PromptEnhancementRequest,
   ): PromptEnhancement[] {
     const enhancements: PromptEnhancement[] = [];
 
     // Add specific details based on prompt content
-    if (prompt.includes('portrait') || prompt.includes('person') || prompt.includes('face')) {
+    if (
+      prompt.includes("portrait") ||
+      prompt.includes("person") ||
+      prompt.includes("face")
+    ) {
       enhancements.push({
-        type: 'detail',
-        enhancement: 'detailed facial features, expressive eyes, natural skin texture',
+        type: "detail",
+        enhancement:
+          "detailed facial features, expressive eyes, natural skin texture",
         weight: 0.6,
-        reasoning: 'Enhances portrait-specific details'
+        reasoning: "Enhances portrait-specific details",
       });
     }
 
-    if (prompt.includes('landscape') || prompt.includes('nature') || prompt.includes('outdoor')) {
+    if (
+      prompt.includes("landscape") ||
+      prompt.includes("nature") ||
+      prompt.includes("outdoor")
+    ) {
       enhancements.push({
-        type: 'detail',
-        enhancement: 'detailed textures, natural lighting, atmospheric depth',
+        type: "detail",
+        enhancement: "detailed textures, natural lighting, atmospheric depth",
         weight: 0.6,
-        reasoning: 'Enhances landscape-specific details'
+        reasoning: "Enhances landscape-specific details",
       });
     }
 
-    if (prompt.includes('architecture') || prompt.includes('building') || prompt.includes('city')) {
+    if (
+      prompt.includes("architecture") ||
+      prompt.includes("building") ||
+      prompt.includes("city")
+    ) {
       enhancements.push({
-        type: 'detail',
-        enhancement: 'architectural details, precise geometry, material textures',
+        type: "detail",
+        enhancement:
+          "architectural details, precise geometry, material textures",
         weight: 0.6,
-        reasoning: 'Enhances architectural details'
+        reasoning: "Enhances architectural details",
       });
     }
 
@@ -652,7 +717,7 @@ export class PromptEngineer {
   private buildEnhancedPrompt(
     originalPrompt: string,
     enhancements: PromptEnhancement[],
-    options: PromptEnhancementRequest
+    options: PromptEnhancementRequest,
   ): string {
     let enhancedPrompt = originalPrompt.trim();
 
@@ -660,24 +725,31 @@ export class PromptEngineer {
     const groupedEnhancements = this.groupEnhancementsByType(enhancements);
 
     // Add enhancements in order of importance
-    const enhancementOrder = ['style', 'artistic', 'composition', 'quality', 'technical', 'detail'];
+    const enhancementOrder = [
+      "style",
+      "artistic",
+      "composition",
+      "quality",
+      "technical",
+      "detail",
+    ];
 
     for (const type of enhancementOrder) {
       const typeEnhancements = groupedEnhancements.get(type) || [];
       const topEnhancements = typeEnhancements
         .sort((a, b) => b.weight - a.weight)
         .slice(0, 2) // Top 2 per type
-        .map(e => e.enhancement)
+        .map((e) => e.enhancement)
         .filter(Boolean);
 
       if (topEnhancements.length > 0) {
-        enhancedPrompt += ', ' + topEnhancements.join(', ');
+        enhancedPrompt += ", " + topEnhancements.join(", ");
       }
     }
 
     // Add avoidance terms if specified
     if (options.avoidanceTerms && options.avoidanceTerms.length > 0) {
-      enhancedPrompt += ` --no ${options.avoidanceTerms.join(', ')}`;
+      enhancedPrompt += ` --no ${options.avoidanceTerms.join(", ")}`;
     }
 
     return enhancedPrompt;
@@ -687,7 +759,7 @@ export class PromptEngineer {
    * Group enhancements by type
    */
   private groupEnhancementsByType(
-    enhancements: PromptEnhancement[]
+    enhancements: PromptEnhancement[],
   ): Map<string, PromptEnhancement[]> {
     const groups = new Map<string, PromptEnhancement[]>();
 
@@ -706,16 +778,16 @@ export class PromptEngineer {
    */
   private rankEnhancements(
     enhancements: PromptEnhancement[],
-    options: PromptEnhancementRequest
+    options: PromptEnhancementRequest,
   ): PromptEnhancement[] {
     return enhancements
-      .filter(e => e.enhancement.trim().length > 0)
+      .filter((e) => e.enhancement.trim().length > 0)
       .sort((a, b) => {
         // Primary sort by weight
         if (a.weight !== b.weight) {
           return b.weight - a.weight;
         }
-        
+
         // Secondary sort by type priority
         const typePriority = {
           style: 5,
@@ -723,9 +795,9 @@ export class PromptEngineer {
           composition: 3,
           quality: 2,
           technical: 1,
-          detail: 0
+          detail: 0,
         };
-        
+
         return (typePriority[b.type] || 0) - (typePriority[a.type] || 0);
       });
   }
@@ -735,14 +807,14 @@ export class PromptEngineer {
    */
   private calculateQualityScores(
     enhancedPrompt: string,
-    options: PromptEnhancementRequest
+    options: PromptEnhancementRequest,
   ): QualityScores {
     const analysis = this.analyzePrompt(enhancedPrompt);
-    
+
     return {
       quality: Math.min(1, (analysis.specificity + analysis.clarity) / 2),
       styleConsistency: options.style ? 0.8 : 0.5,
-      technical: analysis.hasTechnicalTerms ? 0.8 : 0.4
+      technical: analysis.hasTechnicalTerms ? 0.8 : 0.4,
     };
   }
 
@@ -752,28 +824,30 @@ export class PromptEngineer {
   private generateSuggestions(
     enhancedPrompt: string,
     options: PromptEnhancementRequest,
-    scores: QualityScores
+    scores: QualityScores,
   ): string[] {
     const suggestions: string[] = [];
 
     if (scores.quality < 0.7) {
-      suggestions.push('Consider adding more specific details about the subject');
+      suggestions.push(
+        "Consider adding more specific details about the subject",
+      );
     }
 
     if (scores.styleConsistency < 0.7) {
-      suggestions.push('Try specifying a more consistent artistic style');
+      suggestions.push("Try specifying a more consistent artistic style");
     }
 
     if (scores.technical < 0.6) {
-      suggestions.push('Add technical specifications for better image quality');
+      suggestions.push("Add technical specifications for better image quality");
     }
 
     if (!options.artisticControls?.lighting) {
-      suggestions.push('Consider specifying lighting conditions');
+      suggestions.push("Consider specifying lighting conditions");
     }
 
     if (!options.artisticControls?.composition) {
-      suggestions.push('Add composition guidelines for better framing');
+      suggestions.push("Add composition guidelines for better framing");
     }
 
     return suggestions;
@@ -785,29 +859,29 @@ export class PromptEngineer {
   private async loadPromptTemplates(): Promise<void> {
     const templates: PromptTemplate[] = [
       {
-        name: 'portrait',
-        category: 'people',
-        template: '{subject} portrait, {style}, {lighting}, {quality}',
-        variables: ['subject', 'style', 'lighting', 'quality'],
-        styleHints: ['photorealistic', 'artistic', 'dramatic'],
-        qualityModifiers: ['high detail', 'professional', 'studio quality'],
+        name: "portrait",
+        category: "people",
+        template: "{subject} portrait, {style}, {lighting}, {quality}",
+        variables: ["subject", "style", "lighting", "quality"],
+        styleHints: ["photorealistic", "artistic", "dramatic"],
+        qualityModifiers: ["high detail", "professional", "studio quality"],
         examplePrompts: [
-          'Professional headshot of a businesswoman, corporate style, soft lighting, high detail',
-          'Artistic portrait of an elderly man, dramatic black and white, side lighting, fine art quality'
-        ]
+          "Professional headshot of a businesswoman, corporate style, soft lighting, high detail",
+          "Artistic portrait of an elderly man, dramatic black and white, side lighting, fine art quality",
+        ],
       },
       {
-        name: 'landscape',
-        category: 'nature',
-        template: '{location} landscape, {time}, {weather}, {style}, {quality}',
-        variables: ['location', 'time', 'weather', 'style', 'quality'],
-        styleHints: ['realistic', 'impressionistic', 'cinematic'],
-        qualityModifiers: ['high resolution', 'detailed', 'atmospheric'],
+        name: "landscape",
+        category: "nature",
+        template: "{location} landscape, {time}, {weather}, {style}, {quality}",
+        variables: ["location", "time", "weather", "style", "quality"],
+        styleHints: ["realistic", "impressionistic", "cinematic"],
+        qualityModifiers: ["high resolution", "detailed", "atmospheric"],
         examplePrompts: [
-          'Mountain landscape at sunset, clear weather, cinematic style, high resolution',
-          'Forest landscape in morning mist, overcast sky, impressionistic style, atmospheric depth'
-        ]
-      }
+          "Mountain landscape at sunset, clear weather, cinematic style, high resolution",
+          "Forest landscape in morning mist, overcast sky, impressionistic style, atmospheric depth",
+        ],
+      },
     ];
 
     for (const template of templates) {
@@ -820,13 +894,33 @@ export class PromptEngineer {
    */
   private async loadStyleKeywords(): Promise<void> {
     const styleKeywords = {
-      photorealistic: ['photorealistic', 'hyperrealistic', 'lifelike', 'detailed photography'],
-      artistic: ['artistic', 'expressive', 'creative', 'fine art'],
-      anime: ['anime style', 'manga', 'Japanese animation', 'cel shaded'],
-      cartoon: ['cartoon style', 'animated', 'stylized', 'colorful illustration'],
-      sketch: ['pencil sketch', 'hand drawn', 'artistic lines', 'charcoal drawing'],
-      painting: ['oil painting', 'brushstrokes', 'painterly', 'canvas texture'],
-      digital_art: ['digital art', 'modern illustration', 'clean lines', 'vector art']
+      photorealistic: [
+        "photorealistic",
+        "hyperrealistic",
+        "lifelike",
+        "detailed photography",
+      ],
+      artistic: ["artistic", "expressive", "creative", "fine art"],
+      anime: ["anime style", "manga", "Japanese animation", "cel shaded"],
+      cartoon: [
+        "cartoon style",
+        "animated",
+        "stylized",
+        "colorful illustration",
+      ],
+      sketch: [
+        "pencil sketch",
+        "hand drawn",
+        "artistic lines",
+        "charcoal drawing",
+      ],
+      painting: ["oil painting", "brushstrokes", "painterly", "canvas texture"],
+      digital_art: [
+        "digital art",
+        "modern illustration",
+        "clean lines",
+        "vector art",
+      ],
     };
 
     for (const [style, keywords] of Object.entries(styleKeywords)) {
@@ -839,10 +933,16 @@ export class PromptEngineer {
    */
   private async loadQualityModifiers(): Promise<void> {
     const qualityModifiers = {
-      draft: ['basic', 'simple', 'quick sketch'],
-      standard: ['good quality', 'detailed', 'clear'],
-      high: ['high quality', 'detailed', 'professional', 'sharp'],
-      studio: ['studio quality', 'masterpiece', 'award winning', 'ultra detailed', 'perfect composition']
+      draft: ["basic", "simple", "quick sketch"],
+      standard: ["good quality", "detailed", "clear"],
+      high: ["high quality", "detailed", "professional", "sharp"],
+      studio: [
+        "studio quality",
+        "masterpiece",
+        "award winning",
+        "ultra detailed",
+        "perfect composition",
+      ],
     };
 
     for (const [quality, modifiers] of Object.entries(qualityModifiers)) {
@@ -855,10 +955,21 @@ export class PromptEngineer {
    */
   private async loadTechnicalTerms(): Promise<void> {
     const technicalTerms = {
-      basic: ['clear', 'focused', 'good lighting'],
-      advanced: ['4K resolution', 'professional lighting', 'perfect exposure', 'sharp focus', 'depth of field'],
-      photography: ['DSLR', 'bokeh', 'golden hour', 'rule of thirds', 'HDR'],
-      artistic: ['composition', 'color theory', 'visual balance', 'artistic vision']
+      basic: ["clear", "focused", "good lighting"],
+      advanced: [
+        "4K resolution",
+        "professional lighting",
+        "perfect exposure",
+        "sharp focus",
+        "depth of field",
+      ],
+      photography: ["DSLR", "bokeh", "golden hour", "rule of thirds", "HDR"],
+      artistic: [
+        "composition",
+        "color theory",
+        "visual balance",
+        "artistic vision",
+      ],
     };
 
     for (const [category, terms] of Object.entries(technicalTerms)) {
@@ -870,51 +981,88 @@ export class PromptEngineer {
    * Helper methods for prompt analysis
    */
   private hasStyleTerms(words: string[]): boolean {
-    const styleTerms = ['style', 'artistic', 'realistic', 'abstract', 'impressionist', 'modern'];
-    return words.some(word => styleTerms.includes(word));
+    const styleTerms = [
+      "style",
+      "artistic",
+      "realistic",
+      "abstract",
+      "impressionist",
+      "modern",
+    ];
+    return words.some((word) => styleTerms.includes(word));
   }
 
   private hasTechnicalTerms(words: string[]): boolean {
-    const techTerms = ['resolution', 'detailed', 'quality', 'professional', 'hdr', 'bokeh'];
-    return words.some(word => techTerms.includes(word));
+    const techTerms = [
+      "resolution",
+      "detailed",
+      "quality",
+      "professional",
+      "hdr",
+      "bokeh",
+    ];
+    return words.some((word) => techTerms.includes(word));
   }
 
   private hasQualityModifiers(words: string[]): boolean {
-    const qualityTerms = ['high', 'detailed', 'professional', 'quality', 'masterpiece'];
-    return words.some(word => qualityTerms.includes(word));
+    const qualityTerms = [
+      "high",
+      "detailed",
+      "professional",
+      "quality",
+      "masterpiece",
+    ];
+    return words.some((word) => qualityTerms.includes(word));
   }
 
   private hasCompositionTerms(words: string[]): boolean {
-    const compositionTerms = ['composition', 'framing', 'perspective', 'angle', 'view'];
-    return words.some(word => compositionTerms.includes(word));
+    const compositionTerms = [
+      "composition",
+      "framing",
+      "perspective",
+      "angle",
+      "view",
+    ];
+    return words.some((word) => compositionTerms.includes(word));
   }
 
   private calculateComplexity(words: string[], sentences: string[]): number {
     const avgSentenceLength = words.length / Math.max(sentences.length, 1);
     const uniqueWords = new Set(words).size;
-    const complexity = (avgSentenceLength / 20) + (uniqueWords / words.length);
+    const complexity = avgSentenceLength / 20 + uniqueWords / words.length;
     return Math.min(1, complexity);
   }
 
   private calculateClarity(prompt: string): number {
     // Simple clarity metric based on sentence structure and word choice
-    const sentences = prompt.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = prompt.split(/[.!?]+/).filter((s) => s.trim().length > 0);
     const avgSentenceLength = prompt.length / Math.max(sentences.length, 1);
-    
+
     // Prefer medium-length sentences (20-50 characters)
     const idealLength = 35;
-    const lengthScore = 1 - Math.abs(avgSentenceLength - idealLength) / idealLength;
-    
+    const lengthScore =
+      1 - Math.abs(avgSentenceLength - idealLength) / idealLength;
+
     return Math.max(0, Math.min(1, lengthScore));
   }
 
   private calculateSpecificity(words: string[]): number {
     // Higher specificity for descriptive adjectives and specific nouns
-    const specificWords = words.filter(word => 
-      word.length > 4 && 
-      !['that', 'this', 'with', 'from', 'they', 'have', 'were', 'been'].includes(word)
+    const specificWords = words.filter(
+      (word) =>
+        word.length > 4 &&
+        ![
+          "that",
+          "this",
+          "with",
+          "from",
+          "they",
+          "have",
+          "were",
+          "been",
+        ].includes(word),
     );
-    
+
     return Math.min(1, specificWords.length / Math.max(words.length, 1));
   }
 
@@ -923,7 +1071,7 @@ export class PromptEngineer {
    */
   private ensureInitialized(): void {
     if (!this.isInitialized) {
-      throw new Error('Prompt engineer not initialized');
+      throw new Error("Prompt engineer not initialized");
     }
   }
 }

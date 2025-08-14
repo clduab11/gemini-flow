@@ -27,8 +27,8 @@ export class AgentCoordinator {
       data: {
         leaderAgent: config.leader,
         subordinates: config.subordinates,
-        structure: config.structure
-      }
+        structure: config.structure,
+      },
     };
   }
 
@@ -38,8 +38,8 @@ export class AgentCoordinator {
       data: {
         taskId: task.id,
         coordinationEfficiency: 0.85,
-        participantsCount: task.participants?.length || 1
-      }
+        participantsCount: task.participants?.length || 1,
+      },
     };
   }
 
@@ -51,11 +51,11 @@ export class AgentCoordinator {
         votes: {
           total: 5,
           yes: 4,
-          no: 1
+          no: 1,
         },
         proposalExecuted: true,
-        executionResult: { success: true }
-      }
+        executionResult: { success: true },
+      },
     };
   }
 
@@ -66,8 +66,8 @@ export class AgentCoordinator {
   async monitorCascadeFailure(config: any): Promise<any> {
     return {
       cascadeContained: true,
-      affectedAgents: ['agent-1'],
-      recoveryInitiated: true
+      affectedAgents: ["agent-1"],
+      recoveryInitiated: true,
     };
   }
 }

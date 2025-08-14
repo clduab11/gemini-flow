@@ -1,15 +1,15 @@
 /**
  * Audio Processor - Chirp Audio Integration
- * 
+ *
  * Comprehensive audio processing with Chirp voice generation,
  * real-time streaming, voice cloning, and WebRTC integration
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
-import { PerformanceMonitor } from '../../core/performance-monitor.js';
-import { CacheManager } from '../../core/cache-manager.js';
-import { VertexAIConnector } from '../../core/vertex-ai-connector.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
+import { PerformanceMonitor } from "../../core/performance-monitor.js";
+import { CacheManager } from "../../core/cache-manager.js";
+import { VertexAIConnector } from "../../core/vertex-ai-connector.js";
 import {
   AudioGenerationConfig,
   AudioGenerationRequest,
@@ -22,15 +22,15 @@ import {
   RealTimeConfig,
   WebRTCConfig,
   AudioSegment,
-  MultimediaContext
-} from '../../types/multimedia.js';
+  MultimediaContext,
+} from "../../types/multimedia.js";
 
-import { ChirpAdapter } from './chirp-adapter.js';
-import { VoiceCloner } from './voice-cloner.js';
-import { AudioEffectsEngine } from './audio-effects-engine.js';
-import { AudioStreamer } from './audio-streamer.js';
-import { WebRTCManager } from './webrtc-manager.js';
-import { AudioCache } from './audio-cache.js';
+import { ChirpAdapter } from "./chirp-adapter.js";
+import { VoiceCloner } from "./voice-cloner.js";
+import { AudioEffectsEngine } from "./audio-effects-engine.js";
+import { AudioStreamer } from "./audio-streamer.js";
+import { WebRTCManager } from "./webrtc-manager.js";
+import { AudioCache } from "./audio-cache.js";
 
 export interface AudioProcessorMetrics {
   totalRequests: number;
@@ -68,7 +68,7 @@ export class AudioProcessor extends EventEmitter {
   private config: AudioGenerationConfig;
   private performance: PerformanceMonitor;
   private cache: CacheManager;
-  
+
   // Core components
   private chirpAdapter: ChirpAdapter;
   private voiceCloner: VoiceCloner;
@@ -77,22 +77,28 @@ export class AudioProcessor extends EventEmitter {
   private webrtcManager: WebRTCManager;
   private audioCache: AudioCache;
   private vertexConnector: VertexAIConnector;
-  
+
   // Processing state
   private isInitialized: boolean = false;
-  private activeRequests: Map<string, {
-    request: AudioGenerationRequest;
-    startTime: number;
-    promise: Promise<AudioGenerationResponse>;
-    controller?: AbortController;
-  }> = new Map();
-  
-  private streamingSessions: Map<string, {
-    streamer: AudioStreamer;
-    config: StreamingConfig;
-    startTime: number;
-  }> = new Map();
-  
+  private activeRequests: Map<
+    string,
+    {
+      request: AudioGenerationRequest;
+      startTime: number;
+      promise: Promise<AudioGenerationResponse>;
+      controller?: AbortController;
+    }
+  > = new Map();
+
+  private streamingSessions: Map<
+    string,
+    {
+      streamer: AudioStreamer;
+      config: StreamingConfig;
+      startTime: number;
+    }
+  > = new Map();
+
   // Metrics
   private metrics: AudioProcessorMetrics = {
     totalRequests: 0,
@@ -105,15 +111,15 @@ export class AudioProcessor extends EventEmitter {
     totalDuration: 0,
     totalCost: 0,
     avgLatency: 0,
-    cacheHits: 0
+    cacheHits: 0,
   };
 
   constructor(config: AudioGenerationConfig) {
     super();
     this.config = config;
-    this.logger = new Logger('AudioProcessor');
+    this.logger = new Logger("AudioProcessor");
     this.performance = new PerformanceMonitor();
-    
+
     this.initializeComponents();
   }
 
@@ -129,31 +135,31 @@ export class AudioProcessor extends EventEmitter {
       credentials: this.config.credentials,
       serviceAccountPath: this.config.serviceAccountPath,
       maxConcurrentRequests: this.config.maxConcurrentRequests,
-      requestTimeout: this.config.requestTimeout
+      requestTimeout: this.config.requestTimeout,
     });
 
     // Initialize core adapters
     this.chirpAdapter = new ChirpAdapter(this.config, this.vertexConnector);
-    
+
     // Initialize specialized engines
     this.voiceCloner = new VoiceCloner(this.config);
     this.effectsEngine = new AudioEffectsEngine();
     this.audioStreamer = new AudioStreamer(this.config);
     this.webrtcManager = new WebRTCManager();
-    
+
     // Initialize caching with audio-specific strategies
     this.audioCache = new AudioCache({
       maxMemorySize: 50 * 1024 * 1024, // 50MB
-      maxDiskSize: 500 * 1024 * 1024,  // 500MB
+      maxDiskSize: 500 * 1024 * 1024, // 500MB
       ttl: 12 * 60 * 60 * 1000, // 12 hours
       compressionEnabled: true,
-      formatOptimization: true
+      formatOptimization: true,
     });
 
     // Initialize shared cache
     this.cache = new CacheManager({
       maxMemorySize: 25 * 1024 * 1024, // 25MB for metadata
-      defaultTTL: 1800 // 30 minutes
+      defaultTTL: 1800, // 30 minutes
     });
 
     this.setupEventHandlers();
@@ -164,49 +170,55 @@ export class AudioProcessor extends EventEmitter {
    */
   private setupEventHandlers(): void {
     // Chirp adapter events
-    this.chirpAdapter.on('audio_generated', (data) => {
-      this.emit('audio_generated', data);
+    this.chirpAdapter.on("audio_generated", (data) => {
+      this.emit("audio_generated", data);
     });
 
-    this.chirpAdapter.on('audio_failed', (data) => {
-      this.emit('audio_failed', data);
+    this.chirpAdapter.on("audio_failed", (data) => {
+      this.emit("audio_failed", data);
     });
 
     // Voice cloner events
-    this.voiceCloner.on('voice_cloned', (data) => {
-      this.logger.debug('Voice cloning completed', { voiceId: data.voiceId });
+    this.voiceCloner.on("voice_cloned", (data) => {
+      this.logger.debug("Voice cloning completed", { voiceId: data.voiceId });
     });
 
     // Effects engine events
-    this.effectsEngine.on('effects_applied', (data) => {
+    this.effectsEngine.on("effects_applied", (data) => {
       this.metrics.effectsApplied++;
-      this.logger.debug('Audio effects applied', { effectCount: data.effectCount });
+      this.logger.debug("Audio effects applied", {
+        effectCount: data.effectCount,
+      });
     });
 
     // Streaming events
-    this.audioStreamer.on('stream_started', (data) => {
+    this.audioStreamer.on("stream_started", (data) => {
       this.metrics.streamingRequests++;
-      this.logger.info('Audio streaming started', { sessionId: data.sessionId });
+      this.logger.info("Audio streaming started", {
+        sessionId: data.sessionId,
+      });
     });
 
-    this.audioStreamer.on('stream_chunk', (data) => {
-      this.emit('audio_stream_chunk', data);
+    this.audioStreamer.on("stream_chunk", (data) => {
+      this.emit("audio_stream_chunk", data);
     });
 
-    this.audioStreamer.on('stream_ended', (data) => {
+    this.audioStreamer.on("stream_ended", (data) => {
       this.streamingSessions.delete(data.sessionId);
-      this.logger.info('Audio streaming ended', { sessionId: data.sessionId });
+      this.logger.info("Audio streaming ended", { sessionId: data.sessionId });
     });
 
     // WebRTC events
-    this.webrtcManager.on('connection_established', (data) => {
-      this.logger.info('WebRTC connection established', { connectionId: data.connectionId });
+    this.webrtcManager.on("connection_established", (data) => {
+      this.logger.info("WebRTC connection established", {
+        connectionId: data.connectionId,
+      });
     });
 
     // Cache events
-    this.audioCache.on('cache_hit', (data) => {
+    this.audioCache.on("cache_hit", (data) => {
       this.metrics.cacheHits++;
-      this.logger.debug('Audio cache hit', data);
+      this.logger.debug("Audio cache hit", data);
     });
   }
 
@@ -215,7 +227,7 @@ export class AudioProcessor extends EventEmitter {
    */
   async initialize(): Promise<void> {
     try {
-      this.logger.info('Initializing audio processor...');
+      this.logger.info("Initializing audio processor...");
 
       // Initialize components in parallel
       await Promise.all([
@@ -224,15 +236,14 @@ export class AudioProcessor extends EventEmitter {
         this.effectsEngine.initialize(),
         this.audioStreamer.initialize(),
         this.webrtcManager.initialize(),
-        this.audioCache.initialize()
+        this.audioCache.initialize(),
       ]);
 
       this.isInitialized = true;
-      this.logger.info('Audio processor initialized successfully');
-      this.emit('initialized');
-
+      this.logger.info("Audio processor initialized successfully");
+      this.emit("initialized");
     } catch (error) {
-      this.logger.error('Failed to initialize audio processor', error);
+      this.logger.error("Failed to initialize audio processor", error);
       throw error;
     }
   }
@@ -240,42 +251,48 @@ export class AudioProcessor extends EventEmitter {
   /**
    * Generate audio using Chirp
    */
-  async generateAudio(request: AudioGenerationRequest): Promise<AudioGenerationResponse> {
+  async generateAudio(
+    request: AudioGenerationRequest,
+  ): Promise<AudioGenerationResponse> {
     const startTime = performance.now();
     const requestId = request.context?.requestId || this.generateRequestId();
-    
+
     this.metrics.totalRequests++;
 
     try {
       this.ensureInitialized();
-      
-      this.logger.info('Starting audio generation', {
+
+      this.logger.info("Starting audio generation", {
         requestId,
-        text: request.text.substring(0, 100) + '...',
-        voice: request.voice?.preset || 'default'
+        text: request.text.substring(0, 100) + "...",
+        voice: request.voice?.preset || "default",
       });
 
       // Check cache first
       const cacheResult = await this.checkCache(request);
       if (cacheResult) {
         this.metrics.cacheHits++;
-        this.logger.info('Audio generation completed from cache', {
+        this.logger.info("Audio generation completed from cache", {
           requestId,
-          latency: performance.now() - startTime
+          latency: performance.now() - startTime,
         });
         return cacheResult;
       }
 
       // Setup abort controller for cancellation
       const controller = new AbortController();
-      
+
       // Track active request
-      const promise = this.processAudioGeneration(request, requestId, controller.signal);
+      const promise = this.processAudioGeneration(
+        request,
+        requestId,
+        controller.signal,
+      );
       this.activeRequests.set(requestId, {
         request,
         startTime,
         promise,
-        controller
+        controller,
       });
 
       const response = await promise;
@@ -284,23 +301,22 @@ export class AudioProcessor extends EventEmitter {
       const latency = performance.now() - startTime;
       this.updateMetrics(latency, response);
 
-      this.logger.info('Audio generation completed', {
+      this.logger.info("Audio generation completed", {
         requestId,
         latency,
         duration: response.audio.duration,
-        cost: response.metadata.cost
+        cost: response.metadata.cost,
       });
 
       return response;
-
     } catch (error) {
       this.metrics.failedRequests++;
-      
+
       const latency = performance.now() - startTime;
-      this.logger.error('Audio generation failed', {
+      this.logger.error("Audio generation failed", {
         requestId,
         latency,
-        error: error.message
+        error: error.message,
       });
       throw error;
     } finally {
@@ -311,32 +327,34 @@ export class AudioProcessor extends EventEmitter {
   /**
    * Generate audio with streaming
    */
-  async *generateAudioStream(request: AudioGenerationRequest): AsyncIterableIterator<AudioStreamChunk> {
+  async *generateAudioStream(
+    request: AudioGenerationRequest,
+  ): AsyncIterableIterator<AudioStreamChunk> {
     const requestId = request.context?.requestId || this.generateRequestId();
     this.metrics.streamingRequests++;
 
     try {
       this.ensureInitialized();
 
-      this.logger.info('Starting audio streaming', {
+      this.logger.info("Starting audio streaming", {
         requestId,
-        text: request.text.substring(0, 100) + '...',
-        streaming: request.streaming
+        text: request.text.substring(0, 100) + "...",
+        streaming: request.streaming,
       });
 
       // Create streaming session
       const sessionId = `stream_${requestId}`;
       const streamer = new AudioStreamer(this.config);
-      
+
       this.streamingSessions.set(sessionId, {
         streamer,
         config: request.streaming || this.getDefaultStreamingConfig(),
-        startTime: performance.now()
+        startTime: performance.now(),
       });
 
       // Start streaming generation
       const streamGenerator = this.chirpAdapter.generateAudioStream(request);
-      
+
       let sequenceNumber = 0;
       for await (const chunk of streamGenerator) {
         const streamChunk: AudioStreamChunk = {
@@ -352,8 +370,8 @@ export class AudioProcessor extends EventEmitter {
             text: chunk.text,
             progress: chunk.progress,
             emotion: chunk.emotion,
-            confidence: chunk.confidence
-          }
+            confidence: chunk.confidence,
+          },
         };
 
         yield streamChunk;
@@ -363,16 +381,15 @@ export class AudioProcessor extends EventEmitter {
         }
       }
 
-      this.logger.info('Audio streaming completed', {
+      this.logger.info("Audio streaming completed", {
         requestId,
         sessionId,
-        chunks: sequenceNumber
+        chunks: sequenceNumber,
       });
-
     } catch (error) {
-      this.logger.error('Audio streaming failed', {
+      this.logger.error("Audio streaming failed", {
         requestId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -384,7 +401,7 @@ export class AudioProcessor extends EventEmitter {
   private async processAudioGeneration(
     request: AudioGenerationRequest,
     requestId: string,
-    signal: AbortSignal
+    signal: AbortSignal,
   ): Promise<AudioGenerationResponse> {
     // Phase 1: Voice preparation
     let voiceConfig = request.voice;
@@ -396,24 +413,35 @@ export class AudioProcessor extends EventEmitter {
     // Phase 2: Generate base audio through Chirp
     const baseRequest = {
       ...request,
-      voice: voiceConfig
+      voice: voiceConfig,
     };
-    
-    const baseResponse = await this.chirpAdapter.generateAudio(baseRequest, signal);
+
+    const baseResponse = await this.chirpAdapter.generateAudio(
+      baseRequest,
+      signal,
+    );
 
     // Phase 3: Apply effects if specified
     let processedAudio = baseResponse.audio;
     if (request.effects && request.effects.length > 0) {
-      processedAudio = await this.applyAudioEffects(processedAudio, request.effects, signal);
+      processedAudio = await this.applyAudioEffects(
+        processedAudio,
+        request.effects,
+        signal,
+      );
     }
 
     // Phase 4: Apply final processing
-    processedAudio = await this.applyFinalProcessing(processedAudio, request, signal);
+    processedAudio = await this.applyFinalProcessing(
+      processedAudio,
+      request,
+      signal,
+    );
 
     // Phase 5: Cache the result
     const finalResponse: AudioGenerationResponse = {
       ...baseResponse,
-      audio: processedAudio
+      audio: processedAudio,
     };
 
     await this.cacheResult(request, finalResponse);
@@ -426,29 +454,31 @@ export class AudioProcessor extends EventEmitter {
    */
   private async prepareCustomVoice(
     voice: VoiceConfig,
-    signal: AbortSignal
+    signal: AbortSignal,
   ): Promise<VoiceConfig> {
     if (!voice.customVoice || !this.config.voiceCloningEnabled) {
       return voice;
     }
 
     try {
-      this.logger.debug('Preparing custom voice', {
-        voiceId: voice.customVoice.voiceId
+      this.logger.debug("Preparing custom voice", {
+        voiceId: voice.customVoice.voiceId,
       });
 
-      const clonedVoice = await this.voiceCloner.cloneVoice(voice.customVoice, signal);
-      
+      const clonedVoice = await this.voiceCloner.cloneVoice(
+        voice.customVoice,
+        signal,
+      );
+
       return {
         ...voice,
         customVoice: {
           ...voice.customVoice,
-          ...clonedVoice
-        }
+          ...clonedVoice,
+        },
       };
-
     } catch (error) {
-      this.logger.warn('Voice cloning failed, using default', error);
+      this.logger.warn("Voice cloning failed, using default", error);
       return { ...voice, customVoice: undefined };
     }
   }
@@ -459,22 +489,21 @@ export class AudioProcessor extends EventEmitter {
   private async applyAudioEffects(
     audio: GeneratedAudio,
     effects: AudioEffect[],
-    signal: AbortSignal
+    signal: AbortSignal,
   ): Promise<GeneratedAudio> {
     if (!this.config.effectsEnabled || effects.length === 0) {
       return audio;
     }
 
     try {
-      this.logger.debug('Applying audio effects', {
+      this.logger.debug("Applying audio effects", {
         audioId: audio.id,
-        effectCount: effects.length
+        effectCount: effects.length,
       });
 
       return await this.effectsEngine.applyEffects(audio, effects, signal);
-
     } catch (error) {
-      this.logger.error('Failed to apply audio effects', error);
+      this.logger.error("Failed to apply audio effects", error);
       return audio; // Return original if effects fail
     }
   }
@@ -485,22 +514,29 @@ export class AudioProcessor extends EventEmitter {
   private async applyFinalProcessing(
     audio: GeneratedAudio,
     request: AudioGenerationRequest,
-    signal: AbortSignal
+    signal: AbortSignal,
   ): Promise<GeneratedAudio> {
     let processedAudio = audio;
 
     // Apply audio settings
     if (request.audioSettings) {
-      processedAudio = await this.applyAudioSettings(processedAudio, request.audioSettings);
+      processedAudio = await this.applyAudioSettings(
+        processedAudio,
+        request.audioSettings,
+      );
     }
 
     // Apply quality optimizations based on user tier
-    if (request.context?.userTier === 'enterprise') {
-      processedAudio = await this.applyEnterpriseAudioEnhancements(processedAudio);
+    if (request.context?.userTier === "enterprise") {
+      processedAudio =
+        await this.applyEnterpriseAudioEnhancements(processedAudio);
     }
 
     // Apply compression for faster delivery if needed
-    if (request.context?.latencyTarget && request.context.latencyTarget < 2000) {
+    if (
+      request.context?.latencyTarget &&
+      request.context.latencyTarget < 2000
+    ) {
       processedAudio = await this.applyCompressionOptimizations(processedAudio);
     }
 
@@ -512,18 +548,24 @@ export class AudioProcessor extends EventEmitter {
    */
   private async applyAudioSettings(
     audio: GeneratedAudio,
-    settings: AudioSettings
+    settings: AudioSettings,
   ): Promise<GeneratedAudio> {
     let processedAudio = audio;
 
     // Convert format if needed
     if (settings.format !== audio.format) {
-      processedAudio = await this.convertAudioFormat(processedAudio, settings.format);
+      processedAudio = await this.convertAudioFormat(
+        processedAudio,
+        settings.format,
+      );
     }
 
     // Resample if needed
     if (settings.sampleRate !== audio.sampleRate) {
-      processedAudio = await this.resampleAudio(processedAudio, settings.sampleRate);
+      processedAudio = await this.resampleAudio(
+        processedAudio,
+        settings.sampleRate,
+      );
     }
 
     // Apply normalization
@@ -542,22 +584,26 @@ export class AudioProcessor extends EventEmitter {
   /**
    * Apply enterprise audio enhancements
    */
-  private async applyEnterpriseAudioEnhancements(audio: GeneratedAudio): Promise<GeneratedAudio> {
+  private async applyEnterpriseAudioEnhancements(
+    audio: GeneratedAudio,
+  ): Promise<GeneratedAudio> {
     // Implement enterprise features like advanced noise reduction, enhanced quality, etc.
     return {
       ...audio,
       quality: {
         ...audio.quality,
         snr: Math.min(audio.quality.snr + 5, 60), // Improve SNR
-        thd: Math.max(audio.quality.thd - 0.001, 0.001) // Reduce distortion
-      }
+        thd: Math.max(audio.quality.thd - 0.001, 0.001), // Reduce distortion
+      },
     };
   }
 
   /**
    * Apply compression optimizations
    */
-  private async applyCompressionOptimizations(audio: GeneratedAudio): Promise<GeneratedAudio> {
+  private async applyCompressionOptimizations(
+    audio: GeneratedAudio,
+  ): Promise<GeneratedAudio> {
     // Implement smart compression for faster delivery
     return {
       ...audio,
@@ -565,31 +611,37 @@ export class AudioProcessor extends EventEmitter {
       metadata: {
         ...audio.metadata,
         compressed: true,
-        compressionRatio: 0.8
-      }
+        compressionRatio: 0.8,
+      },
     };
   }
 
   /**
    * Audio format conversion
    */
-  private async convertAudioFormat(audio: GeneratedAudio, targetFormat: string): Promise<GeneratedAudio> {
+  private async convertAudioFormat(
+    audio: GeneratedAudio,
+    targetFormat: string,
+  ): Promise<GeneratedAudio> {
     // This would implement actual audio format conversion
     // For now, just update metadata
     return {
       ...audio,
-      format: targetFormat
+      format: targetFormat,
     };
   }
 
   /**
    * Audio resampling
    */
-  private async resampleAudio(audio: GeneratedAudio, targetSampleRate: number): Promise<GeneratedAudio> {
+  private async resampleAudio(
+    audio: GeneratedAudio,
+    targetSampleRate: number,
+  ): Promise<GeneratedAudio> {
     // This would implement actual audio resampling
     return {
       ...audio,
-      sampleRate: targetSampleRate
+      sampleRate: targetSampleRate,
     };
   }
 
@@ -602,8 +654,8 @@ export class AudioProcessor extends EventEmitter {
       ...audio,
       quality: {
         ...audio.quality,
-        loudness: -16 // LUFS standard
-      }
+        loudness: -16, // LUFS standard
+      },
     };
   }
 
@@ -616,8 +668,8 @@ export class AudioProcessor extends EventEmitter {
       ...audio,
       quality: {
         ...audio.quality,
-        snr: Math.min(audio.quality.snr + 3, 60)
-      }
+        snr: Math.min(audio.quality.snr + 3, 60),
+      },
     };
   }
 
@@ -626,7 +678,7 @@ export class AudioProcessor extends EventEmitter {
    */
   async startRealTimeSession(
     config: RealTimeConfig,
-    context: MultimediaContext
+    context: MultimediaContext,
   ): Promise<string> {
     this.metrics.realTimeRequests++;
 
@@ -634,11 +686,11 @@ export class AudioProcessor extends EventEmitter {
       this.ensureInitialized();
 
       const sessionId = this.generateSessionId();
-      
-      this.logger.info('Starting real-time audio session', {
+
+      this.logger.info("Starting real-time audio session", {
         sessionId,
         webrtc: config.webrtc?.enabled,
-        maxLatency: config.maxLatency
+        maxLatency: config.maxLatency,
       });
 
       // Setup WebRTC if enabled
@@ -649,7 +701,7 @@ export class AudioProcessor extends EventEmitter {
       // Setup real-time streaming
       const streamer = new AudioStreamer({
         ...this.config,
-        realTimeGeneration: true
+        realTimeGeneration: true,
       });
 
       await streamer.setupRealTimeSession(sessionId, config);
@@ -657,13 +709,12 @@ export class AudioProcessor extends EventEmitter {
       this.streamingSessions.set(sessionId, {
         streamer,
         config: this.getDefaultStreamingConfig(),
-        startTime: performance.now()
+        startTime: performance.now(),
       });
 
       return sessionId;
-
     } catch (error) {
-      this.logger.error('Failed to start real-time session', error);
+      this.logger.error("Failed to start real-time session", error);
       throw error;
     }
   }
@@ -673,7 +724,7 @@ export class AudioProcessor extends EventEmitter {
    */
   async processRealTimeInput(
     sessionId: string,
-    audioData: Buffer
+    audioData: Buffer,
   ): Promise<Buffer> {
     const session = this.streamingSessions.get(sessionId);
     if (!session) {
@@ -683,9 +734,9 @@ export class AudioProcessor extends EventEmitter {
     try {
       return await session.streamer.processRealTimeInput(audioData);
     } catch (error) {
-      this.logger.error('Real-time processing failed', {
+      this.logger.error("Real-time processing failed", {
         sessionId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -694,7 +745,9 @@ export class AudioProcessor extends EventEmitter {
   /**
    * Check cache for existing result
    */
-  private async checkCache(request: AudioGenerationRequest): Promise<AudioGenerationResponse | null> {
+  private async checkCache(
+    request: AudioGenerationRequest,
+  ): Promise<AudioGenerationResponse | null> {
     if (!this.config.cachingEnabled) {
       return null;
     }
@@ -703,7 +756,7 @@ export class AudioProcessor extends EventEmitter {
       const cacheKey = this.audioCache.generateCacheKey(request);
       return await this.audioCache.get(cacheKey);
     } catch (error) {
-      this.logger.warn('Cache check failed', error);
+      this.logger.warn("Cache check failed", error);
       return null;
     }
   }
@@ -713,7 +766,7 @@ export class AudioProcessor extends EventEmitter {
    */
   private async cacheResult(
     request: AudioGenerationRequest,
-    response: AudioGenerationResponse
+    response: AudioGenerationResponse,
   ): Promise<void> {
     if (!this.config.cachingEnabled) {
       return;
@@ -723,24 +776,33 @@ export class AudioProcessor extends EventEmitter {
       const cacheKey = this.audioCache.generateCacheKey(request);
       await this.audioCache.set(cacheKey, response);
     } catch (error) {
-      this.logger.warn('Failed to cache result', error);
+      this.logger.warn("Failed to cache result", error);
     }
   }
 
   /**
    * Update metrics
    */
-  private updateMetrics(latency: number, response: AudioGenerationResponse): void {
+  private updateMetrics(
+    latency: number,
+    response: AudioGenerationResponse,
+  ): void {
     this.metrics.successfulRequests++;
     this.metrics.totalDuration += response.audio.duration;
     this.metrics.totalCost += response.metadata.cost;
-    this.metrics.avgLatency = (
-      (this.metrics.avgLatency * (this.metrics.totalRequests - 1)) + latency
-    ) / this.metrics.totalRequests;
+    this.metrics.avgLatency =
+      (this.metrics.avgLatency * (this.metrics.totalRequests - 1) + latency) /
+      this.metrics.totalRequests;
 
-    this.performance.recordMetric('audio_generation_latency', latency);
-    this.performance.recordMetric('audio_generation_cost', response.metadata.cost);
-    this.performance.recordMetric('audio_duration_generated', response.audio.duration);
+    this.performance.recordMetric("audio_generation_latency", latency);
+    this.performance.recordMetric(
+      "audio_generation_cost",
+      response.metadata.cost,
+    );
+    this.performance.recordMetric(
+      "audio_duration_generated",
+      response.audio.duration,
+    );
   }
 
   /**
@@ -750,9 +812,9 @@ export class AudioProcessor extends EventEmitter {
     return {
       enabled: true,
       chunkSize: 4096,
-      latency: 'medium',
+      latency: "medium",
       bufferSize: 8192,
-      format: 'pcm'
+      format: "pcm",
     };
   }
 
@@ -760,24 +822,33 @@ export class AudioProcessor extends EventEmitter {
    * Validate request
    */
   async validateRequest(request: AudioGenerationRequest): Promise<void> {
-    if (!request.text || typeof request.text !== 'string') {
-      throw new Error('Text is required and must be a string');
+    if (!request.text || typeof request.text !== "string") {
+      throw new Error("Text is required and must be a string");
     }
 
     if (request.text.length > 10000) {
-      throw new Error('Text is too long (max 10,000 characters)');
+      throw new Error("Text is too long (max 10,000 characters)");
     }
 
-    if (request.voice?.speaking_rate && (request.voice.speaking_rate < 0.5 || request.voice.speaking_rate > 2.0)) {
-      throw new Error('Speaking rate must be between 0.5 and 2.0');
+    if (
+      request.voice?.speaking_rate &&
+      (request.voice.speaking_rate < 0.5 || request.voice.speaking_rate > 2.0)
+    ) {
+      throw new Error("Speaking rate must be between 0.5 and 2.0");
     }
 
-    if (request.voice?.pitch && (request.voice.pitch < -20 || request.voice.pitch > 20)) {
-      throw new Error('Pitch must be between -20 and +20 semitones');
+    if (
+      request.voice?.pitch &&
+      (request.voice.pitch < -20 || request.voice.pitch > 20)
+    ) {
+      throw new Error("Pitch must be between -20 and +20 semitones");
     }
 
-    if (request.audioSettings?.sampleRate && ![8000, 16000, 24000, 48000].includes(request.audioSettings.sampleRate)) {
-      throw new Error('Sample rate must be 8000, 16000, 24000, or 48000 Hz');
+    if (
+      request.audioSettings?.sampleRate &&
+      ![8000, 16000, 24000, 48000].includes(request.audioSettings.sampleRate)
+    ) {
+      throw new Error("Sample rate must be 8000, 16000, 24000, or 48000 Hz");
     }
   }
 
@@ -811,15 +882,15 @@ export class AudioProcessor extends EventEmitter {
    */
   async cancelRequest(requestId: string): Promise<boolean> {
     const activeRequest = this.activeRequests.get(requestId);
-    
+
     if (activeRequest) {
       activeRequest.controller?.abort();
       this.activeRequests.delete(requestId);
-      
-      this.emit('request_cancelled', { requestId });
+
+      this.emit("request_cancelled", { requestId });
       return true;
     }
-    
+
     return false;
   }
 
@@ -828,15 +899,15 @@ export class AudioProcessor extends EventEmitter {
    */
   async endRealTimeSession(sessionId: string): Promise<void> {
     const session = this.streamingSessions.get(sessionId);
-    
+
     if (session) {
       await session.streamer.endSession();
       this.streamingSessions.delete(sessionId);
-      
+
       // Close WebRTC connection if exists
       await this.webrtcManager.closeConnection(sessionId);
-      
-      this.logger.info('Real-time session ended', { sessionId });
+
+      this.logger.info("Real-time session ended", { sessionId });
     }
   }
 
@@ -866,46 +937,49 @@ export class AudioProcessor extends EventEmitter {
    */
   private ensureInitialized(): void {
     if (!this.isInitialized) {
-      throw new Error('Audio processor not initialized');
+      throw new Error("Audio processor not initialized");
     }
   }
 
   /**
    * Health check
    */
-  async healthCheck(): Promise<{ status: string; latency: number; error?: string }> {
+  async healthCheck(): Promise<{
+    status: string;
+    latency: number;
+    error?: string;
+  }> {
     const startTime = performance.now();
-    
+
     try {
       // Simple test generation
       const testRequest: AudioGenerationRequest = {
-        text: 'Hello, this is a test.',
-        voice: { preset: 'narrator_professional' },
+        text: "Hello, this is a test.",
+        voice: { preset: "narrator_professional" },
         context: {
-          requestId: 'health_check',
-          priority: 'low',
-          userTier: 'free',
+          requestId: "health_check",
+          priority: "low",
+          userTier: "free",
           latencyTarget: 5000,
-          qualityTarget: 'draft'
-        }
+          qualityTarget: "draft",
+        },
       };
 
       await this.generateAudio(testRequest);
-      
-      const latency = performance.now() - startTime;
-      
-      return {
-        status: 'healthy',
-        latency
-      };
 
+      const latency = performance.now() - startTime;
+
+      return {
+        status: "healthy",
+        latency,
+      };
     } catch (error) {
       const latency = performance.now() - startTime;
-      
+
       return {
-        status: 'unhealthy',
+        status: "unhealthy",
         latency,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -918,7 +992,7 @@ export class AudioProcessor extends EventEmitter {
       ...this.metrics,
       activeRequests: this.activeRequests.size,
       activeSessions: this.streamingSessions.size,
-      cacheStats: this.audioCache.getMetrics()
+      cacheStats: this.audioCache.getMetrics(),
     } as any;
   }
 
@@ -926,7 +1000,7 @@ export class AudioProcessor extends EventEmitter {
    * Shutdown processor
    */
   async shutdown(): Promise<void> {
-    this.logger.info('Shutting down audio processor...');
+    this.logger.info("Shutting down audio processor...");
 
     // Cancel all active requests
     for (const [requestId, activeRequest] of this.activeRequests) {
@@ -946,10 +1020,10 @@ export class AudioProcessor extends EventEmitter {
       this.effectsEngine.shutdown(),
       this.audioStreamer.shutdown(),
       this.webrtcManager.shutdown(),
-      this.audioCache.shutdown()
+      this.audioCache.shutdown(),
     ]);
 
     this.isInitialized = false;
-    this.logger.info('Audio processor shutdown complete');
+    this.logger.info("Audio processor shutdown complete");
   }
 }

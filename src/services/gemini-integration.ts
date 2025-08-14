@@ -1,19 +1,19 @@
 /**
  * Gemini Integration Service
- * 
+ *
  * Handles Gemini CLI detection and context loading for enhanced AI coordination
  */
 
-import { execSync } from 'child_process';
-import { readFileSync, existsSync } from 'fs';
-import { join, resolve } from 'path';
-import { Logger } from '../utils/logger.js';
+import { execSync } from "child_process";
+import { readFileSync, existsSync } from "fs";
+import { join, resolve } from "path";
+import { Logger } from "../utils/logger.js";
 
 export interface GeminiContext {
   content: string;
   loaded: boolean;
   timestamp: Date;
-  source: 'GEMINI.md' | 'fallback';
+  source: "GEMINI.md" | "fallback";
 }
 
 export interface GeminiDetectionResult {
@@ -30,7 +30,7 @@ export class GeminiIntegrationService {
   private detectionResult: GeminiDetectionResult | null = null;
 
   private constructor() {
-    this.logger = new Logger('GeminiIntegration');
+    this.logger = new Logger("GeminiIntegration");
   }
 
   public static getInstance(): GeminiIntegrationService {
@@ -50,48 +50,48 @@ export class GeminiIntegrationService {
 
     try {
       // Try to detect Gemini CLI
-      const result = execSync('which gemini', { 
-        encoding: 'utf8',
+      const result = execSync("which gemini", {
+        encoding: "utf8",
         timeout: 5000,
-        stdio: 'pipe'
+        stdio: "pipe",
       }).trim();
 
       if (result) {
         try {
           // Try to get version
-          const version = execSync('gemini --version', {
-            encoding: 'utf8',
+          const version = execSync("gemini --version", {
+            encoding: "utf8",
             timeout: 5000,
-            stdio: 'pipe'
+            stdio: "pipe",
           }).trim();
 
           this.detectionResult = {
             isInstalled: true,
-            version: version.replace(/^gemini\s+/, ''),
-            path: result
+            version: version.replace(/^gemini\s+/, ""),
+            path: result,
           };
 
-          this.logger.info('Gemini CLI detected', {
+          this.logger.info("Gemini CLI detected", {
             version: this.detectionResult.version,
-            path: this.detectionResult.path
+            path: this.detectionResult.path,
           });
-
         } catch (versionError) {
           this.detectionResult = {
             isInstalled: true,
             path: result,
-            error: 'Version detection failed'
+            error: "Version detection failed",
           };
         }
       }
-
     } catch (error) {
       this.detectionResult = {
         isInstalled: false,
-        error: error instanceof Error ? error.message : 'Detection failed'
+        error: error instanceof Error ? error.message : "Detection failed",
       };
 
-      this.logger.debug('Gemini CLI not detected', { error: this.detectionResult.error });
+      this.logger.debug("Gemini CLI not detected", {
+        error: this.detectionResult.error,
+      });
     }
 
     return this.detectionResult;
@@ -106,44 +106,42 @@ export class GeminiIntegrationService {
     }
 
     const cwd = projectRoot || process.cwd();
-    const geminiPath = join(cwd, 'GEMINI.md');
+    const geminiPath = join(cwd, "GEMINI.md");
 
     try {
       if (existsSync(geminiPath)) {
-        const content = readFileSync(geminiPath, 'utf8');
-        
+        const content = readFileSync(geminiPath, "utf8");
+
         this.cachedContext = {
           content,
           loaded: true,
           timestamp: new Date(),
-          source: 'GEMINI.md'
+          source: "GEMINI.md",
         };
 
-        this.logger.info('GEMINI.md context loaded successfully', {
+        this.logger.info("GEMINI.md context loaded successfully", {
           size: content.length,
-          path: geminiPath
+          path: geminiPath,
         });
-
       } else {
         // Fallback context if GEMINI.md doesn't exist
         this.cachedContext = {
           content: this.getFallbackContext(),
           loaded: true,
           timestamp: new Date(),
-          source: 'fallback'
+          source: "fallback",
         };
 
-        this.logger.warn('GEMINI.md not found, using fallback context');
+        this.logger.warn("GEMINI.md not found, using fallback context");
       }
-
     } catch (error) {
-      this.logger.error('Failed to load GEMINI.md context', error);
-      
+      this.logger.error("Failed to load GEMINI.md context", error);
+
       this.cachedContext = {
         content: this.getFallbackContext(),
         loaded: false,
         timestamp: new Date(),
-        source: 'fallback'
+        source: "fallback",
       };
     }
 
@@ -155,9 +153,9 @@ export class GeminiIntegrationService {
    */
   public setupEnvironment(): void {
     const envVars = {
-      GEMINI_FLOW_CONTEXT_LOADED: 'true',
-      GEMINI_FLOW_MODE: 'enhanced',
-      GEMINI_MODEL: 'gemini-1.5-flash'
+      GEMINI_FLOW_CONTEXT_LOADED: "true",
+      GEMINI_FLOW_MODE: "enhanced",
+      GEMINI_MODEL: "gemini-1.5-flash",
     };
 
     for (const [key, value] of Object.entries(envVars)) {
@@ -167,7 +165,7 @@ export class GeminiIntegrationService {
       }
     }
 
-    this.logger.info('Gemini integration environment variables configured');
+    this.logger.info("Gemini integration environment variables configured");
   }
 
   /**
@@ -186,9 +184,9 @@ export class GeminiIntegrationService {
     return {
       cliDetected: detection.isInstalled,
       contextLoaded: context?.loaded || false,
-      environmentConfigured: process.env.GEMINI_FLOW_CONTEXT_LOADED === 'true',
+      environmentConfigured: process.env.GEMINI_FLOW_CONTEXT_LOADED === "true",
       geminiVersion: detection.version,
-      contextSource: context?.source
+      contextSource: context?.source,
     };
   }
 
@@ -200,11 +198,11 @@ export class GeminiIntegrationService {
     context: GeminiContext;
     environmentConfigured: boolean;
   }> {
-    this.logger.info('Initializing Gemini integration...');
+    this.logger.info("Initializing Gemini integration...");
 
     const [detection, context] = await Promise.all([
       this.detectGeminiCLI(),
-      this.loadGeminiContext(projectRoot)
+      this.loadGeminiContext(projectRoot),
     ]);
 
     this.setupEnvironment();
@@ -212,13 +210,13 @@ export class GeminiIntegrationService {
     const result = {
       detection,
       context,
-      environmentConfigured: process.env.GEMINI_FLOW_CONTEXT_LOADED === 'true'
+      environmentConfigured: process.env.GEMINI_FLOW_CONTEXT_LOADED === "true",
     };
 
-    this.logger.info('Gemini integration initialized', {
+    this.logger.info("Gemini integration initialized", {
       cliDetected: detection.isInstalled,
       contextLoaded: context.loaded,
-      contextSource: context.source
+      contextSource: context.source,
     });
 
     return result;
@@ -234,7 +232,7 @@ export class GeminiIntegrationService {
 
   private isCacheValid(): boolean {
     if (!this.cachedContext) return false;
-    
+
     // Cache valid for 5 minutes
     const fiveMinutes = 5 * 60 * 1000;
     return Date.now() - this.cachedContext.timestamp.getTime() < fiveMinutes;

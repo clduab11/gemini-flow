@@ -1,6 +1,6 @@
 /**
  * Vector Clock Implementation for A2A Memory Coordination
- * 
+ *
  * Provides logical timestamp management for distributed systems:
  * - Causal ordering of events
  * - Conflict detection in concurrent updates
@@ -10,9 +10,9 @@
  * - Clock pruning and garbage collection
  */
 
-import { Logger } from '../../../utils/logger.js';
+import { Logger } from "../../../utils/logger.js";
 
-export type ClockComparison = 'before' | 'after' | 'concurrent' | 'equal';
+export type ClockComparison = "before" | "after" | "concurrent" | "equal";
 
 export interface VectorClockState {
   clocks: Map<string, number>;
@@ -44,15 +44,15 @@ export class VectorClock {
   private version: number;
   private lastUpdated: Date;
   private logger: Logger;
-  
+
   // Pruning configuration
   private pruningConfig: ClockPruningConfig = {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     maxSize: 1000,
     pruneInterval: 60 * 60 * 1000, // 1 hour
-    keepRecentAgents: 50
+    keepRecentAgents: 50,
   };
-  
+
   private agentLastSeen: Map<string, Date> = new Map();
   private pruningTimer?: ReturnType<typeof setTimeout>;
 
@@ -62,16 +62,16 @@ export class VectorClock {
     this.version = 1;
     this.lastUpdated = new Date();
     this.logger = new Logger(`VectorClock:${agentId}`);
-    
+
     // Initialize agent last seen
     this.agentLastSeen.set(agentId, new Date());
-    
+
     // Start pruning timer
     this.startPruning();
-    
-    this.logger.debug('Vector clock initialized', {
+
+    this.logger.debug("Vector clock initialized", {
       agentId,
-      initialSize: this.clocks.size
+      initialSize: this.clocks.size,
     });
   }
 
@@ -84,13 +84,13 @@ export class VectorClock {
     this.version++;
     this.lastUpdated = new Date();
     this.agentLastSeen.set(this.agentId, new Date());
-    
-    this.logger.trace('Clock incremented', {
+
+    this.logger.trace("Clock incremented", {
       agentId: this.agentId,
       newClock: currentClock + 1,
-      version: this.version
+      version: this.version,
     });
-    
+
     return this;
   }
 
@@ -99,21 +99,21 @@ export class VectorClock {
    */
   update(agentId: string, clockValue: number): VectorClock {
     const currentClock = this.clocks.get(agentId) || 0;
-    
+
     if (clockValue > currentClock) {
       this.clocks.set(agentId, clockValue);
       this.version++;
       this.lastUpdated = new Date();
       this.agentLastSeen.set(agentId, new Date());
-      
-      this.logger.trace('Clock updated', {
+
+      this.logger.trace("Clock updated", {
         agentId,
         fromClock: currentClock,
         toClock: clockValue,
-        version: this.version
+        version: this.version,
       });
     }
-    
+
     return this;
   }
 
@@ -123,33 +123,33 @@ export class VectorClock {
   merge(other: VectorClock): VectorClock {
     const merged = this.copy();
     let hasChanges = false;
-    
+
     // Merge all clocks from other
     for (const [agentId, clockValue] of other.clocks) {
       const currentClock = merged.clocks.get(agentId) || 0;
-      
+
       if (clockValue > currentClock) {
         merged.clocks.set(agentId, clockValue);
         merged.agentLastSeen.set(agentId, new Date());
         hasChanges = true;
       }
     }
-    
+
     // Increment our own clock
     merged.increment();
-    
+
     if (hasChanges) {
       merged.version++;
       merged.lastUpdated = new Date();
-      
-      this.logger.debug('Vector clocks merged', {
+
+      this.logger.debug("Vector clocks merged", {
         ourSize: this.clocks.size,
         otherSize: other.clocks.size,
         mergedSize: merged.clocks.size,
-        hasChanges
+        hasChanges,
       });
     }
-    
+
     return merged;
   }
 
@@ -158,40 +158,37 @@ export class VectorClock {
    */
   compare(other: VectorClock): ClockComparison {
     if (this.equals(other)) {
-      return 'equal';
+      return "equal";
     }
-    
+
     let thisSmaller = false;
     let thisLarger = false;
-    
+
     // Get all unique agent IDs
-    const allAgents = new Set([
-      ...this.clocks.keys(),
-      ...other.clocks.keys()
-    ]);
-    
+    const allAgents = new Set([...this.clocks.keys(), ...other.clocks.keys()]);
+
     for (const agentId of allAgents) {
       const thisClock = this.clocks.get(agentId) || 0;
       const otherClock = other.clocks.get(agentId) || 0;
-      
+
       if (thisClock < otherClock) {
         thisSmaller = true;
       } else if (thisClock > otherClock) {
         thisLarger = true;
       }
-      
+
       // If both conditions are true, clocks are concurrent
       if (thisSmaller && thisLarger) {
-        return 'concurrent';
+        return "concurrent";
       }
     }
-    
+
     if (thisSmaller) {
-      return 'before';
+      return "before";
     } else if (thisLarger) {
-      return 'after';
+      return "after";
     } else {
-      return 'equal';
+      return "equal";
     }
   }
 
@@ -200,7 +197,7 @@ export class VectorClock {
    */
   isNewer(other: VectorClock): boolean {
     const comparison = this.compare(other);
-    return comparison === 'after';
+    return comparison === "after";
   }
 
   /**
@@ -208,14 +205,14 @@ export class VectorClock {
    */
   isOlder(other: VectorClock): boolean {
     const comparison = this.compare(other);
-    return comparison === 'before';
+    return comparison === "before";
   }
 
   /**
    * Check if clocks are concurrent (incomparable)
    */
   isConcurrent(other: VectorClock): boolean {
-    return this.compare(other) === 'concurrent';
+    return this.compare(other) === "concurrent";
   }
 
   /**
@@ -225,14 +222,14 @@ export class VectorClock {
     if (this.clocks.size !== other.clocks.size) {
       return false;
     }
-    
+
     for (const [agentId, clockValue] of this.clocks) {
       const otherClock = other.clocks.get(agentId) || 0;
       if (clockValue !== otherClock) {
         return false;
       }
     }
-    
+
     return true;
   }
 
@@ -251,7 +248,7 @@ export class VectorClock {
     this.agentLastSeen.set(agentId, new Date());
     this.version++;
     this.lastUpdated = new Date();
-    
+
     return this;
   }
 
@@ -278,7 +275,7 @@ export class VectorClock {
     copy.lastUpdated = new Date(this.lastUpdated);
     copy.agentLastSeen = new Map(this.agentLastSeen);
     copy.pruningConfig = { ...this.pruningConfig };
-    
+
     return copy;
   }
 
@@ -287,21 +284,21 @@ export class VectorClock {
    */
   delta(other: VectorClock): ClockDelta[] {
     const deltas: ClockDelta[] = [];
-    
+
     // Check our clocks vs other's
     for (const [agentId, clockValue] of this.clocks) {
       const otherClock = other.clocks.get(agentId) || 0;
-      
+
       if (clockValue > otherClock) {
         deltas.push({
           agentId,
           fromClock: otherClock,
           toClock: clockValue,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
     }
-    
+
     return deltas;
   }
 
@@ -310,27 +307,27 @@ export class VectorClock {
    */
   applyDeltas(deltas: ClockDelta[]): VectorClock {
     let hasChanges = false;
-    
+
     for (const delta of deltas) {
       const currentClock = this.clocks.get(delta.agentId) || 0;
-      
+
       if (delta.toClock > currentClock) {
         this.clocks.set(delta.agentId, delta.toClock);
         this.agentLastSeen.set(delta.agentId, delta.timestamp);
         hasChanges = true;
       }
     }
-    
+
     if (hasChanges) {
       this.version++;
       this.lastUpdated = new Date();
-      
-      this.logger.debug('Deltas applied', {
+
+      this.logger.debug("Deltas applied", {
         deltaCount: deltas.length,
-        clockSize: this.clocks.size
+        clockSize: this.clocks.size,
       });
     }
-    
+
     return this;
   }
 
@@ -338,14 +335,15 @@ export class VectorClock {
    * Serialize to string representation
    */
   toString(): string {
-    const clockArray = Array.from(this.clocks.entries())
-      .sort(([a], [b]) => a.localeCompare(b));
-    
+    const clockArray = Array.from(this.clocks.entries()).sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+
     return JSON.stringify({
       clocks: clockArray,
       agentId: this.agentId,
       version: this.version,
-      lastUpdated: this.lastUpdated.toISOString()
+      lastUpdated: this.lastUpdated.toISOString(),
     });
   }
 
@@ -357,12 +355,11 @@ export class VectorClock {
       const data = JSON.parse(clockString);
       const clocks = new Map(data.clocks);
       const vectorClock = new VectorClock(data.agentId, clocks);
-      
+
       vectorClock.version = data.version || 1;
       vectorClock.lastUpdated = new Date(data.lastUpdated);
-      
+
       return vectorClock;
-      
     } catch (error) {
       throw new Error(`Failed to deserialize vector clock: ${error.message}`);
     }
@@ -373,14 +370,16 @@ export class VectorClock {
    */
   toBinary(): Buffer {
     const clockEntries = Array.from(this.clocks.entries());
-    const buffer = Buffer.alloc(4 + clockEntries.length * 12 + this.agentId.length);
-    
+    const buffer = Buffer.alloc(
+      4 + clockEntries.length * 12 + this.agentId.length,
+    );
+
     let offset = 0;
-    
+
     // Write number of entries
     buffer.writeUInt32BE(clockEntries.length, offset);
     offset += 4;
-    
+
     // Write clock entries (agentId hash + clock value)
     for (const [agentId, clockValue] of clockEntries) {
       const agentHash = this.hashString(agentId);
@@ -388,7 +387,7 @@ export class VectorClock {
       buffer.writeUInt32BE(clockValue, offset + 4);
       offset += 8;
     }
-    
+
     return buffer;
   }
 
@@ -397,27 +396,27 @@ export class VectorClock {
    */
   static fromBinary(buffer: Buffer): VectorClock {
     let offset = 0;
-    
+
     // Read number of entries
     const entryCount = buffer.readUInt32BE(offset);
     offset += 4;
-    
+
     const clocks = new Map<string, number>();
-    
+
     // Read clock entries
     for (let i = 0; i < entryCount; i++) {
       const agentHash = buffer.readUInt32BE(offset);
       const clockValue = buffer.readUInt32BE(offset + 4);
       offset += 8;
-      
+
       // Note: We lose the original agent ID in binary format
       // This is a trade-off for compactness
       clocks.set(agentHash.toString(), clockValue);
     }
-    
+
     // Use first entry as agent ID (approximation)
-    const agentId = clocks.keys().next().value || 'unknown';
-    
+    const agentId = clocks.keys().next().value || "unknown";
+
     return new VectorClock(agentId, clocks);
   }
 
@@ -429,7 +428,7 @@ export class VectorClock {
       clocks: new Map(this.clocks),
       agentId: this.agentId,
       version: this.version,
-      lastUpdated: new Date(this.lastUpdated)
+      lastUpdated: new Date(this.lastUpdated),
     };
   }
 
@@ -440,19 +439,19 @@ export class VectorClock {
     this.clocks = new Map(state.clocks);
     this.version = state.version;
     this.lastUpdated = new Date(state.lastUpdated);
-    
+
     // Update agent last seen
     for (const agentId of this.clocks.keys()) {
       if (!this.agentLastSeen.has(agentId)) {
         this.agentLastSeen.set(agentId, new Date());
       }
     }
-    
-    this.logger.debug('State restored', {
+
+    this.logger.debug("State restored", {
       clockSize: this.clocks.size,
-      version: this.version
+      version: this.version,
     });
-    
+
     return this;
   }
 
@@ -461,14 +460,14 @@ export class VectorClock {
    */
   configurePruning(config: Partial<ClockPruningConfig>): void {
     this.pruningConfig = { ...this.pruningConfig, ...config };
-    
+
     // Restart pruning with new config
     if (this.pruningTimer) {
       clearInterval(this.pruningTimer);
     }
     this.startPruning();
-    
-    this.logger.info('Pruning configuration updated', this.pruningConfig);
+
+    this.logger.info("Pruning configuration updated", this.pruningConfig);
   }
 
   /**
@@ -477,17 +476,17 @@ export class VectorClock {
   prune(): number {
     const now = new Date();
     const cutoffTime = new Date(now.getTime() - this.pruningConfig.maxAge);
-    
+
     let prunedCount = 0;
     const agentsToRemove: string[] = [];
-    
+
     // Find agents to remove based on age
     for (const [agentId, lastSeen] of this.agentLastSeen) {
       if (agentId !== this.agentId && lastSeen < cutoffTime) {
         agentsToRemove.push(agentId);
       }
     }
-    
+
     // If still too many, remove oldest agents (except recent ones)
     if (this.clocks.size > this.pruningConfig.maxSize) {
       const sortedAgents = Array.from(this.agentLastSeen.entries())
@@ -495,10 +494,10 @@ export class VectorClock {
         .sort(([, a], [, b]) => b.getTime() - a.getTime())
         .slice(this.pruningConfig.keepRecentAgents)
         .map(([agentId]) => agentId);
-      
+
       agentsToRemove.push(...sortedAgents);
     }
-    
+
     // Remove agents
     for (const agentId of agentsToRemove) {
       if (this.clocks.delete(agentId)) {
@@ -506,17 +505,17 @@ export class VectorClock {
         prunedCount++;
       }
     }
-    
+
     if (prunedCount > 0) {
       this.version++;
       this.lastUpdated = new Date();
-      
-      this.logger.info('Clock pruned', {
+
+      this.logger.info("Clock pruned", {
         prunedCount,
-        remainingSize: this.clocks.size
+        remainingSize: this.clocks.size,
       });
     }
-    
+
     return prunedCount;
   }
 
@@ -531,19 +530,21 @@ export class VectorClock {
     config: ClockPruningConfig;
   } {
     const lastSeenTimes = Array.from(this.agentLastSeen.values());
-    
+
     return {
       totalAgents: this.clocks.size,
-      oldestAgent: lastSeenTimes.length > 0 
-        ? new Date(Math.min(...lastSeenTimes.map(d => d.getTime())))
-        : null,
-      newestAgent: lastSeenTimes.length > 0
-        ? new Date(Math.max(...lastSeenTimes.map(d => d.getTime())))
-        : null,
-      nextPruning: this.pruningTimer 
+      oldestAgent:
+        lastSeenTimes.length > 0
+          ? new Date(Math.min(...lastSeenTimes.map((d) => d.getTime())))
+          : null,
+      newestAgent:
+        lastSeenTimes.length > 0
+          ? new Date(Math.max(...lastSeenTimes.map((d) => d.getTime())))
+          : null,
+      nextPruning: this.pruningTimer
         ? new Date(Date.now() + this.pruningConfig.pruneInterval)
         : null,
-      config: { ...this.pruningConfig }
+      config: { ...this.pruningConfig },
     };
   }
 
@@ -555,11 +556,11 @@ export class VectorClock {
       clearInterval(this.pruningTimer);
       this.pruningTimer = undefined;
     }
-    
+
     this.clocks.clear();
     this.agentLastSeen.clear();
-    
-    this.logger.debug('Vector clock destroyed');
+
+    this.logger.debug("Vector clock destroyed");
   }
 
   /**
@@ -578,7 +579,7 @@ export class VectorClock {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash);
@@ -593,7 +594,7 @@ export class VectorClockManager {
   private logger: Logger;
 
   constructor() {
-    this.logger = new Logger('VectorClockManager');
+    this.logger = new Logger("VectorClockManager");
   }
 
   /**
@@ -601,14 +602,14 @@ export class VectorClockManager {
    */
   getOrCreateClock(agentId: string): VectorClock {
     let clock = this.clocks.get(agentId);
-    
+
     if (!clock) {
       clock = new VectorClock(agentId);
       this.clocks.set(agentId, clock);
-      
-      this.logger.debug('New vector clock created', { agentId });
+
+      this.logger.debug("New vector clock created", { agentId });
     }
-    
+
     return clock;
   }
 
@@ -617,42 +618,45 @@ export class VectorClockManager {
    */
   removeClock(agentId: string): boolean {
     const clock = this.clocks.get(agentId);
-    
+
     if (clock) {
       clock.destroy();
       this.clocks.delete(agentId);
-      
-      this.logger.debug('Vector clock removed', { agentId });
+
+      this.logger.debug("Vector clock removed", { agentId });
       return true;
     }
-    
+
     return false;
   }
 
   /**
    * Synchronize clocks between agents
    */
-  synchronizeClocks(agentId1: string, agentId2: string): {
+  synchronizeClocks(
+    agentId1: string,
+    agentId2: string,
+  ): {
     clock1: VectorClock;
     clock2: VectorClock;
     synchronized: boolean;
   } {
     const clock1 = this.getOrCreateClock(agentId1);
     const clock2 = this.getOrCreateClock(agentId2);
-    
+
     const mergedClock1 = clock1.merge(clock2);
     const mergedClock2 = clock2.merge(clock1);
-    
+
     // Update stored clocks
     this.clocks.set(agentId1, mergedClock1);
     this.clocks.set(agentId2, mergedClock2);
-    
-    this.logger.debug('Clocks synchronized', { agentId1, agentId2 });
-    
+
+    this.logger.debug("Clocks synchronized", { agentId1, agentId2 });
+
     return {
       clock1: mergedClock1,
       clock2: mergedClock2,
-      synchronized: true
+      synchronized: true,
     };
   }
 
@@ -670,8 +674,8 @@ export class VectorClockManager {
     for (const clock of this.clocks.values()) {
       clock.destroy();
     }
-    
+
     this.clocks.clear();
-    this.logger.info('All vector clocks cleaned up');
+    this.logger.info("All vector clocks cleaned up");
   }
 }

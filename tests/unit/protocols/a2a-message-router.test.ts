@@ -14,7 +14,7 @@ import {
   MessagePriority,
   A2AErrorType,
   TransportProtocol
-} from '../../../src/types/a2a.js';
+} from '../../../src/types/a2a';
 
 // Mock implementation will be created later
 class A2AMessageRouter {

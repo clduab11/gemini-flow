@@ -1,14 +1,14 @@
 /**
  * Google AI Authentication
- * 
+ *
  * Simple authentication system for Google AI Studio API key
  * providing Gemini CLI parity with multiple key detection methods
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import { Logger } from '../utils/logger.js';
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import { Logger } from "../utils/logger.js";
 
 export interface GoogleAIAuthOptions {
   apiKey?: string;
@@ -17,8 +17,8 @@ export interface GoogleAIAuthOptions {
 
 export interface AuthStatus {
   isAuthenticated: boolean;
-  source: 'environment' | 'config' | 'constructor' | 'none';
-  keyFormat: 'valid' | 'invalid' | 'none';
+  source: "environment" | "config" | "constructor" | "none";
+  keyFormat: "valid" | "invalid" | "none";
   keyPrefix: string | null;
 }
 
@@ -36,18 +36,18 @@ export class GoogleAIAuth {
   private logger: Logger;
 
   constructor(options: GoogleAIAuthOptions = {}) {
-    this.logger = new Logger('GoogleAIAuth');
-    
+    this.logger = new Logger("GoogleAIAuth");
+
     // Set config path
     this.configPath = options.configPath || this.getDefaultConfigPath();
-    
+
     // Initialize API key from various sources (priority order)
     this.initializeApiKey(options.apiKey);
-    
-    this.logger.debug('GoogleAI authentication initialized', {
+
+    this.logger.debug("GoogleAI authentication initialized", {
       hasApiKey: !!this.apiKey,
       configPath: this.configPath,
-      source: this.getAuthStatus().source
+      source: this.getAuthStatus().source,
     });
   }
 
@@ -61,7 +61,7 @@ export class GoogleAIAuth {
     // Priority 1: Constructor option
     if (constructorKey) {
       this.apiKey = constructorKey;
-      this.logger.debug('API key loaded from constructor');
+      this.logger.debug("API key loaded from constructor");
       return;
     }
 
@@ -69,18 +69,18 @@ export class GoogleAIAuth {
     const envKey = this.getApiKeyFromEnvironment();
     if (envKey) {
       this.apiKey = envKey;
-      this.logger.debug('API key loaded from environment');
+      this.logger.debug("API key loaded from environment");
       return;
     }
 
     // Priority 3: Config file
     const configLoaded = this.loadConfig(this.configPath);
     if (configLoaded) {
-      this.logger.debug('API key loaded from config file');
+      this.logger.debug("API key loaded from config file");
       return;
     }
 
-    this.logger.debug('No API key found in any source');
+    this.logger.debug("No API key found in any source");
   }
 
   /**
@@ -88,15 +88,15 @@ export class GoogleAIAuth {
    */
   private getApiKeyFromEnvironment(): string | null {
     // Check multiple environment variable names
-    const envVars = ['GEMINI_API_KEY', 'GOOGLE_AI_API_KEY', 'GOOGLE_API_KEY'];
-    
+    const envVars = ["GEMINI_API_KEY", "GOOGLE_AI_API_KEY", "GOOGLE_API_KEY"];
+
     for (const envVar of envVars) {
       const key = process.env[envVar];
       if (key && key.trim()) {
         return key.trim();
       }
     }
-    
+
     return null;
   }
 
@@ -105,7 +105,7 @@ export class GoogleAIAuth {
    */
   private getDefaultConfigPath(): string {
     const homeDir = os.homedir();
-    return path.join(homeDir, '.gemini-flow', 'config.json');
+    return path.join(homeDir, ".gemini-flow", "config.json");
   }
 
   /**
@@ -124,7 +124,7 @@ export class GoogleAIAuth {
     }
 
     // Google AI API keys typically start with 'AIza'
-    return this.apiKey.startsWith('AIza') && this.apiKey.length >= 35;
+    return this.apiKey.startsWith("AIza") && this.apiKey.length >= 35;
   }
 
   /**
@@ -140,18 +140,18 @@ export class GoogleAIAuth {
   setApiKey(apiKey: string | null): boolean {
     if (!apiKey) {
       this.apiKey = null;
-      this.logger.debug('API key cleared');
+      this.logger.debug("API key cleared");
       return true;
     }
 
     // Validate format
-    if (!apiKey.startsWith('AIza') || apiKey.length < 35) {
-      this.logger.warn('Invalid API key format provided');
+    if (!apiKey.startsWith("AIza") || apiKey.length < 35) {
+      this.logger.warn("Invalid API key format provided");
       return false;
     }
 
     this.apiKey = apiKey;
-    this.logger.debug('API key set successfully');
+    this.logger.debug("API key set successfully");
     return true;
   }
 
@@ -164,7 +164,7 @@ export class GoogleAIAuth {
         return false;
       }
 
-      const configContent = fs.readFileSync(configPath, 'utf8');
+      const configContent = fs.readFileSync(configPath, "utf8");
       const config: AuthConfig = JSON.parse(configContent);
 
       if (config.apiKey) {
@@ -173,9 +173,8 @@ export class GoogleAIAuth {
       }
 
       return false;
-
     } catch (error) {
-      this.logger.error('Failed to load config', { configPath, error });
+      this.logger.error("Failed to load config", { configPath, error });
       return false;
     }
   }
@@ -185,7 +184,7 @@ export class GoogleAIAuth {
    */
   async saveConfig(configPath?: string): Promise<void> {
     const targetPath = configPath || this.configPath;
-    
+
     try {
       // Ensure directory exists
       const configDir = path.dirname(targetPath);
@@ -196,18 +195,20 @@ export class GoogleAIAuth {
       // Prepare config object
       const config: AuthConfig = {
         apiKey: this.apiKey || undefined,
-        model: 'gemini-1.5-flash',
+        model: "gemini-1.5-flash",
         temperature: 0.7,
-        maxTokens: 1000000
+        maxTokens: 1000000,
       };
 
       // Write config file
       fs.writeFileSync(targetPath, JSON.stringify(config, null, 2));
-      
-      this.logger.info('Configuration saved', { configPath: targetPath });
 
+      this.logger.info("Configuration saved", { configPath: targetPath });
     } catch (error) {
-      this.logger.error('Failed to save config', { configPath: targetPath, error });
+      this.logger.error("Failed to save config", {
+        configPath: targetPath,
+        error,
+      });
       throw error;
     }
   }
@@ -217,7 +218,7 @@ export class GoogleAIAuth {
    */
   clearAuth(): void {
     this.apiKey = null;
-    this.logger.debug('Authentication cleared');
+    this.logger.debug("Authentication cleared");
   }
 
   /**
@@ -227,23 +228,23 @@ export class GoogleAIAuth {
     if (!this.apiKey) {
       return {
         isAuthenticated: false,
-        source: 'none',
-        keyFormat: 'none',
-        keyPrefix: null
+        source: "none",
+        keyFormat: "none",
+        keyPrefix: null,
       };
     }
 
     // Determine source
-    let source: AuthStatus['source'] = 'config';
+    let source: AuthStatus["source"] = "config";
     if (this.getApiKeyFromEnvironment() === this.apiKey) {
-      source = 'environment';
+      source = "environment";
     }
 
     return {
       isAuthenticated: true,
       source,
-      keyFormat: this.isValidApiKey() ? 'valid' : 'invalid',
-      keyPrefix: this.apiKey ? `${this.apiKey.substring(0, 6)}...` : null
+      keyFormat: this.isValidApiKey() ? "valid" : "invalid",
+      keyPrefix: this.apiKey ? `${this.apiKey.substring(0, 6)}...` : null,
     };
   }
 
@@ -256,31 +257,30 @@ export class GoogleAIAuth {
     }
 
     try {
-      const { GoogleGenerativeAI } = await import('@google/generative-ai');
-      
+      const { GoogleGenerativeAI } = await import("@google/generative-ai");
+
       const genAI = new GoogleGenerativeAI(this.apiKey!);
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       // Make a simple test request
-      const result = await model.generateContent('Hello');
+      const result = await model.generateContent("Hello");
       const response = await result.response;
-      
-      // If we get here without error, the API key works
-      this.logger.debug('API key test successful');
-      return true;
 
+      // If we get here without error, the API key works
+      this.logger.debug("API key test successful");
+      return true;
     } catch (error) {
-      this.logger.warn('API key test failed', error);
-      
+      this.logger.warn("API key test failed", error);
+
       if (error instanceof Error) {
-        if (error.message.includes('API_KEY_INVALID')) {
-          this.logger.error('Invalid API key');
-        } else if (error.message.includes('QUOTA_EXCEEDED')) {
-          this.logger.warn('API quota exceeded, but key is valid');
+        if (error.message.includes("API_KEY_INVALID")) {
+          this.logger.error("Invalid API key");
+        } else if (error.message.includes("QUOTA_EXCEEDED")) {
+          this.logger.warn("API quota exceeded, but key is valid");
           return true; // Key is valid, just quota exceeded
         }
       }
-      
+
       return false;
     }
   }

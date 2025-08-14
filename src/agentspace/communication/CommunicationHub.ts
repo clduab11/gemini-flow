@@ -27,8 +27,8 @@ export class CommunicationHub {
   async getAgentStatus(agentId: string): Promise<any> {
     return {
       connected: this.agents.has(agentId),
-      protocols: ['direct', 'broadcast'],
-      latency: 25
+      protocols: ["direct", "broadcast"],
+      latency: 25,
     };
   }
 
@@ -36,7 +36,10 @@ export class CommunicationHub {
     if (this.partitioned && message.from !== message.to) {
       return {
         success: false,
-        error: { code: 'NETWORK_PARTITION', message: 'Network partition detected' }
+        error: {
+          code: "NETWORK_PARTITION",
+          message: "Network partition detected",
+        },
       };
     }
 
@@ -46,20 +49,23 @@ export class CommunicationHub {
         messageId: `msg-${Date.now()}`,
         delivered: true,
         latency: 25,
-        recipientCount: message.to === 'all' ? this.agents.size : 1,
-        deliveryRate: 0.95
-      }
+        recipientCount: message.to === "all" ? this.agents.size : 1,
+        deliveryRate: 0.95,
+      },
     };
   }
 
-  async simulateNetworkPartition(segment1: string[], segment2: string[]): Promise<void> {
+  async simulateNetworkPartition(
+    segment1: string[],
+    segment2: string[],
+  ): Promise<void> {
     this.partitioned = true;
   }
 
   async getPartitionStatus(): Promise<any> {
     return {
       partitioned: this.partitioned,
-      segments: this.partitioned ? 2 : 1
+      segments: this.partitioned ? 2 : 1,
     };
   }
 

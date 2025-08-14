@@ -1,11 +1,11 @@
 /**
  * Comprehensive AgentSpace Type Definitions
- * 
+ *
  * Defines all interfaces for the 66-agent spatial computing architecture
  */
 
-import { AgentDefinition } from '../../agents/agent-definitions.js';
-import { VectorClock } from '../../protocols/a2a/memory/vector-clocks.js';
+import { AgentDefinition } from "../../agents/agent-definitions.js";
+import { VectorClock } from "../../protocols/a2a/memory/vector-clocks.js";
 
 // ===== Core AgentSpace Types =====
 
@@ -20,23 +20,23 @@ export interface AgentWorkspace {
   id: WorkspaceId;
   agentId: string;
   name: string;
-  type: 'isolated' | 'shared' | 'collaborative' | 'secure';
-  
+  type: "isolated" | "shared" | "collaborative" | "secure";
+
   // Resource constraints
   resources: WorkspaceResources;
   resourceLimits: ResourceLimits;
-  
+
   // Spatial properties
   spatialProperties: SpatialProperties;
-  
+
   // Access control
   accessControl: AccessControlPolicy;
-  
+
   // State and lifecycle
   state: WorkspaceState;
   createdAt: Date;
   lastAccessedAt: Date;
-  
+
   // Configuration
   configuration: WorkspaceConfiguration;
 }
@@ -71,8 +71,8 @@ export interface MemoryResource {
 export interface CPUResource {
   cores: number;
   usage: number;
-  priority: 'low' | 'normal' | 'high' | 'critical';
-  scheduling: 'preemptive' | 'cooperative';
+  priority: "low" | "normal" | "high" | "critical";
+  scheduling: "preemptive" | "cooperative";
 }
 
 export interface NetworkResource {
@@ -87,13 +87,13 @@ export interface StorageResource {
   allocated: number;
   used: number;
   iops: number;
-  type: 'memory' | 'ssd' | 'disk' | 'distributed';
+  type: "memory" | "ssd" | "disk" | "distributed";
 }
 
 export interface ToolResource {
   toolId: string;
   toolType: string;
-  accessLevel: 'read' | 'write' | 'execute' | 'admin';
+  accessLevel: "read" | "write" | "execute" | "admin";
   usageCount: number;
   lastUsed: Date;
 }
@@ -131,7 +131,7 @@ export interface BoundingBox {
 
 export interface SpatialRelationship {
   targetId: string;
-  type: 'adjacent' | 'contained' | 'overlapping' | 'distant' | 'collaborative';
+  type: "adjacent" | "contained" | "overlapping" | "distant" | "collaborative";
   distance: number;
   strength: number;
   lastUpdated: Date;
@@ -140,7 +140,7 @@ export interface SpatialRelationship {
 export interface SpatialZone {
   id: string;
   name: string;
-  type: 'collaborative' | 'private' | 'public' | 'secure' | 'quarantine';
+  type: "collaborative" | "private" | "public" | "secure" | "quarantine";
   boundaries: BoundingBox;
   capacity: number;
   currentOccupancy: number;
@@ -157,7 +157,7 @@ export interface AccessRule {
 }
 
 export interface SpatialRule {
-  type: 'proximity' | 'movement' | 'resource' | 'interaction';
+  type: "proximity" | "movement" | "resource" | "interaction";
   condition: string;
   action: string;
   priority: number;
@@ -175,26 +175,26 @@ export interface SpatialMemoryNode {
   id: string;
   agentId: string;
   location: Vector3D;
-  memoryType: 'working' | 'episodic' | 'semantic' | 'procedural' | 'spatial';
-  
+  memoryType: "working" | "episodic" | "semantic" | "procedural" | "spatial";
+
   // Memory content
   data: any;
   metadata: MemoryMetadata;
-  
+
   // Spatial aspects
   spatialContext: SpatialContext;
   proximityIndex: ProximityIndex;
-  
+
   // Knowledge graph integration
   knowledgeLinks: KnowledgeLink[];
-  
+
   // Persistence
   persistence: PersistenceConfig;
   vectorClock: VectorClock;
 }
 
 export interface MemoryMetadata {
-  encoding: 'json' | 'binary' | 'compressed' | 'encrypted';
+  encoding: "json" | "binary" | "compressed" | "encrypted";
   size: number;
   priority: number;
   accessFrequency: number;
@@ -213,7 +213,12 @@ export interface SpatialContext {
 }
 
 export interface EnvironmentalFactor {
-  type: 'lighting' | 'noise' | 'temperature' | 'activity' | 'resource_availability';
+  type:
+    | "lighting"
+    | "noise"
+    | "temperature"
+    | "activity"
+    | "resource_availability";
   value: number;
   impact: number;
 }
@@ -222,11 +227,11 @@ export interface TemporalContext {
   timestamp: Date;
   duration: number;
   recurrence?: RecurrencePattern;
-  timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
+  timeOfDay: "morning" | "afternoon" | "evening" | "night";
 }
 
 export interface RecurrencePattern {
-  type: 'daily' | 'weekly' | 'monthly' | 'custom';
+  type: "daily" | "weekly" | "monthly" | "custom";
   interval: number;
   endDate?: Date;
 }
@@ -247,21 +252,21 @@ export interface ProximityNeighbor {
 
 export interface KnowledgeLink {
   targetNodeId: string;
-  linkType: 'causal' | 'temporal' | 'semantic' | 'spatial' | 'hierarchical';
+  linkType: "causal" | "temporal" | "semantic" | "spatial" | "hierarchical";
   strength: number;
   confidence: number;
   metadata: any;
 }
 
 export interface PersistenceConfig {
-  level: 'volatile' | 'session' | 'persistent' | 'archival';
+  level: "volatile" | "session" | "persistent" | "archival";
   backupPolicy: BackupPolicy;
   replicationFactor: number;
   compressionEnabled: boolean;
 }
 
 export interface BackupPolicy {
-  frequency: 'realtime' | 'hourly' | 'daily' | 'weekly';
+  frequency: "realtime" | "hourly" | "daily" | "weekly";
   retention: number;
   locations: string[];
 }
@@ -270,17 +275,21 @@ export interface BackupPolicy {
 
 export interface SpatialConsensusProposal {
   proposalId: string;
-  type: 'location_change' | 'resource_allocation' | 'zone_access' | 'collaboration_request';
+  type:
+    | "location_change"
+    | "resource_allocation"
+    | "zone_access"
+    | "collaboration_request";
   proposer: string;
   targetAgents: string[];
   spatialRequirements: SpatialRequirement[];
   resourceRequirements: ResourceRequirement[];
   consensusDeadline: Date;
-  priority: 'low' | 'normal' | 'high' | 'critical';
+  priority: "low" | "normal" | "high" | "critical";
 }
 
 export interface SpatialRequirement {
-  type: 'location' | 'proximity' | 'isolation' | 'movement';
+  type: "location" | "proximity" | "isolation" | "movement";
   constraint: any;
   mandatory: boolean;
   weight: number;
@@ -297,7 +306,7 @@ export interface ResourceRequirement {
 export interface SpatialConsensusVote {
   proposalId: string;
   voter: string;
-  vote: 'accept' | 'reject' | 'abstain' | 'conditional';
+  vote: "accept" | "reject" | "abstain" | "conditional";
   reasoning: string;
   conditions?: ConditionalRequirement[];
   timestamp: Date;
@@ -312,7 +321,7 @@ export interface ConditionalRequirement {
 
 export interface SpatialConsensusResult {
   proposalId: string;
-  decision: 'approved' | 'rejected' | 'timeout' | 'cancelled';
+  decision: "approved" | "rejected" | "timeout" | "cancelled";
   votes: SpatialConsensusVote[];
   finalConfiguration: any;
   implementationPlan: ImplementationStep[];
@@ -336,14 +345,14 @@ export interface AgentSpaceConfiguration {
   spatialDimensions: Vector3D;
   consensusQuorum: number;
   memoryShardingEnabled: boolean;
-  securityLevel: 'basic' | 'standard' | 'high' | 'maximum';
+  securityLevel: "basic" | "standard" | "high" | "maximum";
   monitoringEnabled: boolean;
   analyticsEnabled: boolean;
 }
 
 export interface WorkspaceState {
-  status: 'initializing' | 'active' | 'suspended' | 'terminating' | 'error';
-  health: 'healthy' | 'degraded' | 'unhealthy' | 'critical';
+  status: "initializing" | "active" | "suspended" | "terminating" | "error";
+  health: "healthy" | "degraded" | "unhealthy" | "critical";
   resourceUtilization: ResourceUtilization;
   performance: PerformanceMetrics;
   errors: ErrorReport[];
@@ -370,14 +379,14 @@ export interface ErrorReport {
   id: string;
   type: string;
   message: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   timestamp: Date;
   resolved: boolean;
   stackTrace?: string;
 }
 
 export interface WorkspaceConfiguration {
-  isolationLevel: 'none' | 'process' | 'container' | 'vm' | 'secure_enclave';
+  isolationLevel: "none" | "process" | "container" | "vm" | "secure_enclave";
   networkPolicy: NetworkPolicy;
   storagePolicy: StoragePolicy;
   securityPolicy: SecurityPolicy;
@@ -387,16 +396,16 @@ export interface WorkspaceConfiguration {
 export interface NetworkPolicy {
   inboundRules: NetworkRule[];
   outboundRules: NetworkRule[];
-  defaultAction: 'allow' | 'deny';
+  defaultAction: "allow" | "deny";
   rateLimiting: RateLimitConfig;
 }
 
 export interface NetworkRule {
-  protocol: 'tcp' | 'udp' | 'http' | 'websocket' | 'mcp';
+  protocol: "tcp" | "udp" | "http" | "websocket" | "mcp";
   ports: number[];
   sources?: string[];
   destinations?: string[];
-  action: 'allow' | 'deny';
+  action: "allow" | "deny";
 }
 
 export interface RateLimitConfig {
@@ -406,7 +415,7 @@ export interface RateLimitConfig {
 }
 
 export interface StoragePolicy {
-  type: 'local' | 'distributed' | 'cloud' | 'hybrid';
+  type: "local" | "distributed" | "cloud" | "hybrid";
   encryption: boolean;
   compression: boolean;
   deduplication: boolean;
@@ -421,10 +430,10 @@ export interface RetentionPolicy {
 }
 
 export interface SecurityPolicy {
-  authentication: 'none' | 'api_key' | 'oauth' | 'certificate' | 'biometric';
-  authorization: 'none' | 'rbac' | 'abac' | 'custom';
-  encryption: 'none' | 'transport' | 'at_rest' | 'end_to_end';
-  auditLevel: 'none' | 'basic' | 'detailed' | 'comprehensive';
+  authentication: "none" | "api_key" | "oauth" | "certificate" | "biometric";
+  authorization: "none" | "rbac" | "abac" | "custom";
+  encryption: "none" | "transport" | "at_rest" | "end_to_end";
+  auditLevel: "none" | "basic" | "detailed" | "comprehensive";
 }
 
 export interface MonitoringPolicy {
@@ -439,7 +448,7 @@ export interface AccessControlPolicy {
   owner: string;
   permissions: Permission[];
   inheritanceEnabled: boolean;
-  defaultPermission: 'deny' | 'read' | 'write' | 'admin';
+  defaultPermission: "deny" | "read" | "write" | "admin";
 }
 
 export interface Permission {
@@ -451,7 +460,7 @@ export interface Permission {
 }
 
 export interface PermissionCondition {
-  type: 'time' | 'location' | 'resource_usage' | 'trust_level';
+  type: "time" | "location" | "resource_usage" | "trust_level";
   condition: any;
   required: boolean;
 }
@@ -465,22 +474,22 @@ export interface AgentSpaceEvent {
   target?: string;
   timestamp: Date;
   data: any;
-  severity: 'info' | 'warning' | 'error' | 'critical';
+  severity: "info" | "warning" | "error" | "critical";
 }
 
 export type AgentSpaceEventType =
-  | 'workspace_created'
-  | 'workspace_destroyed'
-  | 'agent_moved'
-  | 'resource_allocated'
-  | 'resource_deallocated'
-  | 'consensus_started'
-  | 'consensus_completed'
-  | 'memory_synchronized'
-  | 'spatial_collision'
-  | 'performance_threshold_exceeded'
-  | 'security_violation'
-  | 'system_alert';
+  | "workspace_created"
+  | "workspace_destroyed"
+  | "agent_moved"
+  | "resource_allocated"
+  | "resource_deallocated"
+  | "consensus_started"
+  | "consensus_completed"
+  | "memory_synchronized"
+  | "spatial_collision"
+  | "performance_threshold_exceeded"
+  | "security_violation"
+  | "system_alert";
 
 // ===== Integration with Existing Systems =====
 
@@ -499,20 +508,24 @@ export interface AgentDefinitionExtension extends AgentDefinition {
 }
 
 export interface SpatialCapability {
-  type: 'navigation' | 'spatial_reasoning' | 'collision_detection' | 'path_planning';
-  level: 'basic' | 'intermediate' | 'advanced' | 'expert';
+  type:
+    | "navigation"
+    | "spatial_reasoning"
+    | "collision_detection"
+    | "path_planning";
+  level: "basic" | "intermediate" | "advanced" | "expert";
   constraints?: any;
 }
 
 export interface CollaborationPreference {
   preferredDistance: number;
   maxCollaborators: number;
-  communicationStyle: 'direct' | 'broadcast' | 'hierarchical' | 'mesh';
+  communicationStyle: "direct" | "broadcast" | "hierarchical" | "mesh";
   trustThreshold: number;
 }
 
 export interface SecurityClearance {
-  level: 'public' | 'confidential' | 'secret' | 'top_secret';
+  level: "public" | "confidential" | "secret" | "top_secret";
   compartments?: string[];
   validUntil?: Date;
 }
@@ -537,7 +550,7 @@ export interface HealthScore {
     spatial: number;
     resources: number;
   };
-  trend: 'improving' | 'stable' | 'degrading';
+  trend: "improving" | "stable" | "degrading";
 }
 
 export interface EfficiencyMetrics {
@@ -591,10 +604,14 @@ export interface TrendData {
 }
 
 export interface PredictiveInsight {
-  type: 'resource_shortage' | 'performance_degradation' | 'security_risk' | 'optimization_opportunity';
+  type:
+    | "resource_shortage"
+    | "performance_degradation"
+    | "security_risk"
+    | "optimization_opportunity";
   probability: number;
   timeframe: number; // milliseconds
-  impact: 'low' | 'medium' | 'high' | 'critical';
+  impact: "low" | "medium" | "high" | "critical";
   recommendation: string;
   preventiveActions: string[];
 }

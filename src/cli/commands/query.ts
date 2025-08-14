@@ -1,22 +1,25 @@
 /**
  * Query Command - Mini-swarm for intelligent web research
- * 
+ *
  * Combines MCP web research tools with Gemini Flash (free tier) for
  * comprehensive knowledge gathering with cost optimization
  */
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import { ModelOrchestrator, RoutingContext } from '../../core/model-orchestrator.js';
-import { Logger } from '../../utils/logger.js';
-import { EventEmitter } from 'events';
-import { asUserTier } from '../../types/index.js';
+import { Command } from "commander";
+import chalk from "chalk";
+import ora from "ora";
+import {
+  ModelOrchestrator,
+  RoutingContext,
+} from "../../core/model-orchestrator.js";
+import { Logger } from "../../utils/logger.js";
+import { EventEmitter } from "events";
+import { asUserTier } from "../../types/index.js";
 
 interface QueryOptions {
-  depth?: 'shallow' | 'medium' | 'deep';
+  depth?: "shallow" | "medium" | "deep";
   sources?: number;
-  format?: 'summary' | 'detailed' | 'structured';
+  format?: "summary" | "detailed" | "structured";
   cache?: boolean;
   parallel?: boolean;
   timeout?: number;
@@ -26,7 +29,7 @@ interface QueryResult {
   query: string;
   summary: string;
   sources: Array<{
-    type: 'web' | 'gemini' | 'mcp';
+    type: "web" | "gemini" | "mcp";
     content: string;
     confidence: number;
     timestamp: number;
@@ -49,16 +52,19 @@ class QueryMiniSwarm extends EventEmitter {
   constructor(orchestrator: ModelOrchestrator) {
     super();
     this.orchestrator = orchestrator;
-    this.logger = new Logger('QuerySwarm');
+    this.logger = new Logger("QuerySwarm");
   }
 
   /**
    * Execute query with mini-swarm coordination
    */
-  async executeQuery(query: string, options: QueryOptions): Promise<QueryResult> {
+  async executeQuery(
+    query: string,
+    options: QueryOptions,
+  ): Promise<QueryResult> {
     const startTime = performance.now();
-    
-    this.logger.info('Initializing query mini-swarm', { query, options });
+
+    this.logger.info("Initializing query mini-swarm", { query, options });
 
     // 1. Spawn mini-swarm agents (3 specialized agents)
     const agents = await this.spawnMiniSwarm();
@@ -67,14 +73,14 @@ class QueryMiniSwarm extends EventEmitter {
     const [webResults, geminiResults, mcpResults] = await Promise.all([
       this.webResearchAgent(query, options),
       this.geminiAnalystAgent(query, options),
-      this.mcpToolAgent(query, options)
+      this.mcpToolAgent(query, options),
     ]);
 
     // 3. Synthesize results
     const synthesized = await this.synthesizeResults(
       query,
       { web: webResults, gemini: geminiResults, mcp: mcpResults },
-      options
+      options,
     );
 
     // 4. Calculate metadata
@@ -83,13 +89,13 @@ class QueryMiniSwarm extends EventEmitter {
       duration,
       tokensUsed: this.calculateTokenUsage(synthesized),
       cost: this.calculateCost(synthesized),
-      cacheHit: synthesized.cacheHit || false
+      cacheHit: synthesized.cacheHit || false,
     };
 
-    this.logger.info('Query completed', { 
-      query, 
+    this.logger.info("Query completed", {
+      query,
       duration: `${duration.toFixed(2)}ms`,
-      sources: synthesized.sources.length 
+      sources: synthesized.sources.length,
     });
 
     return {
@@ -98,7 +104,7 @@ class QueryMiniSwarm extends EventEmitter {
       sources: synthesized.sources,
       insights: synthesized.insights,
       relatedQueries: synthesized.relatedQueries,
-      metadata
+      metadata,
     };
   }
 
@@ -107,29 +113,44 @@ class QueryMiniSwarm extends EventEmitter {
    */
   private async spawnMiniSwarm(): Promise<string[]> {
     const agents = [
-      { id: 'web-researcher', type: 'researcher', role: 'Web research specialist' },
-      { id: 'gemini-analyst', type: 'analyst', role: 'Gemini Flash analyst' },
-      { id: 'result-synthesizer', type: 'coordinator', role: 'Result synthesis' }
+      {
+        id: "web-researcher",
+        type: "researcher",
+        role: "Web research specialist",
+      },
+      { id: "gemini-analyst", type: "analyst", role: "Gemini Flash analyst" },
+      {
+        id: "result-synthesizer",
+        type: "coordinator",
+        role: "Result synthesis",
+      },
     ];
 
     for (const agent of agents) {
       this.activeAgents.set(agent.id, agent);
-      this.emit('agent_spawned', agent);
+      this.emit("agent_spawned", agent);
     }
 
-    return agents.map(a => a.id);
+    return agents.map((a) => a.id);
   }
 
   /**
    * Web Research Agent - Uses MCP web research tools
    */
-  private async webResearchAgent(query: string, options: QueryOptions): Promise<any> {
+  private async webResearchAgent(
+    query: string,
+    options: QueryOptions,
+  ): Promise<any> {
     try {
       // Simulate MCP web research tool usage
       // In production, this would call actual MCP web research tools
-      const searchDepth = options.depth === 'deep' ? 10 : options.depth === 'medium' ? 5 : 3;
-      
-      this.logger.debug('Web research agent searching', { query, depth: searchDepth });
+      const searchDepth =
+        options.depth === "deep" ? 10 : options.depth === "medium" ? 5 : 3;
+
+      this.logger.debug("Web research agent searching", {
+        query,
+        depth: searchDepth,
+      });
 
       // Simulate web search results
       const webResults = {
@@ -137,23 +158,23 @@ class QueryMiniSwarm extends EventEmitter {
           {
             title: `Understanding ${query}`,
             snippet: `Comprehensive information about ${query} from web sources...`,
-            url: `https://example.com/${query.replace(/\s+/g, '-')}`,
-            relevance: 0.95
+            url: `https://example.com/${query.replace(/\s+/g, "-")}`,
+            relevance: 0.95,
           },
           {
             title: `${query} - Complete Guide`,
             snippet: `Everything you need to know about ${query}...`,
-            url: `https://guide.example.com/${query.replace(/\s+/g, '-')}`,
-            relevance: 0.88
-          }
+            url: `https://guide.example.com/${query.replace(/\s+/g, "-")}`,
+            relevance: 0.88,
+          },
         ],
         totalResults: searchDepth,
-        searchTime: 250
+        searchTime: 250,
       };
 
       return webResults;
     } catch (error) {
-      this.logger.error('Web research failed', error);
+      this.logger.error("Web research failed", error);
       return { results: [], error: error.message };
     }
   }
@@ -161,66 +182,75 @@ class QueryMiniSwarm extends EventEmitter {
   /**
    * Gemini Analyst Agent - Uses Gemini Flash (free tier)
    */
-  private async geminiAnalystAgent(query: string, options: QueryOptions): Promise<any> {
+  private async geminiAnalystAgent(
+    query: string,
+    options: QueryOptions,
+  ): Promise<any> {
     try {
       // Use Gemini Flash (free tier) for general knowledge
       const context = {
         task: `Analyze and provide insights about: ${query}`,
-        userTier: asUserTier('free'), // Force free tier for cost optimization
-        priority: 'medium',
+        userTier: asUserTier("free"), // Force free tier for cost optimization
+        priority: "medium",
         latencyRequirement: 3000,
-        capabilities: ['text', 'reasoning']
+        capabilities: ["text", "reasoning"],
       };
 
-      this.logger.debug('Gemini analyst processing', { query, model: 'gemini-2.5-flash' });
+      this.logger.debug("Gemini analyst processing", {
+        query,
+        model: "gemini-2.5-flash",
+      });
 
       const response = await this.orchestrator.orchestrate(
         `Provide comprehensive analysis about: ${query}. Include key facts, important considerations, and practical insights.`,
-        context as RoutingContext
+        context as RoutingContext,
       );
 
       return {
         analysis: response.content,
         model: response.modelUsed,
         confidence: 0.92,
-        tokens: response.tokenUsage
+        tokens: response.tokenUsage,
       };
     } catch (error) {
-      this.logger.error('Gemini analysis failed', error);
-      return { analysis: '', error: error.message };
+      this.logger.error("Gemini analysis failed", error);
+      return { analysis: "", error: error.message };
     }
   }
 
   /**
    * MCP Tool Agent - Coordinates MCP tool usage
    */
-  private async mcpToolAgent(query: string, options: QueryOptions): Promise<any> {
+  private async mcpToolAgent(
+    query: string,
+    options: QueryOptions,
+  ): Promise<any> {
     try {
       // In production, this would coordinate actual MCP tool calls
       // For now, simulate MCP tool coordination
-      
-      this.logger.debug('MCP tool agent coordinating', { query });
+
+      this.logger.debug("MCP tool agent coordinating", { query });
 
       const mcpResults = {
-        tools_used: ['web_search', 'knowledge_base', 'fact_check'],
+        tools_used: ["web_search", "knowledge_base", "fact_check"],
         findings: [
           {
-            tool: 'knowledge_base',
+            tool: "knowledge_base",
             content: `Verified information about ${query} from knowledge base`,
-            confidence: 0.97
+            confidence: 0.97,
           },
           {
-            tool: 'fact_check',
+            tool: "fact_check",
             content: `Fact-checked data related to ${query}`,
-            confidence: 0.94
-          }
+            confidence: 0.94,
+          },
         ],
-        coordination_time: 180
+        coordination_time: 180,
       };
 
       return mcpResults;
     } catch (error) {
-      this.logger.error('MCP coordination failed', error);
+      this.logger.error("MCP coordination failed", error);
       return { findings: [], error: error.message };
     }
   }
@@ -229,9 +259,9 @@ class QueryMiniSwarm extends EventEmitter {
    * Synthesize results from all agents
    */
   private async synthesizeResults(
-    query: string, 
-    agentResults: any, 
-    options: QueryOptions
+    query: string,
+    agentResults: any,
+    options: QueryOptions,
   ): Promise<any> {
     try {
       // Use Gemini Flash to synthesize all results
@@ -239,7 +269,7 @@ class QueryMiniSwarm extends EventEmitter {
         Synthesize the following research results about "${query}":
         
         Web Research: ${JSON.stringify(agentResults.web.results || [])}
-        Gemini Analysis: ${agentResults.gemini.analysis || 'No analysis available'}
+        Gemini Analysis: ${agentResults.gemini.analysis || "No analysis available"}
         MCP Findings: ${JSON.stringify(agentResults.mcp.findings || [])}
         
         Provide:
@@ -247,17 +277,20 @@ class QueryMiniSwarm extends EventEmitter {
         2. Key insights (3-5 bullet points)
         3. Related queries for further exploration
         
-        Format: ${options.format || 'summary'}
+        Format: ${options.format || "summary"}
       `;
 
       const context = {
-        task: 'synthesis',
-        userTier: asUserTier('free'),
-        priority: 'high',
-        latencyRequirement: 2000
+        task: "synthesis",
+        userTier: asUserTier("free"),
+        priority: "high",
+        latencyRequirement: 2000,
       };
 
-      const synthesis = await this.orchestrator.orchestrate(synthesisPrompt, context as RoutingContext);
+      const synthesis = await this.orchestrator.orchestrate(
+        synthesisPrompt,
+        context as RoutingContext,
+      );
 
       // Parse synthesis result
       const content = synthesis.content;
@@ -268,10 +301,10 @@ class QueryMiniSwarm extends EventEmitter {
         sources: this.compileSources(agentResults),
         insights: sections.insights || [],
         relatedQueries: sections.relatedQueries || [],
-        cacheHit: false
+        cacheHit: false,
       };
     } catch (error) {
-      this.logger.error('Synthesis failed', error);
+      this.logger.error("Synthesis failed", error);
       throw error;
     }
   }
@@ -282,25 +315,34 @@ class QueryMiniSwarm extends EventEmitter {
   private parseSynthesisContent(content: string): any {
     // Simple parsing logic - in production, use more sophisticated parsing
     const sections: any = {
-      summary: '',
+      summary: "",
       insights: [],
-      relatedQueries: []
+      relatedQueries: [],
     };
 
-    const lines = content.split('\n');
-    let currentSection = 'summary';
+    const lines = content.split("\n");
+    let currentSection = "summary";
 
     for (const line of lines) {
-      if (line.includes('Insights:') || line.includes('Key insights:')) {
-        currentSection = 'insights';
-      } else if (line.includes('Related queries:') || line.includes('Further exploration:')) {
-        currentSection = 'relatedQueries';
+      if (line.includes("Insights:") || line.includes("Key insights:")) {
+        currentSection = "insights";
+      } else if (
+        line.includes("Related queries:") ||
+        line.includes("Further exploration:")
+      ) {
+        currentSection = "relatedQueries";
       } else if (line.trim()) {
-        if (currentSection === 'summary') {
-          sections.summary += line + ' ';
-        } else if (currentSection === 'insights' && line.trim().startsWith('-')) {
+        if (currentSection === "summary") {
+          sections.summary += line + " ";
+        } else if (
+          currentSection === "insights" &&
+          line.trim().startsWith("-")
+        ) {
           sections.insights.push(line.trim().substring(1).trim());
-        } else if (currentSection === 'relatedQueries' && line.trim().startsWith('-')) {
+        } else if (
+          currentSection === "relatedQueries" &&
+          line.trim().startsWith("-")
+        ) {
           sections.relatedQueries.push(line.trim().substring(1).trim());
         }
       }
@@ -319,10 +361,10 @@ class QueryMiniSwarm extends EventEmitter {
     if (agentResults.web.results) {
       for (const result of agentResults.web.results) {
         sources.push({
-          type: 'web',
+          type: "web",
           content: result.snippet,
           confidence: result.relevance,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     }
@@ -330,10 +372,10 @@ class QueryMiniSwarm extends EventEmitter {
     // Gemini source
     if (agentResults.gemini.analysis) {
       sources.push({
-        type: 'gemini',
+        type: "gemini",
         content: agentResults.gemini.analysis,
         confidence: agentResults.gemini.confidence || 0.9,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     }
 
@@ -341,10 +383,10 @@ class QueryMiniSwarm extends EventEmitter {
     if (agentResults.mcp.findings) {
       for (const finding of agentResults.mcp.findings) {
         sources.push({
-          type: 'mcp',
+          type: "mcp",
           content: finding.content,
           confidence: finding.confidence,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     }
@@ -377,42 +419,61 @@ class QueryMiniSwarm extends EventEmitter {
  */
 export class QueryCommand extends Command {
   constructor() {
-    super('query');
-    
-    this.description('Execute intelligent web research using a mini-swarm with MCP tools and Gemini Flash')
-      .argument('<query>', 'Research query to execute')
-      .option('-d, --depth <depth>', 'Search depth (shallow|medium|deep)', 'medium')
-      .option('-s, --sources <number>', 'Number of sources to gather', parseInt, 5)
-      .option('-f, --format <format>', 'Output format (summary|detailed|structured)', 'summary')
-      .option('--no-cache', 'Disable result caching')
-      .option('--parallel', 'Enable parallel agent execution', true)
-      .option('-t, --timeout <ms>', 'Query timeout in milliseconds', parseInt, 30000)
+    super("query");
+
+    this.description(
+      "Execute intelligent web research using a mini-swarm with MCP tools and Gemini Flash",
+    )
+      .argument("<query>", "Research query to execute")
+      .option(
+        "-d, --depth <depth>",
+        "Search depth (shallow|medium|deep)",
+        "medium",
+      )
+      .option(
+        "-s, --sources <number>",
+        "Number of sources to gather",
+        parseInt,
+        5,
+      )
+      .option(
+        "-f, --format <format>",
+        "Output format (summary|detailed|structured)",
+        "summary",
+      )
+      .option("--no-cache", "Disable result caching")
+      .option("--parallel", "Enable parallel agent execution", true)
+      .option(
+        "-t, --timeout <ms>",
+        "Query timeout in milliseconds",
+        parseInt,
+        30000,
+      )
       .action(async (query: string, options: QueryOptions) => {
-        const spinner = ora('Initializing query mini-swarm...').start();
-        
+        const spinner = ora("Initializing query mini-swarm...").start();
+
         try {
           // Initialize orchestrator if not already done
           const orchestrator = new ModelOrchestrator();
           const querySwarm = new QueryMiniSwarm(orchestrator);
 
           // Set up progress monitoring
-          querySwarm.on('agent_spawned', (agent) => {
+          querySwarm.on("agent_spawned", (agent) => {
             spinner.text = `Spawned ${agent.id} agent...`;
           });
 
-          spinner.text = 'Executing multi-source research...';
-          
+          spinner.text = "Executing multi-source research...";
+
           // Execute query
           const result = await querySwarm.executeQuery(query, options);
-          
-          spinner.succeed('Query completed successfully');
+
+          spinner.succeed("Query completed successfully");
 
           // Display results based on format
           this.displayResults(result, options);
-
         } catch (error) {
-          spinner.fail('Query execution failed');
-          console.error(chalk.red('Error:'), error.message);
+          spinner.fail("Query execution failed");
+          console.error(chalk.red("Error:"), error.message);
           process.exit(1);
         }
       });
@@ -422,50 +483,62 @@ export class QueryCommand extends Command {
    * Display query results based on format
    */
   private displayResults(result: QueryResult, options: QueryOptions): void {
-    console.log(chalk.blue('\n📊 Query Results'));
-    console.log(chalk.gray('─'.repeat(50)));
-    
+    console.log(chalk.blue("\n📊 Query Results"));
+    console.log(chalk.gray("─".repeat(50)));
+
     // Query
-    console.log(chalk.yellow('Query:'), result.query);
-    
+    console.log(chalk.yellow("Query:"), result.query);
+
     // Summary
-    console.log(chalk.green('\n📝 Summary:'));
+    console.log(chalk.green("\n📝 Summary:"));
     console.log(result.summary);
-    
+
     // Insights
     if (result.insights.length > 0) {
-      console.log(chalk.green('\n💡 Key Insights:'));
+      console.log(chalk.green("\n💡 Key Insights:"));
       result.insights.forEach((insight, i) => {
         console.log(chalk.gray(`  ${i + 1}.`), insight);
       });
     }
-    
+
     // Sources (in detailed/structured format)
-    if (options.format !== 'summary' && result.sources.length > 0) {
-      console.log(chalk.green('\n🔍 Sources:'));
+    if (options.format !== "summary" && result.sources.length > 0) {
+      console.log(chalk.green("\n🔍 Sources:"));
       result.sources.forEach((source, i) => {
-        console.log(chalk.gray(`  ${i + 1}.`), chalk.cyan(`[${source.type}]`), 
-          `(${(source.confidence * 100).toFixed(0)}% confidence)`);
-        if (options.format === 'detailed') {
-          console.log(chalk.gray('     '), source.content.substring(0, 150) + '...');
+        console.log(
+          chalk.gray(`  ${i + 1}.`),
+          chalk.cyan(`[${source.type}]`),
+          `(${(source.confidence * 100).toFixed(0)}% confidence)`,
+        );
+        if (options.format === "detailed") {
+          console.log(
+            chalk.gray("     "),
+            source.content.substring(0, 150) + "...",
+          );
         }
       });
     }
-    
+
     // Related queries
     if (result.relatedQueries.length > 0) {
-      console.log(chalk.green('\n🔗 Related Queries:'));
+      console.log(chalk.green("\n🔗 Related Queries:"));
       result.relatedQueries.forEach((rq, i) => {
         console.log(chalk.gray(`  ${i + 1}.`), rq);
       });
     }
-    
+
     // Metadata
-    console.log(chalk.blue('\n📈 Performance:'));
-    console.log(chalk.gray('  Duration:'), `${result.metadata.duration.toFixed(2)}ms`);
-    console.log(chalk.gray('  Tokens:'), result.metadata.tokensUsed);
-    console.log(chalk.gray('  Cost:'), `$${result.metadata.cost.toFixed(6)}`);
-    console.log(chalk.gray('  Cache:'), result.metadata.cacheHit ? '✅ Hit' : '❌ Miss');
+    console.log(chalk.blue("\n📈 Performance:"));
+    console.log(
+      chalk.gray("  Duration:"),
+      `${result.metadata.duration.toFixed(2)}ms`,
+    );
+    console.log(chalk.gray("  Tokens:"), result.metadata.tokensUsed);
+    console.log(chalk.gray("  Cost:"), `$${result.metadata.cost.toFixed(6)}`);
+    console.log(
+      chalk.gray("  Cache:"),
+      result.metadata.cacheHit ? "✅ Hit" : "❌ Miss",
+    );
   }
 }
 

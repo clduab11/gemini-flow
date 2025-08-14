@@ -1,12 +1,12 @@
 /**
  * Test Utilities and Factories for Google Services TDD Test Suites
- * 
+ *
  * Comprehensive testing utilities following London School TDD practices
  * with mock factories, test data generators, and custom matchers.
  */
 
-import { jest } from '@jest/globals';
-import { EventEmitter } from 'events';
+import { jest } from "@jest/globals";
+import { EventEmitter } from "events";
 import {
   ServiceResponse,
   ServiceError,
@@ -20,8 +20,8 @@ import {
   VideoGenerationRequest,
   ResearchHypothesis,
   AudioConfig,
-  MusicCompositionConfig
-} from '../interfaces.js';
+  MusicCompositionConfig,
+} from "../interfaces.js";
 
 // ==================== Mock Factories ====================
 
@@ -32,13 +32,13 @@ export class MockFactory {
   static createServiceResponse<T>(
     success: boolean = true,
     data?: T,
-    error?: ServiceError
+    error?: ServiceError,
   ): ServiceResponse<T> {
     return {
       success,
       data,
       error,
-      metadata: this.createResponseMetadata()
+      metadata: this.createResponseMetadata(),
     };
   }
 
@@ -50,9 +50,9 @@ export class MockFactory {
       requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date(),
       processingTime: Math.floor(Math.random() * 1000),
-      region: 'test-region',
+      region: "test-region",
       quotaUsed: Math.floor(Math.random() * 100),
-      rateLimitRemaining: Math.floor(Math.random() * 1000)
+      rateLimitRemaining: Math.floor(Math.random() * 1000),
     };
   }
 
@@ -60,16 +60,16 @@ export class MockFactory {
    * Creates a mock service error
    */
   static createServiceError(
-    code: string = 'TEST_ERROR',
-    message: string = 'Test error message',
-    retryable: boolean = false
+    code: string = "TEST_ERROR",
+    message: string = "Test error message",
+    retryable: boolean = false,
   ): ServiceError {
     return {
       code,
       message,
       retryable,
       timestamp: new Date(),
-      details: { testError: true }
+      details: { testError: true },
     };
   }
 
@@ -83,29 +83,29 @@ export class MockFactory {
         p50: Math.random() * 100,
         p95: Math.random() * 200,
         p99: Math.random() * 500,
-        max: Math.random() * 1000
+        max: Math.random() * 1000,
       },
       throughput: {
         requestsPerSecond: Math.random() * 1000,
         bytesPerSecond: Math.random() * 1024 * 1024,
-        operationsPerSecond: Math.random() * 500
+        operationsPerSecond: Math.random() * 500,
       },
       utilization: {
         cpu: Math.random() * 100,
         memory: Math.random() * 100,
         disk: Math.random() * 100,
         network: Math.random() * 100,
-        gpu: Math.random() * 100
+        gpu: Math.random() * 100,
       },
       errors: {
         rate: Math.random() * 10,
         percentage: Math.random() * 5,
         types: {
-          'network_error': Math.floor(Math.random() * 10),
-          'validation_error': Math.floor(Math.random() * 5),
-          'timeout_error': Math.floor(Math.random() * 3)
-        }
-      }
+          network_error: Math.floor(Math.random() * 10),
+          validation_error: Math.floor(Math.random() * 5),
+          timeout_error: Math.floor(Math.random() * 3),
+        },
+      },
     };
   }
 
@@ -118,14 +118,18 @@ export class MockFactory {
       chunkSize: 8192,
       timeout: 30000,
       compression: true,
-      protocol: 'websocket'
+      protocol: "websocket",
     };
   }
 
   /**
    * Creates mock stream chunk
    */
-  static createStreamChunk<T>(data: T, sequence: number = 0, final: boolean = false): StreamChunk<T> {
+  static createStreamChunk<T>(
+    data: T,
+    sequence: number = 0,
+    final: boolean = false,
+  ): StreamChunk<T> {
     return {
       id: `chunk_${sequence}_${Date.now()}`,
       sequence,
@@ -134,8 +138,8 @@ export class MockFactory {
       metadata: {
         timestamp: new Date(),
         size: JSON.stringify(data).length,
-        checksum: `checksum_${sequence}`
-      }
+        checksum: `checksum_${sequence}`,
+      },
     };
   }
 
@@ -145,38 +149,38 @@ export class MockFactory {
   static createAgentEnvironment(): AgentEnvironment {
     return {
       id: `env_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: 'test-environment',
-      type: 'testing',
+      name: "test-environment",
+      type: "testing",
       resources: this.createResourceAllocation(),
       isolation: {
-        level: 'container',
-        restrictions: ['limited_network_access'],
-        allowedServices: ['logging', 'monitoring'],
+        level: "container",
+        restrictions: ["limited_network_access"],
+        allowedServices: ["logging", "monitoring"],
         security: {
           encryption: true,
           authentication: true,
           authorization: true,
           auditing: true,
-          policies: []
-        }
+          policies: [],
+        },
       },
       networking: {
-        vpc: 'test-vpc',
-        subnet: 'test-subnet',
+        vpc: "test-vpc",
+        subnet: "test-subnet",
         firewall: [],
-        loadBalancing: false
+        loadBalancing: false,
       },
       storage: {
-        type: 'local',
+        type: "local",
         size: 1024,
         encryption: true,
         backup: {
           enabled: true,
-          frequency: 'daily',
+          frequency: "daily",
           retention: 7,
-          location: 'local'
-        }
-      }
+          location: "local",
+        },
+      },
     };
   }
 
@@ -189,16 +193,16 @@ export class MockFactory {
       memory: 8192,
       storage: 102400,
       gpu: {
-        type: 'NVIDIA_T4',
+        type: "NVIDIA_T4",
         memory: 16384,
         count: 1,
-        sharedAccess: false
+        sharedAccess: false,
       },
       networking: {
         bandwidth: 1000,
         connections: 1000,
-        ports: [8080, 8443]
-      }
+        ports: [8080, 8443],
+      },
     };
   }
 
@@ -208,37 +212,37 @@ export class MockFactory {
   static createAutomationTask(): AutomationTask {
     return {
       id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: 'Test Automation Task',
+      name: "Test Automation Task",
       steps: [
         {
-          type: 'navigate',
-          value: 'https://example.com',
-          timeout: 30000
+          type: "navigate",
+          value: "https://example.com",
+          timeout: 30000,
         },
         {
-          type: 'click',
-          selector: '#submit-button',
-          timeout: 5000
+          type: "click",
+          selector: "#submit-button",
+          timeout: 5000,
         },
         {
-          type: 'wait',
-          value: 1000
-        }
+          type: "wait",
+          value: 1000,
+        },
       ],
       conditions: [
         {
-          type: 'element_present',
-          selector: '#confirmation',
-          value: undefined
-        }
+          type: "element_present",
+          selector: "#confirmation",
+          value: undefined,
+        },
       ],
       timeout: 300000,
       retryPolicy: {
         maxAttempts: 3,
-        backoffStrategy: 'exponential',
+        backoffStrategy: "exponential",
         baseDelay: 1000,
-        maxDelay: 30000
-      }
+        maxDelay: 30000,
+      },
     };
   }
 
@@ -247,63 +251,63 @@ export class MockFactory {
    */
   static createVideoGenerationRequest(): VideoGenerationRequest {
     return {
-      prompt: 'A serene landscape with mountains and a lake',
+      prompt: "A serene landscape with mountains and a lake",
       style: {
-        type: 'realistic',
-        mood: 'peaceful',
-        colorPalette: ['#87CEEB', '#228B22', '#8B4513'],
+        type: "realistic",
+        mood: "peaceful",
+        colorPalette: ["#87CEEB", "#228B22", "#8B4513"],
         lighting: {
-          type: 'natural',
+          type: "natural",
           intensity: 0.8,
-          direction: 'top-left',
-          color: '#FFFFFF'
+          direction: "top-left",
+          color: "#FFFFFF",
         },
         camera: {
-          angle: 'wide',
+          angle: "wide",
           movement: {
-            type: 'static',
+            type: "static",
             speed: 0,
-            smoothness: 1
+            smoothness: 1,
           },
           focus: {
-            type: 'auto',
-            depth: 0.5
+            type: "auto",
+            depth: 0.5,
           },
           depth: {
             enabled: true,
             range: [0.1, 100],
-            falloff: 0.8
-          }
-        }
+            falloff: 0.8,
+          },
+        },
       },
       resolution: {
         width: 1920,
         height: 1080,
-        aspectRatio: '16:9'
+        aspectRatio: "16:9",
       },
       duration: 30,
       frameRate: 30,
       format: {
-        container: 'mp4',
-        codec: 'h264',
-        bitrate: 5000000
+        container: "mp4",
+        codec: "h264",
+        bitrate: 5000000,
       },
       quality: {
-        preset: 'high',
+        preset: "high",
         customSettings: {
           renderSamples: 128,
           denoising: true,
           motionBlur: true,
-          antiAliasing: true
-        }
+          antiAliasing: true,
+        },
       },
       effects: [
         {
-          type: 'color_grading',
+          type: "color_grading",
           parameters: { saturation: 1.2, contrast: 1.1 },
-          timing: { start: 0, duration: 30, easing: 'linear' }
-        }
-      ]
+          timing: { start: 0, duration: 30, easing: "linear" },
+        },
+      ],
     };
   }
 
@@ -313,74 +317,75 @@ export class MockFactory {
   static createResearchHypothesis(): ResearchHypothesis {
     return {
       id: `hypothesis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      statement: 'Increased temperature leads to faster chemical reaction rates',
+      statement:
+        "Increased temperature leads to faster chemical reaction rates",
       variables: [
         {
-          name: 'temperature',
-          type: 'independent',
-          dataType: 'numerical',
+          name: "temperature",
+          type: "independent",
+          dataType: "numerical",
           measurement: {
-            unit: 'celsius',
+            unit: "celsius",
             scale: [0, 100],
             precision: 0.1,
-            method: 'digital_thermometer'
-          }
+            method: "digital_thermometer",
+          },
         },
         {
-          name: 'reaction_rate',
-          type: 'dependent',
-          dataType: 'numerical',
+          name: "reaction_rate",
+          type: "dependent",
+          dataType: "numerical",
           measurement: {
-            unit: 'mol/L/s',
+            unit: "mol/L/s",
             scale: [0, 10],
             precision: 0.01,
-            method: 'spectrophotometry'
-          }
-        }
+            method: "spectrophotometry",
+          },
+        },
       ],
       methodology: {
-        design: 'experimental',
+        design: "experimental",
         sampling: {
-          method: 'random',
+          method: "random",
           size: 100,
           criteria: {
-            inclusion: ['room_temperature_stable'],
-            exclusion: ['contaminated_samples']
-          }
+            inclusion: ["room_temperature_stable"],
+            exclusion: ["contaminated_samples"],
+          },
         },
         analysis: {
           statistical: [
             {
-              name: 'linear_regression',
-              type: 'parametric',
-              assumptions: ['normality', 'linearity', 'independence'],
-              parameters: { alpha: 0.05 }
-            }
+              name: "linear_regression",
+              type: "parametric",
+              assumptions: ["normality", "linearity", "independence"],
+              parameters: { alpha: 0.05 },
+            },
           ],
           significance: 0.05,
           power: 0.8,
-          corrections: ['bonferroni']
+          corrections: ["bonferroni"],
         },
         validation: {
           crossValidation: true,
           holdoutSet: 20,
           reproducibility: {
             seed: 42,
-            environment: 'controlled_lab',
-            dependencies: ['python==3.9', 'numpy==1.21.0'],
-            documentation: true
-          }
-        }
+            environment: "controlled_lab",
+            dependencies: ["python==3.9", "numpy==1.21.0"],
+            documentation: true,
+          },
+        },
       },
       predictions: [
         {
-          variable: 'reaction_rate',
-          direction: 'increase',
+          variable: "reaction_rate",
+          direction: "increase",
           magnitude: 1.5,
-          confidence: 0.8
-        }
+          confidence: 0.8,
+        },
       ],
-      significance: 0.85
+      significance: 0.85,
     };
   }
 
@@ -393,15 +398,15 @@ export class MockFactory {
       bitDepth: 24,
       channels: 2,
       format: {
-        container: 'wav',
-        codec: 'pcm',
-        bitrate: 1536000
+        container: "wav",
+        codec: "pcm",
+        bitrate: 1536000,
       },
       compression: {
         enabled: false,
-        algorithm: 'lossless',
-        quality: 100
-      }
+        algorithm: "lossless",
+        quality: 100,
+      },
     };
   }
 
@@ -411,72 +416,72 @@ export class MockFactory {
   static createMusicCompositionConfig(): MusicCompositionConfig {
     return {
       style: {
-        genre: 'classical',
-        subgenre: 'baroque',
-        influences: ['bach', 'vivaldi'],
-        characteristics: ['counterpoint', 'ornamental']
+        genre: "classical",
+        subgenre: "baroque",
+        influences: ["bach", "vivaldi"],
+        characteristics: ["counterpoint", "ornamental"],
       },
       structure: {
         sections: [
           {
-            name: 'exposition',
-            type: 'intro',
+            name: "exposition",
+            type: "intro",
             duration: 32,
-            key: { tonic: 'C', mode: 'major', accidentals: [] }
+            key: { tonic: "C", mode: "major", accidentals: [] },
           },
           {
-            name: 'development',
-            type: 'verse',
+            name: "development",
+            type: "verse",
             duration: 48,
-            key: { tonic: 'G', mode: 'major', accidentals: [] }
-          }
+            key: { tonic: "G", mode: "major", accidentals: [] },
+          },
         ],
         transitions: [
           {
-            from: 'exposition',
-            to: 'development',
-            type: 'bridge',
-            duration: 4
-          }
+            from: "exposition",
+            to: "development",
+            type: "bridge",
+            duration: 4,
+          },
         ],
         dynamics: {
-          overall: 'mf',
+          overall: "mf",
           variation: true,
           crescendos: [
             {
               start: 16,
               duration: 8,
-              fromLevel: 'mp',
-              toLevel: 'f'
-            }
-          ]
-        }
+              fromLevel: "mp",
+              toLevel: "f",
+            },
+          ],
+        },
       },
       instruments: [
         {
-          id: 'violin1',
-          type: 'melodic',
+          id: "violin1",
+          type: "melodic",
           midiProgram: 40,
           channel: 0,
           volume: 80,
           pan: -20,
-          effects: []
-        }
+          effects: [],
+        },
       ],
       tempo: {
         bpm: 120,
         variations: [],
-        swing: 0
+        swing: 0,
       },
       key: {
-        tonic: 'C',
-        mode: 'major',
-        accidentals: []
+        tonic: "C",
+        mode: "major",
+        accidentals: [],
       },
       timeSignature: {
         numerator: 4,
-        denominator: 4
-      }
+        denominator: 4,
+      },
     };
   }
 }
@@ -488,7 +493,9 @@ export class TestDataGenerator {
    * Generates random test strings
    */
   static randomString(length: number = 10): string {
-    return Math.random().toString(36).substring(2, 2 + length);
+    return Math.random()
+      .toString(36)
+      .substring(2, 2 + length);
   }
 
   /**
@@ -522,7 +529,7 @@ export class TestDataGenerator {
   /**
    * Generates test file paths
    */
-  static testFilePath(extension: string = 'txt'): string {
+  static testFilePath(extension: string = "txt"): string {
     return `/test/path/${this.randomString(10)}.${extension}`;
   }
 
@@ -530,7 +537,7 @@ export class TestDataGenerator {
    * Generates test buffer data
    */
   static testBuffer(size: number = 1024): Buffer {
-    return Buffer.alloc(size, 'test data');
+    return Buffer.alloc(size, "test data");
   }
 
   /**
@@ -580,7 +587,7 @@ export class MockBuilder {
    */
   mockReturnValueOnce(name: string, ...values: any[]): this {
     let mockFn = this.mocks.get(name) || jest.fn();
-    values.forEach(value => {
+    values.forEach((value) => {
       mockFn = mockFn.mockReturnValueOnce(value);
     });
     this.mocks.set(name, mockFn);
@@ -609,14 +616,14 @@ export class MockBuilder {
    * Clears all mocks
    */
   clear(): void {
-    this.mocks.forEach(mock => mock.mockClear());
+    this.mocks.forEach((mock) => mock.mockClear());
   }
 
   /**
    * Resets all mocks
    */
   reset(): void {
-    this.mocks.forEach(mock => mock.mockReset());
+    this.mocks.forEach((mock) => mock.mockReset());
   }
 }
 
@@ -627,22 +634,22 @@ export class ContractTester {
    * Validates service response contract
    */
   static validateServiceResponse<T>(response: ServiceResponse<T>): void {
-    expect(response).toHaveProperty('success');
-    expect(typeof response.success).toBe('boolean');
-    expect(response).toHaveProperty('metadata');
-    expect(response.metadata).toHaveProperty('requestId');
-    expect(response.metadata).toHaveProperty('timestamp');
-    expect(response.metadata).toHaveProperty('processingTime');
-    expect(response.metadata).toHaveProperty('region');
+    expect(response).toHaveProperty("success");
+    expect(typeof response.success).toBe("boolean");
+    expect(response).toHaveProperty("metadata");
+    expect(response.metadata).toHaveProperty("requestId");
+    expect(response.metadata).toHaveProperty("timestamp");
+    expect(response.metadata).toHaveProperty("processingTime");
+    expect(response.metadata).toHaveProperty("region");
 
     if (response.success) {
-      expect(response).toHaveProperty('data');
+      expect(response).toHaveProperty("data");
     } else {
-      expect(response).toHaveProperty('error');
-      expect(response.error).toHaveProperty('code');
-      expect(response.error).toHaveProperty('message');
-      expect(response.error).toHaveProperty('retryable');
-      expect(response.error).toHaveProperty('timestamp');
+      expect(response).toHaveProperty("error");
+      expect(response.error).toHaveProperty("code");
+      expect(response.error).toHaveProperty("message");
+      expect(response.error).toHaveProperty("retryable");
+      expect(response.error).toHaveProperty("timestamp");
     }
   }
 
@@ -650,40 +657,43 @@ export class ContractTester {
    * Validates performance metrics contract
    */
   static validatePerformanceMetrics(metrics: PerformanceMetrics): void {
-    expect(metrics).toHaveProperty('latency');
-    expect(metrics.latency).toHaveProperty('mean');
-    expect(metrics.latency).toHaveProperty('p50');
-    expect(metrics.latency).toHaveProperty('p95');
-    expect(metrics.latency).toHaveProperty('p99');
-    expect(metrics.latency).toHaveProperty('max');
+    expect(metrics).toHaveProperty("latency");
+    expect(metrics.latency).toHaveProperty("mean");
+    expect(metrics.latency).toHaveProperty("p50");
+    expect(metrics.latency).toHaveProperty("p95");
+    expect(metrics.latency).toHaveProperty("p99");
+    expect(metrics.latency).toHaveProperty("max");
 
-    expect(metrics).toHaveProperty('throughput');
-    expect(metrics.throughput).toHaveProperty('requestsPerSecond');
-    expect(metrics.throughput).toHaveProperty('bytesPerSecond');
-    expect(metrics.throughput).toHaveProperty('operationsPerSecond');
+    expect(metrics).toHaveProperty("throughput");
+    expect(metrics.throughput).toHaveProperty("requestsPerSecond");
+    expect(metrics.throughput).toHaveProperty("bytesPerSecond");
+    expect(metrics.throughput).toHaveProperty("operationsPerSecond");
 
-    expect(metrics).toHaveProperty('utilization');
-    expect(metrics.utilization).toHaveProperty('cpu');
-    expect(metrics.utilization).toHaveProperty('memory');
-    expect(metrics.utilization).toHaveProperty('disk');
-    expect(metrics.utilization).toHaveProperty('network');
+    expect(metrics).toHaveProperty("utilization");
+    expect(metrics.utilization).toHaveProperty("cpu");
+    expect(metrics.utilization).toHaveProperty("memory");
+    expect(metrics.utilization).toHaveProperty("disk");
+    expect(metrics.utilization).toHaveProperty("network");
 
-    expect(metrics).toHaveProperty('errors');
-    expect(metrics.errors).toHaveProperty('rate');
-    expect(metrics.errors).toHaveProperty('percentage');
-    expect(metrics.errors).toHaveProperty('types');
+    expect(metrics).toHaveProperty("errors");
+    expect(metrics.errors).toHaveProperty("rate");
+    expect(metrics.errors).toHaveProperty("percentage");
+    expect(metrics.errors).toHaveProperty("types");
   }
 
   /**
    * Validates event emitter contract
    */
-  static validateEventEmitter(emitter: EventEmitter, expectedEvents: string[]): void {
+  static validateEventEmitter(
+    emitter: EventEmitter,
+    expectedEvents: string[],
+  ): void {
     expect(emitter).toBeInstanceOf(EventEmitter);
-    
-    expectedEvents.forEach(event => {
-      expect(typeof emitter.on).toBe('function');
-      expect(typeof emitter.emit).toBe('function');
-      expect(typeof emitter.removeListener).toBe('function');
+
+    expectedEvents.forEach((event) => {
+      expect(typeof emitter.on).toBe("function");
+      expect(typeof emitter.emit).toBe("function");
+      expect(typeof emitter.removeListener).toBe("function");
     });
   }
 }
@@ -698,9 +708,11 @@ export class PropertyGenerator {
     return {
       apiKey: TestDataGenerator.randomString(32),
       projectId: TestDataGenerator.randomString(16),
-      region: ['us-central1', 'europe-west1', 'asia-east1'][Math.floor(Math.random() * 3)],
+      region: ["us-central1", "europe-west1", "asia-east1"][
+        Math.floor(Math.random() * 3)
+      ],
       maxRetries: Math.floor(Math.random() * 5) + 1,
-      timeout: Math.floor(Math.random() * 30000) + 5000
+      timeout: Math.floor(Math.random() * 30000) + 5000,
     };
   }
 
@@ -709,15 +721,15 @@ export class PropertyGenerator {
    */
   static invalidServiceConfig(): any {
     const configs = [
-      { apiKey: '', projectId: 'valid-project' }, // Empty API key
-      { apiKey: 'valid-key', projectId: '' }, // Empty project ID
-      { apiKey: 'valid-key', projectId: 'valid-project', maxRetries: -1 }, // Negative retries
-      { apiKey: 'valid-key', projectId: 'valid-project', timeout: 0 }, // Zero timeout
+      { apiKey: "", projectId: "valid-project" }, // Empty API key
+      { apiKey: "valid-key", projectId: "" }, // Empty project ID
+      { apiKey: "valid-key", projectId: "valid-project", maxRetries: -1 }, // Negative retries
+      { apiKey: "valid-key", projectId: "valid-project", timeout: 0 }, // Zero timeout
       null, // Null config
       undefined, // Undefined config
-      'invalid-config' // String instead of object
+      "invalid-config", // String instead of object
     ];
-    
+
     return configs[Math.floor(Math.random() * configs.length)];
   }
 
@@ -735,22 +747,30 @@ export class PerformanceTester {
   /**
    * Measures execution time of an async function
    */
-  static async measureExecutionTime<T>(fn: () => Promise<T>): Promise<{ result: T; duration: number }> {
+  static async measureExecutionTime<T>(
+    fn: () => Promise<T>,
+  ): Promise<{ result: T; duration: number }> {
     const start = process.hrtime.bigint();
     const result = await fn();
     const end = process.hrtime.bigint();
     const duration = Number(end - start) / 1000000; // Convert to milliseconds
-    
+
     return { result, duration };
   }
 
   /**
    * Asserts performance requirements
    */
-  static assertPerformance(duration: number, maxDuration: number, operation: string): void {
+  static assertPerformance(
+    duration: number,
+    maxDuration: number,
+    operation: string,
+  ): void {
     expect(duration).toBeLessThanOrEqual(maxDuration);
     if (duration > maxDuration * 0.8) {
-      console.warn(`Performance warning: ${operation} took ${duration}ms (limit: ${maxDuration}ms)`);
+      console.warn(
+        `Performance warning: ${operation} took ${duration}ms (limit: ${maxDuration}ms)`,
+      );
     }
   }
 
@@ -761,23 +781,26 @@ export class PerformanceTester {
     name: string,
     operation: () => Promise<T>,
     maxDuration: number,
-    iterations: number = 10
+    iterations: number = 10,
   ): () => Promise<void> {
     return async () => {
       const durations: number[] = [];
-      
+
       for (let i = 0; i < iterations; i++) {
         const { duration } = await this.measureExecutionTime(operation);
         durations.push(duration);
       }
-      
-      const avgDuration = durations.reduce((sum, d) => sum + d, 0) / durations.length;
+
+      const avgDuration =
+        durations.reduce((sum, d) => sum + d, 0) / durations.length;
       const maxObservedDuration = Math.max(...durations);
-      
+
       expect(avgDuration).toBeLessThanOrEqual(maxDuration);
       expect(maxObservedDuration).toBeLessThanOrEqual(maxDuration * 2); // Allow spikes up to 2x
-      
-      console.log(`Performance test ${name}: avg=${avgDuration.toFixed(2)}ms, max=${maxObservedDuration.toFixed(2)}ms`);
+
+      console.log(
+        `Performance test ${name}: avg=${avgDuration.toFixed(2)}ms, max=${maxObservedDuration.toFixed(2)}ms`,
+      );
     };
   }
 }
@@ -791,43 +814,46 @@ export class AccessibilityTester {
   static validateAccessibility(element: any): void {
     // Mock accessibility validation - would integrate with real a11y tools in practice
     expect(element).toBeDefined();
-    
+
     // Check for common accessibility requirements
     if (element.role) {
-      expect(typeof element.role).toBe('string');
+      expect(typeof element.role).toBe("string");
     }
-    
+
     if (element.ariaLabel) {
-      expect(typeof element.ariaLabel).toBe('string');
+      expect(typeof element.ariaLabel).toBe("string");
       expect(element.ariaLabel.length).toBeGreaterThan(0);
     }
-    
+
     if (element.tabIndex !== undefined) {
-      expect(typeof element.tabIndex).toBe('number');
+      expect(typeof element.tabIndex).toBe("number");
     }
   }
 
   /**
    * Generates accessibility test cases
    */
-  static generateAccessibilityTestCases(): Array<{ scenario: string; requirements: string[] }> {
+  static generateAccessibilityTestCases(): Array<{
+    scenario: string;
+    requirements: string[];
+  }> {
     return [
       {
-        scenario: 'keyboard_navigation',
-        requirements: ['tab_order', 'focus_indicators', 'keyboard_shortcuts']
+        scenario: "keyboard_navigation",
+        requirements: ["tab_order", "focus_indicators", "keyboard_shortcuts"],
       },
       {
-        scenario: 'screen_reader',
-        requirements: ['aria_labels', 'semantic_markup', 'alt_text']
+        scenario: "screen_reader",
+        requirements: ["aria_labels", "semantic_markup", "alt_text"],
       },
       {
-        scenario: 'color_contrast',
-        requirements: ['wcag_aa_contrast', 'color_blind_safe']
+        scenario: "color_contrast",
+        requirements: ["wcag_aa_contrast", "color_blind_safe"],
       },
       {
-        scenario: 'motor_accessibility',
-        requirements: ['large_click_targets', 'gesture_alternatives']
-      }
+        scenario: "motor_accessibility",
+        requirements: ["large_click_targets", "gesture_alternatives"],
+      },
     ];
   }
 }
@@ -840,10 +866,10 @@ export class ErrorScenarioTester {
    */
   static networkErrors(): Error[] {
     return [
-      new Error('Network timeout'),
-      new Error('Connection refused'),
-      new Error('DNS resolution failed'),
-      new Error('SSL certificate invalid')
+      new Error("Network timeout"),
+      new Error("Connection refused"),
+      new Error("DNS resolution failed"),
+      new Error("SSL certificate invalid"),
     ];
   }
 
@@ -852,10 +878,10 @@ export class ErrorScenarioTester {
    */
   static validationErrors(): Error[] {
     return [
-      new Error('Invalid input format'),
-      new Error('Required field missing'),
-      new Error('Value out of range'),
-      new Error('Invalid data type')
+      new Error("Invalid input format"),
+      new Error("Required field missing"),
+      new Error("Value out of range"),
+      new Error("Invalid data type"),
     ];
   }
 
@@ -864,10 +890,10 @@ export class ErrorScenarioTester {
    */
   static serviceErrors(): Error[] {
     return [
-      new Error('Service unavailable'),
-      new Error('Rate limit exceeded'),
-      new Error('Authentication failed'),
-      new Error('Insufficient permissions')
+      new Error("Service unavailable"),
+      new Error("Rate limit exceeded"),
+      new Error("Authentication failed"),
+      new Error("Insufficient permissions"),
     ];
   }
 
@@ -875,24 +901,24 @@ export class ErrorScenarioTester {
    * Creates error injection test
    */
   static createErrorInjectionTest(
-    errorType: 'network' | 'validation' | 'service',
-    operation: () => Promise<any>
+    errorType: "network" | "validation" | "service",
+    operation: () => Promise<any>,
   ): () => Promise<void> {
     return async () => {
       let errors: Error[];
-      
+
       switch (errorType) {
-        case 'network':
+        case "network":
           errors = this.networkErrors();
           break;
-        case 'validation':
+        case "validation":
           errors = this.validationErrors();
           break;
-        case 'service':
+        case "service":
           errors = this.serviceErrors();
           break;
       }
-      
+
       for (const error of errors) {
         try {
           await operation();
@@ -916,5 +942,5 @@ export {
   PropertyGenerator,
   PerformanceTester,
   AccessibilityTester,
-  ErrorScenarioTester
+  ErrorScenarioTester,
 };

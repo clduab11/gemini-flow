@@ -33,7 +33,7 @@ export class ResourceManager {
       totalAllocatedMemory: 16384,
       utilizationEfficiency: 0.85,
       fairnessIndex: 0.9,
-      priorityRespected: true
+      priorityRespected: true,
     };
   }
 
@@ -41,19 +41,19 @@ export class ResourceManager {
     return {
       preemptionOccurred: false,
       preemptedAgents: [],
-      highPriorityAgentAllocated: true
+      highPriorityAgentAllocated: true,
     };
   }
 
   async adjustAgentResources(request: any): Promise<any> {
     this.allocations.set(request.agentId, {
       cpu: request.newRequirements.cpu,
-      memory: request.newRequirements.memory
+      memory: request.newRequirements.memory,
     });
 
     return {
       success: true,
-      newAllocation: request.newRequirements
+      newAllocation: request.newRequirements,
     };
   }
 }

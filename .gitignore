@@ -71,3 +71,17 @@ reports/temp/
 *_COMPLETION_*.md
 GOOGLE_SERVICES_BENCHMARKS.md
 V*.*.0-RELEASE-READINESS-REPORT.md
+
+# Root directory cleanup - prevent clutter in project root
+*.backup
+*-backup.*
+MIGRATION_PLAN.md
+DUAL-MODE-IMPLEMENTATION-PLAN.md
+NPM_PUBLICATION_REPORT.md
+INTEGRATION_SUMMARY.md
+PRODUCTION-SECURITY-HARDENING-SUMMARY.md
+SWARM_COMPLETION_REPORT.md
+*_IMPLEMENTATION_PLAN.md
+test-*.sh
+coordination/
+*.md.bak

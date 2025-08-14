@@ -4,8 +4,8 @@
  * Handles up to 33% malicious agents while maintaining correctness
  */
 
-import { EventEmitter } from 'events';
-import { createHash } from 'crypto';
+import { EventEmitter } from "events";
+import { createHash } from "crypto";
 
 export interface Agent {
   id: string;
@@ -17,7 +17,7 @@ export interface Agent {
 }
 
 export interface ConsensusMessage {
-  type: 'pre-prepare' | 'prepare' | 'commit' | 'view-change' | 'new-view';
+  type: "pre-prepare" | "prepare" | "commit" | "view-change" | "new-view";
   viewNumber: number;
   sequenceNumber: number;
   digest: string;
@@ -38,7 +38,7 @@ export interface ConsensusProposal {
 export interface ConsensusState {
   currentView: number;
   sequenceNumber: number;
-  phase: 'pre-prepare' | 'prepare' | 'commit' | 'view-change';
+  phase: "pre-prepare" | "prepare" | "commit" | "view-change";
   leader: string;
   activeAgents: Set<string>;
   proposals: Map<string, ConsensusProposal>;
@@ -63,7 +63,7 @@ export class ByzantineConsensus extends EventEmitter {
 
   constructor(
     private agentId: string,
-    private totalAgents: number = 4
+    private totalAgents: number = 4,
   ) {
     super();
     this.faultThreshold = Math.floor((totalAgents - 1) / 3);
@@ -73,7 +73,7 @@ export class ByzantineConsensus extends EventEmitter {
       consensusRounds: 0,
       averageLatency: 0,
       faultsDetected: 0,
-      successRate: 0
+      successRate: 0,
     };
   }
 
@@ -81,12 +81,12 @@ export class ByzantineConsensus extends EventEmitter {
     return {
       currentView: 0,
       sequenceNumber: 0,
-      phase: 'pre-prepare',
+      phase: "pre-prepare",
       leader: this.selectLeader(0),
       activeAgents: new Set(),
       proposals: new Map(),
       messages: new Map(),
-      committed: new Set()
+      committed: new Set(),
     };
   }
 
@@ -96,7 +96,7 @@ export class ByzantineConsensus extends EventEmitter {
   public registerAgent(agent: Agent): void {
     this.agents.set(agent.id, agent);
     this.state.activeAgents.add(agent.id);
-    this.emit('agent-registered', agent);
+    this.emit("agent-registered", agent);
   }
 
   /**
@@ -105,7 +105,7 @@ export class ByzantineConsensus extends EventEmitter {
   public removeAgent(agentId: string): void {
     this.agents.delete(agentId);
     this.state.activeAgents.delete(agentId);
-    this.emit('agent-removed', agentId);
+    this.emit("agent-removed", agentId);
   }
 
   /**
@@ -113,31 +113,31 @@ export class ByzantineConsensus extends EventEmitter {
    */
   public async startConsensus(proposal: ConsensusProposal): Promise<boolean> {
     const startTime = Date.now();
-    
+
     try {
       if (!this.isLeader()) {
-        throw new Error('Only leader can start consensus');
+        throw new Error("Only leader can start consensus");
       }
 
       this.state.sequenceNumber++;
       this.state.proposals.set(proposal.id, proposal);
-      
+
       // Phase 1: Pre-prepare
       await this.broadcastPrePrepare(proposal);
-      
+
       // Phase 2: Prepare
       const prepareSuccess = await this.collectPrepareResponses(proposal.id);
       if (!prepareSuccess) {
         await this.initiateViewChange();
         return false;
       }
-      
+
       // Phase 3: Commit
       const commitSuccess = await this.collectCommitResponses(proposal.id);
       if (commitSuccess) {
         this.state.committed.add(proposal.id);
         this.updatePerformance(startTime, true);
-        this.emit('consensus-reached', proposal);
+        this.emit("consensus-reached", proposal);
         return true;
       } else {
         await this.initiateViewChange();
@@ -146,7 +146,7 @@ export class ByzantineConsensus extends EventEmitter {
       }
     } catch (error) {
       this.updatePerformance(startTime, false);
-      this.emit('consensus-error', error);
+      this.emit("consensus-error", error);
       return false;
     }
   }
@@ -156,57 +156,59 @@ export class ByzantineConsensus extends EventEmitter {
    */
   public async processMessage(message: ConsensusMessage): Promise<void> {
     if (!this.validateMessage(message)) {
-      this.emit('invalid-message', message);
+      this.emit("invalid-message", message);
       return;
     }
 
     this.messageLog.push(message);
-    
+
     if (!this.state.messages.has(message.digest)) {
       this.state.messages.set(message.digest, []);
     }
     this.state.messages.get(message.digest)!.push(message);
 
     switch (message.type) {
-      case 'pre-prepare':
+      case "pre-prepare":
         await this.handlePrePrepare(message);
         break;
-      case 'prepare':
+      case "prepare":
         await this.handlePrepare(message);
         break;
-      case 'commit':
+      case "commit":
         await this.handleCommit(message);
         break;
-      case 'view-change':
+      case "view-change":
         await this.handleViewChange(message);
         break;
-      case 'new-view':
+      case "new-view":
         await this.handleNewView(message);
         break;
     }
   }
 
-  private async broadcastPrePrepare(proposal: ConsensusProposal): Promise<void> {
+  private async broadcastPrePrepare(
+    proposal: ConsensusProposal,
+  ): Promise<void> {
     const message: ConsensusMessage = {
-      type: 'pre-prepare',
+      type: "pre-prepare",
       viewNumber: this.state.currentView,
       sequenceNumber: this.state.sequenceNumber,
       digest: proposal.hash,
       payload: proposal,
       timestamp: new Date(),
       signature: this.signMessage(proposal.hash),
-      senderId: this.agentId
+      senderId: this.agentId,
     };
 
-    this.state.phase = 'pre-prepare';
+    this.state.phase = "pre-prepare";
     await this.broadcastMessage(message);
   }
 
   private async handlePrePrepare(message: ConsensusMessage): Promise<void> {
     if (message.senderId !== this.state.leader) {
-      this.emit('malicious-behavior', {
-        type: 'unauthorized-pre-prepare',
-        agentId: message.senderId
+      this.emit("malicious-behavior", {
+        type: "unauthorized-pre-prepare",
+        agentId: message.senderId,
       });
       return;
     }
@@ -214,14 +216,14 @@ export class ByzantineConsensus extends EventEmitter {
     if (message.viewNumber === this.state.currentView) {
       // Send prepare message
       const prepareMessage: ConsensusMessage = {
-        type: 'prepare',
+        type: "prepare",
         viewNumber: this.state.currentView,
         sequenceNumber: message.sequenceNumber,
         digest: message.digest,
         payload: null,
         timestamp: new Date(),
         signature: this.signMessage(message.digest),
-        senderId: this.agentId
+        senderId: this.agentId,
       };
 
       await this.broadcastMessage(prepareMessage);
@@ -232,7 +234,7 @@ export class ByzantineConsensus extends EventEmitter {
     return new Promise((resolve) => {
       const requiredResponses = 2 * this.faultThreshold;
       const receivedResponses = 0;
-      
+
       const timeout = setTimeout(() => {
         resolve(false);
       }, this.timeoutDuration);
@@ -242,20 +244,20 @@ export class ByzantineConsensus extends EventEmitter {
         if (!proposal) return;
 
         const prepareMessages = this.state.messages.get(proposal.hash) || [];
-        const prepareCount = prepareMessages.filter(m => 
-          m.type === 'prepare' && 
-          m.viewNumber === this.state.currentView
+        const prepareCount = prepareMessages.filter(
+          (m) =>
+            m.type === "prepare" && m.viewNumber === this.state.currentView,
         ).length;
 
         if (prepareCount >= requiredResponses) {
           clearTimeout(timeout);
-          this.state.phase = 'prepare';
+          this.state.phase = "prepare";
           resolve(true);
         }
       };
 
-      this.on('message-received', checkResponses);
-      
+      this.on("message-received", checkResponses);
+
       // Initial check in case messages already arrived
       checkResponses();
     });
@@ -263,28 +265,28 @@ export class ByzantineConsensus extends EventEmitter {
 
   private async handlePrepare(message: ConsensusMessage): Promise<void> {
     const requiredResponses = 2 * this.faultThreshold;
-    const proposal = Array.from(this.state.proposals.values())
-      .find(p => p.hash === message.digest);
-    
+    const proposal = Array.from(this.state.proposals.values()).find(
+      (p) => p.hash === message.digest,
+    );
+
     if (!proposal) return;
 
     const prepareMessages = this.state.messages.get(message.digest) || [];
-    const prepareCount = prepareMessages.filter(m => 
-      m.type === 'prepare' && 
-      m.viewNumber === this.state.currentView
+    const prepareCount = prepareMessages.filter(
+      (m) => m.type === "prepare" && m.viewNumber === this.state.currentView,
     ).length;
 
     if (prepareCount >= requiredResponses) {
       // Send commit message
       const commitMessage: ConsensusMessage = {
-        type: 'commit',
+        type: "commit",
         viewNumber: this.state.currentView,
         sequenceNumber: message.sequenceNumber,
         digest: message.digest,
         payload: null,
         timestamp: new Date(),
         signature: this.signMessage(message.digest),
-        senderId: this.agentId
+        senderId: this.agentId,
       };
 
       await this.broadcastMessage(commitMessage);
@@ -294,7 +296,7 @@ export class ByzantineConsensus extends EventEmitter {
   private async collectCommitResponses(proposalId: string): Promise<boolean> {
     return new Promise((resolve) => {
       const requiredResponses = 2 * this.faultThreshold;
-      
+
       const timeout = setTimeout(() => {
         resolve(false);
       }, this.timeoutDuration);
@@ -304,54 +306,52 @@ export class ByzantineConsensus extends EventEmitter {
         if (!proposal) return;
 
         const commitMessages = this.state.messages.get(proposal.hash) || [];
-        const commitCount = commitMessages.filter(m => 
-          m.type === 'commit' && 
-          m.viewNumber === this.state.currentView
+        const commitCount = commitMessages.filter(
+          (m) => m.type === "commit" && m.viewNumber === this.state.currentView,
         ).length;
 
         if (commitCount >= requiredResponses) {
           clearTimeout(timeout);
-          this.state.phase = 'commit';
+          this.state.phase = "commit";
           resolve(true);
         }
       };
 
-      this.on('message-received', checkResponses);
+      this.on("message-received", checkResponses);
       checkResponses();
     });
   }
 
   private async handleCommit(message: ConsensusMessage): Promise<void> {
-    this.emit('message-received', message);
+    this.emit("message-received", message);
   }
 
   private async initiateViewChange(): Promise<void> {
     this.state.currentView++;
     this.state.leader = this.selectLeader(this.state.currentView);
-    
+
     const viewChangeMessage: ConsensusMessage = {
-      type: 'view-change',
+      type: "view-change",
       viewNumber: this.state.currentView,
       sequenceNumber: this.state.sequenceNumber,
-      digest: '',
+      digest: "",
       payload: {
         lastCommitted: Array.from(this.state.committed),
-        messageLog: this.messageLog.slice(-100) // Last 100 messages
+        messageLog: this.messageLog.slice(-100), // Last 100 messages
       },
       timestamp: new Date(),
       signature: this.signMessage(`view-change-${this.state.currentView}`),
-      senderId: this.agentId
+      senderId: this.agentId,
     };
 
     await this.broadcastMessage(viewChangeMessage);
-    this.emit('view-change-initiated', this.state.currentView);
+    this.emit("view-change-initiated", this.state.currentView);
   }
 
   private async handleViewChange(message: ConsensusMessage): Promise<void> {
     // Collect view change messages and determine new leader
-    const viewChangeMessages = this.messageLog.filter(m => 
-      m.type === 'view-change' && 
-      m.viewNumber === message.viewNumber
+    const viewChangeMessages = this.messageLog.filter(
+      (m) => m.type === "view-change" && m.viewNumber === message.viewNumber,
     );
 
     if (viewChangeMessages.length >= 2 * this.faultThreshold + 1) {
@@ -363,18 +363,18 @@ export class ByzantineConsensus extends EventEmitter {
 
   private async sendNewView(viewNumber: number): Promise<void> {
     const newViewMessage: ConsensusMessage = {
-      type: 'new-view',
+      type: "new-view",
       viewNumber,
       sequenceNumber: this.state.sequenceNumber,
-      digest: '',
+      digest: "",
       payload: {
-        viewChangeMessages: this.messageLog.filter(m => 
-          m.type === 'view-change' && m.viewNumber === viewNumber
-        )
+        viewChangeMessages: this.messageLog.filter(
+          (m) => m.type === "view-change" && m.viewNumber === viewNumber,
+        ),
       },
       timestamp: new Date(),
       signature: this.signMessage(`new-view-${viewNumber}`),
-      senderId: this.agentId
+      senderId: this.agentId,
     };
 
     await this.broadcastMessage(newViewMessage);
@@ -384,8 +384,8 @@ export class ByzantineConsensus extends EventEmitter {
     if (message.senderId === this.selectLeader(message.viewNumber)) {
       this.state.currentView = message.viewNumber;
       this.state.leader = message.senderId;
-      this.state.phase = 'pre-prepare';
-      this.emit('new-view-accepted', message.viewNumber);
+      this.state.phase = "pre-prepare";
+      this.emit("new-view-accepted", message.viewNumber);
     }
   }
 
@@ -412,7 +412,7 @@ export class ByzantineConsensus extends EventEmitter {
 
     // Validate signature (simplified - in real implementation, use proper crypto)
     const expectedSignature = this.signMessage(message.digest || message.type);
-    
+
     // Additional Byzantine fault checks
     const agent = this.agents.get(message.senderId)!;
     if (agent.isMalicious) {
@@ -425,31 +425,34 @@ export class ByzantineConsensus extends EventEmitter {
 
   private signMessage(data: string): string {
     // Simplified signing - in production, use proper cryptographic signatures
-    return createHash('sha256')
+    return createHash("sha256")
       .update(data + this.agentId)
-      .digest('hex');
+      .digest("hex");
   }
 
   private async broadcastMessage(message: ConsensusMessage): Promise<void> {
     // Simulate network broadcast
-    this.emit('broadcast-message', message);
-    
+    this.emit("broadcast-message", message);
+
     // In a real implementation, this would send to all agents
     setTimeout(() => {
-      this.emit('message-received', message);
+      this.emit("message-received", message);
     }, Math.random() * 100); // Simulate network delay
   }
 
   private updatePerformance(startTime: number, success: boolean): void {
     this.performance.consensusRounds++;
     const latency = Date.now() - startTime;
-    this.performance.averageLatency = 
-      (this.performance.averageLatency * (this.performance.consensusRounds - 1) + latency) / 
+    this.performance.averageLatency =
+      (this.performance.averageLatency *
+        (this.performance.consensusRounds - 1) +
+        latency) /
       this.performance.consensusRounds;
-    
+
     const successCount = success ? 1 : 0;
-    this.performance.successRate = 
-      (this.performance.successRate * (this.performance.consensusRounds - 1) + successCount) / 
+    this.performance.successRate =
+      (this.performance.successRate * (this.performance.consensusRounds - 1) +
+        successCount) /
       this.performance.consensusRounds;
   }
 
@@ -472,10 +475,13 @@ export class ByzantineConsensus extends EventEmitter {
    */
   public canReachConsensus(): boolean {
     const activeCount = this.state.activeAgents.size;
-    const maliciousCount = Array.from(this.agents.values())
-      .filter(a => a.isMalicious && this.state.activeAgents.has(a.id)).length;
-    
-    return maliciousCount <= this.faultThreshold && activeCount >= this.minQuorum;
+    const maliciousCount = Array.from(this.agents.values()).filter(
+      (a) => a.isMalicious && this.state.activeAgents.has(a.id),
+    ).length;
+
+    return (
+      maliciousCount <= this.faultThreshold && activeCount >= this.minQuorum
+    );
   }
 
   /**
@@ -496,20 +502,20 @@ export class ByzantineConsensus extends EventEmitter {
    * Simulate network partition
    */
   public simulatePartition(agentIds: string[]): void {
-    agentIds.forEach(id => this.state.activeAgents.delete(id));
-    this.emit('network-partition', agentIds);
+    agentIds.forEach((id) => this.state.activeAgents.delete(id));
+    this.emit("network-partition", agentIds);
   }
 
   /**
    * Heal network partition
    */
   public healPartition(agentIds: string[]): void {
-    agentIds.forEach(id => {
+    agentIds.forEach((id) => {
       if (this.agents.has(id)) {
         this.state.activeAgents.add(id);
       }
     });
-    this.emit('network-healed', agentIds);
+    this.emit("network-healed", agentIds);
   }
 }
 

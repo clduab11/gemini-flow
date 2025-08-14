@@ -1,17 +1,17 @@
 /**
  * Gemini CLI
- * 
+ *
  * Simplified command structure matching official Gemini CLI
  * Primary commands: chat, generate, list-models, auth
  */
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import * as fs from 'fs';
-import { SimpleAuth } from '../core/simple-auth.js';
-import { SimpleInteractive } from './simple-interactive.js';
-import { Logger } from '../utils/logger.js';
+import { Command } from "commander";
+import chalk from "chalk";
+import ora from "ora";
+import * as fs from "fs";
+import { SimpleAuth } from "../core/simple-auth.js";
+import { SimpleInteractive } from "./simple-interactive.js";
+import { Logger } from "../utils/logger.js";
 
 export interface GeminiCLIOptions {
   model?: string;
@@ -48,34 +48,34 @@ export class GeminiCLI {
   private program: Command;
   private auth: SimpleAuth;
   private logger: Logger;
-  
+
   // Available models
   private readonly availableModels = [
     {
-      name: 'gemini-1.5-flash',
-      description: 'Fast and versatile performance for diverse tasks',
+      name: "gemini-1.5-flash",
+      description: "Fast and versatile performance for diverse tasks",
       maxTokens: 1000000,
-      supportedFeatures: ['text', 'image', 'audio', 'video']
+      supportedFeatures: ["text", "image", "audio", "video"],
     },
     {
-      name: 'gemini-1.5-pro',
-      description: 'Complex reasoning tasks requiring more intelligence',
+      name: "gemini-1.5-pro",
+      description: "Complex reasoning tasks requiring more intelligence",
       maxTokens: 2000000,
-      supportedFeatures: ['text', 'image', 'audio', 'video', 'code']
+      supportedFeatures: ["text", "image", "audio", "video", "code"],
     },
     {
-      name: 'gemini-1.0-pro',
-      description: 'Natural language tasks, multi-turn text and code chat',
+      name: "gemini-1.0-pro",
+      description: "Natural language tasks, multi-turn text and code chat",
       maxTokens: 30720,
-      supportedFeatures: ['text', 'code']
-    }
+      supportedFeatures: ["text", "code"],
+    },
   ];
 
   constructor() {
     this.program = new Command();
     this.auth = new SimpleAuth();
-    this.logger = new Logger('GeminiCLI');
-    
+    this.logger = new Logger("GeminiCLI");
+
     this.setupProgram();
     this.setupCommands();
   }
@@ -85,24 +85,27 @@ export class GeminiCLI {
    */
   private setupProgram(): void {
     this.program
-      .name('gemini')
-      .description('Google Gemini AI CLI - Interactive AI Assistant')
-      .version('1.1.0')
-      .addHelpText('before', chalk.cyan(`
+      .name("gemini")
+      .description("Google Gemini AI CLI - Interactive AI Assistant")
+      .version("1.1.0")
+      .addHelpText(
+        "before",
+        chalk.cyan(`
 ╔══════════════════════════════════════════════════════════╗
 ║                   🤖 Gemini AI CLI                      ║
 ║           Powered by Google Generative AI               ║
 ╚══════════════════════════════════════════════════════════╝
-`));
+`),
+      );
 
     // Global options
     this.program
-      .option('-m, --model <model>', 'model to use', 'gemini-1.5-flash')
-      .option('-t, --temperature <temp>', 'temperature (0-2)', parseFloat, 0.7)
-      .option('--max-tokens <tokens>', 'maximum tokens', parseInt, 1000000)
-      .option('-v, --verbose', 'verbose output')
-      .option('--json', 'JSON output format')
-      .option('-s, --system <instruction>', 'system instruction');
+      .option("-m, --model <model>", "model to use", "gemini-1.5-flash")
+      .option("-t, --temperature <temp>", "temperature (0-2)", parseFloat, 0.7)
+      .option("--max-tokens <tokens>", "maximum tokens", parseInt, 1000000)
+      .option("-v, --verbose", "verbose output")
+      .option("--json", "JSON output format")
+      .option("-s, --system <instruction>", "system instruction");
   }
 
   /**
@@ -120,16 +123,16 @@ export class GeminiCLI {
    */
   private setupChatCommand(): void {
     const chatCommand = this.program
-      .command('chat')
-      .alias('c')
-      .description('Start interactive conversation mode')
-      .argument('[prompt]', 'optional initial prompt')
-      .option('--session <id>', 'session ID for persistence')
-      .option('--no-context', 'disable context persistence')
+      .command("chat")
+      .alias("c")
+      .description("Start interactive conversation mode")
+      .argument("[prompt]", "optional initial prompt")
+      .option("--session <id>", "session ID for persistence")
+      .option("--no-context", "disable context persistence")
       .action(async (prompt, options) => {
         const globalOptions = this.program.opts();
         const mergedOptions = { ...globalOptions, ...options };
-        
+
         try {
           await this.executeChatCommand(prompt, mergedOptions);
         } catch (error) {
@@ -137,13 +140,16 @@ export class GeminiCLI {
         }
       });
 
-    chatCommand.addHelpText('after', `
+    chatCommand.addHelpText(
+      "after",
+      `
 Examples:
   gemini chat                           # Start interactive mode
   gemini chat "Hello, how are you?"     # Single prompt
   gemini chat --model gemini-1.5-pro   # Use specific model
   gemini chat --session my-session     # Resume/create session
-    `);
+    `,
+    );
   }
 
   /**
@@ -151,31 +157,37 @@ Examples:
    */
   private setupGenerateCommand(): void {
     const generateCommand = this.program
-      .command('generate')
-      .alias('g')
-      .description('Generate content from prompt')
-      .argument('[prompt]', 'text prompt to generate from')
-      .option('-f, --file <path>', 'read prompt from file')
-      .option('--count <n>', 'number of responses to generate', parseInt, 1)
+      .command("generate")
+      .alias("g")
+      .description("Generate content from prompt")
+      .argument("[prompt]", "text prompt to generate from")
+      .option("-f, --file <path>", "read prompt from file")
+      .option("--count <n>", "number of responses to generate", parseInt, 1)
       .action(async (prompt, options) => {
         const globalOptions = this.program.opts();
         const mergedOptions = { ...globalOptions, ...options };
-        
+
         try {
-          const result = await this.executeGenerateCommand(prompt, mergedOptions);
+          const result = await this.executeGenerateCommand(
+            prompt,
+            mergedOptions,
+          );
           console.log(this.formatOutput(result.text, result, mergedOptions));
         } catch (error) {
           this.handleError(error, mergedOptions);
         }
       });
 
-    generateCommand.addHelpText('after', `
+    generateCommand.addHelpText(
+      "after",
+      `
 Examples:
   gemini generate "Write a haiku about AI"
   gemini generate --file prompt.txt
   gemini generate "Explain quantum computing" --model gemini-1.5-pro
   gemini generate "Create JSON schema" --json
-    `);
+    `,
+    );
   }
 
   /**
@@ -183,14 +195,14 @@ Examples:
    */
   private setupListModelsCommand(): void {
     this.program
-      .command('list-models')
-      .alias('models')
-      .description('List available models')
-      .option('--detailed', 'show detailed model information')
+      .command("list-models")
+      .alias("models")
+      .description("List available models")
+      .option("--detailed", "show detailed model information")
       .action(async (options) => {
         const globalOptions = this.program.opts();
         const mergedOptions = { ...globalOptions, ...options };
-        
+
         try {
           const models = await this.listModels();
           console.log(this.formatModelsList(models, mergedOptions));
@@ -205,12 +217,12 @@ Examples:
    */
   private setupAuthCommand(): void {
     const authCommand = this.program
-      .command('auth')
-      .description('Manage authentication')
-      .option('--key <apikey>', 'set API key')
-      .option('--test', 'test current API key')
-      .option('--status', 'show authentication status')
-      .option('--clear', 'clear authentication')
+      .command("auth")
+      .description("Manage authentication")
+      .option("--key <apikey>", "set API key")
+      .option("--test", "test current API key")
+      .option("--status", "show authentication status")
+      .option("--clear", "clear authentication")
       .action(async (options) => {
         try {
           const result = await this.executeAuthCommand(options);
@@ -222,7 +234,9 @@ Examples:
         }
       });
 
-    authCommand.addHelpText('after', `
+    authCommand.addHelpText(
+      "after",
+      `
 Examples:
   gemini auth --status                  # Show auth status
   gemini auth --key AIzaSy...          # Set API key
@@ -230,15 +244,21 @@ Examples:
   gemini auth --clear                   # Clear authentication
 
 Get your API key from: https://aistudio.google.com/app/apikey
-    `);
+    `,
+    );
   }
 
   /**
    * Execute chat command
    */
-  private async executeChatCommand(prompt?: string, options: GeminiCLIOptions = {}): Promise<void> {
+  private async executeChatCommand(
+    prompt?: string,
+    options: GeminiCLIOptions = {},
+  ): Promise<void> {
     if (!this.auth.isAuthenticated()) {
-      throw new Error('Authentication required. Use "gemini auth --key YOUR_API_KEY" to set your API key.');
+      throw new Error(
+        'Authentication required. Use "gemini auth --key YOUR_API_KEY" to set your API key.',
+      );
     }
 
     // If prompt provided, handle as one-shot
@@ -250,11 +270,11 @@ Get your API key from: https://aistudio.google.com/app/apikey
 
     // Start interactive mode
     const interactiveMode = new SimpleInteractive({
-      model: options.model || 'gemini-1.5-flash',
+      model: options.model || "gemini-1.5-flash",
       maxTokens: options.maxTokens || 1000000,
       temperature: options.temperature || 0.7,
       sessionId: (options as any).session,
-      verbose: options.verbose
+      verbose: options.verbose,
     });
 
     await interactiveMode.start();
@@ -263,9 +283,14 @@ Get your API key from: https://aistudio.google.com/app/apikey
   /**
    * Execute generate command
    */
-  private async executeGenerateCommand(prompt?: string, options: GeminiCLIOptions = {}): Promise<GenerateResponse> {
+  private async executeGenerateCommand(
+    prompt?: string,
+    options: GeminiCLIOptions = {},
+  ): Promise<GenerateResponse> {
     if (!this.auth.isAuthenticated()) {
-      throw new Error('Authentication required. Use "gemini auth --key YOUR_API_KEY" to set your API key.');
+      throw new Error(
+        'Authentication required. Use "gemini auth --key YOUR_API_KEY" to set your API key.',
+      );
     }
 
     let finalPrompt = prompt;
@@ -275,11 +300,13 @@ Get your API key from: https://aistudio.google.com/app/apikey
       if (!fs.existsSync(options.file)) {
         throw new Error(`File not found: ${options.file}`);
       }
-      finalPrompt = fs.readFileSync(options.file, 'utf8');
+      finalPrompt = fs.readFileSync(options.file, "utf8");
     }
 
     if (!finalPrompt) {
-      throw new Error('Prompt is required. Provide prompt as argument or use --file option.');
+      throw new Error(
+        "Prompt is required. Provide prompt as argument or use --file option.",
+      );
     }
 
     return await this.generateContent(finalPrompt, options);
@@ -293,73 +320,80 @@ Get your API key from: https://aistudio.google.com/app/apikey
       const success = this.auth.setApiKey(options.key);
       if (success) {
         await this.auth.saveConfig();
-        return chalk.green('✅ API key set successfully');
+        return chalk.green("✅ API key set successfully");
       } else {
-        throw new Error('Invalid API key format. Key should start with "AIza" and be at least 35 characters long.');
+        throw new Error(
+          'Invalid API key format. Key should start with "AIza" and be at least 35 characters long.',
+        );
       }
     }
 
     if (options.test) {
       if (!this.auth.isAuthenticated()) {
-        throw new Error('No API key found. Set one with --key option.');
+        throw new Error("No API key found. Set one with --key option.");
       }
 
-      const spinner = ora('Testing API key...').start();
+      const spinner = ora("Testing API key...").start();
       try {
         const isValid = await this.auth.testApiKey();
         if (isValid) {
-          spinner.succeed('API key is valid and working');
+          spinner.succeed("API key is valid and working");
         } else {
-          spinner.fail('API key test failed');
+          spinner.fail("API key test failed");
         }
       } catch (error) {
-        spinner.fail(`API key test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        spinner.fail(
+          `API key test failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
       return;
     }
 
     if (options.clear) {
       this.auth.clearAuth();
-      return chalk.yellow('Authentication cleared');
+      return chalk.yellow("Authentication cleared");
     }
 
     // Default: show status
     const status = this.auth.getAuthStatus();
-    
-    let output = chalk.blue('\n🔐 Authentication Status:\n\n');
-    output += `Status: ${status.isAuthenticated ? chalk.green('✅ Authenticated') : chalk.red('❌ Not authenticated')}\n`;
-    
+
+    let output = chalk.blue("\n🔐 Authentication Status:\n\n");
+    output += `Status: ${status.isAuthenticated ? chalk.green("✅ Authenticated") : chalk.red("❌ Not authenticated")}\n`;
+
     if (status.isAuthenticated) {
       output += `Source: ${status.source}\n`;
       output += `Key: ${status.keyPrefix}\n`;
-      output += `Format: ${status.keyFormat === 'valid' ? chalk.green('Valid') : chalk.red('Invalid')}\n`;
+      output += `Format: ${status.keyFormat === "valid" ? chalk.green("Valid") : chalk.red("Invalid")}\n`;
     }
-    
+
     if (!status.isAuthenticated) {
-      output += '\n' + this.auth.getAuthHelpMessage();
+      output += "\n" + this.auth.getAuthHelpMessage();
     }
-    
+
     return output;
   }
 
   /**
    * Generate content using Gemini API
    */
-  async generateContent(prompt: string, options: GeminiCLIOptions = {}): Promise<GenerateResponse> {
+  async generateContent(
+    prompt: string,
+    options: GeminiCLIOptions = {},
+  ): Promise<GenerateResponse> {
     const startTime = performance.now();
-    
+
     try {
-      const { GoogleGenerativeAI } = await import('@google/generative-ai');
-      
+      const { GoogleGenerativeAI } = await import("@google/generative-ai");
+
       const genAI = new GoogleGenerativeAI(this.auth.getApiKey()!);
-      
+
       // Model configuration
       const modelConfig: any = {
-        model: options.model || 'gemini-1.5-flash',
+        model: options.model || "gemini-1.5-flash",
         generationConfig: {
           temperature: options.temperature || 0.7,
           maxOutputTokens: Math.min(4096, (options.maxTokens || 1000000) / 4),
-        }
+        },
       };
 
       // Add system instruction if provided
@@ -368,12 +402,12 @@ Get your API key from: https://aistudio.google.com/app/apikey
       }
 
       const model = genAI.getGenerativeModel(modelConfig);
-      
+
       // Generate content
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
-      
+
       const endTime = performance.now();
       const latency = endTime - startTime;
 
@@ -386,27 +420,32 @@ Get your API key from: https://aistudio.google.com/app/apikey
         usage: {
           promptTokens,
           completionTokens,
-          totalTokens: promptTokens + completionTokens
+          totalTokens: promptTokens + completionTokens,
         },
-        model: options.model || 'gemini-1.5-flash',
-        latency
+        model: options.model || "gemini-1.5-flash",
+        latency,
       };
-
     } catch (error) {
-      this.logger.error('Content generation failed', error);
-      
+      this.logger.error("Content generation failed", error);
+
       if (error instanceof Error) {
-        if (error.message.includes('API_KEY')) {
-          throw new Error('Invalid or missing API key. Use "gemini auth --key YOUR_API_KEY" to set your key.');
+        if (error.message.includes("API_KEY")) {
+          throw new Error(
+            'Invalid or missing API key. Use "gemini auth --key YOUR_API_KEY" to set your key.',
+          );
         }
-        if (error.message.includes('QUOTA')) {
-          throw new Error('API quota exceeded. Please check your usage limits.');
+        if (error.message.includes("QUOTA")) {
+          throw new Error(
+            "API quota exceeded. Please check your usage limits.",
+          );
         }
-        if (error.message.includes('RATE_LIMIT')) {
-          throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+        if (error.message.includes("RATE_LIMIT")) {
+          throw new Error(
+            "Rate limit exceeded. Please wait a moment and try again.",
+          );
         }
       }
-      
+
       throw error;
     }
   }
@@ -421,14 +460,22 @@ Get your API key from: https://aistudio.google.com/app/apikey
   /**
    * Format output for display
    */
-  formatOutput(text: string, response: GenerateResponse, options: GeminiCLIOptions = {}): string {
+  formatOutput(
+    text: string,
+    response: GenerateResponse,
+    options: GeminiCLIOptions = {},
+  ): string {
     if (options.json) {
-      return JSON.stringify({
-        response: text,
-        usage: response.usage,
-        model: response.model,
-        latency: response.latency
-      }, null, 2);
+      return JSON.stringify(
+        {
+          response: text,
+          usage: response.usage,
+          model: response.model,
+          latency: response.latency,
+        },
+        null,
+        2,
+      );
     }
 
     let output = text;
@@ -438,7 +485,9 @@ Get your API key from: https://aistudio.google.com/app/apikey
       output += chalk.gray(`\nModel: ${response.model}`);
       output += chalk.gray(`\nLatency: ${response.latency?.toFixed(2)}ms`);
       output += chalk.gray(`\nPrompt tokens: ${response.usage.promptTokens}`);
-      output += chalk.gray(`\nCompletion tokens: ${response.usage.completionTokens}`);
+      output += chalk.gray(
+        `\nCompletion tokens: ${response.usage.completionTokens}`,
+      );
       output += chalk.gray(`\nTotal tokens: ${response.usage.totalTokens}`);
     } else {
       output += chalk.gray(`\n\nTokens used: ${response.usage.totalTokens}`);
@@ -450,23 +499,30 @@ Get your API key from: https://aistudio.google.com/app/apikey
   /**
    * Format models list for display
    */
-  private formatModelsList(models: ModelInfo[], options: GeminiCLIOptions = {}): string {
+  private formatModelsList(
+    models: ModelInfo[],
+    options: GeminiCLIOptions = {},
+  ): string {
     if (options.json) {
       return JSON.stringify(models, null, 2);
     }
 
-    let output = chalk.blue('\n📋 Available Models:\n\n');
+    let output = chalk.blue("\n📋 Available Models:\n\n");
 
-    models.forEach(model => {
+    models.forEach((model) => {
       output += chalk.cyan(`${model.name}\n`);
       output += chalk.gray(`  ${model.description}\n`);
-      
+
       if (options.verbose || (options as any).detailed) {
-        output += chalk.gray(`  Max tokens: ${model.maxTokens?.toLocaleString()}\n`);
-        output += chalk.gray(`  Features: ${model.supportedFeatures?.join(', ')}\n`);
+        output += chalk.gray(
+          `  Max tokens: ${model.maxTokens?.toLocaleString()}\n`,
+        );
+        output += chalk.gray(
+          `  Features: ${model.supportedFeatures?.join(", ")}\n`,
+        );
       }
-      
-      output += '\n';
+
+      output += "\n";
     });
 
     return output;
@@ -484,80 +540,88 @@ Get your API key from: https://aistudio.google.com/app/apikey
    */
   parseOptions(args: string[]): GeminiCLIOptions {
     const options: GeminiCLIOptions = {};
-    
+
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      
+
       switch (arg) {
-        case '--model':
-        case '-m':
+        case "--model":
+        case "-m":
           options.model = args[++i];
           break;
-        case '--temperature':
-        case '-t': {
+        case "--temperature":
+        case "-t": {
           const temp = parseFloat(args[++i]);
           if (isNaN(temp) || temp < 0 || temp > 2) {
-            throw new Error('Invalid temperature value. Must be between 0 and 2.');
+            throw new Error(
+              "Invalid temperature value. Must be between 0 and 2.",
+            );
           }
           options.temperature = temp;
           break;
         }
-        case '--max-tokens': {
+        case "--max-tokens": {
           const tokens = parseInt(args[++i]);
           if (isNaN(tokens) || tokens <= 0) {
-            throw new Error('Invalid max-tokens value. Must be a positive integer.');
+            throw new Error(
+              "Invalid max-tokens value. Must be a positive integer.",
+            );
           }
           options.maxTokens = tokens;
           break;
         }
-        case '--verbose':
-        case '-v':
+        case "--verbose":
+        case "-v":
           options.verbose = true;
           break;
-        case '--json':
+        case "--json":
           options.json = true;
           break;
-        case '--system':
-        case '-s':
+        case "--system":
+        case "-s":
           options.system = args[++i];
           break;
-        case '--file':
-        case '-f':
+        case "--file":
+        case "-f":
           options.file = args[++i];
           break;
       }
     }
-    
+
     return options;
   }
 
   /**
    * Execute command programmatically
    */
-  async executeCommand(command: string, args: string[], options: GeminiCLIOptions = {}): Promise<string> {
+  async executeCommand(
+    command: string,
+    args: string[],
+    options: GeminiCLIOptions = {},
+  ): Promise<string> {
     switch (command) {
-      case 'chat':
-      case 'c':
+      case "chat":
+      case "c":
         await this.executeChatCommand(args[0], options);
-        return 'Interactive mode started';
-        
-      case 'generate':
-      case 'g': {
+        return "Interactive mode started";
+
+      case "generate":
+      case "g": {
         const response = await this.executeGenerateCommand(args[0], options);
         return this.formatOutput(response.text, response, options);
       }
-        
-      case 'list-models':
-      case 'models': {
+
+      case "list-models":
+      case "models": {
         const models = await this.listModels();
         return this.formatModelsList(models, options);
       }
-        
-      case 'auth': {
+
+      case "auth": {
         const result = await this.executeAuthCommand(options);
-        return result || '';
+        return result || "";
       }
-        
+
       default:
         throw new Error(`Unknown command: ${command}`);
     }
@@ -567,18 +631,19 @@ Get your API key from: https://aistudio.google.com/app/apikey
    * Handle errors
    */
   private handleError(error: any, options: GeminiCLIOptions = {}): void {
-    const message = error instanceof Error ? error.message : 'Unknown error occurred';
-    
+    const message =
+      error instanceof Error ? error.message : "Unknown error occurred";
+
     if (options.json) {
       console.error(JSON.stringify({ error: message }, null, 2));
     } else {
-      console.error(chalk.red('Error:'), message);
-      
+      console.error(chalk.red("Error:"), message);
+
       if (options.verbose && error instanceof Error && error.stack) {
         console.error(chalk.gray(error.stack));
       }
     }
-    
+
     process.exit(1);
   }
 

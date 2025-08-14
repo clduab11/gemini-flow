@@ -6,13 +6,13 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import QuantumComputingMethodsService from '../src/services/quantum-computing-methods.js';
-import { QuantumClassicalHybridService, QuantumPerformanceBenchmark } from '../src/services/quantum-classical-hybrid.js';
+import QuantumComputingMethodsService from '../src/services/quantum-computing-methods';
+import { QuantumClassicalHybridService, QuantumPerformanceBenchmark } from '../src/services/quantum-classical-hybrid';
 import { 
   QuantumAlgorithmConfig, 
   QuantumMLPipeline, 
   QuantumAdvantageMetrics 
-} from '../src/services/quantum-computing-methods.js';
+} from '../src/services/quantum-computing-methods';
 
 describe('Quantum Computing Methods', () => {
   let quantumService: QuantumComputingMethodsService;

@@ -1,10 +1,16 @@
 /**
  * Veo3 Video Generation Types
- * 
+ *
  * Advanced video generation with distributed rendering, real-time processing, and A2A coordination
  */
 
-import { BaseIntegration, Task, Agent, StorageOperation, IntegrationConfig } from '../shared/types.js';
+import {
+  BaseIntegration,
+  Task,
+  Agent,
+  StorageOperation,
+  IntegrationConfig,
+} from "../shared/types.js";
 
 // === VEO3 CORE CONFIGURATION ===
 
@@ -40,7 +46,7 @@ export interface RenderingConfig {
 }
 
 export interface Veo3StorageConfig {
-  provider: 'gcs' | 'aws' | 'azure' | 'local';
+  provider: "gcs" | "aws" | "azure" | "local";
   bucket: string;
   region: string;
   credentials: any;
@@ -51,10 +57,10 @@ export interface Veo3StorageConfig {
 
 export interface StreamingConfig {
   enabled: boolean;
-  protocol: 'rtmp' | 'webrtc' | 'hls' | 'dash';
+  protocol: "rtmp" | "webrtc" | "hls" | "dash";
   quality: StreamQuality[];
   adaptiveBitrate: boolean;
-  latency: 'low' | 'normal' | 'high';
+  latency: "low" | "normal" | "high";
   preview: PreviewConfig;
 }
 
@@ -71,7 +77,7 @@ export interface Veo3CoordinationConfig {
   distributedRendering: boolean;
   loadBalancing: boolean;
   failover: boolean;
-  coordination: 'a2a' | 'centralized' | 'hybrid';
+  coordination: "a2a" | "centralized" | "hybrid";
   chunkCoordination: ChunkCoordinationConfig;
 }
 
@@ -92,8 +98,8 @@ export interface QualityPreset {
   profile: string;
 }
 
-export type VideoCodec = 'h264' | 'h265' | 'vp9' | 'av1';
-export type GenerationPriority = 'low' | 'normal' | 'high' | 'urgent';
+export type VideoCodec = "h264" | "h265" | "vp9" | "av1";
+export type GenerationPriority = "low" | "normal" | "high" | "urgent";
 
 export interface StreamQuality {
   name: string;
@@ -119,9 +125,9 @@ export interface TranscodingConfig {
 }
 
 export interface VideoFormat {
-  container: 'mp4' | 'webm' | 'avi' | 'mov';
+  container: "mp4" | "webm" | "avi" | "mov";
   codec: VideoCodec;
-  audioCodec: 'aac' | 'opus' | 'mp3';
+  audioCodec: "aac" | "opus" | "mp3";
   profile: string;
 }
 
@@ -130,13 +136,13 @@ export interface ThumbnailConfig {
   count: number;
   interval: number;
   resolution: VideoResolution;
-  format: 'jpg' | 'png' | 'webp';
+  format: "jpg" | "png" | "webp";
 }
 
 // === CDN AND STORAGE ===
 
 export interface CdnConfig {
-  provider: 'cloudflare' | 'aws' | 'fastly' | 'custom';
+  provider: "cloudflare" | "aws" | "fastly" | "custom";
   endpoint: string;
   apiKey?: string;
   caching: CacheConfig;
@@ -153,14 +159,14 @@ export interface CacheConfig {
 }
 
 export interface CompressionConfig {
-  algorithm: 'gzip' | 'brotli' | 'lz4';
+  algorithm: "gzip" | "brotli" | "lz4";
   level: number;
   enabled: boolean;
 }
 
 export interface EncryptionConfig {
   enabled: boolean;
-  algorithm: 'aes256' | 'chacha20';
+  algorithm: "aes256" | "chacha20";
   keyRotation: boolean;
   rotationInterval: number;
 }
@@ -168,11 +174,20 @@ export interface EncryptionConfig {
 // === VIDEO GENERATION PIPELINE ===
 
 export interface VideoGenerationPipeline extends BaseIntegration {
-  generateVideo(request: VideoGenerationRequest): Promise<VideoGenerationResult>;
+  generateVideo(
+    request: VideoGenerationRequest,
+  ): Promise<VideoGenerationResult>;
   processInChunks(request: ChunkedVideoRequest): Promise<ChunkedVideoResult>;
-  streamGeneration(request: StreamingVideoRequest): AsyncGenerator<GenerationProgress, VideoGenerationResult>;
-  optimizeVideo(videoId: string, options: OptimizationOptions): Promise<OptimizedVideoResult>;
-  distributeToCoordinates(request: DistributedGenerationRequest): Promise<DistributedGenerationResult>;
+  streamGeneration(
+    request: StreamingVideoRequest,
+  ): AsyncGenerator<GenerationProgress, VideoGenerationResult>;
+  optimizeVideo(
+    videoId: string,
+    options: OptimizationOptions,
+  ): Promise<OptimizedVideoResult>;
+  distributeToCoordinates(
+    request: DistributedGenerationRequest,
+  ): Promise<DistributedGenerationResult>;
 }
 
 export interface VideoGenerationRequest {
@@ -197,7 +212,7 @@ export interface VideoPrompt {
 }
 
 export interface VideoStyle {
-  genre: 'realistic' | 'animated' | 'artistic' | 'cinematic' | 'documentary';
+  genre: "realistic" | "animated" | "artistic" | "cinematic" | "documentary";
   era: string;
   colorPalette: string[];
   lighting: LightingStyle;
@@ -206,9 +221,9 @@ export interface VideoStyle {
 
 export interface VideoMood {
   emotional_tone: string;
-  energy_level: 'low' | 'medium' | 'high';
+  energy_level: "low" | "medium" | "high";
   atmosphere: string;
-  pacing: 'slow' | 'medium' | 'fast';
+  pacing: "slow" | "medium" | "fast";
 }
 
 export interface PromptObject {
@@ -228,7 +243,7 @@ export interface Position3D {
 }
 
 export interface AnimationDescription {
-  type: 'linear' | 'ease' | 'bounce' | 'elastic';
+  type: "linear" | "ease" | "bounce" | "elastic";
   keyframes: Keyframe[];
   duration: number;
   loop: boolean;
@@ -278,22 +293,28 @@ export interface LightingDescription {
   shadows: boolean;
 }
 
-export type LightingStyle = 'natural' | 'dramatic' | 'soft' | 'harsh' | 'colorful' | 'monochrome';
+export type LightingStyle =
+  | "natural"
+  | "dramatic"
+  | "soft"
+  | "harsh"
+  | "colorful"
+  | "monochrome";
 
 export interface BackgroundDescription {
-  type: 'solid' | 'gradient' | 'image' | 'video' | 'procedural';
+  type: "solid" | "gradient" | "image" | "video" | "procedural";
   content: string;
   properties: Record<string, any>;
 }
 
 export interface TransitionDescription {
-  type: 'cut' | 'fade' | 'dissolve' | 'wipe' | 'zoom';
+  type: "cut" | "fade" | "dissolve" | "wipe" | "zoom";
   duration: number;
   easing: string;
 }
 
 export interface CameraMovement {
-  type: 'static' | 'pan' | 'tilt' | 'zoom' | 'dolly' | 'tracking';
+  type: "static" | "pan" | "tilt" | "zoom" | "dolly" | "tracking";
   startPosition: Position3D;
   endPosition: Position3D;
   duration: number;
@@ -332,8 +353,8 @@ export interface VoiceoverDescription {
 }
 
 export interface VoiceConfiguration {
-  gender: 'male' | 'female' | 'neutral';
-  age: 'young' | 'adult' | 'elderly';
+  gender: "male" | "female" | "neutral";
+  age: "young" | "adult" | "elderly";
   accent: string;
   language: string;
   speed: number;
@@ -349,7 +370,7 @@ export interface VoiceTiming {
 
 export interface EmphasisMarker {
   text: string;
-  type: 'emphasis' | 'pause' | 'speed' | 'pitch';
+  type: "emphasis" | "pause" | "speed" | "pitch";
   value: number;
 }
 
@@ -408,7 +429,7 @@ export interface ChunkedVideoRequest {
 }
 
 export interface ChunkingStrategy {
-  type: 'temporal' | 'spatial' | 'object' | 'scene' | 'adaptive';
+  type: "temporal" | "spatial" | "object" | "scene" | "adaptive";
   chunkSize: number;
   overlap: number;
   maxChunks: number;
@@ -416,7 +437,7 @@ export interface ChunkingStrategy {
 }
 
 export interface ChunkCoordinationConfig {
-  strategy: 'sequential' | 'parallel' | 'dependency-based';
+  strategy: "sequential" | "parallel" | "dependency-based";
   dependencies: Map<number, number[]>;
   prioritization: ChunkPriority[];
   loadBalancing: boolean;
@@ -430,7 +451,7 @@ export interface ChunkPriority {
 }
 
 export interface ChunkMergingConfig {
-  strategy: 'sequential' | 'weighted' | 'intelligent';
+  strategy: "sequential" | "weighted" | "intelligent";
   blending: BlendingConfig;
   qualityControl: QualityControlConfig;
   validation: ChunkValidationConfig;
@@ -438,7 +459,7 @@ export interface ChunkMergingConfig {
 
 export interface BlendingConfig {
   enabled: boolean;
-  overlapHandling: 'average' | 'weighted' | 'smart';
+  overlapHandling: "average" | "weighted" | "smart";
   transitionSmoothing: boolean;
   colorMatching: boolean;
 }
@@ -447,7 +468,7 @@ export interface QualityControlConfig {
   enabled: boolean;
   qualityThreshold: number;
   automaticRetry: boolean;
-  fallbackStrategy: 'regenerate' | 'interpolate' | 'skip';
+  fallbackStrategy: "regenerate" | "interpolate" | "skip";
 }
 
 export interface ChunkValidationConfig {
@@ -458,7 +479,7 @@ export interface ChunkValidationConfig {
 }
 
 export interface ValidationCheck {
-  type: 'quality' | 'continuity' | 'consistency' | 'completeness';
+  type: "quality" | "continuity" | "consistency" | "completeness";
   threshold: number;
   weight: number;
 }
@@ -499,12 +520,17 @@ export interface QualityMetrics {
 
 export interface QualityIssue {
   type: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: "low" | "medium" | "high";
   location: { start: number; end: number };
   description: string;
 }
 
-export type ChunkStatus = 'pending' | 'generating' | 'completed' | 'failed' | 'merged';
+export type ChunkStatus =
+  | "pending"
+  | "generating"
+  | "completed"
+  | "failed"
+  | "merged";
 
 export interface ChunkedVideoResult {
   videoId: string;
@@ -546,7 +572,7 @@ export interface StreamingVideoRequest {
 }
 
 export interface StreamingConfiguration {
-  protocol: 'webrtc' | 'websocket' | 'sse' | 'grpc';
+  protocol: "webrtc" | "websocket" | "sse" | "grpc";
   bufferSize: number;
   latency: number;
   quality: StreamQuality;
@@ -571,19 +597,19 @@ export interface GenerationProgress {
   metadata: ProgressMetadata;
 }
 
-export type GenerationStage = 
-  | 'initializing'
-  | 'prompt_processing'
-  | 'scene_planning'
-  | 'rendering'
-  | 'post_processing'
-  | 'optimization'
-  | 'encoding'
-  | 'uploading'
-  | 'complete';
+export type GenerationStage =
+  | "initializing"
+  | "prompt_processing"
+  | "scene_planning"
+  | "rendering"
+  | "post_processing"
+  | "optimization"
+  | "encoding"
+  | "uploading"
+  | "complete";
 
 export interface PreviewData {
-  type: 'image' | 'video' | 'thumbnail';
+  type: "image" | "video" | "thumbnail";
   data: string | Buffer;
   timestamp: number;
   quality: number;
@@ -647,7 +673,7 @@ export interface DistributedGenerationRequest {
 }
 
 export interface DistributionConfig {
-  strategy: 'chunk-based' | 'scene-based' | 'object-based' | 'adaptive';
+  strategy: "chunk-based" | "scene-based" | "object-based" | "adaptive";
   workers: WorkerConfig[];
   loadBalancing: LoadBalancingConfig;
   failover: FailoverConfig;
@@ -677,20 +703,20 @@ export interface WorkerPerformance {
 }
 
 export interface WorkerAvailability {
-  status: 'available' | 'busy' | 'offline';
+  status: "available" | "busy" | "offline";
   currentLoad: number;
   estimatedAvailable: Date;
   timezone: string;
 }
 
 export interface LoadBalancingConfig {
-  strategy: 'round-robin' | 'least-loaded' | 'performance-based' | 'adaptive';
+  strategy: "round-robin" | "least-loaded" | "performance-based" | "adaptive";
   weights: Map<string, number>;
   constraints: LoadBalancingConstraint[];
 }
 
 export interface LoadBalancingConstraint {
-  type: 'resource' | 'quality' | 'latency' | 'cost';
+  type: "resource" | "quality" | "latency" | "cost";
   value: number;
   priority: number;
 }
@@ -703,21 +729,21 @@ export interface FailoverConfig {
 }
 
 export interface DistributedCoordinationConfig {
-  protocol: 'a2a' | 'centralized' | 'gossip';
+  protocol: "a2a" | "centralized" | "gossip";
   consensus: ConsensusConfig;
   synchronization: SyncConfig;
   monitoring: DistributedMonitoringConfig;
 }
 
 export interface ConsensusConfig {
-  algorithm: 'raft' | 'pbft' | 'pow' | 'pos';
+  algorithm: "raft" | "pbft" | "pow" | "pos";
   quorum: number;
   timeout: number;
   leaderElection: boolean;
 }
 
 export interface SyncConfig {
-  strategy: 'strict' | 'eventual' | 'weak';
+  strategy: "strict" | "eventual" | "weak";
   interval: number;
   tolerance: number;
 }
@@ -730,14 +756,18 @@ export interface DistributedMonitoringConfig {
 }
 
 export interface ResultAggregationConfig {
-  strategy: 'merge' | 'composite' | 'layered' | 'intelligent';
+  strategy: "merge" | "composite" | "layered" | "intelligent";
   qualityWeighting: boolean;
   conflictResolution: ConflictResolutionConfig;
   validation: AggregationValidationConfig;
 }
 
 export interface ConflictResolutionConfig {
-  strategy: 'quality-based' | 'timestamp-based' | 'worker-reputation' | 'voting';
+  strategy:
+    | "quality-based"
+    | "timestamp-based"
+    | "worker-reputation"
+    | "voting";
   threshold: number;
   fallback: string;
 }
@@ -793,7 +823,7 @@ export interface CoordinationMetrics {
 
 export interface VideoGenerationResult {
   videoId: string;
-  status: 'success' | 'partial' | 'failed';
+  status: "success" | "partial" | "failed";
   files: VideoFile[];
   preview: PreviewData[];
   thumbnails: ThumbnailData[];
@@ -833,7 +863,7 @@ export interface AudioTrack {
 }
 
 export interface SubtitleTrack {
-  format: 'srt' | 'vtt' | 'ass';
+  format: "srt" | "vtt" | "ass";
   language: string;
   url: string;
 }
@@ -849,7 +879,7 @@ export interface ThumbnailData {
   timestamp: number;
   url: string;
   resolution: VideoResolution;
-  format: 'jpg' | 'png' | 'webp';
+  format: "jpg" | "png" | "webp";
   size: number;
 }
 
@@ -918,8 +948,8 @@ export interface GenerationError {
 }
 
 export interface CompositionStyle {
-  rule: 'thirds' | 'golden' | 'center' | 'leading-lines';
-  framing: 'close-up' | 'medium' | 'wide' | 'extreme-wide';
-  angle: 'eye-level' | 'high' | 'low' | 'dutch';
-  depth: 'shallow' | 'deep' | 'infinite';
+  rule: "thirds" | "golden" | "center" | "leading-lines";
+  framing: "close-up" | "medium" | "wide" | "extreme-wide";
+  angle: "eye-level" | "high" | "low" | "dutch";
+  depth: "shallow" | "deep" | "infinite";
 }

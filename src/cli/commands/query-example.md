@@ -39,6 +39,7 @@ gemini-flow query "Climate change impacts" --format structured
 ## Advanced Examples
 
 ### Research Complex Topics
+
 ```bash
 gemini-flow query "Compare RAFT vs Paxos consensus algorithms" \
   --depth deep \
@@ -47,6 +48,7 @@ gemini-flow query "Compare RAFT vs Paxos consensus algorithms" \
 ```
 
 ### Quick Fact Checking
+
 ```bash
 gemini-flow query "Is Python faster than JavaScript?" \
   --depth shallow \
@@ -54,6 +56,7 @@ gemini-flow query "Is Python faster than JavaScript?" \
 ```
 
 ### Academic Research
+
 ```bash
 gemini-flow query "Machine learning applications in healthcare 2024" \
   --depth deep \
@@ -62,6 +65,7 @@ gemini-flow query "Machine learning applications in healthcare 2024" \
 ```
 
 ### Current Events
+
 ```bash
 gemini-flow query "Latest developments in quantum computing" \
   --no-cache \
@@ -71,6 +75,7 @@ gemini-flow query "Latest developments in quantum computing" \
 ## Output Structure
 
 ### Summary Format (default)
+
 - Query echo
 - Comprehensive summary
 - Key insights (3-5 points)
@@ -78,11 +83,13 @@ gemini-flow query "Latest developments in quantum computing" \
 - Performance metrics
 
 ### Detailed Format
+
 - All summary format content
 - Source excerpts with confidence scores
 - Source types (web, gemini, mcp)
 
 ### Structured Format
+
 - JSON-formatted output
 - Machine-readable structure
 - Full metadata included

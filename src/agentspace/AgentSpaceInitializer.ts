@@ -1,32 +1,35 @@
 /**
  * AgentSpace Initializer
- * 
+ *
  * Main initialization and orchestration for the complete 66-agent
  * spatial computing architecture integration with existing systems
  */
 
-import { Logger } from '../utils/logger.js';
-import { DistributedMemoryManager } from '../protocols/a2a/memory/distributed-memory-manager.js';
-import { AgentSpaceManager, AgentSpaceManagerConfig } from './core/AgentSpaceManager.js';
-import { ResourceAllocator } from './utils/ResourceAllocator.js';
-import { PerformanceMonitor } from './utils/PerformanceMonitor.js';
-import { AGENT_DEFINITIONS } from '../agents/agent-definitions.js';
+import { Logger } from "../utils/logger.js";
+import { DistributedMemoryManager } from "../protocols/a2a/memory/distributed-memory-manager.js";
+import {
+  AgentSpaceManager,
+  AgentSpaceManagerConfig,
+} from "./core/AgentSpaceManager.js";
+import { ResourceAllocator } from "./utils/ResourceAllocator.js";
+import { PerformanceMonitor } from "./utils/PerformanceMonitor.js";
+import { AGENT_DEFINITIONS } from "../agents/agent-definitions.js";
 import {
   AgentSpaceConfiguration,
   Vector3D,
   AgentDefinitionExtension,
-  MCPIntegration
-} from './types/AgentSpaceTypes.js';
+  MCPIntegration,
+} from "./types/AgentSpaceTypes.js";
 
 export interface AgentSpaceInitConfig {
   agentSpaceId: string;
   maxAgents: number;
   spatialDimensions: Vector3D;
-  securityLevel: 'basic' | 'standard' | 'high' | 'maximum';
+  securityLevel: "basic" | "standard" | "high" | "maximum";
   mcpIntegration: MCPIntegration;
   autoDeployAgents?: boolean;
   initialAgentTypes?: string[];
-  spatialArrangement?: 'clustered' | 'distributed' | 'layered';
+  spatialArrangement?: "clustered" | "distributed" | "layered";
 }
 
 export interface InitializationResult {
@@ -51,14 +54,14 @@ export interface AgentSpaceSystem {
  */
 export async function initializeAgentSpace(
   config: AgentSpaceInitConfig,
-  baseMemoryManager: DistributedMemoryManager
+  baseMemoryManager: DistributedMemoryManager,
 ): Promise<InitializationResult> {
-  const logger = new Logger('AgentSpaceInitializer');
-  
-  logger.info('Initializing AgentSpace system', {
+  const logger = new Logger("AgentSpaceInitializer");
+
+  logger.info("Initializing AgentSpace system", {
     agentSpaceId: config.agentSpaceId,
     maxAgents: config.maxAgents,
-    spatialDimensions: config.spatialDimensions
+    spatialDimensions: config.spatialDimensions,
   });
 
   try {
@@ -67,32 +70,39 @@ export async function initializeAgentSpace(
     const managerConfig = createManagerConfiguration(config, agentSpaceConfig);
 
     // Initialize core components
-    logger.info('Initializing core components');
-    
+    logger.info("Initializing core components");
+
     const resourceAllocator = new ResourceAllocator();
     const performanceMonitor = new PerformanceMonitor({
       metricsCollectionInterval: 5000, // 5 seconds
       trendAnalysisWindow: 300000, // 5 minutes
       bottleneckDetectionThreshold: 0.8,
       alertingEnabled: true,
-      historicalDataRetention: 1000
+      historicalDataRetention: 1000,
     });
 
-    const agentSpaceManager = new AgentSpaceManager(managerConfig, baseMemoryManager);
+    const agentSpaceManager = new AgentSpaceManager(
+      managerConfig,
+      baseMemoryManager,
+    );
 
     // Set up component integrations
-    setupComponentIntegrations(agentSpaceManager, resourceAllocator, performanceMonitor);
+    setupComponentIntegrations(
+      agentSpaceManager,
+      resourceAllocator,
+      performanceMonitor,
+    );
 
     let deployedAgents: string[] = [];
     let spatialZones: string[] = [];
 
     // Auto-deploy agents if requested
     if (config.autoDeployAgents) {
-      logger.info('Auto-deploying agents');
+      logger.info("Auto-deploying agents");
       const result = await autoDeployAgents(
         agentSpaceManager,
         config.initialAgentTypes || [],
-        config.spatialArrangement || 'distributed'
+        config.spatialArrangement || "distributed",
       );
       deployedAgents = result.deployedAgents;
       spatialZones = result.spatialZones;
@@ -102,13 +112,13 @@ export async function initializeAgentSpace(
     const systemHealth = await verifySystemHealth(
       agentSpaceManager,
       resourceAllocator,
-      performanceMonitor
+      performanceMonitor,
     );
 
-    logger.info('AgentSpace system initialized successfully', {
+    logger.info("AgentSpace system initialized successfully", {
       deployedAgents: deployedAgents.length,
       spatialZones: spatialZones.length,
-      systemHealth
+      systemHealth,
     });
 
     return {
@@ -117,12 +127,11 @@ export async function initializeAgentSpace(
       performanceMonitor,
       deployedAgents,
       spatialZones,
-      systemHealth
+      systemHealth,
     };
-
   } catch (error) {
-    logger.error('Failed to initialize AgentSpace system', {
-      error: error.message
+    logger.error("Failed to initialize AgentSpace system", {
+      error: error.message,
     });
     throw error;
   }
@@ -133,55 +142,61 @@ export async function initializeAgentSpace(
  */
 export async function deployFullAgentSwarm(
   agentSpaceManager: AgentSpaceManager,
-  topology: 'hierarchical' | 'mesh' | 'ring' | 'star' = 'mesh'
+  topology: "hierarchical" | "mesh" | "ring" | "star" = "mesh",
 ): Promise<{ deployedAgents: string[]; collaborationZones: string[] }> {
-  const logger = new Logger('AgentSpaceInitializer');
-  
-  logger.info('Deploying full 66-agent swarm', { topology });
+  const logger = new Logger("AgentSpaceInitializer");
+
+  logger.info("Deploying full 66-agent swarm", { topology });
 
   try {
     // Group agents by category for strategic deployment
     const agentGroups = groupAgentsByCategory();
-    
+
     // Deploy core agents first (coordinators, essential services)
-    const coreAgents = await deployCoreAgents(agentSpaceManager, agentGroups.core);
-    
+    const coreAgents = await deployCoreAgents(
+      agentSpaceManager,
+      agentGroups.core,
+    );
+
     // Deploy specialized agents in layers
     const specializedAgents = await deploySpecializedAgents(
       agentSpaceManager,
       agentGroups.specialized,
-      topology
+      topology,
     );
-    
+
     // Deploy supporting agents
     const supportAgents = await deploySupportingAgents(
       agentSpaceManager,
-      agentGroups.support
+      agentGroups.support,
     );
 
     // Create collaboration zones based on agent relationships
     const collaborationZones = await createCollaborationZones(
       agentSpaceManager,
       [...coreAgents, ...specializedAgents, ...supportAgents],
-      topology
+      topology,
     );
 
-    const allDeployedAgents = [...coreAgents, ...specializedAgents, ...supportAgents];
+    const allDeployedAgents = [
+      ...coreAgents,
+      ...specializedAgents,
+      ...supportAgents,
+    ];
 
-    logger.info('Full agent swarm deployed successfully', {
+    logger.info("Full agent swarm deployed successfully", {
       totalAgents: allDeployedAgents.length,
       collaborationZones: collaborationZones.length,
-      topology
+      topology,
     });
 
     return {
       deployedAgents: allDeployedAgents,
-      collaborationZones
+      collaborationZones,
     };
-
   } catch (error) {
-    logger.error('Failed to deploy full agent swarm', {
-      error: error.message
+    logger.error("Failed to deploy full agent swarm", {
+      error: error.message,
     });
     throw error;
   }
@@ -192,19 +207,21 @@ export async function deployFullAgentSwarm(
  */
 export async function integrateMCPTools(
   agentSpaceManager: AgentSpaceManager,
-  mcpIntegration: MCPIntegration
+  mcpIntegration: MCPIntegration,
 ): Promise<void> {
-  const logger = new Logger('AgentSpaceInitializer');
-  
-  logger.info('Integrating with MCP tools', mcpIntegration);
+  const logger = new Logger("AgentSpaceInitializer");
+
+  logger.info("Integrating with MCP tools", mcpIntegration);
 
   try {
     // Integration would connect with:
     // - Mem0 MCP for persistent memory
-    // - GitHub MCP for repository operations  
+    // - GitHub MCP for repository operations
     // - Other MCP tools for external capabilities
-    
-    logger.debug('MCP integration placeholder - would connect to actual MCP servers');
+
+    logger.debug(
+      "MCP integration placeholder - would connect to actual MCP servers",
+    );
 
     // Example integration points:
     // await connectMem0MCP(mcpIntegration.memoryProvider);
@@ -212,11 +229,10 @@ export async function integrateMCPTools(
     // await setupAuthProvider(mcpIntegration.authProvider);
     // await connectEventBus(mcpIntegration.eventBus);
 
-    logger.info('MCP tools integration completed');
-
+    logger.info("MCP tools integration completed");
   } catch (error) {
-    logger.error('Failed to integrate MCP tools', {
-      error: error.message
+    logger.error("Failed to integrate MCP tools", {
+      error: error.message,
     });
     throw error;
   }
@@ -226,7 +242,9 @@ export async function integrateMCPTools(
  * Private helper functions
  */
 
-function createAgentSpaceConfiguration(config: AgentSpaceInitConfig): AgentSpaceConfiguration {
+function createAgentSpaceConfiguration(
+  config: AgentSpaceInitConfig,
+): AgentSpaceConfiguration {
   return {
     maxWorkspaces: config.maxAgents * 2, // Extra capacity
     defaultResourceLimits: {
@@ -236,20 +254,20 @@ function createAgentSpaceConfiguration(config: AgentSpaceInitConfig): AgentSpace
       maxStorageMB: 1024,
       maxConcurrentConnections: 50,
       maxToolAccess: 10,
-      timeoutMs: 30000
+      timeoutMs: 30000,
     },
     spatialDimensions: config.spatialDimensions,
     consensusQuorum: Math.ceil(config.maxAgents * 0.67), // 67% for Byzantine fault tolerance
     memoryShardingEnabled: config.maxAgents > 10,
     securityLevel: config.securityLevel,
     monitoringEnabled: true,
-    analyticsEnabled: true
+    analyticsEnabled: true,
   };
 }
 
 function createManagerConfiguration(
   config: AgentSpaceInitConfig,
-  agentSpaceConfig: AgentSpaceConfiguration
+  agentSpaceConfig: AgentSpaceConfiguration,
 ): AgentSpaceManagerConfig {
   return {
     agentSpaceId: config.agentSpaceId,
@@ -257,32 +275,34 @@ function createManagerConfiguration(
     virtualizationConfig: {
       maxWorkspaces: agentSpaceConfig.maxWorkspaces,
       defaultResourceLimits: agentSpaceConfig.defaultResourceLimits,
-      isolationLevel: config.securityLevel === 'maximum' ? 'secure_enclave' : 'container',
+      isolationLevel:
+        config.securityLevel === "maximum" ? "secure_enclave" : "container",
       monitoringInterval: 10000, // 10 seconds
       cleanupInterval: 60000, // 1 minute
-      securityEnabled: config.securityLevel !== 'basic'
+      securityEnabled: config.securityLevel !== "basic",
     },
     spatialConfig: {
       dimensions: config.spatialDimensions,
       spatialResolution: 1.0,
-      maxTrackingDistance: Math.max(
-        config.spatialDimensions.x,
-        config.spatialDimensions.y,
-        config.spatialDimensions.z
-      ) * 0.3,
+      maxTrackingDistance:
+        Math.max(
+          config.spatialDimensions.x,
+          config.spatialDimensions.y,
+          config.spatialDimensions.z,
+        ) * 0.3,
       collisionDetectionEnabled: true,
       pathPlanningEnabled: true,
-      spatialIndexingEnabled: config.maxAgents > 20
+      spatialIndexingEnabled: config.maxAgents > 20,
     },
     memoryConfig: {
       spatialIndexingEnabled: true,
       knowledgeGraphEnabled: true,
-      mem0Integration: config.mcpIntegration.memoryProvider !== '',
+      mem0Integration: config.mcpIntegration.memoryProvider !== "",
       compressionEnabled: config.maxAgents > 50,
       spatialRadius: 20,
       maxMemoryNodes: config.maxAgents * 1000,
-      persistenceLevel: 'persistent',
-      analyticsEnabled: true
+      persistenceLevel: "persistent",
+      analyticsEnabled: true,
     },
     consensusConfig: {
       spatialTolerance: 5.0,
@@ -291,62 +311,77 @@ function createManagerConfiguration(
       zoneManagement: true,
       consensusTimeout: 30000,
       quorumThreshold: 0.67,
-      byzantineTolerance: Math.floor(config.maxAgents / 3)
+      byzantineTolerance: Math.floor(config.maxAgents / 3),
     },
-    mcpIntegration: config.mcpIntegration
+    mcpIntegration: config.mcpIntegration,
   };
 }
 
 function setupComponentIntegrations(
   agentSpaceManager: AgentSpaceManager,
   resourceAllocator: ResourceAllocator,
-  performanceMonitor: PerformanceMonitor
+  performanceMonitor: PerformanceMonitor,
 ): void {
-  const logger = new Logger('AgentSpaceInitializer');
+  const logger = new Logger("AgentSpaceInitializer");
 
   // AgentSpaceManager -> PerformanceMonitor
-  agentSpaceManager.on('agent_deployed', (event) => {
-    performanceMonitor.recordOperation('agent_deployment', 1000, true, 'agentspace');
+  agentSpaceManager.on("agent_deployed", (event) => {
+    performanceMonitor.recordOperation(
+      "agent_deployment",
+      1000,
+      true,
+      "agentspace",
+    );
   });
 
-  agentSpaceManager.on('consensus_started', (event) => {
-    performanceMonitor.recordOperation('consensus_initiation', 500, true, 'consensus');
+  agentSpaceManager.on("consensus_started", (event) => {
+    performanceMonitor.recordOperation(
+      "consensus_initiation",
+      500,
+      true,
+      "consensus",
+    );
   });
 
-  agentSpaceManager.on('workspace_created', (event) => {
-    performanceMonitor.recordOperation('workspace_creation', 800, true, 'virtualization');
+  agentSpaceManager.on("workspace_created", (event) => {
+    performanceMonitor.recordOperation(
+      "workspace_creation",
+      800,
+      true,
+      "virtualization",
+    );
   });
 
   // PerformanceMonitor -> AgentSpaceManager (performance alerts)
-  performanceMonitor.on('performance_alert', async (alert) => {
-    if (alert.severity === 'critical') {
-      logger.warn('Critical performance alert received', alert);
+  performanceMonitor.on("performance_alert", async (alert) => {
+    if (alert.severity === "critical") {
+      logger.warn("Critical performance alert received", alert);
       // Trigger system optimization
       await agentSpaceManager.optimizeSystem();
     }
   });
 
   // ResourceAllocator integration (would be more extensive in production)
-  logger.debug('Component integrations setup completed');
+  logger.debug("Component integrations setup completed");
 }
 
 async function autoDeployAgents(
   agentSpaceManager: AgentSpaceManager,
   agentTypes: string[],
-  spatialArrangement: string
+  spatialArrangement: string,
 ): Promise<{ deployedAgents: string[]; spatialZones: string[] }> {
-  const logger = new Logger('AgentSpaceInitializer');
-  
+  const logger = new Logger("AgentSpaceInitializer");
+
   // Default agent types if none specified
   const defaultAgentTypes = [
-    'hierarchical-coordinator',
-    'coder',
-    'researcher',
-    'reviewer',
-    'tester',
-    'performance-monitor',
-    'security-auditor',
-    'memory-manager'
+    "hierarchical-coordinator",
+    "coder",
+    "researcher",
+    "reviewer",
+    "tester",
+    "performance-monitor",
+    "security-auditor",
+    "memory-manager",
   ];
 
   const typesToDeploy = agentTypes.length > 0 ? agentTypes : defaultAgentTypes;
@@ -355,41 +390,45 @@ async function autoDeployAgents(
   for (const agentType of typesToDeploy) {
     const agentDefinition = AGENT_DEFINITIONS[agentType];
     if (!agentDefinition) {
-      logger.warn('Unknown agent type requested', { agentType });
+      logger.warn("Unknown agent type requested", { agentType });
       continue;
     }
 
     try {
       const enhancedDefinition: AgentDefinitionExtension = {
         ...agentDefinition,
-        spatialCapabilities: [{
-          type: 'navigation',
-          level: 'intermediate',
-          constraints: {}
-        }],
+        spatialCapabilities: [
+          {
+            type: "navigation",
+            level: "intermediate",
+            constraints: {},
+          },
+        ],
         collaborationPreferences: {
           preferredDistance: 15,
           maxCollaborators: 5,
-          communicationStyle: 'mesh',
-          trustThreshold: 0.7
+          communicationStyle: "mesh",
+          trustThreshold: 0.7,
         },
         securityClearance: {
-          level: agentDefinition.type.includes('security') ? 'secret' : 'confidential'
-        }
+          level: agentDefinition.type.includes("security")
+            ? "secret"
+            : "confidential",
+        },
       };
 
-      const deploymentPlan = await agentSpaceManager.deployAgent(enhancedDefinition);
+      const deploymentPlan =
+        await agentSpaceManager.deployAgent(enhancedDefinition);
       deployedAgents.push(deploymentPlan.agentId);
 
-      logger.debug('Agent deployed', {
+      logger.debug("Agent deployed", {
         agentId: deploymentPlan.agentId,
-        agentType: agentDefinition.type
+        agentType: agentDefinition.type,
       });
-
     } catch (error) {
-      logger.error('Failed to deploy agent', {
+      logger.error("Failed to deploy agent", {
         agentType,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -400,12 +439,12 @@ async function autoDeployAgents(
     try {
       const result = await agentSpaceManager.createCollaborativeWorkspace(
         deployedAgents,
-        'Main Collaboration Zone'
+        "Main Collaboration Zone",
       );
       spatialZones.push(result.zone.id);
     } catch (error) {
-      logger.error('Failed to create collaboration zone', {
-        error: error.message
+      logger.error("Failed to create collaboration zone", {
+        error: error.message,
       });
     }
   }
@@ -419,40 +458,47 @@ function groupAgentsByCategory(): {
   support: string[];
 } {
   const allAgentTypes = Object.keys(AGENT_DEFINITIONS);
-  
+
   const coreAgentTypes = [
-    'hierarchical-coordinator',
-    'mesh-coordinator',
-    'adaptive-coordinator',
-    'byzantine-fault-tolerant',
-    'raft-consensus'
+    "hierarchical-coordinator",
+    "mesh-coordinator",
+    "adaptive-coordinator",
+    "byzantine-fault-tolerant",
+    "raft-consensus",
   ];
 
   const specializedAgentTypes = [
-    'coder', 'researcher', 'reviewer', 'tester',
-    'backend-dev', 'frontend-dev', 'ml-developer',
-    'security-auditor', 'performance-monitor'
+    "coder",
+    "researcher",
+    "reviewer",
+    "tester",
+    "backend-dev",
+    "frontend-dev",
+    "ml-developer",
+    "security-auditor",
+    "performance-monitor",
   ];
 
   const supportAgentTypes = allAgentTypes.filter(
-    type => !coreAgentTypes.includes(type) && !specializedAgentTypes.includes(type)
+    (type) =>
+      !coreAgentTypes.includes(type) && !specializedAgentTypes.includes(type),
   );
 
   return {
     core: coreAgentTypes,
     specialized: specializedAgentTypes,
-    support: supportAgentTypes
+    support: supportAgentTypes,
   };
 }
 
 async function deployCoreAgents(
   agentSpaceManager: AgentSpaceManager,
-  coreAgentTypes: string[]
+  coreAgentTypes: string[],
 ): Promise<string[]> {
-  const logger = new Logger('AgentSpaceInitializer');
+  const logger = new Logger("AgentSpaceInitializer");
   const deployedAgents: string[] = [];
 
-  logger.info('Deploying core agents', { count: coreAgentTypes.length });
+  logger.info("Deploying core agents", { count: coreAgentTypes.length });
 
   for (const agentType of coreAgentTypes) {
     const definition = AGENT_DEFINITIONS[agentType];
@@ -461,27 +507,28 @@ async function deployCoreAgents(
     try {
       const enhancedDefinition: AgentDefinitionExtension = {
         ...definition,
-        spatialCapabilities: [{
-          type: 'spatial_reasoning',
-          level: 'expert',
-          constraints: { coordinationRadius: 50 }
-        }],
+        spatialCapabilities: [
+          {
+            type: "spatial_reasoning",
+            level: "expert",
+            constraints: { coordinationRadius: 50 },
+          },
+        ],
         securityClearance: {
-          level: 'top_secret'
-        }
+          level: "top_secret",
+        },
       };
 
       const plan = await agentSpaceManager.deployAgent(
         enhancedDefinition,
-        { x: 0, y: 0, z: deployedAgents.length * 10 } // Central positions
+        { x: 0, y: 0, z: deployedAgents.length * 10 }, // Central positions
       );
 
       deployedAgents.push(plan.agentId);
-      
     } catch (error) {
-      logger.error('Failed to deploy core agent', {
+      logger.error("Failed to deploy core agent", {
         agentType,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -492,14 +539,14 @@ async function deployCoreAgents(
 async function deploySpecializedAgents(
   agentSpaceManager: AgentSpaceManager,
   specializedAgentTypes: string[],
-  topology: string
+  topology: string,
 ): Promise<string[]> {
-  const logger = new Logger('AgentSpaceInitializer');
+  const logger = new Logger("AgentSpaceInitializer");
   const deployedAgents: string[] = [];
 
-  logger.info('Deploying specialized agents', {
+  logger.info("Deploying specialized agents", {
     count: specializedAgentTypes.length,
-    topology
+    topology,
   });
 
   // Deploy in batches for better resource management
@@ -512,33 +559,38 @@ async function deploySpecializedAgents(
 
       const enhancedDefinition: AgentDefinitionExtension = {
         ...definition,
-        spatialCapabilities: [{
-          type: 'navigation',
-          level: 'advanced'
-        }]
+        spatialCapabilities: [
+          {
+            type: "navigation",
+            level: "advanced",
+          },
+        ],
       };
 
       // Calculate position based on topology
       const position = calculateSpecializedAgentPosition(
         i + index,
         specializedAgentTypes.length,
-        topology
+        topology,
       );
 
-      const plan = await agentSpaceManager.deployAgent(enhancedDefinition, position);
+      const plan = await agentSpaceManager.deployAgent(
+        enhancedDefinition,
+        position,
+      );
       return plan.agentId;
     });
 
     const batchResults = await Promise.allSettled(batchPromises);
-    
-    batchResults.forEach(result => {
-      if (result.status === 'fulfilled' && result.value) {
+
+    batchResults.forEach((result) => {
+      if (result.status === "fulfilled" && result.value) {
         deployedAgents.push(result.value);
       }
     });
 
     // Small delay between batches
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   return deployedAgents;
@@ -546,42 +598,49 @@ async function deploySpecializedAgents(
 
 async function deploySupportingAgents(
   agentSpaceManager: AgentSpaceManager,
-  supportAgentTypes: string[]
+  supportAgentTypes: string[],
 ): Promise<string[]> {
-  const logger = new Logger('AgentSpaceInitializer');
+  const logger = new Logger("AgentSpaceInitializer");
   const deployedAgents: string[] = [];
 
-  logger.info('Deploying supporting agents', { count: supportAgentTypes.length });
+  logger.info("Deploying supporting agents", {
+    count: supportAgentTypes.length,
+  });
 
   // Deploy support agents with lower priority and resources
-  for (const agentType of supportAgentTypes.slice(0, 20)) { // Limit to 20 support agents
+  for (const agentType of supportAgentTypes.slice(0, 20)) {
+    // Limit to 20 support agents
     const definition = AGENT_DEFINITIONS[agentType];
     if (!definition) continue;
 
     try {
       const enhancedDefinition: AgentDefinitionExtension = {
         ...definition,
-        resourceRequirements: [{
-          resourceType: 'memory',
-          amount: 50, // Lower resource requirements
-          duration: 0,
-          sharable: true
-        }]
+        resourceRequirements: [
+          {
+            resourceType: "memory",
+            amount: 50, // Lower resource requirements
+            duration: 0,
+            sharable: true,
+          },
+        ],
       };
 
       const position = {
         x: (Math.random() - 0.5) * 100,
         y: (Math.random() - 0.5) * 100,
-        z: (Math.random() - 0.5) * 100
+        z: (Math.random() - 0.5) * 100,
       };
 
-      const plan = await agentSpaceManager.deployAgent(enhancedDefinition, position);
+      const plan = await agentSpaceManager.deployAgent(
+        enhancedDefinition,
+        position,
+      );
       deployedAgents.push(plan.agentId);
-      
     } catch (error) {
-      logger.warn('Failed to deploy support agent', {
+      logger.warn("Failed to deploy support agent", {
         agentType,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -592,16 +651,19 @@ async function deploySupportingAgents(
 async function createCollaborationZones(
   agentSpaceManager: AgentSpaceManager,
   deployedAgents: string[],
-  topology: string
+  topology: string,
 ): Promise<string[]> {
-  const logger = new Logger('AgentSpaceInitializer');
+  const logger = new Logger("AgentSpaceInitializer");
   const collaborationZones: string[] = [];
 
   // Create zones for different types of collaboration
   const zoneConfigs = [
-    { name: 'Core Coordination Zone', participants: deployedAgents.slice(0, 10) },
-    { name: 'Development Zone', participants: deployedAgents.slice(10, 30) },
-    { name: 'Analysis Zone', participants: deployedAgents.slice(30, 50) }
+    {
+      name: "Core Coordination Zone",
+      participants: deployedAgents.slice(0, 10),
+    },
+    { name: "Development Zone", participants: deployedAgents.slice(10, 30) },
+    { name: "Analysis Zone", participants: deployedAgents.slice(30, 50) },
   ];
 
   for (const config of zoneConfigs) {
@@ -609,19 +671,18 @@ async function createCollaborationZones(
       try {
         const result = await agentSpaceManager.createCollaborativeWorkspace(
           config.participants,
-          config.name
+          config.name,
         );
         collaborationZones.push(result.zone.id);
-        
-        logger.debug('Collaboration zone created', {
+
+        logger.debug("Collaboration zone created", {
           zoneId: result.zone.id,
-          participants: config.participants.length
+          participants: config.participants.length,
         });
-        
       } catch (error) {
-        logger.error('Failed to create collaboration zone', {
+        logger.error("Failed to create collaboration zone", {
           zoneName: config.name,
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -633,28 +694,28 @@ async function createCollaborationZones(
 function calculateSpecializedAgentPosition(
   index: number,
   total: number,
-  topology: string
+  topology: string,
 ): Vector3D {
   switch (topology) {
-    case 'ring':
+    case "ring":
       const angle = (2 * Math.PI * index) / total;
       const radius = 30;
       return {
         x: radius * Math.cos(angle),
         y: radius * Math.sin(angle),
-        z: 0
+        z: 0,
       };
-      
-    case 'hierarchical':
+
+    case "hierarchical":
       const level = Math.floor(index / 5);
       const posInLevel = index % 5;
       return {
         x: (posInLevel - 2) * 20,
         y: level * 25,
-        z: 0
+        z: 0,
       };
-      
-    case 'star':
+
+    case "star":
       if (index === 0) {
         return { x: 0, y: 0, z: 0 };
       }
@@ -663,15 +724,15 @@ function calculateSpecializedAgentPosition(
       return {
         x: starRadius * Math.cos(starAngle),
         y: starRadius * Math.sin(starAngle),
-        z: 0
+        z: 0,
       };
-      
-    case 'mesh':
+
+    case "mesh":
     default:
       return {
         x: (Math.random() - 0.5) * 80,
         y: (Math.random() - 0.5) * 80,
-        z: (Math.random() - 0.5) * 40
+        z: (Math.random() - 0.5) * 40,
       };
   }
 }
@@ -679,13 +740,13 @@ function calculateSpecializedAgentPosition(
 async function verifySystemHealth(
   agentSpaceManager: AgentSpaceManager,
   resourceAllocator: ResourceAllocator,
-  performanceMonitor: PerformanceMonitor
+  performanceMonitor: PerformanceMonitor,
 ): Promise<number> {
-  const logger = new Logger('AgentSpaceInitializer');
-  
+  const logger = new Logger("AgentSpaceInitializer");
+
   try {
     // Give components time to initialize
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Collect health metrics
     const agentSpaceHealth = await agentSpaceManager.getSystemHealth();
@@ -693,24 +754,23 @@ async function verifySystemHealth(
     const performanceMetrics = performanceMonitor.getCurrentMetrics();
 
     // Calculate overall health score
-    const healthScore = (
-      agentSpaceHealth.overallHealth.overall +
-      resourceMetrics.satisfactionScore +
-      performanceMetrics.performanceScore
-    ) / 3;
+    const healthScore =
+      (agentSpaceHealth.overallHealth.overall +
+        resourceMetrics.satisfactionScore +
+        performanceMetrics.performanceScore) /
+      3;
 
-    logger.info('System health verification completed', {
+    logger.info("System health verification completed", {
       agentSpaceHealth: agentSpaceHealth.overallHealth.overall,
       resourceSatisfaction: resourceMetrics.satisfactionScore,
       performanceScore: performanceMetrics.performanceScore,
-      overallHealth: healthScore
+      overallHealth: healthScore,
     });
 
     return healthScore;
-
   } catch (error) {
-    logger.error('System health verification failed', {
-      error: error.message
+    logger.error("System health verification failed", {
+      error: error.message,
     });
     return 0.5; // Default moderate health
   }
@@ -732,15 +792,17 @@ export function setGlobalAgentSpaceSystem(system: AgentSpaceSystem): void {
 /**
  * Shutdown the entire AgentSpace system
  */
-export async function shutdownAgentSpace(system?: AgentSpaceSystem): Promise<void> {
-  const logger = new Logger('AgentSpaceInitializer');
-  
-  logger.info('Shutting down AgentSpace system');
+export async function shutdownAgentSpace(
+  system?: AgentSpaceSystem,
+): Promise<void> {
+  const logger = new Logger("AgentSpaceInitializer");
+
+  logger.info("Shutting down AgentSpace system");
 
   const targetSystem = system || globalAgentSpaceSystem;
-  
+
   if (!targetSystem) {
-    logger.warn('No AgentSpace system found to shutdown');
+    logger.warn("No AgentSpace system found to shutdown");
     return;
   }
 
@@ -748,18 +810,17 @@ export async function shutdownAgentSpace(system?: AgentSpaceSystem): Promise<voi
     await Promise.all([
       targetSystem.performanceMonitor.shutdown(),
       targetSystem.resourceAllocator.shutdown(),
-      targetSystem.manager.shutdown()
+      targetSystem.manager.shutdown(),
     ]);
 
     if (targetSystem === globalAgentSpaceSystem) {
       globalAgentSpaceSystem = null;
     }
 
-    logger.info('AgentSpace system shutdown completed successfully');
-
+    logger.info("AgentSpace system shutdown completed successfully");
   } catch (error) {
-    logger.error('Error during AgentSpace system shutdown', {
-      error: error.message
+    logger.error("Error during AgentSpace system shutdown", {
+      error: error.message,
     });
     throw error;
   }

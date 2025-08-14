@@ -1,13 +1,13 @@
 /**
  * Swarm Manager
- * 
+ *
  * Manages AI agent swarms with different topologies
  */
 
-import { Logger } from '../utils/logger.js';
+import { Logger } from "../utils/logger.js";
 
 export interface SwarmConfig {
-  topology: 'hierarchical' | 'mesh' | 'ring' | 'star';
+  topology: "hierarchical" | "mesh" | "ring" | "star";
   maxAgents: number;
   name: string;
   queenType?: string;
@@ -34,12 +34,12 @@ export class SwarmManager {
   private swarms: Map<string, any> = new Map();
 
   constructor() {
-    this.logger = new Logger('SwarmManager');
+    this.logger = new Logger("SwarmManager");
   }
 
   async initializeSwarm(config: SwarmConfig) {
     const swarmId = `swarm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const swarm = {
       id: swarmId,
       name: config.name,
@@ -48,12 +48,12 @@ export class SwarmManager {
       queenType: config.queenType,
       consensus: config.consensus,
       createdAt: new Date(),
-      status: 'active'
+      status: "active",
     };
 
     this.swarms.set(swarmId, swarm);
-    this.logger.info('Swarm initialized', { swarmId, config });
-    
+    this.logger.info("Swarm initialized", { swarmId, config });
+
     return swarm;
   }
 
@@ -61,7 +61,7 @@ export class SwarmManager {
     if (swarmId) {
       const swarm = this.swarms.get(swarmId);
       if (!swarm) return null;
-      
+
       return {
         id: swarm.id,
         status: swarm.status,
@@ -69,7 +69,7 @@ export class SwarmManager {
         activeAgents: 0,
         maxAgents: swarm.maxAgents,
         completedTasks: 0,
-        totalTasks: 0
+        totalTasks: 0,
       };
     }
 
@@ -84,13 +84,20 @@ export class SwarmManager {
       activeAgents: 0,
       maxAgents: firstSwarm.maxAgents,
       completedTasks: 0,
-      totalTasks: 0
+      totalTasks: 0,
     };
   }
 
-  async monitorSwarm(swarmId: string, options: { duration: number; interval: number; onUpdate: (metrics: any) => void }) {
+  async monitorSwarm(
+    swarmId: string,
+    options: {
+      duration: number;
+      interval: number;
+      onUpdate: (metrics: any) => void;
+    },
+  ) {
     const startTime = Date.now();
-    
+
     const monitor = () => {
       const elapsed = Date.now() - startTime;
       if (elapsed >= options.duration) {
@@ -104,7 +111,7 @@ export class SwarmManager {
         activeAgents: Math.floor(Math.random() * 8),
         memoryUsage: Math.random() * 500,
         queueSize: Math.floor(Math.random() * 20),
-        agentActivity: []
+        agentActivity: [],
       };
 
       options.onUpdate(metrics);
@@ -123,12 +130,12 @@ export class SwarmManager {
       previousCount: currentCount,
       currentCount: targetCount,
       added,
-      removed
+      removed,
     };
   }
 
   async destroySwarm(swarmId: string): Promise<void> {
     this.swarms.delete(swarmId);
-    this.logger.info('Swarm destroyed', { swarmId });
+    this.logger.info("Swarm destroyed", { swarmId });
   }
 }

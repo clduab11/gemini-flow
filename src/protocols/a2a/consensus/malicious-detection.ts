@@ -4,24 +4,24 @@
  * in the Byzantine consensus network
  */
 
-import { EventEmitter } from 'events';
-import { Agent, ConsensusMessage } from './byzantine-consensus';
-import { Vote, VotingProposal } from './voting-mechanisms';
+import { EventEmitter } from "events";
+import { Agent, ConsensusMessage } from "./byzantine-consensus";
+import { Vote, VotingProposal } from "./voting-mechanisms";
 
 export interface MaliciousBehavior {
-  type: 
-    | 'double-voting'
-    | 'conflicting-messages'
-    | 'timing-manipulation'
-    | 'fake-signatures'
-    | 'spam-flooding'
-    | 'collusion'
-    | 'view-change-abuse'
-    | 'consensus-disruption'
-    | 'sybil-attack'
-    | 'eclipse-attack';
+  type:
+    | "double-voting"
+    | "conflicting-messages"
+    | "timing-manipulation"
+    | "fake-signatures"
+    | "spam-flooding"
+    | "collusion"
+    | "view-change-abuse"
+    | "consensus-disruption"
+    | "sybil-attack"
+    | "eclipse-attack";
   agentId: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  severity: "low" | "medium" | "high" | "critical";
   evidence: any[];
   timestamp: Date;
   confidence: number; // 0-1 probability
@@ -32,7 +32,7 @@ export interface ReputationScore {
   agentId: string;
   currentScore: number;
   historicalScores: { timestamp: Date; score: number }[];
-  trustLevel: 'untrusted' | 'low' | 'medium' | 'high' | 'verified';
+  trustLevel: "untrusted" | "low" | "medium" | "high" | "verified";
   behaviorFlags: Set<string>;
   interactionHistory: Map<string, number>; // agentId -> interaction count
 }
@@ -40,7 +40,7 @@ export interface ReputationScore {
 export interface DetectionRule {
   id: string;
   name: string;
-  type: MaliciousBehavior['type'];
+  type: MaliciousBehavior["type"];
   condition: (context: DetectionContext) => boolean;
   confidence: number;
   enabled: boolean;
@@ -56,8 +56,12 @@ export interface DetectionContext {
 
 export interface SecurityAlert {
   id: string;
-  type: 'malicious-behavior' | 'reputation-drop' | 'network-attack' | 'consensus-failure';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type:
+    | "malicious-behavior"
+    | "reputation-drop"
+    | "network-attack"
+    | "consensus-failure";
+  severity: "low" | "medium" | "high" | "critical";
   message: string;
   affectedAgents: string[];
   timestamp: Date;
@@ -71,7 +75,7 @@ export class MaliciousDetection extends EventEmitter {
   private securityAlerts: SecurityAlert[] = [];
   private quarantinedAgents: Set<string> = new Set();
   private suspiciousAgents: Set<string> = new Set();
-  
+
   // Detection parameters
   private readonly REPUTATION_THRESHOLD = 0.3;
   private readonly CONFIDENCE_THRESHOLD = 0.7;
@@ -89,56 +93,56 @@ export class MaliciousDetection extends EventEmitter {
   private initializeDetectionRules(): void {
     const rules: DetectionRule[] = [
       {
-        id: 'double-voting',
-        name: 'Double Voting Detection',
-        type: 'double-voting',
+        id: "double-voting",
+        name: "Double Voting Detection",
+        type: "double-voting",
         condition: this.detectDoubleVoting.bind(this),
         confidence: 0.95,
-        enabled: true
+        enabled: true,
       },
       {
-        id: 'conflicting-messages',
-        name: 'Conflicting Message Detection',
-        type: 'conflicting-messages',
+        id: "conflicting-messages",
+        name: "Conflicting Message Detection",
+        type: "conflicting-messages",
         condition: this.detectConflictingMessages.bind(this),
         confidence: 0.85,
-        enabled: true
+        enabled: true,
       },
       {
-        id: 'timing-manipulation',
-        name: 'Timing Manipulation Detection',
-        type: 'timing-manipulation',
+        id: "timing-manipulation",
+        name: "Timing Manipulation Detection",
+        type: "timing-manipulation",
         condition: this.detectTimingManipulation.bind(this),
         confidence: 0.75,
-        enabled: true
+        enabled: true,
       },
       {
-        id: 'spam-flooding',
-        name: 'Spam Flooding Detection',
-        type: 'spam-flooding',
+        id: "spam-flooding",
+        name: "Spam Flooding Detection",
+        type: "spam-flooding",
         condition: this.detectSpamFlooding.bind(this),
         confidence: 0.8,
-        enabled: true
+        enabled: true,
       },
       {
-        id: 'collusion',
-        name: 'Collusion Detection',
-        type: 'collusion',
+        id: "collusion",
+        name: "Collusion Detection",
+        type: "collusion",
         condition: this.detectCollusion.bind(this),
         confidence: 0.7,
-        enabled: true
+        enabled: true,
       },
       {
-        id: 'view-change-abuse',
-        name: 'View Change Abuse Detection',
-        type: 'view-change-abuse',
+        id: "view-change-abuse",
+        name: "View Change Abuse Detection",
+        type: "view-change-abuse",
         condition: this.detectViewChangeAbuse.bind(this),
         confidence: 0.8,
-        enabled: true
-      }
+        enabled: true,
+      },
     ];
 
-    rules.forEach(rule => this.detectionRules.set(rule.id, rule));
+    rules.forEach((rule) => this.detectionRules.set(rule.id, rule));
   }
 
   /**
@@ -150,9 +154,9 @@ export class MaliciousDetection extends EventEmitter {
         agentId: agent.id,
         currentScore: 1.0, // Start with perfect reputation
         historicalScores: [{ timestamp: new Date(), score: 1.0 }],
-        trustLevel: 'medium',
+        trustLevel: "medium",
         behaviorFlags: new Set(),
-        interactionHistory: new Map()
+        interactionHistory: new Map(),
       });
       this.behaviorHistory.set(agent.id, []);
     }
@@ -164,30 +168,30 @@ export class MaliciousDetection extends EventEmitter {
   public async analyzeBehavior(
     agentId: string,
     messages: ConsensusMessage[],
-    votes: Vote[]
+    votes: Vote[],
   ): Promise<MaliciousBehavior[]> {
     const agent = await this.getAgentInfo(agentId);
     if (!agent) {
-      throw new Error('Agent not found');
+      throw new Error("Agent not found");
     }
 
     const detectedBehaviors: MaliciousBehavior[] = [];
     const now = new Date();
     const timeWindow = {
       start: new Date(now.getTime() - this.TIME_WINDOW_MS),
-      end: now
+      end: now,
     };
 
     const context: DetectionContext = {
       agent,
-      messages: messages.filter(m => 
-        m.timestamp >= timeWindow.start && m.timestamp <= timeWindow.end
+      messages: messages.filter(
+        (m) => m.timestamp >= timeWindow.start && m.timestamp <= timeWindow.end,
       ),
-      votes: votes.filter(v => 
-        v.timestamp >= timeWindow.start && v.timestamp <= timeWindow.end
+      votes: votes.filter(
+        (v) => v.timestamp >= timeWindow.start && v.timestamp <= timeWindow.end,
       ),
       timeWindow,
-      networkState: {} // Would be populated with actual network state
+      networkState: {}, // Would be populated with actual network state
     };
 
     // Run all enabled detection rules
@@ -203,7 +207,7 @@ export class MaliciousDetection extends EventEmitter {
             evidence: this.collectEvidence(rule.type, context),
             timestamp: new Date(),
             confidence: rule.confidence,
-            description: `${rule.name} triggered for agent ${agentId}`
+            description: `${rule.name} triggered for agent ${agentId}`,
           };
 
           detectedBehaviors.push(behavior);
@@ -222,8 +226,8 @@ export class MaliciousDetection extends EventEmitter {
    */
   private detectDoubleVoting(context: DetectionContext): boolean {
     const votesByProposal = new Map<string, Vote[]>();
-    
-    context.votes.forEach(vote => {
+
+    context.votes.forEach((vote) => {
       if (!votesByProposal.has(vote.proposalId)) {
         votesByProposal.set(vote.proposalId, []);
       }
@@ -245,8 +249,8 @@ export class MaliciousDetection extends EventEmitter {
    */
   private detectConflictingMessages(context: DetectionContext): boolean {
     const messagesByType = new Map<string, ConsensusMessage[]>();
-    
-    context.messages.forEach(msg => {
+
+    context.messages.forEach((msg) => {
       const key = `${msg.type}-${msg.viewNumber}-${msg.sequenceNumber}`;
       if (!messagesByType.has(key)) {
         messagesByType.set(key, []);
@@ -258,7 +262,7 @@ export class MaliciousDetection extends EventEmitter {
     for (const messages of messagesByType.values()) {
       if (messages.length > 1) {
         // Check if messages have different digests (conflicting)
-        const digests = new Set(messages.map(m => m.digest));
+        const digests = new Set(messages.map((m) => m.digest));
         if (digests.size > 1) {
           return true;
         }
@@ -274,12 +278,13 @@ export class MaliciousDetection extends EventEmitter {
   private detectTimingManipulation(context: DetectionContext): boolean {
     if (context.messages.length < 2) return false;
 
-    const timestamps = context.messages.map(m => m.timestamp.getTime());
+    const timestamps = context.messages.map((m) => m.timestamp.getTime());
     timestamps.sort();
 
     // Check for messages sent too close together (likely pre-computed)
     for (let i = 1; i < timestamps.length; i++) {
-      if (timestamps[i] - timestamps[i-1] < 10) { // Less than 10ms apart
+      if (timestamps[i] - timestamps[i - 1] < 10) {
+        // Less than 10ms apart
         return true;
       }
     }
@@ -288,13 +293,17 @@ export class MaliciousDetection extends EventEmitter {
     if (timestamps.length >= 5) {
       const intervals = [];
       for (let i = 1; i < timestamps.length; i++) {
-        intervals.push(timestamps[i] - timestamps[i-1]);
+        intervals.push(timestamps[i] - timestamps[i - 1]);
       }
-      
-      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      const variance = intervals.reduce((acc, interval) => 
-        acc + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
-      
+
+      const avgInterval =
+        intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const variance =
+        intervals.reduce(
+          (acc, interval) => acc + Math.pow(interval - avgInterval, 2),
+          0,
+        ) / intervals.length;
+
       // Very low variance suggests artificial timing
       if (variance < 100) {
         return true;
@@ -319,8 +328,8 @@ export class MaliciousDetection extends EventEmitter {
 
     // Check for identical voting patterns across multiple proposals
     const votingPatterns = new Map<string, number>();
-    
-    context.votes.forEach(vote => {
+
+    context.votes.forEach((vote) => {
       const pattern = `${vote.decision}-${vote.weight}`;
       votingPatterns.set(pattern, (votingPatterns.get(pattern) || 0) + 1);
     });
@@ -334,72 +343,76 @@ export class MaliciousDetection extends EventEmitter {
    * Detect view change abuse
    */
   private detectViewChangeAbuse(context: DetectionContext): boolean {
-    const viewChangeMessages = context.messages.filter(m => m.type === 'view-change');
-    
+    const viewChangeMessages = context.messages.filter(
+      (m) => m.type === "view-change",
+    );
+
     // Too many view change requests in short time
     if (viewChangeMessages.length > 3) {
       return true;
     }
 
     // View changes without proper justification
-    return viewChangeMessages.some(msg => 
-      !msg.payload || !msg.payload.lastCommitted
+    return viewChangeMessages.some(
+      (msg) => !msg.payload || !msg.payload.lastCommitted,
     );
   }
 
   /**
    * Record malicious behavior
    */
-  private async recordMaliciousBehavior(behavior: MaliciousBehavior): Promise<void> {
+  private async recordMaliciousBehavior(
+    behavior: MaliciousBehavior,
+  ): Promise<void> {
     if (!this.behaviorHistory.has(behavior.agentId)) {
       this.behaviorHistory.set(behavior.agentId, []);
     }
-    
+
     this.behaviorHistory.get(behavior.agentId)!.push(behavior);
-    
+
     // Update reputation score
     await this.updateReputationScore(behavior.agentId, behavior);
-    
+
     // Create security alert
     const alert = this.createSecurityAlert(behavior);
     this.securityAlerts.push(alert);
-    
+
     // Take mitigation actions
     await this.takeMitigationActions(behavior);
-    
-    this.emit('malicious-behavior-detected', behavior);
-    this.emit('security-alert', alert);
+
+    this.emit("malicious-behavior-detected", behavior);
+    this.emit("security-alert", alert);
   }
 
   /**
    * Update agent reputation score
    */
   private async updateReputationScore(
-    agentId: string, 
-    behavior: MaliciousBehavior
+    agentId: string,
+    behavior: MaliciousBehavior,
   ): Promise<void> {
     const reputation = this.reputationScores.get(agentId)!;
-    
+
     // Calculate reputation penalty based on behavior severity and confidence
     const penalty = this.calculateReputationPenalty(behavior);
     const newScore = Math.max(0, reputation.currentScore - penalty);
-    
+
     reputation.currentScore = newScore;
     reputation.historicalScores.push({
       timestamp: new Date(),
-      score: newScore
+      score: newScore,
     });
-    
+
     // Update trust level
     reputation.trustLevel = this.calculateTrustLevel(newScore);
-    
+
     // Add behavior flag
     reputation.behaviorFlags.add(behavior.type);
-    
+
     // Check if agent should be quarantined
     if (newScore < this.REPUTATION_THRESHOLD) {
       this.quarantinedAgents.add(agentId);
-      this.emit('agent-quarantined', agentId);
+      this.emit("agent-quarantined", agentId);
     } else if (newScore < 0.6) {
       this.suspiciousAgents.add(agentId);
     }
@@ -410,25 +423,25 @@ export class MaliciousDetection extends EventEmitter {
    */
   private calculateReputationPenalty(behavior: MaliciousBehavior): number {
     const basePenalties = {
-      'double-voting': 0.3,
-      'conflicting-messages': 0.25,
-      'timing-manipulation': 0.15,
-      'fake-signatures': 0.4,
-      'spam-flooding': 0.2,
-      'collusion': 0.35,
-      'view-change-abuse': 0.2,
-      'consensus-disruption': 0.3,
-      'sybil-attack': 0.5,
-      'eclipse-attack': 0.45
+      "double-voting": 0.3,
+      "conflicting-messages": 0.25,
+      "timing-manipulation": 0.15,
+      "fake-signatures": 0.4,
+      "spam-flooding": 0.2,
+      collusion: 0.35,
+      "view-change-abuse": 0.2,
+      "consensus-disruption": 0.3,
+      "sybil-attack": 0.5,
+      "eclipse-attack": 0.45,
     };
 
     const basePenalty = basePenalties[behavior.type] || 0.1;
     const confidenceMultiplier = behavior.confidence;
     const severityMultiplier = {
-      'low': 0.5,
-      'medium': 1.0,
-      'high': 1.5,
-      'critical': 2.0
+      low: 0.5,
+      medium: 1.0,
+      high: 1.5,
+      critical: 2.0,
     }[behavior.severity];
 
     return basePenalty * confidenceMultiplier * severityMultiplier;
@@ -437,73 +450,78 @@ export class MaliciousDetection extends EventEmitter {
   /**
    * Calculate trust level based on reputation score
    */
-  private calculateTrustLevel(score: number): ReputationScore['trustLevel'] {
-    if (score >= 0.9) return 'verified';
-    if (score >= 0.7) return 'high';
-    if (score >= 0.5) return 'medium';
-    if (score >= 0.3) return 'low';
-    return 'untrusted';
+  private calculateTrustLevel(score: number): ReputationScore["trustLevel"] {
+    if (score >= 0.9) return "verified";
+    if (score >= 0.7) return "high";
+    if (score >= 0.5) return "medium";
+    if (score >= 0.3) return "low";
+    return "untrusted";
   }
 
   /**
    * Calculate behavior severity
    */
   private calculateSeverity(
-    type: MaliciousBehavior['type'], 
-    confidence: number
-  ): MaliciousBehavior['severity'] {
-    const criticalTypes = ['sybil-attack', 'eclipse-attack', 'fake-signatures'];
-    const highTypes = ['double-voting', 'collusion', 'consensus-disruption'];
-    const mediumTypes = ['conflicting-messages', 'view-change-abuse'];
-    
-    if (criticalTypes.includes(type) && confidence > 0.8) return 'critical';
-    if (highTypes.includes(type) && confidence > 0.7) return 'high';
-    if (mediumTypes.includes(type) && confidence > 0.6) return 'medium';
-    return 'low';
+    type: MaliciousBehavior["type"],
+    confidence: number,
+  ): MaliciousBehavior["severity"] {
+    const criticalTypes = ["sybil-attack", "eclipse-attack", "fake-signatures"];
+    const highTypes = ["double-voting", "collusion", "consensus-disruption"];
+    const mediumTypes = ["conflicting-messages", "view-change-abuse"];
+
+    if (criticalTypes.includes(type) && confidence > 0.8) return "critical";
+    if (highTypes.includes(type) && confidence > 0.7) return "high";
+    if (mediumTypes.includes(type) && confidence > 0.6) return "medium";
+    return "low";
   }
 
   /**
    * Collect evidence for detected behavior
    */
-  private collectEvidence(type: MaliciousBehavior['type'], context: DetectionContext): any[] {
+  private collectEvidence(
+    type: MaliciousBehavior["type"],
+    context: DetectionContext,
+  ): any[] {
     const evidence: any[] = [];
-    
+
     switch (type) {
-      case 'double-voting':
-        const duplicateVotes = context.votes.filter((vote, index, arr) => 
-          arr.findIndex(v => v.proposalId === vote.proposalId) !== index
+      case "double-voting":
+        const duplicateVotes = context.votes.filter(
+          (vote, index, arr) =>
+            arr.findIndex((v) => v.proposalId === vote.proposalId) !== index,
         );
         evidence.push(...duplicateVotes);
         break;
-        
-      case 'conflicting-messages':
+
+      case "conflicting-messages":
         const conflictingMsgs = context.messages.filter((msg, index, arr) => {
-          const same = arr.filter(m => 
-            m.type === msg.type && 
-            m.viewNumber === msg.viewNumber && 
-            m.sequenceNumber === msg.sequenceNumber
+          const same = arr.filter(
+            (m) =>
+              m.type === msg.type &&
+              m.viewNumber === msg.viewNumber &&
+              m.sequenceNumber === msg.sequenceNumber,
           );
-          return same.length > 1 && same.some(m => m.digest !== msg.digest);
+          return same.length > 1 && same.some((m) => m.digest !== msg.digest);
         });
         evidence.push(...conflictingMsgs);
         break;
-        
-      case 'spam-flooding':
+
+      case "spam-flooding":
         evidence.push({
           messageCount: context.messages.length,
           timeWindow: context.timeWindow,
-          threshold: this.MAX_MESSAGES_PER_WINDOW
+          threshold: this.MAX_MESSAGES_PER_WINDOW,
         });
         break;
-        
+
       default:
         evidence.push({
           messages: context.messages,
           votes: context.votes,
-          timeWindow: context.timeWindow
+          timeWindow: context.timeWindow,
         });
     }
-    
+
     return evidence;
   }
 
@@ -513,12 +531,12 @@ export class MaliciousDetection extends EventEmitter {
   private createSecurityAlert(behavior: MaliciousBehavior): SecurityAlert {
     return {
       id: this.generateAlertId(),
-      type: 'malicious-behavior',
+      type: "malicious-behavior",
       severity: behavior.severity,
       message: `${behavior.type} detected for agent ${behavior.agentId}`,
       affectedAgents: [behavior.agentId],
       timestamp: new Date(),
-      mitigationActions: this.generateMitigationActions(behavior)
+      mitigationActions: this.generateMitigationActions(behavior),
     };
   }
 
@@ -526,24 +544,26 @@ export class MaliciousDetection extends EventEmitter {
    * Generate mitigation actions
    */
   private generateMitigationActions(behavior: MaliciousBehavior): string[] {
-    const actions = ['Log incident', 'Update reputation score'];
-    
-    if (behavior.severity === 'critical' || behavior.confidence > 0.9) {
-      actions.push('Quarantine agent', 'Notify network administrators');
-    } else if (behavior.severity === 'high') {
-      actions.push('Flag as suspicious', 'Increase monitoring');
+    const actions = ["Log incident", "Update reputation score"];
+
+    if (behavior.severity === "critical" || behavior.confidence > 0.9) {
+      actions.push("Quarantine agent", "Notify network administrators");
+    } else if (behavior.severity === "high") {
+      actions.push("Flag as suspicious", "Increase monitoring");
     }
-    
+
     return actions;
   }
 
   /**
    * Take mitigation actions
    */
-  private async takeMitigationActions(behavior: MaliciousBehavior): Promise<void> {
-    if (behavior.severity === 'critical' || behavior.confidence > 0.9) {
+  private async takeMitigationActions(
+    behavior: MaliciousBehavior,
+  ): Promise<void> {
+    if (behavior.severity === "critical" || behavior.confidence > 0.9) {
       this.quarantinedAgents.add(behavior.agentId);
-    } else if (behavior.severity === 'high') {
+    } else if (behavior.severity === "high") {
       this.suspiciousAgents.add(behavior.agentId);
     }
   }
@@ -553,9 +573,11 @@ export class MaliciousDetection extends EventEmitter {
    */
   public isAgentTrusted(agentId: string): boolean {
     if (this.quarantinedAgents.has(agentId)) return false;
-    
+
     const reputation = this.reputationScores.get(agentId);
-    return reputation ? reputation.currentScore >= this.REPUTATION_THRESHOLD : false;
+    return reputation
+      ? reputation.currentScore >= this.REPUTATION_THRESHOLD
+      : false;
   }
 
   /**
@@ -569,8 +591,8 @@ export class MaliciousDetection extends EventEmitter {
    * Get security alerts
    */
   public getSecurityAlerts(limit?: number): SecurityAlert[] {
-    const alerts = [...this.securityAlerts].sort((a, b) => 
-      b.timestamp.getTime() - a.timestamp.getTime()
+    const alerts = [...this.securityAlerts].sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
     );
     return limit ? alerts.slice(0, limit) : alerts;
   }
@@ -587,15 +609,15 @@ export class MaliciousDetection extends EventEmitter {
    */
   public rehabilitateAgent(agentId: string, reason: string): boolean {
     if (!this.reputationScores.has(agentId)) return false;
-    
+
     const reputation = this.reputationScores.get(agentId)!;
     reputation.currentScore = Math.min(1.0, reputation.currentScore + 0.2);
     reputation.trustLevel = this.calculateTrustLevel(reputation.currentScore);
-    
+
     this.quarantinedAgents.delete(agentId);
     this.suspiciousAgents.delete(agentId);
-    
-    this.emit('agent-rehabilitated', { agentId, reason });
+
+    this.emit("agent-rehabilitated", { agentId, reason });
     return true;
   }
 
@@ -611,7 +633,7 @@ export class MaliciousDetection extends EventEmitter {
       publicKey: `pubkey-${agentId}`,
       isLeader: false,
       reputation: this.reputationScores.get(agentId)?.currentScore || 1.0,
-      lastActiveTime: new Date()
+      lastActiveTime: new Date(),
     };
   }
 
@@ -627,22 +649,25 @@ export class MaliciousDetection extends EventEmitter {
   } {
     const allBehaviors = Array.from(this.behaviorHistory.values()).flat();
     const detectionsByType: Record<string, number> = {};
-    
-    allBehaviors.forEach(behavior => {
-      detectionsByType[behavior.type] = (detectionsByType[behavior.type] || 0) + 1;
+
+    allBehaviors.forEach((behavior) => {
+      detectionsByType[behavior.type] =
+        (detectionsByType[behavior.type] || 0) + 1;
     });
 
     const reputationScores = Array.from(this.reputationScores.values());
-    const averageReputationScore = reputationScores.length > 0
-      ? reputationScores.reduce((sum, rep) => sum + rep.currentScore, 0) / reputationScores.length
-      : 0;
+    const averageReputationScore =
+      reputationScores.length > 0
+        ? reputationScores.reduce((sum, rep) => sum + rep.currentScore, 0) /
+          reputationScores.length
+        : 0;
 
     return {
       totalDetections: allBehaviors.length,
       detectionsByType,
       quarantinedCount: this.quarantinedAgents.size,
       suspiciousCount: this.suspiciousAgents.size,
-      averageReputationScore
+      averageReputationScore,
     };
   }
 }

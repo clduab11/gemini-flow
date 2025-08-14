@@ -3,7 +3,7 @@
  * Provides real-time visualization and monitoring capabilities
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 export interface MetricData {
   id: string;
@@ -14,7 +14,7 @@ export interface MetricData {
   tags: Map<string, string>;
   metadata: {
     source: string;
-    type: 'gauge' | 'counter' | 'histogram' | 'summary';
+    type: "gauge" | "counter" | "histogram" | "summary";
     description?: string;
   };
 }
@@ -42,7 +42,7 @@ export interface Dashboard {
 
 export interface Widget {
   id: string;
-  type: 'chart' | 'gauge' | 'table' | 'alert' | 'text' | 'heatmap';
+  type: "chart" | "gauge" | "table" | "alert" | "text" | "heatmap";
   title: string;
   position: {
     x: number;
@@ -57,7 +57,7 @@ export interface Widget {
       warning: number;
       critical: number;
     };
-    aggregation?: 'sum' | 'avg' | 'min' | 'max' | 'count';
+    aggregation?: "sum" | "avg" | "min" | "max" | "count";
     timeWindow?: number;
   };
 }
@@ -68,11 +68,11 @@ export interface Alert {
   description: string;
   metric: string;
   condition: {
-    operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
+    operator: "gt" | "lt" | "eq" | "gte" | "lte";
     value: number;
     timeWindow: number;
   };
-  severity: 'info' | 'warning' | 'critical';
+  severity: "info" | "warning" | "critical";
   channels: AlertChannel[];
   enabled: boolean;
   silenced: boolean;
@@ -80,7 +80,7 @@ export interface Alert {
 }
 
 export interface AlertChannel {
-  type: 'email' | 'slack' | 'webhook' | 'sms';
+  type: "email" | "slack" | "webhook" | "sms";
   config: Record<string, any>;
   enabled: boolean;
 }
@@ -125,14 +125,14 @@ export class MonitoringDashboard extends EventEmitter {
     metricHistory.push(metric);
 
     // Enforce retention policy
-    const cutoffTime = Date.now() - (this.config.metricsRetention * 1000);
+    const cutoffTime = Date.now() - this.config.metricsRetention * 1000;
     this.metrics.set(
       metric.id,
-      metricHistory.filter(m => m.timestamp > cutoffTime)
+      metricHistory.filter((m) => m.timestamp > cutoffTime),
     );
 
     // Trigger real-time updates
-    this.emit('metricRecorded', metric);
+    this.emit("metricRecorded", metric);
 
     // Process alerts
     this.alertEngine.evaluateMetric(metric, this.alerts);
@@ -143,13 +143,13 @@ export class MonitoringDashboard extends EventEmitter {
    */
   createDashboard(dashboard: Dashboard): void {
     this.dashboards.set(dashboard.id, dashboard);
-    
+
     // Register dashboard widgets
     for (const widget of dashboard.widgets) {
       this.widgets.set(widget.id, widget);
     }
 
-    this.emit('dashboardCreated', { dashboardId: dashboard.id });
+    this.emit("dashboardCreated", { dashboardId: dashboard.id });
     console.log(`Created dashboard: ${dashboard.name}`);
   }
 
@@ -161,7 +161,7 @@ export class MonitoringDashboard extends EventEmitter {
     widgets: Array<{
       widget: Widget;
       data: any;
-      status: 'healthy' | 'warning' | 'critical';
+      status: "healthy" | "warning" | "critical";
     }>;
     lastUpdate: number;
   } {
@@ -170,17 +170,17 @@ export class MonitoringDashboard extends EventEmitter {
       throw new Error(`Dashboard ${dashboardId} not found`);
     }
 
-    const widgetData = dashboard.widgets.map(widget => {
+    const widgetData = dashboard.widgets.map((widget) => {
       const data = this.getWidgetData(widget, dashboard.timeRange);
       const status = this.evaluateWidgetStatus(widget, data);
-      
+
       return { widget, data, status };
     });
 
     return {
       dashboard,
       widgets: widgetData,
-      lastUpdate: Date.now()
+      lastUpdate: Date.now(),
     };
   }
 
@@ -190,8 +190,8 @@ export class MonitoringDashboard extends EventEmitter {
   createAlert(alert: Alert): void {
     this.alerts.set(alert.id, alert);
     this.alertEngine.registerAlert(alert);
-    
-    this.emit('alertCreated', { alertId: alert.id });
+
+    this.emit("alertCreated", { alertId: alert.id });
     console.log(`Created alert: ${alert.name}`);
   }
 
@@ -199,12 +199,15 @@ export class MonitoringDashboard extends EventEmitter {
    * Get comprehensive system health overview
    */
   getSystemHealth(): {
-    overall: 'healthy' | 'warning' | 'critical';
-    components: Map<string, {
-      status: 'healthy' | 'warning' | 'critical';
-      metrics: Record<string, number>;
-      alerts: Alert[];
-    }>;
+    overall: "healthy" | "warning" | "critical";
+    components: Map<
+      string,
+      {
+        status: "healthy" | "warning" | "critical";
+        metrics: Record<string, number>;
+        alerts: Alert[];
+      }
+    >;
     performance: {
       responseTime: number;
       throughput: number;
@@ -221,24 +224,25 @@ export class MonitoringDashboard extends EventEmitter {
     const components = this.analyzeComponentHealth();
     const performance = this.calculatePerformanceMetrics();
     const resources = this.getResourceUtilization();
-    
-    const overall = this.calculateOverallHealth(components, performance, resources);
+
+    const overall = this.calculateOverallHealth(
+      components,
+      performance,
+      resources,
+    );
 
     return {
       overall,
       components,
       performance,
-      resources
+      resources,
     };
   }
 
   /**
    * Generate performance report
    */
-  generatePerformanceReport(timeRange: {
-    start: number;
-    end: number;
-  }): {
+  generatePerformanceReport(timeRange: { start: number; end: number }): {
     summary: {
       avgResponseTime: number;
       peakThroughput: number;
@@ -258,7 +262,7 @@ export class MonitoringDashboard extends EventEmitter {
     recommendations: string[];
   } {
     const relevantMetrics = this.getMetricsInRange(timeRange);
-    
+
     const summary = this.calculateSummaryMetrics(relevantMetrics);
     const trends = this.calculateTrends(relevantMetrics);
     const alertStats = this.getAlertStatistics(timeRange);
@@ -268,7 +272,7 @@ export class MonitoringDashboard extends EventEmitter {
       summary,
       trends,
       alerts: alertStats,
-      recommendations
+      recommendations,
     };
   }
 
@@ -283,10 +287,10 @@ export class MonitoringDashboard extends EventEmitter {
 
     const interval = setInterval(() => {
       const data = this.getDashboardData(dashboardId);
-      this.emit('dashboardUpdate', { dashboardId, data });
+      this.emit("dashboardUpdate", { dashboardId, data });
     }, dashboard.refreshInterval);
 
-    this.emit('streamingEnabled', { dashboardId });
+    this.emit("streamingEnabled", { dashboardId });
   }
 
   /**
@@ -313,10 +317,13 @@ export class MonitoringDashboard extends EventEmitter {
   /**
    * Get metric statistics
    */
-  getMetricStatistics(metricId: string, timeRange: {
-    start: number;
-    end: number;
-  }): {
+  getMetricStatistics(
+    metricId: string,
+    timeRange: {
+      start: number;
+      end: number;
+    },
+  ): {
     count: number;
     min: number;
     max: number;
@@ -328,7 +335,7 @@ export class MonitoringDashboard extends EventEmitter {
   } {
     const metrics = this.metrics.get(metricId) || [];
     const filteredMetrics = metrics.filter(
-      m => m.timestamp >= timeRange.start && m.timestamp <= timeRange.end
+      (m) => m.timestamp >= timeRange.start && m.timestamp <= timeRange.end,
     );
 
     if (filteredMetrics.length === 0) {
@@ -340,11 +347,11 @@ export class MonitoringDashboard extends EventEmitter {
         p50: 0,
         p95: 0,
         p99: 0,
-        sum: 0
+        sum: 0,
       };
     }
 
-    const values = filteredMetrics.map(m => m.value).sort((a, b) => a - b);
+    const values = filteredMetrics.map((m) => m.value).sort((a, b) => a - b);
     const sum = values.reduce((total, val) => total + val, 0);
 
     return {
@@ -355,7 +362,7 @@ export class MonitoringDashboard extends EventEmitter {
       p50: this.percentile(values, 50),
       p95: this.percentile(values, 95),
       p99: this.percentile(values, 99),
-      sum
+      sum,
     };
   }
 
@@ -364,134 +371,137 @@ export class MonitoringDashboard extends EventEmitter {
   private async initializeDashboard(): Promise<void> {
     // Create default performance dashboard
     this.createDefaultDashboards();
-    
+
     // Setup default alerts
     this.createDefaultAlerts();
-    
+
     // Start background processes
     this.startMetricsAggregation();
     this.startAlertEvaluation();
-    
-    this.emit('dashboardInitialized');
+
+    this.emit("dashboardInitialized");
   }
 
   private createDefaultDashboards(): void {
     // System Overview Dashboard
     const systemDashboard: Dashboard = {
-      id: 'system-overview',
-      name: 'System Overview',
-      description: 'Overall system health and performance metrics',
+      id: "system-overview",
+      name: "System Overview",
+      description: "Overall system health and performance metrics",
       widgets: [
         {
-          id: 'response-time-chart',
-          type: 'chart',
-          title: 'Response Time',
+          id: "response-time-chart",
+          type: "chart",
+          title: "Response Time",
           position: { x: 0, y: 0, width: 6, height: 3 },
           config: {
-            metrics: ['http.response_time'],
-            visualization: { type: 'line', color: '#4CAF50' },
+            metrics: ["http.response_time"],
+            visualization: { type: "line", color: "#4CAF50" },
             thresholds: { warning: 500, critical: 1000 },
-            aggregation: 'avg',
-            timeWindow: 300000 // 5 minutes
-          }
+            aggregation: "avg",
+            timeWindow: 300000, // 5 minutes
+          },
         },
         {
-          id: 'throughput-gauge',
-          type: 'gauge',
-          title: 'Throughput (req/s)',
+          id: "throughput-gauge",
+          type: "gauge",
+          title: "Throughput (req/s)",
           position: { x: 6, y: 0, width: 3, height: 3 },
           config: {
-            metrics: ['http.requests_per_second'],
-            visualization: { type: 'gauge', max: 10000 },
-            thresholds: { warning: 8000, critical: 9500 }
-          }
+            metrics: ["http.requests_per_second"],
+            visualization: { type: "gauge", max: 10000 },
+            thresholds: { warning: 8000, critical: 9500 },
+          },
         },
         {
-          id: 'error-rate-chart',
-          type: 'chart',
-          title: 'Error Rate',
+          id: "error-rate-chart",
+          type: "chart",
+          title: "Error Rate",
           position: { x: 9, y: 0, width: 3, height: 3 },
           config: {
-            metrics: ['http.error_rate'],
-            visualization: { type: 'area', color: '#f44336' },
-            thresholds: { warning: 0.05, critical: 0.1 }
-          }
+            metrics: ["http.error_rate"],
+            visualization: { type: "area", color: "#f44336" },
+            thresholds: { warning: 0.05, critical: 0.1 },
+          },
         },
         {
-          id: 'resource-usage-heatmap',
-          type: 'heatmap',
-          title: 'Resource Usage',
+          id: "resource-usage-heatmap",
+          type: "heatmap",
+          title: "Resource Usage",
           position: { x: 0, y: 3, width: 12, height: 4 },
           config: {
-            metrics: ['system.cpu', 'system.memory', 'system.disk'],
-            visualization: { type: 'heatmap' },
-            aggregation: 'avg'
-          }
-        }
+            metrics: ["system.cpu", "system.memory", "system.disk"],
+            visualization: { type: "heatmap" },
+            aggregation: "avg",
+          },
+        },
       ],
       layout: { columns: 12, rows: 8 },
       refreshInterval: 5000,
       timeRange: { start: Date.now() - 3600000, end: Date.now() },
       filters: new Map(),
-      permissions: { viewers: ['*'], editors: ['admin'] }
+      permissions: { viewers: ["*"], editors: ["admin"] },
     };
 
     this.createDashboard(systemDashboard);
 
     // Performance Dashboard
     const perfDashboard: Dashboard = {
-      id: 'performance-metrics',
-      name: 'Performance Metrics',
-      description: 'Detailed performance analysis and optimization metrics',
+      id: "performance-metrics",
+      name: "Performance Metrics",
+      description: "Detailed performance analysis and optimization metrics",
       widgets: [
         {
-          id: 'streaming-performance',
-          type: 'chart',
-          title: 'Streaming Performance',
+          id: "streaming-performance",
+          type: "chart",
+          title: "Streaming Performance",
           position: { x: 0, y: 0, width: 6, height: 4 },
           config: {
-            metrics: ['streaming.buffer_efficiency', 'streaming.prediction_accuracy'],
-            visualization: { type: 'multiline' },
-            aggregation: 'avg'
-          }
+            metrics: [
+              "streaming.buffer_efficiency",
+              "streaming.prediction_accuracy",
+            ],
+            visualization: { type: "multiline" },
+            aggregation: "avg",
+          },
         },
         {
-          id: 'gpu-utilization',
-          type: 'chart',
-          title: 'GPU Cluster Utilization',
+          id: "gpu-utilization",
+          type: "chart",
+          title: "GPU Cluster Utilization",
           position: { x: 6, y: 0, width: 6, height: 4 },
           config: {
-            metrics: ['gpu.utilization', 'gpu.memory_usage'],
-            visualization: { type: 'area' },
-            aggregation: 'avg'
-          }
+            metrics: ["gpu.utilization", "gpu.memory_usage"],
+            visualization: { type: "area" },
+            aggregation: "avg",
+          },
         },
         {
-          id: 'memory-pool-status',
-          type: 'table',
-          title: 'Memory Pool Status',
+          id: "memory-pool-status",
+          type: "table",
+          title: "Memory Pool Status",
           position: { x: 0, y: 4, width: 6, height: 4 },
           config: {
-            metrics: ['memory.pool_utilization', 'memory.fragmentation'],
-            visualization: { type: 'table' }
-          }
+            metrics: ["memory.pool_utilization", "memory.fragmentation"],
+            visualization: { type: "table" },
+          },
         },
         {
-          id: 'queue-metrics',
-          type: 'gauge',
-          title: 'Queue Performance',
+          id: "queue-metrics",
+          type: "gauge",
+          title: "Queue Performance",
           position: { x: 6, y: 4, width: 6, height: 4 },
           config: {
-            metrics: ['queue.throughput', 'queue.fairness_score'],
-            visualization: { type: 'multi-gauge' }
-          }
-        }
+            metrics: ["queue.throughput", "queue.fairness_score"],
+            visualization: { type: "multi-gauge" },
+          },
+        },
       ],
       layout: { columns: 12, rows: 8 },
       refreshInterval: 10000,
       timeRange: { start: Date.now() - 7200000, end: Date.now() },
       filters: new Map(),
-      permissions: { viewers: ['*'], editors: ['admin', 'devops'] }
+      permissions: { viewers: ["*"], editors: ["admin", "devops"] },
     };
 
     this.createDashboard(perfDashboard);
@@ -500,73 +510,76 @@ export class MonitoringDashboard extends EventEmitter {
   private createDefaultAlerts(): void {
     const defaultAlerts: Alert[] = [
       {
-        id: 'high-response-time',
-        name: 'High Response Time',
-        description: 'Response time exceeds acceptable threshold',
-        metric: 'http.response_time',
+        id: "high-response-time",
+        name: "High Response Time",
+        description: "Response time exceeds acceptable threshold",
+        metric: "http.response_time",
         condition: {
-          operator: 'gt',
+          operator: "gt",
           value: 1000,
-          timeWindow: 300000 // 5 minutes
+          timeWindow: 300000, // 5 minutes
         },
-        severity: 'warning',
+        severity: "warning",
         channels: [
           {
-            type: 'email',
-            config: { recipients: ['devops@company.com'] },
-            enabled: true
-          }
+            type: "email",
+            config: { recipients: ["devops@company.com"] },
+            enabled: true,
+          },
         ],
         enabled: true,
-        silenced: false
+        silenced: false,
       },
       {
-        id: 'critical-error-rate',
-        name: 'Critical Error Rate',
-        description: 'Error rate exceeds critical threshold',
-        metric: 'http.error_rate',
+        id: "critical-error-rate",
+        name: "Critical Error Rate",
+        description: "Error rate exceeds critical threshold",
+        metric: "http.error_rate",
         condition: {
-          operator: 'gt',
+          operator: "gt",
           value: 0.1,
-          timeWindow: 300000
+          timeWindow: 300000,
         },
-        severity: 'critical',
+        severity: "critical",
         channels: [
           {
-            type: 'slack',
-            config: { channel: '#alerts', webhook: 'https://hooks.slack.com/...' },
-            enabled: true
+            type: "slack",
+            config: {
+              channel: "#alerts",
+              webhook: "https://hooks.slack.com/...",
+            },
+            enabled: true,
           },
           {
-            type: 'email',
-            config: { recipients: ['oncall@company.com'] },
-            enabled: true
-          }
+            type: "email",
+            config: { recipients: ["oncall@company.com"] },
+            enabled: true,
+          },
         ],
         enabled: true,
-        silenced: false
+        silenced: false,
       },
       {
-        id: 'low-availability',
-        name: 'Low System Availability',
-        description: 'System availability below SLA threshold',
-        metric: 'system.availability',
+        id: "low-availability",
+        name: "Low System Availability",
+        description: "System availability below SLA threshold",
+        metric: "system.availability",
         condition: {
-          operator: 'lt',
+          operator: "lt",
           value: 99.5,
-          timeWindow: 600000 // 10 minutes
+          timeWindow: 600000, // 10 minutes
         },
-        severity: 'critical',
+        severity: "critical",
         channels: [
           {
-            type: 'webhook',
-            config: { url: 'https://api.pagerduty.com/...' },
-            enabled: true
-          }
+            type: "webhook",
+            config: { url: "https://api.pagerduty.com/..." },
+            enabled: true,
+          },
         ],
         enabled: true,
-        silenced: false
-      }
+        silenced: false,
+      },
     ];
 
     for (const alert of defaultAlerts) {
@@ -574,89 +587,104 @@ export class MonitoringDashboard extends EventEmitter {
     }
   }
 
-  private getWidgetData(widget: Widget, timeRange: { start: number; end: number }): any {
+  private getWidgetData(
+    widget: Widget,
+    timeRange: { start: number; end: number },
+  ): any {
     const data: any = {};
 
     for (const metricId of widget.config.metrics) {
       const metrics = this.metrics.get(metricId) || [];
       const filteredMetrics = metrics.filter(
-        m => m.timestamp >= timeRange.start && m.timestamp <= timeRange.end
+        (m) => m.timestamp >= timeRange.start && m.timestamp <= timeRange.end,
       );
 
       if (widget.config.aggregation) {
-        data[metricId] = this.aggregateMetrics(filteredMetrics, widget.config.aggregation);
+        data[metricId] = this.aggregateMetrics(
+          filteredMetrics,
+          widget.config.aggregation,
+        );
       } else {
-        data[metricId] = filteredMetrics.map(m => ({ x: m.timestamp, y: m.value }));
+        data[metricId] = filteredMetrics.map((m) => ({
+          x: m.timestamp,
+          y: m.value,
+        }));
       }
     }
 
     return data;
   }
 
-  private evaluateWidgetStatus(widget: Widget, data: any): 'healthy' | 'warning' | 'critical' {
+  private evaluateWidgetStatus(
+    widget: Widget,
+    data: any,
+  ): "healthy" | "warning" | "critical" {
     if (!widget.config.thresholds) {
-      return 'healthy';
+      return "healthy";
     }
 
     const values = Object.values(data).flat() as number[];
     const maxValue = Math.max(...values);
 
     if (maxValue >= widget.config.thresholds.critical) {
-      return 'critical';
+      return "critical";
     } else if (maxValue >= widget.config.thresholds.warning) {
-      return 'warning';
+      return "warning";
     } else {
-      return 'healthy';
+      return "healthy";
     }
   }
 
   private aggregateMetrics(metrics: MetricData[], aggregation: string): number {
     if (metrics.length === 0) return 0;
 
-    const values = metrics.map(m => m.value);
+    const values = metrics.map((m) => m.value);
 
     switch (aggregation) {
-      case 'sum':
+      case "sum":
         return values.reduce((sum, val) => sum + val, 0);
-      case 'avg':
+      case "avg":
         return values.reduce((sum, val) => sum + val, 0) / values.length;
-      case 'min':
+      case "min":
         return Math.min(...values);
-      case 'max':
+      case "max":
         return Math.max(...values);
-      case 'count':
+      case "count":
         return values.length;
       default:
         return values[values.length - 1] || 0;
     }
   }
 
-  private analyzeComponentHealth(): Map<string, {
-    status: 'healthy' | 'warning' | 'critical';
-    metrics: Record<string, number>;
-    alerts: Alert[];
-  }> {
+  private analyzeComponentHealth(): Map<
+    string,
+    {
+      status: "healthy" | "warning" | "critical";
+      metrics: Record<string, number>;
+      alerts: Alert[];
+    }
+  > {
     const components = new Map();
-    
+
     // Example component analysis
-    components.set('streaming-manager', {
-      status: 'healthy' as const,
+    components.set("streaming-manager", {
+      status: "healthy" as const,
       metrics: {
         bufferEfficiency: 0.92,
         predictionAccuracy: 0.87,
-        latency: 45
+        latency: 45,
       },
-      alerts: []
+      alerts: [],
     });
 
-    components.set('gpu-cluster', {
-      status: 'warning' as const,
+    components.set("gpu-cluster", {
+      status: "warning" as const,
       metrics: {
         utilization: 0.85,
         temperature: 82,
-        failureRate: 0.02
+        failureRate: 0.02,
       },
-      alerts: []
+      alerts: [],
     });
 
     return components;
@@ -673,7 +701,7 @@ export class MonitoringDashboard extends EventEmitter {
       responseTime: 150,
       throughput: 2500,
       errorRate: 0.03,
-      availability: 99.7
+      availability: 99.7,
     };
   }
 
@@ -687,56 +715,65 @@ export class MonitoringDashboard extends EventEmitter {
       cpu: 65,
       memory: 72,
       disk: 45,
-      network: 38
+      network: 38,
     };
   }
 
   private calculateOverallHealth(
     components: any,
     performance: any,
-    resources: any
-  ): 'healthy' | 'warning' | 'critical' {
-    const criticalComponents = Array.from(components.values())
-      .filter((c: any) => c.status === 'critical').length;
-    
+    resources: any,
+  ): "healthy" | "warning" | "critical" {
+    const criticalComponents = Array.from(components.values()).filter(
+      (c: any) => c.status === "critical",
+    ).length;
+
     if (criticalComponents > 0 || performance.availability < 99.0) {
-      return 'critical';
+      return "critical";
     }
-    
-    const warningComponents = Array.from(components.values())
-      .filter((c: any) => c.status === 'warning').length;
-    
+
+    const warningComponents = Array.from(components.values()).filter(
+      (c: any) => c.status === "warning",
+    ).length;
+
     if (warningComponents > 0 || performance.errorRate > 0.05) {
-      return 'warning';
+      return "warning";
     }
-    
-    return 'healthy';
+
+    return "healthy";
   }
 
-  private getMetricsInRange(timeRange: { start: number; end: number }): MetricData[] {
+  private getMetricsInRange(timeRange: {
+    start: number;
+    end: number;
+  }): MetricData[] {
     const allMetrics: MetricData[] = [];
-    
+
     for (const metricList of this.metrics.values()) {
       const filteredMetrics = metricList.filter(
-        m => m.timestamp >= timeRange.start && m.timestamp <= timeRange.end
+        (m) => m.timestamp >= timeRange.start && m.timestamp <= timeRange.end,
       );
       allMetrics.push(...filteredMetrics);
     }
-    
+
     return allMetrics;
   }
 
   private calculateSummaryMetrics(metrics: MetricData[]): any {
     // Calculate summary statistics
-    const responseTimeMetrics = metrics.filter(m => m.id === 'http.response_time');
-    const throughputMetrics = metrics.filter(m => m.id === 'http.requests_per_second');
-    const errorMetrics = metrics.filter(m => m.id === 'http.errors');
+    const responseTimeMetrics = metrics.filter(
+      (m) => m.id === "http.response_time",
+    );
+    const throughputMetrics = metrics.filter(
+      (m) => m.id === "http.requests_per_second",
+    );
+    const errorMetrics = metrics.filter((m) => m.id === "http.errors");
 
     return {
-      avgResponseTime: this.average(responseTimeMetrics.map(m => m.value)),
-      peakThroughput: Math.max(...throughputMetrics.map(m => m.value)),
+      avgResponseTime: this.average(responseTimeMetrics.map((m) => m.value)),
+      peakThroughput: Math.max(...throughputMetrics.map((m) => m.value)),
       uptime: 99.7,
-      errorCount: errorMetrics.reduce((sum, m) => sum + m.value, 0)
+      errorCount: errorMetrics.reduce((sum, m) => sum + m.value, 0),
     };
   }
 
@@ -745,7 +782,7 @@ export class MonitoringDashboard extends EventEmitter {
     return {
       responseTime: [120, 130, 125, 140, 135, 150],
       throughput: [2000, 2200, 2100, 2400, 2300, 2500],
-      errorRate: [0.02, 0.025, 0.03, 0.028, 0.032, 0.03]
+      errorRate: [0.02, 0.025, 0.03, 0.028, 0.032, 0.03],
     };
   }
 
@@ -753,25 +790,31 @@ export class MonitoringDashboard extends EventEmitter {
     return {
       triggered: 5,
       resolved: 4,
-      active: 1
+      active: 1,
     };
   }
 
   private generateRecommendations(summary: any, trends: any): string[] {
     const recommendations: string[] = [];
-    
+
     if (summary.avgResponseTime > 200) {
-      recommendations.push('Consider optimizing response time - current average exceeds target');
+      recommendations.push(
+        "Consider optimizing response time - current average exceeds target",
+      );
     }
-    
+
     if (trends.errorRate[trends.errorRate.length - 1] > 0.05) {
-      recommendations.push('Error rate trending upward - investigate error patterns');
+      recommendations.push(
+        "Error rate trending upward - investigate error patterns",
+      );
     }
-    
+
     if (summary.peakThroughput < 5000) {
-      recommendations.push('Peak throughput below capacity - consider load balancing optimization');
+      recommendations.push(
+        "Peak throughput below capacity - consider load balancing optimization",
+      );
     }
-    
+
     return recommendations;
   }
 
@@ -793,7 +836,9 @@ export class MonitoringDashboard extends EventEmitter {
   }
 
   private average(values: number[]): number {
-    return values.length > 0 ? values.reduce((sum, val) => sum + val, 0) / values.length : 0;
+    return values.length > 0
+      ? values.reduce((sum, val) => sum + val, 0) / values.length
+      : 0;
   }
 }
 
@@ -815,7 +860,10 @@ class AlertEngine {
     // Evaluate if metric triggers any alerts
   }
 
-  evaluateAllAlerts(metrics: Map<string, MetricData[]>, alerts: Map<string, Alert>): void {
+  evaluateAllAlerts(
+    metrics: Map<string, MetricData[]>,
+    alerts: Map<string, Alert>,
+  ): void {
     // Evaluate all alerts against current metrics
   }
 }
@@ -834,9 +882,4 @@ class VisualizationEngine {
   }
 }
 
-export {
-  MetricsAggregator,
-  AlertEngine,
-  DataCollector,
-  VisualizationEngine
-};
+export { MetricsAggregator, AlertEngine, DataCollector, VisualizationEngine };

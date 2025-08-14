@@ -1,12 +1,12 @@
 /**
  * Code Generation Engine - AI-Powered Code Generation
- * 
+ *
  * Implements intelligent code generation using learned patterns,
  * templates, and AI orchestration
  */
 
-import { Logger } from '../utils/logger.js';
-import { ModelOrchestrator } from './model-orchestrator.js';
+import { Logger } from "../utils/logger.js";
+import { ModelOrchestrator } from "./model-orchestrator.js";
 
 export interface GenerationRequest {
   task: string;
@@ -25,7 +25,7 @@ export interface GenerationOptions {
   useStrictMode?: boolean;
   optimizeForPerformance?: boolean;
   targetES?: string;
-  outputFormat?: 'files' | 'single' | 'streaming';
+  outputFormat?: "files" | "single" | "streaming";
 }
 
 export interface GeneratedCode {
@@ -38,7 +38,7 @@ export interface GeneratedCode {
 export interface GeneratedFile {
   path: string;
   content: string;
-  type: 'source' | 'test' | 'config' | 'documentation';
+  type: "source" | "test" | "config" | "documentation";
   language: string;
   size: number;
   complexity: number;
@@ -68,7 +68,7 @@ export interface Template {
 
 export interface TemplateVariable {
   name: string;
-  type: 'string' | 'boolean' | 'array' | 'object' | 'number';
+  type: "string" | "boolean" | "array" | "object" | "number";
   description: string;
   default?: any;
   required?: boolean;
@@ -78,15 +78,15 @@ export interface TemplateVariable {
 export interface TemplateFile {
   path: string;
   content: string;
-  type: 'source' | 'test' | 'config' | 'documentation';
+  type: "source" | "test" | "config" | "documentation";
   conditions?: Record<string, any>;
 }
 
 export interface StyleProfile {
   name: string;
-  indentation: { type: 'spaces' | 'tabs'; size: number };
+  indentation: { type: "spaces" | "tabs"; size: number };
   lineLength: number;
-  quotes: 'single' | 'double';
+  quotes: "single" | "double";
   semicolons: boolean;
   trailingCommas: boolean;
   naming: {
@@ -119,7 +119,7 @@ export class CodeGenerationEngine {
   private styleProfiles: Map<string, StyleProfile> = new Map();
 
   constructor(orchestrator: ModelOrchestrator) {
-    this.logger = new Logger('CodeGeneration');
+    this.logger = new Logger("CodeGeneration");
     this.orchestrator = orchestrator;
     this.initializeBuiltinTemplates();
     this.initializeBuiltinPatterns();
@@ -131,26 +131,35 @@ export class CodeGenerationEngine {
    */
   async generateCode(request: GenerationRequest): Promise<GeneratedCode> {
     const startTime = Date.now();
-    this.logger.info('Starting code generation', { task: request.task, language: request.language });
+    this.logger.info("Starting code generation", {
+      task: request.task,
+      language: request.language,
+    });
 
     try {
       // Analyze the request and determine approach
       const approach = await this.determineGenerationApproach(request);
-      
+
       // Generate code based on approach
       let generated: GeneratedCode;
-      
+
       switch (approach.type) {
-        case 'template':
-          generated = await this.generateFromTemplate(request, approach.template!);
+        case "template":
+          generated = await this.generateFromTemplate(
+            request,
+            approach.template!,
+          );
           break;
-        case 'pattern':
-          generated = await this.generateFromPatterns(request, approach.patterns!);
+        case "pattern":
+          generated = await this.generateFromPatterns(
+            request,
+            approach.patterns!,
+          );
           break;
-        case 'ai':
+        case "ai":
           generated = await this.generateWithAI(request);
           break;
-        case 'hybrid':
+        case "hybrid":
           generated = await this.generateHybrid(request, approach);
           break;
         default:
@@ -167,17 +176,16 @@ export class CodeGenerationEngine {
 
       // Update metadata
       generated.metadata.generationTime = Date.now() - startTime;
-      
-      this.logger.info('Code generation completed', {
+
+      this.logger.info("Code generation completed", {
         files: generated.files.length,
         lines: generated.metadata.totalLines,
-        time: generated.metadata.generationTime
+        time: generated.metadata.generationTime,
       });
 
       return generated;
-
     } catch (error) {
-      this.logger.error('Code generation failed', error);
+      this.logger.error("Code generation failed", error);
       throw new Error(`Code generation failed: ${error.message}`);
     }
   }
@@ -185,13 +193,16 @@ export class CodeGenerationEngine {
   /**
    * Generate code from a specific template
    */
-  async generateFromTemplate(request: GenerationRequest, templateName?: string): Promise<GeneratedCode> {
-    const template = templateName ? 
-      this.templates.get(templateName) : 
-      await this.selectBestTemplate(request);
+  async generateFromTemplate(
+    request: GenerationRequest,
+    templateName?: string,
+  ): Promise<GeneratedCode> {
+    const template = templateName
+      ? this.templates.get(templateName)
+      : await this.selectBestTemplate(request);
 
     if (!template) {
-      throw new Error(`Template not found: ${templateName || 'auto-selected'}`);
+      throw new Error(`Template not found: ${templateName || "auto-selected"}`);
     }
 
     this.logger.info(`Generating from template: ${template.name}`);
@@ -201,14 +212,17 @@ export class CodeGenerationEngine {
 
     // Process template files
     const files: GeneratedFile[] = [];
-    
+
     for (const templateFile of template.files) {
       // Check conditions
       if (!this.evaluateConditions(templateFile.conditions, variables)) {
         continue;
       }
 
-      const processedContent = this.processTemplate(templateFile.content, variables);
+      const processedContent = this.processTemplate(
+        templateFile.content,
+        variables,
+      );
       const processedPath = this.processTemplate(templateFile.path, variables);
 
       files.push({
@@ -217,25 +231,28 @@ export class CodeGenerationEngine {
         type: templateFile.type,
         language: template.language,
         size: processedContent.length,
-        complexity: this.calculateComplexity(processedContent)
+        complexity: this.calculateComplexity(processedContent),
       });
     }
 
     return {
       files,
-      metadata: this.buildMetadata(files, [template.name], 'template'),
+      metadata: this.buildMetadata(files, [template.name], "template"),
       suggestions: await this.generateSuggestions(files, request),
-      dependencies: template.dependencies || []
+      dependencies: template.dependencies || [],
     };
   }
 
   /**
    * Generate code using learned patterns
    */
-  async generateFromPatterns(request: GenerationRequest, patternTypes?: string[]): Promise<GeneratedCode> {
-    const patterns = patternTypes ? 
-      patternTypes.flatMap(type => this.patterns.get(type) || []) :
-      await this.selectBestPatterns(request);
+  async generateFromPatterns(
+    request: GenerationRequest,
+    patternTypes?: string[],
+  ): Promise<GeneratedCode> {
+    const patterns = patternTypes
+      ? patternTypes.flatMap((type) => this.patterns.get(type) || [])
+      : await this.selectBestPatterns(request);
 
     this.logger.info(`Generating from ${patterns.length} patterns`);
 
@@ -256,9 +273,9 @@ export class CodeGenerationEngine {
 
     return {
       files,
-      metadata: this.buildMetadata(files, usedPatterns, 'pattern'),
+      metadata: this.buildMetadata(files, usedPatterns, "pattern"),
       suggestions: await this.generateSuggestions(files, request),
-      dependencies: []
+      dependencies: [],
     };
   }
 
@@ -266,20 +283,24 @@ export class CodeGenerationEngine {
    * Generate code using AI orchestration
    */
   async generateWithAI(request: GenerationRequest): Promise<GeneratedCode> {
-    this.logger.info('Generating with AI orchestration');
+    this.logger.info("Generating with AI orchestration");
 
     // Build context for AI generation
     const context = await this.buildAIContext(request);
 
     // Generate using AI orchestrator
     const prompt = this.buildGenerationPrompt(request, context);
-    
+
     const response = await this.orchestrator.orchestrate(prompt, {
-      task: 'code_generation',
-      userTier: 'pro', // Use higher tier for code generation
-      priority: 'high',
+      task: "code_generation",
+      userTier: "pro", // Use higher tier for code generation
+      priority: "high",
       latencyRequirement: 5000,
-      capabilities: ['code_generation', 'syntax_highlighting', 'best_practices']
+      capabilities: [
+        "code_generation",
+        "syntax_highlighting",
+        "best_practices",
+      ],
     });
 
     // Parse AI response into structured format
@@ -288,28 +309,43 @@ export class CodeGenerationEngine {
     return {
       files: parsed.files,
       metadata: {
-        ...this.buildMetadata(parsed.files, ['ai_generated'], response.modelUsed),
-        confidence: (response as any).confidence || 0.8
+        ...this.buildMetadata(
+          parsed.files,
+          ["ai_generated"],
+          response.modelUsed,
+        ),
+        confidence: (response as any).confidence || 0.8,
       },
       suggestions: parsed.suggestions || [],
-      dependencies: parsed.dependencies || []
+      dependencies: parsed.dependencies || [],
     };
   }
 
   /**
    * Generate using hybrid approach (templates + patterns + AI)
    */
-  async generateHybrid(request: GenerationRequest, approach: any): Promise<GeneratedCode> {
-    this.logger.info('Generating with hybrid approach');
+  async generateHybrid(
+    request: GenerationRequest,
+    approach: any,
+  ): Promise<GeneratedCode> {
+    this.logger.info("Generating with hybrid approach");
 
     // Start with template if available
-    const result = approach.template ? 
-      await this.generateFromTemplate(request, approach.template) :
-      { files: [], metadata: this.buildMetadata([], [], 'hybrid'), suggestions: [], dependencies: [] };
+    const result = approach.template
+      ? await this.generateFromTemplate(request, approach.template)
+      : {
+          files: [],
+          metadata: this.buildMetadata([], [], "hybrid"),
+          suggestions: [],
+          dependencies: [],
+        };
 
     // Apply patterns
     if (approach.patterns && approach.patterns.length > 0) {
-      const patternResult = await this.generateFromPatterns(request, approach.patterns);
+      const patternResult = await this.generateFromPatterns(
+        request,
+        approach.patterns,
+      );
       result.files.push(...patternResult.files);
       result.metadata.patternsUsed.push(...patternResult.metadata.patternsUsed);
     }
@@ -317,13 +353,20 @@ export class CodeGenerationEngine {
     // Fill gaps with AI
     const gaps = await this.identifyGenerationGaps(result, request);
     if (gaps.length > 0) {
-      const aiRequest = { ...request, task: `Fill generation gaps: ${gaps.join(', ')}` };
+      const aiRequest = {
+        ...request,
+        task: `Fill generation gaps: ${gaps.join(", ")}`,
+      };
       const aiResult = await this.generateWithAI(aiRequest);
       result.files.push(...aiResult.files);
     }
 
     // Update metadata
-    result.metadata = this.buildMetadata(result.files, result.metadata.patternsUsed, 'hybrid');
+    result.metadata = this.buildMetadata(
+      result.files,
+      result.metadata.patternsUsed,
+      "hybrid",
+    );
 
     return result;
   }
@@ -331,7 +374,10 @@ export class CodeGenerationEngine {
   /**
    * Apply style profile to generated code
    */
-  async applyStyleProfile(generated: GeneratedCode, styleName: string): Promise<void> {
+  async applyStyleProfile(
+    generated: GeneratedCode,
+    styleName: string,
+  ): Promise<void> {
     const style = this.styleProfiles.get(styleName);
     if (!style) {
       this.logger.warn(`Style profile not found: ${styleName}`);
@@ -341,8 +387,12 @@ export class CodeGenerationEngine {
     this.logger.info(`Applying style profile: ${styleName}`);
 
     for (const file of generated.files) {
-      if (file.type === 'source') {
-        file.content = await this.reformatCode(file.content, style, file.language);
+      if (file.type === "source") {
+        file.content = await this.reformatCode(
+          file.content,
+          style,
+          file.language,
+        );
       }
     }
   }
@@ -350,41 +400,47 @@ export class CodeGenerationEngine {
   /**
    * Determine the best generation approach
    */
-  private async determineGenerationApproach(request: GenerationRequest): Promise<any> {
+  private async determineGenerationApproach(
+    request: GenerationRequest,
+  ): Promise<any> {
     // Simple heuristics - in production would use ML classification
     const hasFramework = !!request.framework;
     const hasPatterns = request.patterns && request.patterns.length > 0;
-    const isComplexTask = request.task.length > 100 || request.task.includes('complex');
+    const isComplexTask =
+      request.task.length > 100 || request.task.includes("complex");
 
     if (hasFramework && this.hasFrameworkTemplate(request.framework!)) {
       return {
-        type: 'template',
-        template: this.findFrameworkTemplate(request.framework!)
+        type: "template",
+        template: this.findFrameworkTemplate(request.framework!),
       };
     }
 
     if (hasPatterns) {
       return {
-        type: 'pattern',
-        patterns: request.patterns
+        type: "pattern",
+        patterns: request.patterns,
       };
     }
 
     if (isComplexTask) {
       return {
-        type: 'hybrid',
+        type: "hybrid",
         template: this.findBestTemplate(request),
-        patterns: await this.selectBestPatterns(request)
+        patterns: await this.selectBestPatterns(request),
       };
     }
 
-    return { type: 'ai' };
+    return { type: "ai" };
   }
 
   /**
    * Extract variables for template processing
    */
-  private async extractTemplateVariables(request: GenerationRequest, template: Template): Promise<Record<string, any>> {
+  private async extractTemplateVariables(
+    request: GenerationRequest,
+    template: Template,
+  ): Promise<Record<string, any>> {
     const variables: Record<string, any> = {};
 
     // Set defaults
@@ -400,12 +456,15 @@ export class CodeGenerationEngine {
     }
 
     // Use AI to extract missing variables
-    const missing = template.variables.filter(v => 
-      v.required && variables[v.name] === undefined
+    const missing = template.variables.filter(
+      (v) => v.required && variables[v.name] === undefined,
     );
 
     if (missing.length > 0) {
-      const extracted = await this.extractVariablesWithAI(request.task, missing);
+      const extracted = await this.extractVariablesWithAI(
+        request.task,
+        missing,
+      );
       Object.assign(variables, extracted);
     }
 
@@ -415,12 +474,15 @@ export class CodeGenerationEngine {
   /**
    * Process template with variables
    */
-  private processTemplate(template: string, variables: Record<string, any>): string {
+  private processTemplate(
+    template: string,
+    variables: Record<string, any>,
+  ): string {
     let processed = template;
 
     // Simple variable substitution
     Object.entries(variables).forEach(([key, value]) => {
-      const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
+      const regex = new RegExp(`{{\\s*${key}\\s*}}`, "g");
       processed = processed.replace(regex, String(value));
     });
 
@@ -436,40 +498,48 @@ export class CodeGenerationEngine {
   /**
    * Process conditional blocks in templates
    */
-  private processConditionals(template: string, variables: Record<string, any>): string {
+  private processConditionals(
+    template: string,
+    variables: Record<string, any>,
+  ): string {
     const conditionalRegex = /{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g;
-    
+
     return template.replace(conditionalRegex, (match, condition, content) => {
-      return variables[condition] ? content : '';
+      return variables[condition] ? content : "";
     });
   }
 
   /**
    * Process loop blocks in templates
    */
-  private processLoops(template: string, variables: Record<string, any>): string {
+  private processLoops(
+    template: string,
+    variables: Record<string, any>,
+  ): string {
     const loopRegex = /{{#each\s+(\w+)}}([\s\S]*?){{\/each}}/g;
-    
+
     return template.replace(loopRegex, (match, arrayName, content) => {
       const array = variables[arrayName];
-      if (!Array.isArray(array)) return '';
+      if (!Array.isArray(array)) return "";
 
-      return array.map((item, index) => {
-        let processed = content;
-        
-        // Replace item properties
-        if (typeof item === 'object') {
-          Object.entries(item).forEach(([key, value]) => {
-            const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-            processed = processed.replace(regex, String(value));
-          });
-        }
-        
-        // Replace @index
-        processed = processed.replace(/{{@index}}/g, String(index));
-        
-        return processed;
-      }).join('');
+      return array
+        .map((item, index) => {
+          let processed = content;
+
+          // Replace item properties
+          if (typeof item === "object") {
+            Object.entries(item).forEach(([key, value]) => {
+              const regex = new RegExp(`{{\\s*${key}\\s*}}`, "g");
+              processed = processed.replace(regex, String(value));
+            });
+          }
+
+          // Replace @index
+          processed = processed.replace(/{{@index}}/g, String(index));
+
+          return processed;
+        })
+        .join("");
     });
   }
 
@@ -485,7 +555,7 @@ export class CodeGenerationEngine {
       /while\s*\(/g,
       /switch\s*\(/g,
       /catch\s*\(/g,
-      /&&|\|\|/g
+      /&&|\|\|/g,
     ];
 
     let complexity = 1; // Base complexity
@@ -503,11 +573,20 @@ export class CodeGenerationEngine {
   /**
    * Build generation metadata
    */
-  private buildMetadata(files: GeneratedFile[], patterns: string[], aiModel: string): GenerationMetadata {
-    const totalLines = files.reduce((sum, file) => sum + file.content.split('\n').length, 0);
+  private buildMetadata(
+    files: GeneratedFile[],
+    patterns: string[],
+    aiModel: string,
+  ): GenerationMetadata {
+    const totalLines = files.reduce(
+      (sum, file) => sum + file.content.split("\n").length,
+      0,
+    );
     const totalSize = files.reduce((sum, file) => sum + file.size, 0);
-    const averageComplexity = files.length > 0 ? 
-      files.reduce((sum, file) => sum + file.complexity, 0) / files.length : 0;
+    const averageComplexity =
+      files.length > 0
+        ? files.reduce((sum, file) => sum + file.complexity, 0) / files.length
+        : 0;
 
     return {
       totalFiles: files.length,
@@ -517,7 +596,7 @@ export class CodeGenerationEngine {
       patternsUsed: patterns,
       generationTime: 0, // Will be set by caller
       aiModel,
-      confidence: 0.85 // Default confidence
+      confidence: 0.85, // Default confidence
     };
   }
 
@@ -526,19 +605,34 @@ export class CodeGenerationEngine {
    */
   private initializeBuiltinTemplates(): void {
     // React Component Template
-    this.templates.set('react-component', {
-      name: 'React Component',
-      description: 'Modern React functional component with TypeScript',
-      framework: 'react',
-      language: 'typescript',
+    this.templates.set("react-component", {
+      name: "React Component",
+      description: "Modern React functional component with TypeScript",
+      framework: "react",
+      language: "typescript",
       variables: [
-        { name: 'componentName', type: 'string', description: 'Component name', required: true },
-        { name: 'props', type: 'array', description: 'Component props', default: [] },
-        { name: 'useHooks', type: 'boolean', description: 'Include React hooks', default: true }
+        {
+          name: "componentName",
+          type: "string",
+          description: "Component name",
+          required: true,
+        },
+        {
+          name: "props",
+          type: "array",
+          description: "Component props",
+          default: [],
+        },
+        {
+          name: "useHooks",
+          type: "boolean",
+          description: "Include React hooks",
+          default: true,
+        },
       ],
       files: [
         {
-          path: '{{componentName}}/{{componentName}}.tsx',
+          path: "{{componentName}}/{{componentName}}.tsx",
           content: `import React{{#if useHooks}}, { useState, useEffect }{{/if}} from 'react';
 import { {{componentName}}Props } from './{{componentName}}.types';
 import styles from './{{componentName}}.module.css';
@@ -565,34 +659,49 @@ export const {{componentName}}: React.FC<{{componentName}}Props> = ({
 };
 
 export default {{componentName}};`,
-          type: 'source'
+          type: "source",
         },
         {
-          path: '{{componentName}}/{{componentName}}.types.ts',
+          path: "{{componentName}}/{{componentName}}.types.ts",
           content: `export interface {{componentName}}Props {
   {{#each props}}
   {{name}}: {{type}};
   {{/each}}
 }`,
-          type: 'source'
-        }
-      ]
+          type: "source",
+        },
+      ],
     });
 
     // Express API Template
-    this.templates.set('express-api', {
-      name: 'Express API',
-      description: 'Express.js REST API with TypeScript',
-      framework: 'express',
-      language: 'typescript',
+    this.templates.set("express-api", {
+      name: "Express API",
+      description: "Express.js REST API with TypeScript",
+      framework: "express",
+      language: "typescript",
       variables: [
-        { name: 'apiName', type: 'string', description: 'API name', required: true },
-        { name: 'routes', type: 'array', description: 'API routes', default: [] },
-        { name: 'useAuth', type: 'boolean', description: 'Include authentication', default: true }
+        {
+          name: "apiName",
+          type: "string",
+          description: "API name",
+          required: true,
+        },
+        {
+          name: "routes",
+          type: "array",
+          description: "API routes",
+          default: [],
+        },
+        {
+          name: "useAuth",
+          type: "boolean",
+          description: "Include authentication",
+          default: true,
+        },
       ],
       files: [
         {
-          path: 'src/app.ts',
+          path: "src/app.ts",
           content: `import express from 'express';
 import cors from 'cors';
 {{#if useAuth}}
@@ -617,9 +726,9 @@ app.use('/{{path}}', {{name}}Router);
 {{/each}}
 
 export default app;`,
-          type: 'source'
-        }
-      ]
+          type: "source",
+        },
+      ],
     });
   }
 
@@ -628,10 +737,10 @@ export default app;`,
    */
   private initializeBuiltinPatterns(): void {
     // CRUD Pattern
-    this.patterns.set('crud', [
+    this.patterns.set("crud", [
       {
-        type: 'crud',
-        pattern: 'Create-Read-Update-Delete operations',
+        type: "crud",
+        pattern: "Create-Read-Update-Delete operations",
         template: `class {{entityName}}Service {
   async create(data: Create{{entityName}}Dto): Promise<{{entityName}}> {
     // Implementation
@@ -655,15 +764,15 @@ export default app;`,
 }`,
         confidence: 0.9,
         examples: [],
-        variables: ['entityName']
-      }
+        variables: ["entityName"],
+      },
     ]);
 
     // Repository Pattern
-    this.patterns.set('repository', [
+    this.patterns.set("repository", [
       {
-        type: 'repository',
-        pattern: 'Repository pattern for data access',
+        type: "repository",
+        pattern: "Repository pattern for data access",
         template: `interface {{entityName}}Repository {
   save(entity: {{entityName}}): Promise<{{entityName}}>;
   findById(id: string): Promise<{{entityName}} | null>;
@@ -673,8 +782,8 @@ export default app;`,
 }`,
         confidence: 0.85,
         examples: [],
-        variables: ['entityName']
-      }
+        variables: ["entityName"],
+      },
     ]);
   }
 
@@ -683,64 +792,127 @@ export default app;`,
    */
   private initializeBuiltinStyles(): void {
     // Airbnb Style
-    this.styleProfiles.set('airbnb', {
-      name: 'Airbnb',
-      indentation: { type: 'spaces', size: 2 },
+    this.styleProfiles.set("airbnb", {
+      name: "Airbnb",
+      indentation: { type: "spaces", size: 2 },
       lineLength: 100,
-      quotes: 'single',
+      quotes: "single",
       semicolons: true,
       trailingCommas: true,
       naming: {
-        variables: 'camelCase',
-        functions: 'camelCase',
-        classes: 'PascalCase',
-        constants: 'UPPER_CASE'
+        variables: "camelCase",
+        functions: "camelCase",
+        classes: "PascalCase",
+        constants: "UPPER_CASE",
       },
       imports: {
-        order: ['external', 'internal', 'relative'],
+        order: ["external", "internal", "relative"],
         grouping: true,
-        newlines: true
-      }
+        newlines: true,
+      },
     });
 
     // Google Style
-    this.styleProfiles.set('google', {
-      name: 'Google',
-      indentation: { type: 'spaces', size: 2 },
+    this.styleProfiles.set("google", {
+      name: "Google",
+      indentation: { type: "spaces", size: 2 },
       lineLength: 80,
-      quotes: 'single',
+      quotes: "single",
       semicolons: true,
       trailingCommas: false,
       naming: {
-        variables: 'camelCase',
-        functions: 'camelCase',
-        classes: 'PascalCase',
-        constants: 'UPPER_CASE'
+        variables: "camelCase",
+        functions: "camelCase",
+        classes: "PascalCase",
+        constants: "UPPER_CASE",
       },
       imports: {
-        order: ['external', 'internal'],
+        order: ["external", "internal"],
         grouping: false,
-        newlines: false
-      }
+        newlines: false,
+      },
     });
   }
 
   // Placeholder implementations for helper methods
-  private async selectBestTemplate(_request: GenerationRequest): Promise<Template | null> { return null; }
-  private evaluateConditions(_conditions: Record<string, any> | undefined, _variables: Record<string, any>): boolean { return true; }
-  private async generateSuggestions(_files: GeneratedFile[], _request: GenerationRequest): Promise<string[]> { return []; }
-  private async selectBestPatterns(_request: GenerationRequest): Promise<CodePattern[]> { return []; }
-  private async applyPattern(_pattern: CodePattern, _request: GenerationRequest): Promise<GeneratedFile | null> { return null; }
-  private async buildAIContext(_request: GenerationRequest): Promise<any> { return {}; }
-  private buildGenerationPrompt(_request: GenerationRequest, _context: any): string { return ''; }
-  private async parseAIResponse(_content: string, _request: GenerationRequest): Promise<any> { return { files: [], suggestions: [], dependencies: [] }; }
-  private async identifyGenerationGaps(_result: GeneratedCode, _request: GenerationRequest): Promise<string[]> { return []; }
-  private async postProcessGeneration(_generated: GeneratedCode, _request: GenerationRequest): Promise<void> {}
-  private hasFrameworkTemplate(_framework: string): boolean { return this.templates.has(`${_framework}-component`) || this.templates.has(`${_framework}-api`); }
-  private findFrameworkTemplate(_framework: string): string { return `${_framework}-component`; }
-  private findBestTemplate(_request: GenerationRequest): string | undefined { return undefined; }
-  private async extractVariablesWithAI(_task: string, _variables: TemplateVariable[]): Promise<Record<string, any>> { return {}; }
-  private async reformatCode(content: string, _style: StyleProfile, _language: string): Promise<string> { return content; }
+  private async selectBestTemplate(
+    _request: GenerationRequest,
+  ): Promise<Template | null> {
+    return null;
+  }
+  private evaluateConditions(
+    _conditions: Record<string, any> | undefined,
+    _variables: Record<string, any>,
+  ): boolean {
+    return true;
+  }
+  private async generateSuggestions(
+    _files: GeneratedFile[],
+    _request: GenerationRequest,
+  ): Promise<string[]> {
+    return [];
+  }
+  private async selectBestPatterns(
+    _request: GenerationRequest,
+  ): Promise<CodePattern[]> {
+    return [];
+  }
+  private async applyPattern(
+    _pattern: CodePattern,
+    _request: GenerationRequest,
+  ): Promise<GeneratedFile | null> {
+    return null;
+  }
+  private async buildAIContext(_request: GenerationRequest): Promise<any> {
+    return {};
+  }
+  private buildGenerationPrompt(
+    _request: GenerationRequest,
+    _context: any,
+  ): string {
+    return "";
+  }
+  private async parseAIResponse(
+    _content: string,
+    _request: GenerationRequest,
+  ): Promise<any> {
+    return { files: [], suggestions: [], dependencies: [] };
+  }
+  private async identifyGenerationGaps(
+    _result: GeneratedCode,
+    _request: GenerationRequest,
+  ): Promise<string[]> {
+    return [];
+  }
+  private async postProcessGeneration(
+    _generated: GeneratedCode,
+    _request: GenerationRequest,
+  ): Promise<void> {}
+  private hasFrameworkTemplate(_framework: string): boolean {
+    return (
+      this.templates.has(`${_framework}-component`) ||
+      this.templates.has(`${_framework}-api`)
+    );
+  }
+  private findFrameworkTemplate(_framework: string): string {
+    return `${_framework}-component`;
+  }
+  private findBestTemplate(_request: GenerationRequest): string | undefined {
+    return undefined;
+  }
+  private async extractVariablesWithAI(
+    _task: string,
+    _variables: TemplateVariable[],
+  ): Promise<Record<string, any>> {
+    return {};
+  }
+  private async reformatCode(
+    content: string,
+    _style: StyleProfile,
+    _language: string,
+  ): Promise<string> {
+    return content;
+  }
 }
 
 export default CodeGenerationEngine;

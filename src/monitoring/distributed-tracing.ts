@@ -3,17 +3,29 @@
  * Comprehensive observability across all Google Services integrations
  */
 
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http';
-import { BatchSpanProcessor, ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node';
-import { PeriodicExportingMetricReader, ConsoleMetricExporter } from '@opentelemetry/sdk-metrics';
-import { MeterProvider } from '@opentelemetry/sdk-metrics';
-import { trace, metrics, context, SpanKind, SpanStatusCode } from '@opentelemetry/api';
-import { Logger } from '../utils/logger';
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { Resource } from "@opentelemetry/resources";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { JaegerExporter } from "@opentelemetry/exporter-jaeger";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-otlp-http";
+import {
+  BatchSpanProcessor,
+  ConsoleSpanExporter,
+} from "@opentelemetry/sdk-trace-node";
+import {
+  PeriodicExportingMetricReader,
+  ConsoleMetricExporter,
+} from "@opentelemetry/sdk-metrics";
+import { MeterProvider } from "@opentelemetry/sdk-metrics";
+import {
+  trace,
+  metrics,
+  context,
+  SpanKind,
+  SpanStatusCode,
+} from "@opentelemetry/api";
+import { Logger } from "../utils/logger";
 
 interface TracingConfig {
   serviceName: string;
@@ -61,26 +73,26 @@ interface SamplingRule {
 
 interface CustomSpanAttributes {
   // Google Services specific
-  'gemini.model'?: string;
-  'gemini.prompt_tokens'?: number;
-  'gemini.completion_tokens'?: number;
-  'vertex.project_id'?: string;
-  'vertex.region'?: string;
-  
+  "gemini.model"?: string;
+  "gemini.prompt_tokens"?: number;
+  "gemini.completion_tokens"?: number;
+  "vertex.project_id"?: string;
+  "vertex.region"?: string;
+
   // User context
-  'user.id'?: string;
-  'session.id'?: string;
-  'request.id'?: string;
-  
+  "user.id"?: string;
+  "session.id"?: string;
+  "request.id"?: string;
+
   // Business context
-  'workflow.id'?: string;
-  'agent.type'?: string;
-  'task.priority'?: string;
-  
+  "workflow.id"?: string;
+  "agent.type"?: string;
+  "task.priority"?: string;
+
   // Performance context
-  'cache.hit'?: boolean;
-  'database.query_type'?: string;
-  'api.rate_limit_remaining'?: number;
+  "cache.hit"?: boolean;
+  "database.query_type"?: string;
+  "api.rate_limit_remaining"?: number;
 }
 
 export class DistributedTracing {
@@ -93,7 +105,7 @@ export class DistributedTracing {
 
   constructor(config: TracingConfig) {
     this.config = config;
-    this.logger = new Logger('DistributedTracing');
+    this.logger = new Logger("DistributedTracing");
   }
 
   /**
@@ -101,19 +113,21 @@ export class DistributedTracing {
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      this.logger.warn('Distributed tracing already initialized');
+      this.logger.warn("Distributed tracing already initialized");
       return;
     }
 
     try {
-      this.logger.info('Initializing distributed tracing...');
+      this.logger.info("Initializing distributed tracing...");
 
       // Create resource with service information
       const resource = new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: this.config.serviceName,
-        [SemanticResourceAttributes.SERVICE_VERSION]: this.config.serviceVersion,
-        [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: this.config.environment,
-        ...this.config.attributes.global
+        [SemanticResourceAttributes.SERVICE_VERSION]:
+          this.config.serviceVersion,
+        [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
+          this.config.environment,
+        ...this.config.attributes.global,
       });
 
       // Configure exporters
@@ -128,24 +142,29 @@ export class DistributedTracing {
         resource,
         spanProcessors,
         metricReaders,
-        instrumentations
+        instrumentations,
       });
 
       // Start SDK
       this.sdk.start();
 
       // Get tracer and meter instances
-      this.tracer = trace.getTracer(this.config.serviceName, this.config.serviceVersion);
-      this.meter = metrics.getMeter(this.config.serviceName, this.config.serviceVersion);
+      this.tracer = trace.getTracer(
+        this.config.serviceName,
+        this.config.serviceVersion,
+      );
+      this.meter = metrics.getMeter(
+        this.config.serviceName,
+        this.config.serviceVersion,
+      );
 
       // Setup custom instrumentations
       await this.setupCustomInstrumentations();
 
       this.isInitialized = true;
-      this.logger.info('Distributed tracing initialized successfully');
-
+      this.logger.info("Distributed tracing initialized successfully");
     } catch (error) {
-      this.logger.error('Failed to initialize distributed tracing:', error);
+      this.logger.error("Failed to initialize distributed tracing:", error);
       throw error;
     }
   }
@@ -161,27 +180,27 @@ export class DistributedTracing {
       const jaegerExporter = new JaegerExporter({
         endpoint: this.config.exporters.jaeger.endpoint,
         username: this.config.exporters.jaeger.username,
-        password: this.config.exporters.jaeger.password
+        password: this.config.exporters.jaeger.password,
       });
       processors.push(new BatchSpanProcessor(jaegerExporter));
-      this.logger.debug('Added Jaeger exporter');
+      this.logger.debug("Added Jaeger exporter");
     }
 
     // OTLP exporter
     if (this.config.exporters.otlp) {
       const otlpExporter = new OTLPTraceExporter({
         url: this.config.exporters.otlp.endpoint,
-        headers: this.config.exporters.otlp.headers
+        headers: this.config.exporters.otlp.headers,
       });
       processors.push(new BatchSpanProcessor(otlpExporter));
-      this.logger.debug('Added OTLP exporter');
+      this.logger.debug("Added OTLP exporter");
     }
 
     // Console exporter (for development)
     if (this.config.exporters.console) {
       const consoleExporter = new ConsoleSpanExporter();
       processors.push(new BatchSpanProcessor(consoleExporter));
-      this.logger.debug('Added console exporter');
+      this.logger.debug("Added console exporter");
     }
 
     return processors;
@@ -198,8 +217,8 @@ export class DistributedTracing {
       readers.push(
         new PeriodicExportingMetricReader({
           exporter: new ConsoleMetricExporter(),
-          exportIntervalMillis: 10000
-        })
+          exportIntervalMillis: 10000,
+        }),
       );
     }
 
@@ -213,19 +232,28 @@ export class DistributedTracing {
     const instrumentations = [];
 
     // Auto instrumentations
-    if (this.config.instrumentations.http || 
-        this.config.instrumentations.express || 
-        this.config.instrumentations.grpc) {
+    if (
+      this.config.instrumentations.http ||
+      this.config.instrumentations.express ||
+      this.config.instrumentations.grpc
+    ) {
       instrumentations.push(
         getNodeAutoInstrumentations({
-          '@opentelemetry/instrumentation-http': this.config.instrumentations.http,
-          '@opentelemetry/instrumentation-express': this.config.instrumentations.express,
-          '@opentelemetry/instrumentation-grpc': this.config.instrumentations.grpc,
-          '@opentelemetry/instrumentation-mysql': this.config.instrumentations.mysql,
-          '@opentelemetry/instrumentation-redis': this.config.instrumentations.redis,
-          '@opentelemetry/instrumentation-mongodb': this.config.instrumentations.mongodb,
-          '@opentelemetry/instrumentation-aws-sdk': this.config.instrumentations.aws
-        })
+          "@opentelemetry/instrumentation-http":
+            this.config.instrumentations.http,
+          "@opentelemetry/instrumentation-express":
+            this.config.instrumentations.express,
+          "@opentelemetry/instrumentation-grpc":
+            this.config.instrumentations.grpc,
+          "@opentelemetry/instrumentation-mysql":
+            this.config.instrumentations.mysql,
+          "@opentelemetry/instrumentation-redis":
+            this.config.instrumentations.redis,
+          "@opentelemetry/instrumentation-mongodb":
+            this.config.instrumentations.mongodb,
+          "@opentelemetry/instrumentation-aws-sdk":
+            this.config.instrumentations.aws,
+        }),
       );
     }
 
@@ -240,20 +268,20 @@ export class DistributedTracing {
 
     // Google Vertex AI instrumentation
     this.instrumentVertexAI();
-    
+
     // Gemini API instrumentation
     this.instrumentGeminiAPI();
-    
+
     // Google Cloud Storage instrumentation
     this.instrumentGoogleCloudStorage();
-    
+
     // Agent-to-Agent protocol instrumentation
     this.instrumentA2AProtocol();
-    
+
     // MCP protocol instrumentation
     this.instrumentMCPProtocol();
 
-    this.logger.debug('Custom instrumentations configured');
+    this.logger.debug("Custom instrumentations configured");
   }
 
   /**
@@ -261,49 +289,55 @@ export class DistributedTracing {
    */
   private instrumentVertexAI(): void {
     const originalVertexCall = this.patchVertexAIMethod();
-    
+
     // Patch Vertex AI client methods
     if (originalVertexCall) {
       const self = this;
       function patchedVertexCall(this: any, ...args: any[]) {
-        return self.tracer.startActiveSpan('vertex_ai.generate', {
-          kind: SpanKind.CLIENT,
-          attributes: {
-            'vertex.service': 'generative-ai',
-            'vertex.model': args[0]?.model || 'unknown',
-            'vertex.project_id': process.env.VERTEX_AI_PROJECT_ID,
-            'vertex.region': process.env.VERTEX_AI_REGION || 'us-central1'
-          }
-        }, async (span: any) => {
-          try {
-            const startTime = Date.now();
-            const result = await originalVertexCall.apply(this, args);
-            
-            // Add result attributes
-            span.setAttributes({
-              'vertex.prompt_tokens': result?.usage?.promptTokens || 0,
-              'vertex.completion_tokens': result?.usage?.candidatesTokens || 0,
-              'vertex.response_time_ms': Date.now() - startTime,
-              'vertex.finish_reason': result?.candidates?.[0]?.finishReason || 'unknown'
-            });
-            
-            span.setStatus({ code: SpanStatusCode.OK });
-            return result;
-          } catch (error) {
-            span.recordException(error as Error);
-            span.setStatus({ 
-              code: SpanStatusCode.ERROR, 
-              message: (error as Error).message 
-            });
-            throw error;
-          } finally {
-            span.end();
-          }
-        });
+        return self.tracer.startActiveSpan(
+          "vertex_ai.generate",
+          {
+            kind: SpanKind.CLIENT,
+            attributes: {
+              "vertex.service": "generative-ai",
+              "vertex.model": args[0]?.model || "unknown",
+              "vertex.project_id": process.env.VERTEX_AI_PROJECT_ID,
+              "vertex.region": process.env.VERTEX_AI_REGION || "us-central1",
+            },
+          },
+          async (span: any) => {
+            try {
+              const startTime = Date.now();
+              const result = await originalVertexCall.apply(this, args);
+
+              // Add result attributes
+              span.setAttributes({
+                "vertex.prompt_tokens": result?.usage?.promptTokens || 0,
+                "vertex.completion_tokens":
+                  result?.usage?.candidatesTokens || 0,
+                "vertex.response_time_ms": Date.now() - startTime,
+                "vertex.finish_reason":
+                  result?.candidates?.[0]?.finishReason || "unknown",
+              });
+
+              span.setStatus({ code: SpanStatusCode.OK });
+              return result;
+            } catch (error) {
+              span.recordException(error as Error);
+              span.setStatus({
+                code: SpanStatusCode.ERROR,
+                message: (error as Error).message,
+              });
+              throw error;
+            } finally {
+              span.end();
+            }
+          },
+        );
       }
-      
+
       // Apply patch (implementation depends on specific Vertex AI client structure)
-      this.logger.debug('Vertex AI instrumentation applied');
+      this.logger.debug("Vertex AI instrumentation applied");
     }
   }
 
@@ -312,7 +346,7 @@ export class DistributedTracing {
    */
   private instrumentGeminiAPI(): void {
     // Similar implementation for Gemini API
-    this.logger.debug('Gemini API instrumentation applied');
+    this.logger.debug("Gemini API instrumentation applied");
   }
 
   /**
@@ -320,7 +354,7 @@ export class DistributedTracing {
    */
   private instrumentGoogleCloudStorage(): void {
     // Implementation for GCS operations
-    this.logger.debug('Google Cloud Storage instrumentation applied');
+    this.logger.debug("Google Cloud Storage instrumentation applied");
   }
 
   /**
@@ -328,7 +362,7 @@ export class DistributedTracing {
    */
   private instrumentA2AProtocol(): void {
     // Implementation for A2A protocol tracing
-    this.logger.debug('A2A protocol instrumentation applied');
+    this.logger.debug("A2A protocol instrumentation applied");
   }
 
   /**
@@ -336,7 +370,7 @@ export class DistributedTracing {
    */
   private instrumentMCPProtocol(): void {
     // Implementation for MCP protocol tracing
-    this.logger.debug('MCP protocol instrumentation applied');
+    this.logger.debug("MCP protocol instrumentation applied");
   }
 
   /**
@@ -346,32 +380,38 @@ export class DistributedTracing {
     name: string,
     operation: (span: any) => Promise<T>,
     attributes?: CustomSpanAttributes,
-    spanKind: SpanKind = SpanKind.INTERNAL
+    spanKind: SpanKind = SpanKind.INTERNAL,
   ): Promise<T> {
     if (!this.isInitialized || !this.tracer) {
-      this.logger.warn('Tracing not initialized, executing operation without span');
+      this.logger.warn(
+        "Tracing not initialized, executing operation without span",
+      );
       return operation(null);
     }
 
-    return this.tracer.startActiveSpan(name, {
-      kind: spanKind,
-      attributes: this.sanitizeAttributes(attributes || {})
-    }, async (span: any) => {
-      try {
-        const result = await operation(span);
-        span.setStatus({ code: SpanStatusCode.OK });
-        return result;
-      } catch (error) {
-        span.recordException(error as Error);
-        span.setStatus({ 
-          code: SpanStatusCode.ERROR, 
-          message: (error as Error).message 
-        });
-        throw error;
-      } finally {
-        span.end();
-      }
-    });
+    return this.tracer.startActiveSpan(
+      name,
+      {
+        kind: spanKind,
+        attributes: this.sanitizeAttributes(attributes || {}),
+      },
+      async (span: any) => {
+        try {
+          const result = await operation(span);
+          span.setStatus({ code: SpanStatusCode.OK });
+          return result;
+        } catch (error) {
+          span.recordException(error as Error);
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: (error as Error).message,
+          });
+          throw error;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   /**
@@ -386,20 +426,20 @@ export class DistributedTracing {
       temperature?: number;
       userId?: string;
       sessionId?: string;
-    }
+    },
   ): Promise<T> {
     return this.createSpan(
       `ai.inference.${modelName}`,
       operation,
       {
-        'gemini.model': modelName,
-        'gemini.prompt_tokens': metadata?.promptTokens,
-        'user.id': metadata?.userId,
-        'session.id': metadata?.sessionId,
-        'ai.model.temperature': metadata?.temperature?.toString(),
-        'ai.model.max_tokens': metadata?.maxTokens?.toString()
+        "gemini.model": modelName,
+        "gemini.prompt_tokens": metadata?.promptTokens,
+        "user.id": metadata?.userId,
+        "session.id": metadata?.sessionId,
+        "ai.model.temperature": metadata?.temperature?.toString(),
+        "ai.model.max_tokens": metadata?.maxTokens?.toString(),
       },
-      SpanKind.CLIENT
+      SpanKind.CLIENT,
     );
   }
 
@@ -414,19 +454,15 @@ export class DistributedTracing {
       priority?: string;
       userId?: string;
       taskId?: string;
-    }
+    },
   ): Promise<T> {
-    return this.createSpan(
-      `agent.workflow.${agentType}`,
-      operation,
-      {
-        'workflow.id': workflowId,
-        'agent.type': agentType,
-        'task.priority': metadata?.priority,
-        'user.id': metadata?.userId,
-        'task.id': metadata?.taskId
-      }
-    );
+    return this.createSpan(`agent.workflow.${agentType}`, operation, {
+      "workflow.id": workflowId,
+      "agent.type": agentType,
+      "task.priority": metadata?.priority,
+      "user.id": metadata?.userId,
+      "task.id": metadata?.taskId,
+    });
   }
 
   /**
@@ -441,20 +477,16 @@ export class DistributedTracing {
       outputSize?: number;
       duration?: number;
       quality?: string;
-    }
+    },
   ): Promise<T> {
-    return this.createSpan(
-      `multimedia.${operation}.${mediaType}`,
-      executor,
-      {
-        'multimedia.operation': operation,
-        'multimedia.type': mediaType,
-        'multimedia.input_size': metadata?.inputSize?.toString(),
-        'multimedia.output_size': metadata?.outputSize?.toString(),
-        'multimedia.duration': metadata?.duration?.toString(),
-        'multimedia.quality': metadata?.quality
-      }
-    );
+    return this.createSpan(`multimedia.${operation}.${mediaType}`, executor, {
+      "multimedia.operation": operation,
+      "multimedia.type": mediaType,
+      "multimedia.input_size": metadata?.inputSize?.toString(),
+      "multimedia.output_size": metadata?.outputSize?.toString(),
+      "multimedia.duration": metadata?.duration?.toString(),
+      "multimedia.quality": metadata?.quality,
+    });
   }
 
   /**
@@ -474,9 +506,9 @@ export class DistributedTracing {
     const activeSpan = trace.getActiveSpan();
     if (activeSpan) {
       activeSpan.recordException(error);
-      activeSpan.setStatus({ 
-        code: SpanStatusCode.ERROR, 
-        message: error.message 
+      activeSpan.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error.message,
       });
     }
   }
@@ -484,39 +516,51 @@ export class DistributedTracing {
   /**
    * Create and increment a counter metric
    */
-  public incrementCounter(name: string, value: number = 1, attributes?: Record<string, string>): void {
+  public incrementCounter(
+    name: string,
+    value: number = 1,
+    attributes?: Record<string, string>,
+  ): void {
     if (!this.meter) return;
-    
+
     const counter = this.meter.createCounter(name, {
-      description: `Counter for ${name}`
+      description: `Counter for ${name}`,
     });
-    
+
     counter.add(value, attributes);
   }
 
   /**
    * Record a histogram value
    */
-  public recordHistogram(name: string, value: number, attributes?: Record<string, string>): void {
+  public recordHistogram(
+    name: string,
+    value: number,
+    attributes?: Record<string, string>,
+  ): void {
     if (!this.meter) return;
-    
+
     const histogram = this.meter.createHistogram(name, {
-      description: `Histogram for ${name}`
+      description: `Histogram for ${name}`,
     });
-    
+
     histogram.record(value, attributes);
   }
 
   /**
    * Create a gauge metric
    */
-  public setGauge(name: string, value: number, attributes?: Record<string, string>): void {
+  public setGauge(
+    name: string,
+    value: number,
+    attributes?: Record<string, string>,
+  ): void {
     if (!this.meter) return;
-    
+
     const gauge = this.meter.createUpDownCounter(name, {
-      description: `Gauge for ${name}`
+      description: `Gauge for ${name}`,
     });
-    
+
     gauge.add(value, attributes);
   }
 
@@ -532,35 +576,43 @@ export class DistributedTracing {
    */
   public async withContext<T>(
     traceContext: any,
-    operation: () => Promise<T>
+    operation: () => Promise<T>,
   ): Promise<T> {
     if (!traceContext) {
       return operation();
     }
 
-    return context.with(trace.setSpanContext(context.active(), traceContext), operation);
+    return context.with(
+      trace.setSpanContext(context.active(), traceContext),
+      operation,
+    );
   }
 
   /**
    * Sanitize attributes to remove sensitive data
    */
-  private sanitizeAttributes(attributes: Record<string, any>): Record<string, string> {
+  private sanitizeAttributes(
+    attributes: Record<string, any>,
+  ): Record<string, string> {
     const sanitized: Record<string, string> = {};
-    
+
     for (const [key, value] of Object.entries(attributes)) {
       if (value === undefined || value === null) continue;
-      
+
       let stringValue = value.toString();
-      
+
       // Redact sensitive fields
-      if (this.config.attributes.sensitive.some(field => 
-        key.toLowerCase().includes(field.toLowerCase()))) {
-        stringValue = '[REDACTED]';
+      if (
+        this.config.attributes.sensitive.some((field) =>
+          key.toLowerCase().includes(field.toLowerCase()),
+        )
+      ) {
+        stringValue = "[REDACTED]";
       }
-      
+
       sanitized[key] = stringValue;
     }
-    
+
     return sanitized;
   }
 
@@ -582,12 +634,12 @@ export class DistributedTracing {
     }
 
     try {
-      this.logger.info('Shutting down distributed tracing...');
+      this.logger.info("Shutting down distributed tracing...");
       await this.sdk.shutdown();
       this.isInitialized = false;
-      this.logger.info('Distributed tracing shutdown complete');
+      this.logger.info("Distributed tracing shutdown complete");
     } catch (error) {
-      this.logger.error('Error during tracing shutdown:', error);
+      this.logger.error("Error during tracing shutdown:", error);
     }
   }
 
@@ -602,43 +654,51 @@ export class DistributedTracing {
   } {
     return {
       initialized: this.isInitialized,
-      exporters: Object.keys(this.config.exporters).filter(key => 
-        this.config.exporters[key as keyof typeof this.config.exporters]
+      exporters: Object.keys(this.config.exporters).filter(
+        (key) =>
+          this.config.exporters[key as keyof typeof this.config.exporters],
       ),
-      instrumentations: Object.keys(this.config.instrumentations).filter(key => 
-        this.config.instrumentations[key as keyof typeof this.config.instrumentations]
+      instrumentations: Object.keys(this.config.instrumentations).filter(
+        (key) =>
+          this.config.instrumentations[
+            key as keyof typeof this.config.instrumentations
+          ],
       ),
-      activeSpans: 0 // Would need to track this separately
+      activeSpans: 0, // Would need to track this separately
     };
   }
 }
 
 // Default configuration
 export const DEFAULT_TRACING_CONFIG: TracingConfig = {
-  serviceName: 'gemini-flow',
-  serviceVersion: process.env.npm_package_version || '1.0.0',
-  environment: process.env.NODE_ENV || 'development',
+  serviceName: "gemini-flow",
+  serviceVersion: process.env.npm_package_version || "1.0.0",
+  environment: process.env.NODE_ENV || "development",
   exporters: {
-    jaeger: process.env.JAEGER_ENDPOINT ? {
-      endpoint: process.env.JAEGER_ENDPOINT,
-      username: process.env.JAEGER_USERNAME,
-      password: process.env.JAEGER_PASSWORD
-    } : undefined,
-    otlp: process.env.OTLP_ENDPOINT ? {
-      endpoint: process.env.OTLP_ENDPOINT,
-      headers: {
-        'Authorization': `Bearer ${process.env.OTLP_TOKEN || ''}`
-      }
-    } : undefined,
-    console: process.env.NODE_ENV === 'development'
+    jaeger: process.env.JAEGER_ENDPOINT
+      ? {
+          endpoint: process.env.JAEGER_ENDPOINT,
+          username: process.env.JAEGER_USERNAME,
+          password: process.env.JAEGER_PASSWORD,
+        }
+      : undefined,
+    otlp: process.env.OTLP_ENDPOINT
+      ? {
+          endpoint: process.env.OTLP_ENDPOINT,
+          headers: {
+            Authorization: `Bearer ${process.env.OTLP_TOKEN || ""}`,
+          },
+        }
+      : undefined,
+    console: process.env.NODE_ENV === "development",
   },
   sampling: {
-    ratio: parseFloat(process.env.TRACE_SAMPLING_RATIO || '0.1'), // 10% sampling
+    ratio: parseFloat(process.env.TRACE_SAMPLING_RATIO || "0.1"), // 10% sampling
     rules: [
-      { operation: 'health-check', samplingRate: 0.01 }, // 1% for health checks
-      { operation: 'vertex_ai.generate', samplingRate: 1.0 }, // 100% for AI calls
-      { service: 'critical-service', samplingRate: 1.0 }
-    ]
+      { operation: "health-check", samplingRate: 0.01 }, // 1% for health checks
+      { operation: "vertex_ai.generate", samplingRate: 1.0 }, // 100% for AI calls
+      { service: "critical-service", samplingRate: 1.0 },
+    ],
   },
   instrumentations: {
     http: true,
@@ -649,16 +709,16 @@ export const DEFAULT_TRACING_CONFIG: TracingConfig = {
     mongodb: false,
     aws: false,
     google: true,
-    custom: true
+    custom: true,
   },
   attributes: {
     global: {
-      'deployment.environment': process.env.NODE_ENV || 'development',
-      'service.namespace': 'gemini-flow',
-      'service.instance.id': process.env.HOSTNAME || 'localhost'
+      "deployment.environment": process.env.NODE_ENV || "development",
+      "service.namespace": "gemini-flow",
+      "service.instance.id": process.env.HOSTNAME || "localhost",
     },
-    sensitive: ['password', 'token', 'key', 'secret', 'credential', 'auth']
-  }
+    sensitive: ["password", "token", "key", "secret", "credential", "auth"],
+  },
 };
 
 // Singleton instance

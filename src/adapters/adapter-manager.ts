@@ -1,26 +1,31 @@
 /**
  * Adapter Manager
- * 
+ *
  * Central management for all model adapters with advanced error handling,
  * fallback strategies, and performance optimization
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger.js';
-import { UnifiedAPI, UnifiedAPIConfig, RoutingDecision, UnifiedMetrics } from './unified-api.js';
-import { 
-  ModelRequest, 
-  ModelResponse, 
-  StreamChunk, 
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger.js";
+import {
+  UnifiedAPI,
+  UnifiedAPIConfig,
+  RoutingDecision,
+  UnifiedMetrics,
+} from "./unified-api.js";
+import {
+  ModelRequest,
+  ModelResponse,
+  StreamChunk,
   AdapterError,
-  HealthCheck 
-} from './base-model-adapter.js';
+  HealthCheck,
+} from "./base-model-adapter.js";
 
 export interface AdapterManagerConfig {
   unifiedAPI: UnifiedAPIConfig;
   errorHandling: {
     maxRetries: number;
-    retryBackoff: 'linear' | 'exponential' | 'fixed';
+    retryBackoff: "linear" | "exponential" | "fixed";
     retryDelay: number;
     fallbackChain: string[];
     emergencyFallback: string;
@@ -52,7 +57,7 @@ export interface AdapterManagerConfig {
 
 export interface AdapterStatus {
   name: string;
-  status: 'healthy' | 'degraded' | 'unhealthy' | 'offline';
+  status: "healthy" | "degraded" | "unhealthy" | "offline";
   health: HealthCheck;
   metrics: {
     requests: number;
@@ -65,11 +70,11 @@ export interface AdapterStatus {
 }
 
 export interface SystemHealth {
-  overall: 'healthy' | 'degraded' | 'critical';
+  overall: "healthy" | "degraded" | "critical";
   adapters: AdapterStatus[];
   metrics: UnifiedMetrics;
   alerts: Array<{
-    level: 'info' | 'warning' | 'error' | 'critical';
+    level: "info" | "warning" | "error" | "critical";
     message: string;
     timestamp: Date;
     adapter?: string;
@@ -85,16 +90,22 @@ export class AdapterManager extends EventEmitter {
   private performancePredictor: PerformancePredictor;
 
   // Advanced error handling
-  private errorPatterns = new Map<string, { count: number; lastSeen: Date; pattern: RegExp }>();
+  private errorPatterns = new Map<
+    string,
+    { count: number; lastSeen: Date; pattern: RegExp }
+  >();
   private adaptiveThresholds = new Map<string, number>();
-  private fallbackHistory = new Map<string, Array<{ adapter: string; success: boolean; timestamp: Date }>>();
-  
+  private fallbackHistory = new Map<
+    string,
+    Array<{ adapter: string; success: boolean; timestamp: Date }>
+  >();
+
   // Adapter registry for direct management
   private adapters = new Map<string, any>();
 
   constructor(config: AdapterManagerConfig) {
     super();
-    this.logger = new Logger('AdapterManager');
+    this.logger = new Logger("AdapterManager");
     this.config = config;
     this.unifiedAPI = new UnifiedAPI(config.unifiedAPI);
     this.performancePredictor = new PerformancePredictor();
@@ -111,27 +122,34 @@ export class AdapterManager extends EventEmitter {
     const startTime = performance.now();
     const requestId = request.context?.requestId || `req-${Date.now()}`;
 
-    this.logger.info('Generation request started', {
+    this.logger.info("Generation request started", {
       requestId,
       userTier: request.context?.userTier,
       priority: request.context?.priority,
-      promptLength: request.prompt.length
+      promptLength: request.prompt.length,
     });
 
     try {
       // Pre-request optimization
       const optimizedRequest = await this.optimizeRequest(request);
-      
+
       // Execute with retry logic and fallback chain
       const response = await this.executeWithFallbackChain(optimizedRequest);
-      
-      // Post-request processing
-      await this.processSuccessfulResponse(response, optimizedRequest, startTime);
-      
-      return response;
 
+      // Post-request processing
+      await this.processSuccessfulResponse(
+        response,
+        optimizedRequest,
+        startTime,
+      );
+
+      return response;
     } catch (error) {
-      await this.processFailedRequest(error as AdapterError, request, startTime);
+      await this.processFailedRequest(
+        error as AdapterError,
+        request,
+        startTime,
+      );
       throw error;
     }
   }
@@ -139,21 +157,22 @@ export class AdapterManager extends EventEmitter {
   /**
    * Enhanced streaming with error recovery
    */
-  async *generateStream(request: ModelRequest): AsyncIterableIterator<StreamChunk> {
+  async *generateStream(
+    request: ModelRequest,
+  ): AsyncIterableIterator<StreamChunk> {
     const requestId = request.context?.requestId || `stream-req-${Date.now()}`;
-    
-    this.logger.info('Streaming request started', { requestId });
+
+    this.logger.info("Streaming request started", { requestId });
 
     try {
       const optimizedRequest = await this.optimizeRequest(request);
-      
+
       // Stream with error recovery
       yield* this.streamWithRecovery(optimizedRequest);
-
     } catch (error) {
-      this.logger.error('Streaming request failed', {
+      this.logger.error("Streaming request failed", {
         requestId,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
       throw error;
     }
@@ -162,45 +181,54 @@ export class AdapterManager extends EventEmitter {
   /**
    * Execute request with comprehensive fallback chain
    */
-  private async executeWithFallbackChain(request: ModelRequest): Promise<ModelResponse> {
+  private async executeWithFallbackChain(
+    request: ModelRequest,
+  ): Promise<ModelResponse> {
     const fallbackChain = [...this.config.errorHandling.fallbackChain];
     let lastError: AdapterError | undefined;
-    
-    for (let attempt = 0; attempt <= this.config.errorHandling.maxRetries; attempt++) {
+
+    for (
+      let attempt = 0;
+      attempt <= this.config.errorHandling.maxRetries;
+      attempt++
+    ) {
       try {
         // Get routing decision
-        const routingDecision = await this.unifiedAPI.getRoutingDecision(request);
-        
+        const routingDecision =
+          await this.unifiedAPI.getRoutingDecision(request);
+
         // Attempt execution
         const response = await this.unifiedAPI.generate(request);
-        
+
         // Success - update fallback history
         this.updateFallbackHistory(routingDecision.selectedAdapter, true);
-        
-        return response;
 
+        return response;
       } catch (error) {
         lastError = error as AdapterError;
-        
-        this.logger.warn('Request attempt failed', {
+
+        this.logger.warn("Request attempt failed", {
           attempt,
           error: lastError.message,
           adapter: lastError.model,
-          retryable: lastError.retryable
+          retryable: lastError.retryable,
         });
 
         // Update error patterns and fallback history
         this.updateErrorPatterns(lastError);
-        this.updateFallbackHistory(lastError.model || 'unknown', false);
+        this.updateFallbackHistory(lastError.model || "unknown", false);
 
         // Check if we should retry
-        if (!lastError.retryable || attempt >= this.config.errorHandling.maxRetries) {
+        if (
+          !lastError.retryable ||
+          attempt >= this.config.errorHandling.maxRetries
+        ) {
           break;
         }
 
         // Apply backoff delay
         const delay = this.calculateBackoffDelay(attempt);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
 
         // Try next adapter in fallback chain
         if (fallbackChain.length > 0) {
@@ -209,8 +237,8 @@ export class AdapterManager extends EventEmitter {
             ...request,
             metadata: {
               ...(request.metadata || {}),
-              preferredAdapter: nextAdapter
-            }
+              preferredAdapter: nextAdapter,
+            },
           };
         }
       }
@@ -219,8 +247,8 @@ export class AdapterManager extends EventEmitter {
     // All attempts failed - try emergency fallback
     if (this.config.errorHandling.emergencyFallback) {
       try {
-        this.logger.warn('Attempting emergency fallback', {
-          fallback: this.config.errorHandling.emergencyFallback
+        this.logger.warn("Attempting emergency fallback", {
+          fallback: this.config.errorHandling.emergencyFallback,
         });
 
         const emergencyRequest = {
@@ -228,51 +256,51 @@ export class AdapterManager extends EventEmitter {
           metadata: {
             ...(request.metadata || {}),
             preferredAdapter: this.config.errorHandling.emergencyFallback,
-            emergency: true
-          }
+            emergency: true,
+          },
         };
 
         return await this.unifiedAPI.generate(emergencyRequest);
-
       } catch (emergencyError) {
-        this.logger.error('Emergency fallback failed', {
-          error: (emergencyError as Error).message
+        this.logger.error("Emergency fallback failed", {
+          error: (emergencyError as Error).message,
         });
       }
     }
 
     // Complete failure
-    throw lastError || new Error('All fallback attempts failed');
+    throw lastError || new Error("All fallback attempts failed");
   }
 
   /**
    * Stream with error recovery and reconnection
    */
-  private async *streamWithRecovery(request: ModelRequest): AsyncIterableIterator<StreamChunk> {
+  private async *streamWithRecovery(
+    request: ModelRequest,
+  ): AsyncIterableIterator<StreamChunk> {
     let reconnectAttempts = 0;
     const maxReconnects = 3;
-    
+
     while (reconnectAttempts <= maxReconnects) {
       try {
         let chunkCount = 0;
         const stream = this.unifiedAPI.generateStream(request);
-        
+
         for await (const chunk of stream) {
           chunkCount++;
           yield chunk;
         }
-        
-        // Stream completed successfully
-        this.logger.info('Stream completed', { chunks: chunkCount });
-        return;
 
+        // Stream completed successfully
+        this.logger.info("Stream completed", { chunks: chunkCount });
+        return;
       } catch (error) {
         const streamError = error as AdapterError;
-        
-        this.logger.warn('Stream error occurred', {
+
+        this.logger.warn("Stream error occurred", {
           attempt: reconnectAttempts,
           error: streamError.message,
-          retryable: streamError.retryable
+          retryable: streamError.retryable,
         });
 
         if (!streamError.retryable || reconnectAttempts >= maxReconnects) {
@@ -280,17 +308,24 @@ export class AdapterManager extends EventEmitter {
         }
 
         reconnectAttempts++;
-        
+
         // Wait before reconnecting
-        await new Promise(resolve => setTimeout(resolve, 1000 * reconnectAttempts));
-        
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * reconnectAttempts),
+        );
+
         // Modify request for retry (e.g., different adapter)
         request = {
           ...request,
           context: {
-            ...(request.context || { requestId: `retry-${Date.now()}`, priority: 'medium' as const, userTier: 'free' as const, latencyTarget: 5000 }),
-            retryCount: reconnectAttempts
-          }
+            ...(request.context || {
+              requestId: `retry-${Date.now()}`,
+              priority: "medium" as const,
+              userTier: "free" as const,
+              latencyTarget: 5000,
+            }),
+            retryCount: reconnectAttempts,
+          },
         };
       }
     }
@@ -308,20 +343,26 @@ export class AdapterManager extends EventEmitter {
 
     // Adaptive timeout based on request complexity
     if (this.config.performanceOptimization.adaptiveTimeouts) {
-      const predictedLatency = this.performancePredictor.predictLatency(request);
+      const predictedLatency =
+        this.performancePredictor.predictLatency(request);
       optimized.context = {
-        ...(optimized.context || { requestId: `opt-${Date.now()}`, priority: 'medium' as const, userTier: 'free' as const, latencyTarget: 5000 }),
-        latencyTarget: Math.min(predictedLatency * 1.5, 30000) // Max 30s
+        ...(optimized.context || {
+          requestId: `opt-${Date.now()}`,
+          priority: "medium" as const,
+          userTier: "free" as const,
+          latencyTarget: 5000,
+        }),
+        latencyTarget: Math.min(predictedLatency * 1.5, 30000), // Max 30s
       };
     }
 
     // Cost optimization for non-enterprise users
     if (this.config.performanceOptimization.costOptimization) {
-      const userTier = request.context?.userTier || 'free';
-      if (userTier !== 'enterprise') {
+      const userTier = request.context?.userTier || "free";
+      if (userTier !== "enterprise") {
         optimized.parameters = {
           ...optimized.parameters,
-          maxTokens: Math.min(optimized.parameters?.maxTokens || 4096, 8192)
+          maxTokens: Math.min(optimized.parameters?.maxTokens || 4096, 8192),
         };
       }
     }
@@ -332,7 +373,7 @@ export class AdapterManager extends EventEmitter {
       if (qualityHints.requiresReasoning) {
         optimized.metadata = {
           ...(optimized.metadata || {}),
-          preferReasoningModels: true
+          preferReasoningModels: true,
         };
       }
     }
@@ -344,27 +385,28 @@ export class AdapterManager extends EventEmitter {
    * Process successful response
    */
   private async processSuccessfulResponse(
-    response: ModelResponse, 
-    request: ModelRequest, 
-    startTime: number
+    response: ModelResponse,
+    request: ModelRequest,
+    startTime: number,
   ): Promise<void> {
     const totalLatency = performance.now() - startTime;
-    
+
     // Update performance predictor
     this.performancePredictor.recordPerformance({
       request,
       response,
-      latency: totalLatency
+      latency: totalLatency,
     });
 
     // Quality monitoring
     if (this.config.performanceOptimization.qualityMonitoring) {
       const qualityScore = this.assessResponseQuality(response, request);
-      if (qualityScore < 0.7) { // Below threshold
-        this.logger.warn('Low quality response detected', {
+      if (qualityScore < 0.7) {
+        // Below threshold
+        this.logger.warn("Low quality response detected", {
           score: qualityScore,
           model: response.model,
-          requestId: request.context?.requestId
+          requestId: request.context?.requestId,
         });
       }
     }
@@ -376,16 +418,16 @@ export class AdapterManager extends EventEmitter {
         model: response.model,
         tokenUsage: response.usage.totalTokens,
         cost: response.cost,
-        latency: totalLatency
+        latency: totalLatency,
       });
     }
 
-    this.logger.info('Request completed successfully', {
+    this.logger.info("Request completed successfully", {
       requestId: request.context?.requestId,
       model: response.model,
       latency: totalLatency,
       tokens: response.usage.totalTokens,
-      cost: response.cost
+      cost: response.cost,
     });
   }
 
@@ -393,12 +435,12 @@ export class AdapterManager extends EventEmitter {
    * Process failed request
    */
   private async processFailedRequest(
-    error: AdapterError, 
-    request: ModelRequest, 
-    startTime: number
+    error: AdapterError,
+    request: ModelRequest,
+    startTime: number,
   ): Promise<void> {
     const totalLatency = performance.now() - startTime;
-    
+
     // Error analytics
     if (this.config.monitoring.errorAnalytics) {
       this.analyzeError(error, request);
@@ -407,13 +449,13 @@ export class AdapterManager extends EventEmitter {
     // Check if this triggers an alert
     await this.checkAlertThresholds(error);
 
-    this.logger.error('Request failed', {
+    this.logger.error("Request failed", {
       requestId: request.context?.requestId,
       error: error.message,
       code: error.code,
       model: error.model,
       latency: totalLatency,
-      retryable: error.retryable
+      retryable: error.retryable,
     });
   }
 
@@ -423,7 +465,7 @@ export class AdapterManager extends EventEmitter {
   private updateErrorPatterns(error: AdapterError): void {
     const pattern = this.classifyErrorPattern(error);
     const existing = this.errorPatterns.get(pattern.key);
-    
+
     if (existing) {
       existing.count++;
       existing.lastSeen = new Date();
@@ -431,20 +473,20 @@ export class AdapterManager extends EventEmitter {
       this.errorPatterns.set(pattern.key, {
         count: 1,
         lastSeen: new Date(),
-        pattern: pattern.regex
+        pattern: pattern.regex,
       });
     }
 
     // Adjust thresholds based on error patterns
     if (existing && existing.count > 5) {
-      const adapter = error.model || 'unknown';
+      const adapter = error.model || "unknown";
       const currentThreshold = this.adaptiveThresholds.get(adapter) || 5;
       this.adaptiveThresholds.set(adapter, Math.max(2, currentThreshold - 1));
-      
-      this.logger.info('Adjusted error threshold', {
+
+      this.logger.info("Adjusted error threshold", {
         adapter,
         newThreshold: this.adaptiveThresholds.get(adapter),
-        errorPattern: pattern.key
+        errorPattern: pattern.key,
       });
     }
   }
@@ -462,7 +504,7 @@ export class AdapterManager extends EventEmitter {
     history.push({
       adapter,
       success,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     // Keep only recent history (last 100 entries)
@@ -476,13 +518,13 @@ export class AdapterManager extends EventEmitter {
    */
   private calculateBackoffDelay(attempt: number): number {
     const baseDelay = this.config.errorHandling.retryDelay;
-    
+
     switch (this.config.errorHandling.retryBackoff) {
-      case 'linear':
+      case "linear":
         return baseDelay * (attempt + 1);
-      case 'exponential':
+      case "exponential":
         return baseDelay * Math.pow(2, attempt);
-      case 'fixed':
+      case "fixed":
       default:
         return baseDelay;
     }
@@ -491,73 +533,104 @@ export class AdapterManager extends EventEmitter {
   /**
    * Classify error patterns for intelligent handling
    */
-  private classifyErrorPattern(error: AdapterError): { key: string; regex: RegExp } {
+  private classifyErrorPattern(error: AdapterError): {
+    key: string;
+    regex: RegExp;
+  } {
     const message = error.message.toLowerCase();
-    
-    if (message.includes('rate limit') || message.includes('quota')) {
-      return { key: 'rate_limit', regex: /(rate limit|quota|throttl)/i };
+
+    if (message.includes("rate limit") || message.includes("quota")) {
+      return { key: "rate_limit", regex: /(rate limit|quota|throttl)/i };
     }
-    
-    if (message.includes('timeout') || message.includes('deadline')) {
-      return { key: 'timeout', regex: /(timeout|deadline|slow)/i };
+
+    if (message.includes("timeout") || message.includes("deadline")) {
+      return { key: "timeout", regex: /(timeout|deadline|slow)/i };
     }
-    
-    if (message.includes('network') || message.includes('connection')) {
-      return { key: 'network', regex: /(network|connection|socket)/i };
+
+    if (message.includes("network") || message.includes("connection")) {
+      return { key: "network", regex: /(network|connection|socket)/i };
     }
-    
-    if (message.includes('auth') || message.includes('permission')) {
-      return { key: 'auth', regex: /(auth|permission|unauthorized|forbidden)/i };
+
+    if (message.includes("auth") || message.includes("permission")) {
+      return {
+        key: "auth",
+        regex: /(auth|permission|unauthorized|forbidden)/i,
+      };
     }
-    
-    if (message.includes('safety') || message.includes('policy')) {
-      return { key: 'safety', regex: /(safety|policy|violation|blocked)/i };
+
+    if (message.includes("safety") || message.includes("policy")) {
+      return { key: "safety", regex: /(safety|policy|violation|blocked)/i };
     }
-    
-    return { key: 'unknown', regex: /.*/i };
+
+    return { key: "unknown", regex: /.*/i };
   }
 
   /**
    * Analyze quality requirements from prompt
    */
-  private analyzeQualityRequirements(prompt: string): { requiresReasoning: boolean; complexity: number } {
-    const reasoningKeywords = ['analyze', 'compare', 'evaluate', 'synthesize', 'reason', 'explain why'];
-    const complexityKeywords = ['step by step', 'detailed', 'comprehensive', 'thorough'];
-    
-    const requiresReasoning = reasoningKeywords.some(kw => prompt.toLowerCase().includes(kw));
-    const complexityScore = complexityKeywords.reduce((score, kw) => 
-      score + (prompt.toLowerCase().includes(kw) ? 1 : 0), 0
+  private analyzeQualityRequirements(prompt: string): {
+    requiresReasoning: boolean;
+    complexity: number;
+  } {
+    const reasoningKeywords = [
+      "analyze",
+      "compare",
+      "evaluate",
+      "synthesize",
+      "reason",
+      "explain why",
+    ];
+    const complexityKeywords = [
+      "step by step",
+      "detailed",
+      "comprehensive",
+      "thorough",
+    ];
+
+    const requiresReasoning = reasoningKeywords.some((kw) =>
+      prompt.toLowerCase().includes(kw),
     );
-    
+    const complexityScore = complexityKeywords.reduce(
+      (score, kw) => score + (prompt.toLowerCase().includes(kw) ? 1 : 0),
+      0,
+    );
+
     return {
       requiresReasoning,
-      complexity: Math.min(complexityScore / complexityKeywords.length, 1.0)
+      complexity: Math.min(complexityScore / complexityKeywords.length, 1.0),
     };
   }
 
   /**
    * Assess response quality
    */
-  private assessResponseQuality(response: ModelResponse, request: ModelRequest): number {
+  private assessResponseQuality(
+    response: ModelResponse,
+    request: ModelRequest,
+  ): number {
     let score = 1.0;
-    
+
     // Length appropriateness
     const expectedLength = Math.min(request.prompt.length * 2, 4000);
     if (response.content.length < expectedLength * 0.3) score -= 0.2;
-    
+
     // Finish reason
-    if (response.finishReason !== 'STOP') score -= 0.3;
-    
+    if (response.finishReason !== "STOP") score -= 0.3;
+
     // Response relevance (basic keyword matching)
-    const promptKeywords = request.prompt.toLowerCase().split(/\s+/)
-      .filter(word => word.length > 4)
+    const promptKeywords = request.prompt
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((word) => word.length > 4)
       .slice(0, 10);
-    
+
     const responseKeywords = response.content.toLowerCase();
-    const keywordMatches = promptKeywords.filter(kw => responseKeywords.includes(kw)).length;
+    const keywordMatches = promptKeywords.filter((kw) =>
+      responseKeywords.includes(kw),
+    ).length;
     const relevanceScore = keywordMatches / Math.max(promptKeywords.length, 1);
     score = score * (0.7 + relevanceScore * 0.3);
-    
+
     return Math.max(0, Math.min(1, score));
   }
 
@@ -566,7 +639,7 @@ export class AdapterManager extends EventEmitter {
    */
   private recordUsageAnalytics(data: any): void {
     // Implementation would send to analytics service
-    this.emit('usage_analytics', data);
+    this.emit("usage_analytics", data);
   }
 
   /**
@@ -579,10 +652,10 @@ export class AdapterManager extends EventEmitter {
       userTier: request.context?.userTier,
       promptLength: request.prompt.length,
       timestamp: new Date(),
-      retryable: error.retryable
+      retryable: error.retryable,
     };
-    
-    this.emit('error_analysis', analysis);
+
+    this.emit("error_analysis", analysis);
   }
 
   /**
@@ -593,16 +666,22 @@ export class AdapterManager extends EventEmitter {
 
     const metrics = this.unifiedAPI.getMetrics();
     const thresholds = this.config.monitoring.alerting.thresholds;
-    
+
     // Error rate check
     const errorRate = metrics.failedRequests / metrics.totalRequests;
     if (errorRate > thresholds.errorRate) {
-      await this.triggerAlert('error', `Error rate exceeded threshold: ${errorRate.toFixed(3)} > ${thresholds.errorRate}`);
+      await this.triggerAlert(
+        "error",
+        `Error rate exceeded threshold: ${errorRate.toFixed(3)} > ${thresholds.errorRate}`,
+      );
     }
-    
+
     // Latency check
     if (metrics.averageLatency > thresholds.latency) {
-      await this.triggerAlert('warning', `Average latency exceeded threshold: ${metrics.averageLatency.toFixed(0)}ms > ${thresholds.latency}ms`);
+      await this.triggerAlert(
+        "warning",
+        `Average latency exceeded threshold: ${metrics.averageLatency.toFixed(0)}ms > ${thresholds.latency}ms`,
+      );
     }
   }
 
@@ -614,25 +693,30 @@ export class AdapterManager extends EventEmitter {
       level,
       message,
       timestamp: new Date(),
-      systemHealth: this.systemHealth
+      systemHealth: this.systemHealth,
     };
-    
+
     this.alerts.push(alert);
-    this.emit('alert', alert);
-    
+    this.emit("alert", alert);
+
     // Send to webhooks
-    const webhookPromises = this.config.monitoring.alerting.webhooks.map(async webhook => {
-      try {
-        await fetch(webhook, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(alert)
-        });
-      } catch (error) {
-        this.logger.error('Failed to send alert to webhook', { webhook, error });
-      }
-    });
-    
+    const webhookPromises = this.config.monitoring.alerting.webhooks.map(
+      async (webhook) => {
+        try {
+          await fetch(webhook, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(alert),
+          });
+        } catch (error) {
+          this.logger.error("Failed to send alert to webhook", {
+            webhook,
+            error,
+          });
+        }
+      },
+    );
+
     await Promise.allSettled(webhookPromises);
   }
 
@@ -640,15 +724,15 @@ export class AdapterManager extends EventEmitter {
    * Setup event handlers for unified API
    */
   private setupEventHandlers(): void {
-    this.unifiedAPI.on('request_completed', (data) => {
+    this.unifiedAPI.on("request_completed", (data) => {
       this.updateSystemHealth(data);
     });
-    
-    this.unifiedAPI.on('request_failed', (data) => {
+
+    this.unifiedAPI.on("request_failed", (data) => {
       this.updateSystemHealth(data);
     });
-    
-    this.unifiedAPI.on('health_check', (data) => {
+
+    this.unifiedAPI.on("health_check", (data) => {
       this.updateAdapterHealth(data);
     });
   }
@@ -661,16 +745,16 @@ export class AdapterManager extends EventEmitter {
     setInterval(() => {
       this.updateSystemHealthOverall();
     }, 30000); // Every 30 seconds
-    
+
     // Performance prediction model training
     setInterval(() => {
       this.performancePredictor.trainModel();
     }, 300000); // Every 5 minutes
-    
+
     // Alert cleanup (remove old alerts)
     setInterval(() => {
       const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours
-      this.alerts = this.alerts.filter(alert => alert.timestamp > cutoff);
+      this.alerts = this.alerts.filter((alert) => alert.timestamp > cutoff);
     }, 3600000); // Every hour
   }
 
@@ -679,7 +763,9 @@ export class AdapterManager extends EventEmitter {
    */
   private updateSystemHealth(data: any): void {
     // Update adapter-specific metrics
-    const adapterStatus = this.systemHealth.adapters.find(a => a.name === data.adapter);
+    const adapterStatus = this.systemHealth.adapters.find(
+      (a) => a.name === data.adapter,
+    );
     if (adapterStatus) {
       adapterStatus.metrics.requests++;
       if (data.success) {
@@ -687,8 +773,11 @@ export class AdapterManager extends EventEmitter {
       } else {
         adapterStatus.metrics.errors++;
       }
-      adapterStatus.metrics.avgLatency = (adapterStatus.metrics.avgLatency + data.latency) / 2;
-      adapterStatus.metrics.successRate = adapterStatus.metrics.requests / (adapterStatus.metrics.requests + adapterStatus.metrics.errors);
+      adapterStatus.metrics.avgLatency =
+        (adapterStatus.metrics.avgLatency + data.latency) / 2;
+      adapterStatus.metrics.successRate =
+        adapterStatus.metrics.requests /
+        (adapterStatus.metrics.requests + adapterStatus.metrics.errors);
       adapterStatus.lastUsed = new Date();
     }
   }
@@ -696,8 +785,13 @@ export class AdapterManager extends EventEmitter {
   /**
    * Update adapter health from health checks
    */
-  private updateAdapterHealth(data: { adapter: string; health: HealthCheck }): void {
-    const adapterStatus = this.systemHealth.adapters.find(a => a.name === data.adapter);
+  private updateAdapterHealth(data: {
+    adapter: string;
+    health: HealthCheck;
+  }): void {
+    const adapterStatus = this.systemHealth.adapters.find(
+      (a) => a.name === data.adapter,
+    );
     if (adapterStatus) {
       adapterStatus.health = data.health;
       adapterStatus.status = data.health.status;
@@ -709,21 +803,21 @@ export class AdapterManager extends EventEmitter {
    */
   private updateSystemHealthOverall(): void {
     const adapters = this.systemHealth.adapters;
-    const healthyCount = adapters.filter(a => a.status === 'healthy').length;
+    const healthyCount = adapters.filter((a) => a.status === "healthy").length;
     const totalCount = adapters.length;
-    
+
     if (healthyCount === totalCount) {
-      this.systemHealth.overall = 'healthy';
+      this.systemHealth.overall = "healthy";
     } else if (healthyCount >= totalCount * 0.7) {
-      this.systemHealth.overall = 'degraded';
+      this.systemHealth.overall = "degraded";
     } else {
-      this.systemHealth.overall = 'critical';
+      this.systemHealth.overall = "critical";
     }
-    
+
     // Update metrics
     this.systemHealth.metrics = this.unifiedAPI.getMetrics();
-    
-    this.emit('system_health_updated', this.systemHealth);
+
+    this.emit("system_health_updated", this.systemHealth);
   }
 
   /**
@@ -731,7 +825,7 @@ export class AdapterManager extends EventEmitter {
    */
   private initializeSystemHealth(): SystemHealth {
     return {
-      overall: 'healthy',
+      overall: "healthy",
       adapters: [],
       metrics: {
         totalRequests: 0,
@@ -745,16 +839,16 @@ export class AdapterManager extends EventEmitter {
         costMetrics: {
           totalCost: 0,
           costPerRequest: 0,
-          costPerToken: 0
+          costPerToken: 0,
         },
         performanceMetrics: {
           p50Latency: 0,
           p95Latency: 0,
           p99Latency: 0,
-          throughput: 0
-        }
+          throughput: 0,
+        },
       },
-      alerts: []
+      alerts: [],
     };
   }
 
@@ -763,7 +857,6 @@ export class AdapterManager extends EventEmitter {
     this.updateSystemHealthOverall();
     return { ...this.systemHealth };
   }
-
 
   async getRoutingDecision(request: ModelRequest): Promise<RoutingDecision> {
     return this.unifiedAPI.getRoutingDecision(request);
@@ -787,7 +880,10 @@ export class AdapterManager extends EventEmitter {
       throw new Error(`Adapter already registered: ${name}`);
     }
     this.adapters.set(name, adapter);
-    this.logger.info('Adapter registered', { name, modelName: adapter.config?.modelName });
+    this.logger.info("Adapter registered", {
+      name,
+      modelName: adapter.config?.modelName,
+    });
   }
 
   hasAdapter(name: string): boolean {
@@ -804,7 +900,7 @@ export class AdapterManager extends EventEmitter {
 
   removeAdapter(name: string): void {
     this.adapters.delete(name);
-    this.logger.info('Adapter removed', { name });
+    this.logger.info("Adapter removed", { name });
   }
 
   listAdapters(): string[] {
@@ -813,43 +909,43 @@ export class AdapterManager extends EventEmitter {
 
   getAdapters(names: string[]): any[] {
     return names
-      .map(name => this.adapters.get(name))
-      .filter(adapter => adapter !== undefined);
+      .map((name) => this.adapters.get(name))
+      .filter((adapter) => adapter !== undefined);
   }
 
   async healthCheckAll(): Promise<Record<string, any>> {
     const results: Record<string, any> = {};
-    
+
     for (const [name, adapter] of this.adapters) {
       try {
         if (adapter.healthCheck) {
           results[name] = await adapter.healthCheck();
         } else {
           results[name] = {
-            status: 'unknown',
+            status: "unknown",
             latency: 0,
             lastChecked: new Date(),
             errors: [],
-            metadata: {}
+            metadata: {},
           };
         }
       } catch (error) {
         results[name] = {
-          status: 'unhealthy',
+          status: "unhealthy",
           latency: 0,
           lastChecked: new Date(),
           errors: [(error as Error).message],
-          metadata: {}
+          metadata: {},
         };
       }
     }
-    
+
     return results;
   }
 
   getAdaptersByCapability(capability: string): string[] {
     const matching: string[] = [];
-    
+
     for (const [name, adapter] of this.adapters) {
       try {
         if (adapter.getModelCapabilities) {
@@ -859,10 +955,13 @@ export class AdapterManager extends EventEmitter {
           }
         }
       } catch (error) {
-        this.logger.warn('Failed to get capabilities for adapter', { name, error: (error as Error).message });
+        this.logger.warn("Failed to get capabilities for adapter", {
+          name,
+          error: (error as Error).message,
+        });
       }
     }
-    
+
     return matching;
   }
 
@@ -871,19 +970,19 @@ export class AdapterManager extends EventEmitter {
     let totalRequests = 0;
     let totalLatency = 0;
     let requestCount = 0;
-    
+
     for (const [name, adapter] of this.adapters) {
       try {
         const requestCountValue = adapter.requestCount || 0;
         const averageLatency = requestCountValue > 0 ? 100 : 0; // Simulate some latency for requests
-        
+
         const metrics = {
           requestCount: requestCountValue,
           averageLatency,
           errorCount: 0,
-          successRate: requestCountValue > 0 ? 1.0 : 0
+          successRate: requestCountValue > 0 ? 1.0 : 0,
         };
-        
+
         adapterMetrics[name] = metrics;
         totalRequests += metrics.requestCount;
         totalLatency += metrics.averageLatency * metrics.requestCount;
@@ -893,24 +992,24 @@ export class AdapterManager extends EventEmitter {
           requestCount: 0,
           averageLatency: 0,
           errorCount: 0,
-          successRate: 0
+          successRate: 0,
         };
       }
     }
-    
+
     return {
       ...adapterMetrics,
       summary: {
         totalAdapters: this.adapters.size,
         totalRequests,
-        averageLatency: requestCount > 0 ? totalLatency / requestCount : 0
-      }
+        averageLatency: requestCount > 0 ? totalLatency / requestCount : 0,
+      },
     };
   }
 
   async initializeAll(): Promise<Record<string, boolean>> {
     const results: Record<string, boolean> = {};
-    
+
     for (const [name, adapter] of this.adapters) {
       try {
         if (adapter.initialize) {
@@ -920,39 +1019,42 @@ export class AdapterManager extends EventEmitter {
           results[name] = true; // Already initialized or no init needed
         }
       } catch (error) {
-        this.logger.error('Failed to initialize adapter', { name, error: (error as Error).message });
+        this.logger.error("Failed to initialize adapter", {
+          name,
+          error: (error as Error).message,
+        });
         results[name] = false;
       }
     }
-    
+
     return results;
   }
 
   selectAdapter(request: any): string {
     const available = Array.from(this.adapters.entries());
-    
+
     if (available.length === 0) {
-      throw new Error('No adapters available');
+      throw new Error("No adapters available");
     }
-    
+
     // Simple selection logic based on capabilities and requirements
     let bestAdapter = available[0];
     let bestScore = -1000; // Start with very low score to allow negative scores
-    
+
     for (const [name, adapter] of available) {
       let score = 0; // Start at 0 for fair comparison
-      
+
       try {
         if (adapter.getModelCapabilities) {
           const capabilities = adapter.getModelCapabilities();
-          
+
           // Check multimodal requirement (highest priority)
           if (request.multimodal && capabilities.multimodal) {
             score += 1000; // Very high priority for matching multimodal requirement
           } else if (request.multimodal && !capabilities.multimodal) {
             score -= 10000; // Severely penalize adapters that can't handle multimodal
           }
-          
+
           // Check token requirements (high priority)
           const requiredTokens = request.parameters?.maxTokens || 1000;
           if (capabilities.maxTokens >= requiredTokens) {
@@ -965,18 +1067,22 @@ export class AdapterManager extends EventEmitter {
             // Severely penalize adapters that can't handle the token requirement
             score -= 1000;
           }
-          
+
           // Prefer reasoning models for complex prompts
-          if (request.prompt && request.prompt.length > 1000 && capabilities.reasoning) {
+          if (
+            request.prompt &&
+            request.prompt.length > 1000 &&
+            capabilities.reasoning
+          ) {
             score += 300;
           }
-          
+
           // For short requests, slightly prefer adapters with smaller token limits (efficiency)
           if (requiredTokens <= 1000 && capabilities.maxTokens <= 4096) {
             score += 50;
           }
         }
-        
+
         if (score > bestScore) {
           bestScore = score;
           bestAdapter = [name, adapter];
@@ -986,7 +1092,7 @@ export class AdapterManager extends EventEmitter {
         continue;
       }
     }
-    
+
     return bestAdapter[0];
   }
 }
@@ -995,12 +1101,20 @@ export class AdapterManager extends EventEmitter {
  * Performance Predictor for adaptive optimization
  */
 class PerformancePredictor {
-  private trainingData: Array<{ request: ModelRequest; response: ModelResponse; latency: number }> = [];
+  private trainingData: Array<{
+    request: ModelRequest;
+    response: ModelResponse;
+    latency: number;
+  }> = [];
   // Would be actual ML model in production - removed unused field
 
-  recordPerformance(data: { request: ModelRequest; response: ModelResponse; latency: number }): void {
+  recordPerformance(data: {
+    request: ModelRequest;
+    response: ModelResponse;
+    latency: number;
+  }): void {
     this.trainingData.push(data);
-    
+
     // Keep only recent data (last 1000 entries)
     if (this.trainingData.length > 1000) {
       this.trainingData.shift();
@@ -1016,20 +1130,22 @@ class PerformancePredictor {
     const promptLength = request.prompt.length;
     const hasMultimodal = Boolean(request.multimodal);
     const maxTokens = request.parameters?.maxTokens || 4096;
-    
+
     // Use the variables in calculation
-    let latencyPrediction = 1000 + (promptLength * 0.5);
+    let latencyPrediction = 1000 + promptLength * 0.5;
     latencyPrediction += hasMultimodal ? 500 : 0;
     latencyPrediction += (maxTokens / 1000) * 100;
-    
+
     return Math.min(latencyPrediction, 30000); // Cap at 30s
   }
 
   trainModel(): void {
     if (this.trainingData.length < 50) return;
-    
+
     // In production, this would train an actual ML model
     // For now, we just log that training occurred
-    console.log(`Performance predictor trained with ${this.trainingData.length} samples`);
+    console.log(
+      `Performance predictor trained with ${this.trainingData.length} samples`,
+    );
   }
 }

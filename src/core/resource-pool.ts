@@ -1,10 +1,10 @@
 /**
  * Resource Pool
- * 
+ *
  * Manages allocation of resources for parallel operations
  */
 
-import { Logger } from '../utils/logger.js';
+import { Logger } from "../utils/logger.js";
 
 export class ResourcePool {
   private logger: Logger;
@@ -14,7 +14,7 @@ export class ResourcePool {
 
   constructor(maxConcurrency: number) {
     this.maxConcurrency = maxConcurrency;
-    this.logger = new Logger('ResourcePool');
+    this.logger = new Logger("ResourcePool");
     this.initializeResources();
   }
 
@@ -23,7 +23,7 @@ export class ResourcePool {
       this.availableResources.push({
         id: `resource_${i}`,
         allocated: false,
-        metadata: {}
+        metadata: {},
       });
     }
   }
@@ -31,7 +31,7 @@ export class ResourcePool {
   async allocate(): Promise<any> {
     const resource = this.availableResources.shift();
     if (!resource) {
-      throw new Error('No resources available');
+      throw new Error("No resources available");
     }
 
     resource.allocated = true;
@@ -41,7 +41,9 @@ export class ResourcePool {
 
   async allocateBatch(count: number): Promise<any[]> {
     if (count > this.availableResources.length) {
-      throw new Error(`Not enough resources available. Requested: ${count}, Available: ${this.availableResources.length}`);
+      throw new Error(
+        `Not enough resources available. Requested: ${count}, Available: ${this.availableResources.length}`,
+      );
     }
 
     const resources = [];
@@ -63,14 +65,14 @@ export class ResourcePool {
   async cleanup(): Promise<void> {
     this.availableResources = [];
     this.allocatedResources.clear();
-    this.logger.info('Resource pool cleaned up');
+    this.logger.info("Resource pool cleaned up");
   }
 
   getStatus() {
     return {
       total: this.maxConcurrency,
       available: this.availableResources.length,
-      allocated: this.allocatedResources.size
+      allocated: this.allocatedResources.size,
     };
   }
 }

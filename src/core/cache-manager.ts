@@ -1,13 +1,17 @@
 /**
  * Cache Manager
- * 
+ *
  * High-performance caching layer with intelligent eviction and 12x performance boost
  * Supports both memory and persistent caching with SQLite optimization
  */
 
-import { Logger } from '../utils/logger.js';
-import { EventEmitter } from 'events';
-import { SQLiteDatabase, createSQLiteDatabase, detectSQLiteImplementations } from '../memory/sqlite-adapter.js';
+import { Logger } from "../utils/logger.js";
+import { EventEmitter } from "events";
+import {
+  SQLiteDatabase,
+  createSQLiteDatabase,
+  detectSQLiteImplementations,
+} from "../memory/sqlite-adapter.js";
 
 export interface CacheEntry {
   key: string;
@@ -34,7 +38,7 @@ export interface CacheConfig {
   maxMemorySize?: number; // bytes
   maxDiskSize?: number; // bytes
   defaultTTL?: number; // seconds
-  evictionPolicy?: 'lru' | 'lfu' | 'adaptive';
+  evictionPolicy?: "lru" | "lfu" | "adaptive";
   persistToDisk?: boolean;
   compression?: boolean;
   dbPath?: string;
@@ -43,26 +47,26 @@ export interface CacheConfig {
 export class CacheManager extends EventEmitter {
   private logger: Logger;
   private config: Required<CacheConfig>;
-  
+
   // Memory cache (L1)
   private memoryCache: Map<string, CacheEntry> = new Map();
   private memorySize: number = 0;
-  
+
   // Disk cache (L2)
   private db?: SQLiteDatabase;
   private diskSize: number = 0;
   private dbReady: boolean = false;
   private dbInitPromise?: Promise<void>;
-  
+
   // Statistics
   private stats = {
     hits: 0,
     misses: 0,
     evictions: 0,
     writes: 0,
-    reads: 0
+    reads: 0,
   };
-  
+
   // Performance optimization
   private accessOrder: string[] = []; // For LRU
   private frequencyMap: Map<string, number> = new Map(); // For LFU
@@ -70,25 +74,25 @@ export class CacheManager extends EventEmitter {
 
   constructor(config: CacheConfig = {}) {
     super();
-    this.logger = new Logger('CacheManager');
-    
+    this.logger = new Logger("CacheManager");
+
     this.config = {
       maxMemorySize: config.maxMemorySize || 100 * 1024 * 1024, // 100MB
       maxDiskSize: config.maxDiskSize || 1024 * 1024 * 1024, // 1GB
       defaultTTL: config.defaultTTL || 3600, // 1 hour
-      evictionPolicy: config.evictionPolicy || 'adaptive',
+      evictionPolicy: config.evictionPolicy || "adaptive",
       persistToDisk: config.persistToDisk ?? true,
       compression: config.compression ?? true,
-      dbPath: config.dbPath || ':memory:'
+      dbPath: config.dbPath || ":memory:",
     };
 
     this.dbInitPromise = this.initializeDiskCache();
     this.startCleanupTimer();
-    
-    this.logger.info('Cache manager initialized', {
+
+    this.logger.info("Cache manager initialized", {
       memoryLimit: this.formatBytes(this.config.maxMemorySize),
       diskLimit: this.formatBytes(this.config.maxDiskSize),
-      policy: this.config.evictionPolicy
+      policy: this.config.evictionPolicy,
     });
   }
 
@@ -104,20 +108,25 @@ export class CacheManager extends EventEmitter {
     try {
       // Detect available SQLite implementations
       const detection = await detectSQLiteImplementations();
-      this.logger.debug('SQLite implementations available:', detection.available);
-      
+      this.logger.debug(
+        "SQLite implementations available:",
+        detection.available,
+      );
+
       // Create database with automatic fallback
       this.db = await createSQLiteDatabase(this.config.dbPath);
-      this.logger.info(`SQLite cache initialized with ${this.db.name} implementation`);
-      
+      this.logger.info(
+        `SQLite cache initialized with ${this.db.name} implementation`,
+      );
+
       // SQLite optimizations for 12x performance boost
-      this.db.pragma('journal_mode = WAL');
-      this.db.pragma('synchronous = NORMAL');
-      this.db.pragma('cache_size = 10000');
-      this.db.pragma('temp_store = MEMORY');
-      this.db.pragma('mmap_size = 268435456'); // 256MB
-      this.db.pragma('page_size = 4096');
-      
+      this.db.pragma("journal_mode = WAL");
+      this.db.pragma("synchronous = NORMAL");
+      this.db.pragma("cache_size = 10000");
+      this.db.pragma("temp_store = MEMORY");
+      this.db.pragma("mmap_size = 268435456"); // 256MB
+      this.db.pragma("page_size = 4096");
+
       // Create cache table with optimized schema
       this.db.exec(`
         CREATE TABLE IF NOT EXISTS cache_entries (
@@ -139,12 +148,11 @@ export class CacheManager extends EventEmitter {
 
       // Prepare statements for better performance
       await this.prepareStatements();
-      
+
       this.dbReady = true;
-      this.logger.debug('Disk cache initialized with SQLite optimizations');
-      
+      this.logger.debug("Disk cache initialized with SQLite optimizations");
     } catch (error) {
-      this.logger.error('Failed to initialize disk cache:', error);
+      this.logger.error("Failed to initialize disk cache:", error);
       this.config.persistToDisk = false;
       this.dbReady = true; // Mark as ready even on failure to prevent blocking
     }
@@ -155,25 +163,30 @@ export class CacheManager extends EventEmitter {
    */
   private async prepareStatements(): Promise<void> {
     if (!this.db) return;
-    
-    try {
 
-    // Pre-compile frequently used statements
-    (this as any).getStmt = this.db.prepare('SELECT * FROM cache_entries WHERE key = ?');
-    (this as any).setStmt = this.db.prepare(`
+    try {
+      // Pre-compile frequently used statements
+      (this as any).getStmt = this.db.prepare(
+        "SELECT * FROM cache_entries WHERE key = ?",
+      );
+      (this as any).setStmt = this.db.prepare(`
       INSERT OR REPLACE INTO cache_entries 
       (key, value, size, ttl, created_at, last_accessed, hit_count, namespace, compressed)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    (this as any).deleteStmt = this.db.prepare('DELETE FROM cache_entries WHERE key = ?');
-    (this as any).updateAccessStmt = this.db.prepare(`
+      (this as any).deleteStmt = this.db.prepare(
+        "DELETE FROM cache_entries WHERE key = ?",
+      );
+      (this as any).updateAccessStmt = this.db.prepare(`
       UPDATE cache_entries 
       SET last_accessed = ?, hit_count = hit_count + 1 
       WHERE key = ?
     `);
-    (this as any).cleanupStmt = this.db.prepare('DELETE FROM cache_entries WHERE ttl < ?');
+      (this as any).cleanupStmt = this.db.prepare(
+        "DELETE FROM cache_entries WHERE ttl < ?",
+      );
     } catch (error) {
-      this.logger.error('Failed to prepare statements:', error);
+      this.logger.error("Failed to prepare statements:", error);
       // Continue without prepared statements - will use direct queries
     }
   }
@@ -191,10 +204,10 @@ export class CacheManager extends EventEmitter {
       if (memoryEntry && !this.isExpired(memoryEntry)) {
         this.updateMemoryAccess(key, memoryEntry);
         this.stats.hits++;
-        
+
         const latency = performance.now() - startTime;
-        this.emit('cache_hit', { key, source: 'memory', latency });
-        
+        this.emit("cache_hit", { key, source: "memory", latency });
+
         return memoryEntry.value;
       }
 
@@ -202,20 +215,20 @@ export class CacheManager extends EventEmitter {
       if (this.dbInitPromise && !this.dbReady) {
         await this.dbInitPromise;
       }
-      
+
       // Check L2 (disk) cache
       if (this.config.persistToDisk && this.db && this.dbReady) {
         const diskEntry = this.getDiskEntry(key);
         if (diskEntry && !this.isExpired(diskEntry)) {
           this.updateDiskAccess(key);
-          
+
           // Promote to L1 cache
           await this.promoteToMemory(key, diskEntry);
-          
+
           this.stats.hits++;
           const latency = performance.now() - startTime;
-          this.emit('cache_hit', { key, source: 'disk', latency });
-          
+          this.emit("cache_hit", { key, source: "disk", latency });
+
           return diskEntry.value;
         }
       }
@@ -223,12 +236,11 @@ export class CacheManager extends EventEmitter {
       // Cache miss
       this.stats.misses++;
       const latency = performance.now() - startTime;
-      this.emit('cache_miss', { key, latency });
-      
-      return null;
+      this.emit("cache_miss", { key, latency });
 
+      return null;
     } catch (error) {
-      this.logger.error('Cache get error', { key, error });
+      this.logger.error("Cache get error", { key, error });
       return null;
     }
   }
@@ -236,7 +248,12 @@ export class CacheManager extends EventEmitter {
   /**
    * Set value in cache with intelligent placement
    */
-  async set(key: string, value: any, ttl?: number, namespace?: string): Promise<void> {
+  async set(
+    key: string,
+    value: any,
+    ttl?: number,
+    namespace?: string,
+  ): Promise<void> {
     const startTime = performance.now();
     this.stats.writes++;
 
@@ -244,7 +261,7 @@ export class CacheManager extends EventEmitter {
       const serializedValue = this.serialize(value);
       const size = this.calculateSize(serializedValue);
       const actualTTL = ttl || this.config.defaultTTL;
-      const expiresAt = Date.now() + (actualTTL * 1000);
+      const expiresAt = Date.now() + actualTTL * 1000;
 
       const entry: CacheEntry = {
         key,
@@ -254,12 +271,12 @@ export class CacheManager extends EventEmitter {
         createdAt: new Date(),
         lastAccessed: new Date(),
         hitCount: 0,
-        namespace
+        namespace,
       };
 
       // Decide placement based on size and frequency
       const shouldUseMemory = this.shouldUseMemoryCache(size, key);
-      
+
       if (shouldUseMemory) {
         await this.setMemoryEntry(key, entry);
       }
@@ -268,17 +285,21 @@ export class CacheManager extends EventEmitter {
       if (this.dbInitPromise && !this.dbReady) {
         await this.dbInitPromise;
       }
-      
+
       // Always persist to disk if enabled (for durability)
       if (this.config.persistToDisk && this.db && this.dbReady) {
         await this.setDiskEntry(key, entry, serializedValue);
       }
 
       const latency = performance.now() - startTime;
-      this.emit('cache_set', { key, size, latency, location: shouldUseMemory ? 'memory' : 'disk' });
-
+      this.emit("cache_set", {
+        key,
+        size,
+        latency,
+        location: shouldUseMemory ? "memory" : "disk",
+      });
     } catch (error) {
-      this.logger.error('Cache set error', { key, error });
+      this.logger.error("Cache set error", { key, error });
       throw error;
     }
   }
@@ -306,12 +327,12 @@ export class CacheManager extends EventEmitter {
           deleted = true;
         }
       } catch (error) {
-        this.logger.error('Disk delete error', { key, error });
+        this.logger.error("Disk delete error", { key, error });
       }
     }
 
     if (deleted) {
-      this.emit('cache_delete', { key });
+      this.emit("cache_delete", { key });
     }
 
     return deleted;
@@ -330,11 +351,11 @@ export class CacheManager extends EventEmitter {
   private updateMemoryAccess(key: string, entry: CacheEntry): void {
     entry.lastAccessed = new Date();
     entry.hitCount++;
-    
+
     // Update LRU order
     this.removeFromAccessOrder(key);
     this.accessOrder.push(key);
-    
+
     // Update LFU frequency
     const currentFreq = this.frequencyMap.get(key) || 0;
     this.frequencyMap.set(key, currentFreq + 1);
@@ -349,7 +370,7 @@ export class CacheManager extends EventEmitter {
     try {
       (this as any).updateAccessStmt.run(Date.now(), key);
     } catch (error) {
-      this.logger.debug('Disk access update failed', { key, error });
+      this.logger.debug("Disk access update failed", { key, error });
     }
   }
 
@@ -360,9 +381,9 @@ export class CacheManager extends EventEmitter {
     if (!this.db || !this.dbReady) return null;
 
     try {
-      const row = (this as any).getStmt ? 
-        (this as any).getStmt.get(key) : 
-        this.db.prepare('SELECT * FROM cache_entries WHERE key = ?').get(key);
+      const row = (this as any).getStmt
+        ? (this as any).getStmt.get(key)
+        : this.db.prepare("SELECT * FROM cache_entries WHERE key = ?").get(key);
       if (!row) return null;
 
       return {
@@ -373,10 +394,10 @@ export class CacheManager extends EventEmitter {
         createdAt: new Date(row.created_at),
         lastAccessed: new Date(row.last_accessed),
         hitCount: row.hit_count,
-        namespace: row.namespace
+        namespace: row.namespace,
       };
     } catch (error) {
-      this.logger.error('Disk get error', { key, error });
+      this.logger.error("Disk get error", { key, error });
       return null;
     }
   }
@@ -396,7 +417,7 @@ export class CacheManager extends EventEmitter {
   private async setMemoryEntry(key: string, entry: CacheEntry): Promise<void> {
     // Ensure space in memory cache
     await this.ensureMemorySpace(entry.size);
-    
+
     // Remove existing entry if present
     if (this.memoryCache.has(key)) {
       const existing = this.memoryCache.get(key)!;
@@ -408,7 +429,7 @@ export class CacheManager extends EventEmitter {
     this.memoryCache.set(key, entry);
     this.memorySize += entry.size;
     this.accessOrder.push(key);
-    
+
     // Update frequency map
     const currentFreq = this.frequencyMap.get(key) || 0;
     this.frequencyMap.set(key, currentFreq + 1);
@@ -417,20 +438,27 @@ export class CacheManager extends EventEmitter {
   /**
    * Set entry in disk cache
    */
-  private async setDiskEntry(key: string, entry: CacheEntry, serializedValue: any): Promise<void> {
+  private async setDiskEntry(
+    key: string,
+    entry: CacheEntry,
+    serializedValue: any,
+  ): Promise<void> {
     if (!this.db || !this.dbReady) return;
 
     try {
       const compressed = this.config.compression ? 1 : 0;
-      const valueToStore = this.config.compression ? 
-        this.compress(serializedValue) : serializedValue;
+      const valueToStore = this.config.compression
+        ? this.compress(serializedValue)
+        : serializedValue;
 
-      const stmt = (this as any).setStmt || this.db.prepare(`
+      const stmt =
+        (this as any).setStmt ||
+        this.db.prepare(`
         INSERT OR REPLACE INTO cache_entries 
         (key, value, size, ttl, created_at, last_accessed, hit_count, namespace, compressed)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
-      
+
       stmt.run(
         key,
         valueToStore,
@@ -440,10 +468,10 @@ export class CacheManager extends EventEmitter {
         entry.lastAccessed.getTime(),
         entry.hitCount,
         entry.namespace,
-        compressed
+        compressed,
       );
     } catch (error) {
-      this.logger.error('Disk set error', { key, error });
+      this.logger.error("Disk set error", { key, error });
     }
   }
 
@@ -490,18 +518,18 @@ export class CacheManager extends EventEmitter {
     let keyToEvict: string;
 
     switch (this.config.evictionPolicy) {
-      case 'lru':
+      case "lru":
         keyToEvict = this.accessOrder[0];
         break;
-        
-      case 'lfu':
+
+      case "lfu":
         keyToEvict = this.findLFUKey();
         break;
-        
-      case 'adaptive':
+
+      case "adaptive":
         keyToEvict = this.findAdaptiveEvictionKey();
         break;
-        
+
       default:
         keyToEvict = this.accessOrder[0];
     }
@@ -512,10 +540,13 @@ export class CacheManager extends EventEmitter {
       this.memoryCache.delete(keyToEvict);
       this.removeFromAccessOrder(keyToEvict);
       this.frequencyMap.delete(keyToEvict);
-      
+
       this.stats.evictions++;
-      this.emit('cache_evict', { key: keyToEvict, reason: this.config.evictionPolicy });
-      
+      this.emit("cache_evict", {
+        key: keyToEvict,
+        reason: this.config.evictionPolicy,
+      });
+
       return true;
     }
 
@@ -527,7 +558,7 @@ export class CacheManager extends EventEmitter {
    */
   private findLFUKey(): string {
     let minFreq = Infinity;
-    let lfuKey = '';
+    let lfuKey = "";
 
     for (const [key, freq] of this.frequencyMap) {
       if (freq < minFreq && this.memoryCache.has(key)) {
@@ -543,7 +574,10 @@ export class CacheManager extends EventEmitter {
    * Find key for adaptive eviction (combines LRU and LFU)
    */
   private findAdaptiveEvictionKey(): string {
-    const candidates = this.accessOrder.slice(0, Math.min(10, this.accessOrder.length));
+    const candidates = this.accessOrder.slice(
+      0,
+      Math.min(10, this.accessOrder.length),
+    );
     let bestKey = candidates[0];
     let bestScore = Infinity;
 
@@ -553,10 +587,10 @@ export class CacheManager extends EventEmitter {
 
       const frequency = this.frequencyMap.get(key) || 0;
       const recency = Date.now() - entry.lastAccessed.getTime();
-      
+
       // Adaptive score (lower is better for eviction)
       const score = frequency * 0.3 + (1 / (recency + 1)) * 0.7;
-      
+
       if (score < bestScore) {
         bestScore = score;
         bestKey = key;
@@ -609,13 +643,13 @@ export class CacheManager extends EventEmitter {
         const result = (this as any).cleanupStmt.run(now);
         cleanedCount += result.changes;
       } catch (error) {
-        this.logger.error('Disk cleanup error', error);
+        this.logger.error("Disk cleanup error", error);
       }
     }
 
     if (cleanedCount > 0) {
-      this.logger.debug('Cache cleanup completed', { cleanedCount });
-      this.emit('cache_cleanup', { cleanedCount });
+      this.logger.debug("Cache cleanup completed", { cleanedCount });
+      this.emit("cache_cleanup", { cleanedCount });
     }
   }
 
@@ -623,7 +657,7 @@ export class CacheManager extends EventEmitter {
    * Serialize value for storage
    */
   private serialize(value: any): any {
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       return value;
     }
     return JSON.stringify(value);
@@ -638,7 +672,7 @@ export class CacheManager extends EventEmitter {
         value = this.decompress(value);
       }
 
-      if (typeof value === 'string') {
+      if (typeof value === "string") {
         try {
           return JSON.parse(value);
         } catch {
@@ -647,7 +681,7 @@ export class CacheManager extends EventEmitter {
       }
       return value;
     } catch (error) {
-      this.logger.error('Deserialization error', error);
+      this.logger.error("Deserialization error", error);
       return null;
     }
   }
@@ -675,22 +709,22 @@ export class CacheManager extends EventEmitter {
     if (Buffer.isBuffer(data)) {
       return data.length;
     }
-    return Buffer.byteLength(JSON.stringify(data), 'utf8');
+    return Buffer.byteLength(JSON.stringify(data), "utf8");
   }
 
   /**
    * Format bytes for display
    */
   private formatBytes(bytes: number): string {
-    const units = ['B', 'KB', 'MB', 'GB'];
+    const units = ["B", "KB", "MB", "GB"];
     let value = bytes;
     let unit = 0;
-    
+
     while (value >= 1024 && unit < units.length - 1) {
       value /= 1024;
       unit++;
     }
-    
+
     return `${value.toFixed(1)}${units[unit]}`;
   }
 
@@ -699,7 +733,7 @@ export class CacheManager extends EventEmitter {
    */
   getStats(): CacheStats {
     const totalRequests = this.stats.hits + this.stats.misses;
-    
+
     return {
       totalKeys: this.memoryCache.size,
       totalSize: this.memorySize,
@@ -707,7 +741,7 @@ export class CacheManager extends EventEmitter {
       missRate: totalRequests > 0 ? this.stats.misses / totalRequests : 0,
       evictionCount: this.stats.evictions,
       memoryUsage: this.memorySize,
-      diskUsage: this.diskSize // TODO: Calculate actual disk usage
+      diskUsage: this.diskSize, // TODO: Calculate actual disk usage
     };
   }
 
@@ -724,13 +758,13 @@ export class CacheManager extends EventEmitter {
     // Clear disk
     if (this.config.persistToDisk && this.db && this.dbReady) {
       try {
-        this.db.exec('DELETE FROM cache_entries');
+        this.db.exec("DELETE FROM cache_entries");
       } catch (error) {
-        this.logger.error('Disk clear error', error);
+        this.logger.error("Disk clear error", error);
       }
     }
 
-    this.emit('cache_clear');
+    this.emit("cache_clear");
   }
 
   /**
@@ -745,6 +779,6 @@ export class CacheManager extends EventEmitter {
       this.db.close();
     }
 
-    this.logger.info('Cache manager shutdown');
+    this.logger.info("Cache manager shutdown");
   }
 }

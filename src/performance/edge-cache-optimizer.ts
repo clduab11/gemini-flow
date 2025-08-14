@@ -3,7 +3,7 @@
  * Implements predictive pre-loading and intelligent cache invalidation
  */
 
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 export interface CacheNode {
   id: string;
@@ -17,9 +17,9 @@ export interface CacheNode {
   hitRate: number;
   latency: number;
   bandwidth: number;
-  status: 'online' | 'offline' | 'maintenance';
-  temperature: 'cold' | 'warm' | 'hot';
-  tier: 'edge' | 'regional' | 'origin';
+  status: "online" | "offline" | "maintenance";
+  temperature: "cold" | "warm" | "hot";
+  tier: "edge" | "regional" | "origin";
 }
 
 export interface CacheItem {
@@ -37,7 +37,7 @@ export interface CacheItem {
     userId?: string;
     region?: string;
     contentHash: string;
-    compression: 'none' | 'gzip' | 'brotli';
+    compression: "none" | "gzip" | "brotli";
   };
 }
 
@@ -53,7 +53,7 @@ export interface CachePolicy {
 }
 
 export interface WarmingStrategy {
-  type: 'predictive' | 'scheduled' | 'reactive' | 'manual';
+  type: "predictive" | "scheduled" | "reactive" | "manual";
   triggers: Array<{
     event: string;
     condition: string;
@@ -104,8 +104,8 @@ export class EdgeCacheOptimizer extends EventEmitter {
     this.nodes.set(node.id, node);
     this.cache.set(node.id, new Map());
     this.loadBalancer.addNode(node);
-    
-    this.emit('nodeRegistered', { nodeId: node.id, location: node.location });
+
+    this.emit("nodeRegistered", { nodeId: node.id, location: node.location });
     console.log(`Registered cache node: ${node.id} in ${node.location.city}`);
   }
 
@@ -117,7 +117,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
     content: ArrayBuffer,
     contentType: string,
     policy: CachePolicy,
-    targetNodes?: string[]
+    targetNodes?: string[],
   ): Promise<{
     cached: string[];
     failed: string[];
@@ -136,19 +136,20 @@ export class EdgeCacheOptimizer extends EventEmitter {
       priority: this.calculatePriority(key, content),
       metadata: {
         contentHash: await this.calculateHash(content),
-        compression: 'none'
-      }
+        compression: "none",
+      },
     };
 
     // Compress if beneficial
     const compressed = await this.compressionManager.compress(item);
-    if (compressed.size < item.size * 0.8) { // 20% compression threshold
+    if (compressed.size < item.size * 0.8) {
+      // 20% compression threshold
       item.content = compressed.content;
       item.size = compressed.size;
       item.metadata.compression = compressed.algorithm;
     }
 
-    const optimalNodes = targetNodes || await this.selectOptimalNodes(item);
+    const optimalNodes = targetNodes || (await this.selectOptimalNodes(item));
     const cached: string[] = [];
     const failed: string[] = [];
 
@@ -162,35 +163,38 @@ export class EdgeCacheOptimizer extends EventEmitter {
       }
     }
 
-    this.emit('contentCached', { key, cached, failed, size: item.size });
+    this.emit("contentCached", { key, cached, failed, size: item.size });
     return { cached, failed, totalSize: item.size };
   }
 
   /**
    * Retrieve content from optimal cache node
    */
-  async getContent(key: string, userLocation?: {
-    lat: number;
-    lng: number;
-  }): Promise<{
+  async getContent(
+    key: string,
+    userLocation?: {
+      lat: number;
+      lng: number;
+    },
+  ): Promise<{
     content: ArrayBuffer | null;
     source: string;
     latency: number;
     cacheHit: boolean;
   }> {
     const startTime = Date.now();
-    
+
     // Find optimal node for user location
-    const optimalNode = userLocation 
+    const optimalNode = userLocation
       ? this.findNearestNode(userLocation)
       : this.loadBalancer.selectNode();
 
     if (!optimalNode) {
       return {
         content: null,
-        source: 'none',
+        source: "none",
         latency: Date.now() - startTime,
-        cacheHit: false
+        cacheHit: false,
       };
     }
 
@@ -201,26 +205,26 @@ export class EdgeCacheOptimizer extends EventEmitter {
       // Cache hit
       item.lastAccessed = Date.now();
       item.accessCount++;
-      
+
       // Decompress if needed
       const content = await this.decompress(item);
-      
-      this.emit('cacheHit', { key, nodeId: optimalNode.id });
+
+      this.emit("cacheHit", { key, nodeId: optimalNode.id });
       return {
         content,
         source: optimalNode.id,
         latency: Date.now() - startTime,
-        cacheHit: true
+        cacheHit: true,
       };
     } else {
       // Cache miss - try other nodes or fetch from origin
       const fallbackResult = await this.handleCacheMiss(key, optimalNode);
-      
-      this.emit('cacheMiss', { key, nodeId: optimalNode.id });
+
+      this.emit("cacheMiss", { key, nodeId: optimalNode.id });
       return {
         ...fallbackResult,
         latency: Date.now() - startTime,
-        cacheHit: false
+        cacheHit: false,
       };
     }
   }
@@ -235,59 +239,61 @@ export class EdgeCacheOptimizer extends EventEmitter {
     estimatedHitRateImprovement: number;
   }> {
     this.warmingStrategies.push(strategy);
-    
+
     let itemsWarmed = 0;
     let dataTransferred = 0;
     const nodesUpdated = new Set<string>();
 
     switch (strategy.type) {
-      case 'predictive':
+      case "predictive":
         const predictions = await this.predictor.predictContent(
           strategy.contentSelectors,
-          strategy.targetNodes
+          strategy.targetNodes,
         );
-        
+
         for (const prediction of predictions) {
-          if (prediction.confidence > 0.7) { // 70% confidence threshold
+          if (prediction.confidence > 0.7) {
+            // 70% confidence threshold
             const result = await this.preloadContent(prediction);
             itemsWarmed += result.itemsLoaded;
             dataTransferred += result.dataSize;
-            result.nodes.forEach(node => nodesUpdated.add(node));
+            result.nodes.forEach((node) => nodesUpdated.add(node));
           }
         }
         break;
 
-      case 'scheduled':
+      case "scheduled":
         // Schedule warming based on cron expression
         if (strategy.schedule) {
           this.scheduleWarming(strategy);
         }
         break;
 
-      case 'reactive':
+      case "reactive":
         // Warm based on real-time events
         this.setupReactiveWarming(strategy);
         break;
     }
 
-    const estimatedImprovement = this.analyticsEngine.estimateHitRateImprovement(
-      itemsWarmed,
-      dataTransferred
-    );
+    const estimatedImprovement =
+      this.analyticsEngine.estimateHitRateImprovement(
+        itemsWarmed,
+        dataTransferred,
+      );
 
-    this.emit('cacheWarmed', {
+    this.emit("cacheWarmed", {
       strategy: strategy.type,
       itemsWarmed,
       nodesUpdated: Array.from(nodesUpdated),
       dataTransferred,
-      estimatedImprovement
+      estimatedImprovement,
     });
 
     return {
       itemsWarmed,
       nodesUpdated: Array.from(nodesUpdated),
       dataTransferred,
-      estimatedHitRateImprovement: estimatedImprovement
+      estimatedHitRateImprovement: estimatedImprovement,
     };
   }
 
@@ -297,7 +303,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
   async invalidateContent(
     pattern: string | RegExp,
     tags?: string[],
-    cascading: boolean = true
+    cascading: boolean = true,
   ): Promise<{
     invalidated: number;
     nodesAffected: string[];
@@ -314,7 +320,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
         let shouldInvalidate = false;
 
         // Pattern matching
-        if (typeof pattern === 'string') {
+        if (typeof pattern === "string") {
           shouldInvalidate = key.includes(pattern);
         } else {
           shouldInvalidate = pattern.test(key);
@@ -322,8 +328,8 @@ export class EdgeCacheOptimizer extends EventEmitter {
 
         // Tag matching
         if (tags && tags.length > 0) {
-          shouldInvalidate = shouldInvalidate || 
-            tags.some(tag => item.tags.includes(tag));
+          shouldInvalidate =
+            shouldInvalidate || tags.some((tag) => item.tags.includes(tag));
         }
 
         if (shouldInvalidate) {
@@ -347,17 +353,17 @@ export class EdgeCacheOptimizer extends EventEmitter {
       }
     }
 
-    this.emit('contentInvalidated', {
+    this.emit("contentInvalidated", {
       pattern: pattern.toString(),
       invalidated,
       nodesAffected: Array.from(nodesAffected),
-      spaceFree
+      spaceFree,
     });
 
     return {
       invalidated,
       nodesAffected: Array.from(nodesAffected),
-      spaceFree
+      spaceFree,
     };
   }
 
@@ -372,7 +378,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
   }> {
     const analysis = await this.analyticsEngine.analyzeDistribution(
       this.nodes,
-      this.cache
+      this.cache,
     );
 
     let migrations = 0;
@@ -380,45 +386,45 @@ export class EdgeCacheOptimizer extends EventEmitter {
 
     for (const recommendation of analysis.recommendations) {
       switch (recommendation.type) {
-        case 'migrate':
+        case "migrate":
           await this.migrateContent(
             recommendation.sourceNode,
             recommendation.targetNode,
-            recommendation.contentKeys
+            recommendation.contentKeys,
           );
           migrations += recommendation.contentKeys.length;
           dataTransferred += recommendation.dataSize;
           break;
 
-        case 'replicate':
+        case "replicate":
           await this.replicateContent(
             recommendation.sourceNode,
             recommendation.targetNodes,
-            recommendation.contentKeys
+            recommendation.contentKeys,
           );
           break;
 
-        case 'evict':
+        case "evict":
           await this.evictContent(
             recommendation.sourceNode,
-            recommendation.contentKeys
+            recommendation.contentKeys,
           );
           break;
       }
     }
 
-    this.emit('distributionOptimized', {
+    this.emit("distributionOptimized", {
       migrations,
       dataTransferred,
       expectedImprovement: analysis.expectedImprovement,
-      costSavings: analysis.costSavings
+      costSavings: analysis.costSavings,
     });
 
     return {
       migrations,
       dataTransferred,
       expectedHitRateImprovement: analysis.expectedImprovement,
-      costSavings: analysis.costSavings
+      costSavings: analysis.costSavings,
     };
   }
 
@@ -428,7 +434,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
   getCDNMetrics(): CDNMetrics {
     const allNodes = Array.from(this.nodes.values());
     const allCaches = Array.from(this.cache.values());
-    
+
     let totalHits = 0;
     let totalMisses = 0;
     let totalSize = 0;
@@ -446,8 +452,12 @@ export class EdgeCacheOptimizer extends EventEmitter {
 
     const hitRate = totalRequests > 0 ? totalHits / totalRequests : 0;
     const missRate = 1 - hitRate;
-    const avgLatency = allNodes.reduce((sum, node) => sum + node.latency, 0) / allNodes.length;
-    const totalBandwidth = allNodes.reduce((sum, node) => sum + node.bandwidth, 0);
+    const avgLatency =
+      allNodes.reduce((sum, node) => sum + node.latency, 0) / allNodes.length;
+    const totalBandwidth = allNodes.reduce(
+      (sum, node) => sum + node.bandwidth,
+      0,
+    );
 
     return {
       hitRate,
@@ -458,7 +468,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
       cacheSize: totalSize,
       requestsPerSecond: totalRequests / 3600, // Approximation
       bytesSaved: totalSize * hitRate,
-      costSavings: totalSize * hitRate * 0.0001 // $0.0001 per byte saved
+      costSavings: totalSize * hitRate * 0.0001, // $0.0001 per byte saved
     };
   }
 
@@ -467,7 +477,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
    */
   setPolicy(contentPattern: string, policy: CachePolicy): void {
     this.policies.set(contentPattern, policy);
-    this.emit('policySet', { pattern: contentPattern, policy });
+    this.emit("policySet", { pattern: contentPattern, policy });
   }
 
   // Private implementation methods
@@ -475,17 +485,17 @@ export class EdgeCacheOptimizer extends EventEmitter {
   private async initializeOptimizer(): Promise<void> {
     // Setup default policies
     this.setupDefaultPolicies();
-    
+
     // Start background optimization
     this.startBackgroundOptimization();
-    
-    this.emit('optimizerInitialized');
+
+    this.emit("optimizerInitialized");
   }
 
   private setupDefaultPolicies(): void {
     const defaultPolicies = [
       {
-        pattern: 'image/*',
+        pattern: "image/*",
         policy: {
           maxAge: 86400, // 24 hours
           staleWhileRevalidate: 3600,
@@ -494,11 +504,11 @@ export class EdgeCacheOptimizer extends EventEmitter {
           noCache: false,
           private: false,
           public: true,
-          immutable: true
-        }
+          immutable: true,
+        },
       },
       {
-        pattern: 'video/*',
+        pattern: "video/*",
         policy: {
           maxAge: 604800, // 7 days
           staleWhileRevalidate: 86400,
@@ -507,11 +517,11 @@ export class EdgeCacheOptimizer extends EventEmitter {
           noCache: false,
           private: false,
           public: true,
-          immutable: true
-        }
+          immutable: true,
+        },
       },
       {
-        pattern: 'application/json',
+        pattern: "application/json",
         policy: {
           maxAge: 300, // 5 minutes
           staleWhileRevalidate: 60,
@@ -520,9 +530,9 @@ export class EdgeCacheOptimizer extends EventEmitter {
           noCache: false,
           private: false,
           public: true,
-          immutable: false
-        }
-      }
+          immutable: false,
+        },
+      },
     ];
 
     for (const { pattern, policy } of defaultPolicies) {
@@ -532,22 +542,28 @@ export class EdgeCacheOptimizer extends EventEmitter {
 
   private async selectOptimalNodes(item: CacheItem): Promise<string[]> {
     const nodes = Array.from(this.nodes.values())
-      .filter(node => node.status === 'online')
+      .filter((node) => node.status === "online")
       .sort((a, b) => {
         // Score based on capacity, latency, and current load
-        const scoreA = (1 - a.used / a.capacity) * 0.5 + (1 / a.latency) * 0.3 + a.hitRate * 0.2;
-        const scoreB = (1 - b.used / b.capacity) * 0.5 + (1 / b.latency) * 0.3 + b.hitRate * 0.2;
+        const scoreA =
+          (1 - a.used / a.capacity) * 0.5 +
+          (1 / a.latency) * 0.3 +
+          a.hitRate * 0.2;
+        const scoreB =
+          (1 - b.used / b.capacity) * 0.5 +
+          (1 / b.latency) * 0.3 +
+          b.hitRate * 0.2;
         return scoreB - scoreA;
       });
 
     // Select top 3 nodes for redundancy
-    return nodes.slice(0, 3).map(node => node.id);
+    return nodes.slice(0, 3).map((node) => node.id);
   }
 
   private async cacheOnNode(
     nodeId: string,
     item: CacheItem,
-    policy: CachePolicy
+    policy: CachePolicy,
   ): Promise<void> {
     const node = this.nodes.get(nodeId);
     const nodeCache = this.cache.get(nodeId);
@@ -568,16 +584,19 @@ export class EdgeCacheOptimizer extends EventEmitter {
     this.policies.set(item.key, policy);
   }
 
-  private findNearestNode(userLocation: { lat: number; lng: number }): CacheNode | null {
+  private findNearestNode(userLocation: {
+    lat: number;
+    lng: number;
+  }): CacheNode | null {
     let nearest: CacheNode | null = null;
     let minDistance = Infinity;
 
     for (const node of this.nodes.values()) {
-      if (node.status !== 'online') continue;
+      if (node.status !== "online") continue;
 
       const distance = this.calculateDistance(
         userLocation,
-        node.location.coordinates
+        node.location.coordinates,
       );
 
       if (distance < minDistance) {
@@ -591,14 +610,17 @@ export class EdgeCacheOptimizer extends EventEmitter {
 
   private calculateDistance(
     point1: { lat: number; lng: number },
-    point2: { lat: number; lng: number }
+    point2: { lat: number; lng: number },
   ): number {
     const R = 6371; // Earth's radius in km
-    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
-    const dLng = (point2.lng - point1.lng) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const dLat = ((point2.lat - point1.lat) * Math.PI) / 180;
+    const dLng = ((point2.lng - point1.lng) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((point1.lat * Math.PI) / 180) *
+        Math.cos((point2.lat * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -608,14 +630,20 @@ export class EdgeCacheOptimizer extends EventEmitter {
   }
 
   private async decompress(item: CacheItem): Promise<ArrayBuffer> {
-    if (item.metadata.compression === 'none') {
+    if (item.metadata.compression === "none") {
       return item.content;
     }
-    
-    return this.compressionManager.decompress(item.content, item.metadata.compression);
+
+    return this.compressionManager.decompress(
+      item.content,
+      item.metadata.compression,
+    );
   }
 
-  private async handleCacheMiss(key: string, preferredNode: CacheNode): Promise<{
+  private async handleCacheMiss(
+    key: string,
+    preferredNode: CacheNode,
+  ): Promise<{
     content: ArrayBuffer | null;
     source: string;
   }> {
@@ -626,16 +654,20 @@ export class EdgeCacheOptimizer extends EventEmitter {
       const item = nodeCache.get(key);
       if (item && !this.isExpired(item)) {
         const content = await this.decompress(item);
-        
+
         // Replicate to preferred node for future requests
-        this.cacheOnNode(preferredNode.id, item, this.policies.get(key) || this.getDefaultPolicy());
-        
+        this.cacheOnNode(
+          preferredNode.id,
+          item,
+          this.policies.get(key) || this.getDefaultPolicy(),
+        );
+
         return { content, source: nodeId };
       }
     }
 
     // Fetch from origin (simulated)
-    return { content: null, source: 'origin' };
+    return { content: null, source: "origin" };
   }
 
   private async preloadContent(prediction: any): Promise<{
@@ -647,7 +679,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
     return {
       itemsLoaded: Math.floor(Math.random() * 10) + 1,
       dataSize: Math.floor(Math.random() * 1000000) + 100000,
-      nodes: prediction.targetNodes
+      nodes: prediction.targetNodes,
     };
   }
 
@@ -675,7 +707,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
   private async migrateContent(
     sourceNode: string,
     targetNode: string,
-    contentKeys: string[]
+    contentKeys: string[],
   ): Promise<void> {
     const sourceCache = this.cache.get(sourceNode);
     const targetCache = this.cache.get(targetNode);
@@ -694,7 +726,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
   private async replicateContent(
     sourceNode: string,
     targetNodes: string[],
-    contentKeys: string[]
+    contentKeys: string[],
   ): Promise<void> {
     const sourceCache = this.cache.get(sourceNode);
     if (!sourceCache) return;
@@ -712,7 +744,10 @@ export class EdgeCacheOptimizer extends EventEmitter {
     }
   }
 
-  private async evictContent(nodeId: string, contentKeys: string[]): Promise<void> {
+  private async evictContent(
+    nodeId: string,
+    contentKeys: string[],
+  ): Promise<void> {
     const nodeCache = this.cache.get(nodeId);
     if (!nodeCache) return;
 
@@ -753,8 +788,12 @@ export class EdgeCacheOptimizer extends EventEmitter {
   private calculatePriority(key: string, content: ArrayBuffer): number {
     // Calculate content priority based on various factors
     const sizeFactor = Math.max(0, 1 - content.byteLength / (10 * 1024 * 1024)); // Prefer smaller content
-    const typeFactor = key.includes('image') ? 0.8 : key.includes('video') ? 0.6 : 1.0;
-    
+    const typeFactor = key.includes("image")
+      ? 0.8
+      : key.includes("video")
+        ? 0.6
+        : 1.0;
+
     return sizeFactor * typeFactor * 100;
   }
 
@@ -777,7 +816,7 @@ export class EdgeCacheOptimizer extends EventEmitter {
       noCache: false,
       private: false,
       public: true,
-      immutable: false
+      immutable: false,
     };
   }
 
@@ -811,7 +850,10 @@ export class EdgeCacheOptimizer extends EventEmitter {
 
 // Supporting classes
 class CachePredictionEngine {
-  async predictContent(selectors: string[], targetNodes: string[]): Promise<any[]> {
+  async predictContent(
+    selectors: string[],
+    targetNodes: string[],
+  ): Promise<any[]> {
     // Predict content that should be cached
     return [];
   }
@@ -838,17 +880,20 @@ class CompressionManager {
   async compress(item: CacheItem): Promise<{
     content: ArrayBuffer;
     size: number;
-    algorithm: 'gzip' | 'brotli';
+    algorithm: "gzip" | "brotli";
   }> {
     // Compress content
     return {
       content: item.content,
       size: Math.floor(item.size * 0.7), // Simulate 30% compression
-      algorithm: 'gzip'
+      algorithm: "gzip",
     };
   }
 
-  async decompress(content: ArrayBuffer, algorithm: string): Promise<ArrayBuffer> {
+  async decompress(
+    content: ArrayBuffer,
+    algorithm: string,
+  ): Promise<ArrayBuffer> {
     // Decompress content
     return content;
   }
@@ -857,7 +902,7 @@ class CompressionManager {
 class CacheAnalyticsEngine {
   async analyzeDistribution(
     nodes: Map<string, CacheNode>,
-    cache: Map<string, Map<string, CacheItem>>
+    cache: Map<string, Map<string, CacheItem>>,
   ): Promise<{
     recommendations: any[];
     expectedImprovement: number;
@@ -866,11 +911,14 @@ class CacheAnalyticsEngine {
     return {
       recommendations: [],
       expectedImprovement: 0.1,
-      costSavings: 1000
+      costSavings: 1000,
     };
   }
 
-  estimateHitRateImprovement(itemsWarmed: number, dataTransferred: number): number {
+  estimateHitRateImprovement(
+    itemsWarmed: number,
+    dataTransferred: number,
+  ): number {
     return Math.min(0.2, itemsWarmed * 0.01); // Max 20% improvement
   }
 }
@@ -880,5 +928,5 @@ export {
   CacheInvalidationManager,
   CDNLoadBalancer,
   CompressionManager,
-  CacheAnalyticsEngine
+  CacheAnalyticsEngine,
 };

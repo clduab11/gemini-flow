@@ -1,13 +1,13 @@
 /**
  * Google Cloud Storage Integration for Veo3
- * 
+ *
  * Advanced cloud storage with large file handling, CDN distribution,
  * compression, encryption, and intelligent upload optimization
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../../utils/logger.js';
-import { safeImport } from '../../utils/feature-detection.js';
+import { EventEmitter } from "events";
+import { Logger } from "../../utils/logger.js";
+import { safeImport } from "../../utils/feature-detection.js";
 
 import {
   Veo3StorageConfig,
@@ -17,10 +17,14 @@ import {
   VideoFile,
   StorageOperation,
   VideoFormat,
-  IntegrationBaseError
-} from './types.js';
+  IntegrationBaseError,
+} from "./types.js";
 
-import { BaseIntegration, HealthStatus, FileMetadata } from '../shared/types.js';
+import {
+  BaseIntegration,
+  HealthStatus,
+  FileMetadata,
+} from "../shared/types.js";
 
 export interface GcsConfig extends Veo3StorageConfig {
   projectId: string;
@@ -59,8 +63,8 @@ export interface UploadOptions {
   encryption?: boolean;
   compression?: boolean;
   metadata?: Record<string, string>;
-  acl?: 'private' | 'public-read' | 'authenticated-read';
-  storageClass?: 'STANDARD' | 'NEARLINE' | 'COLDLINE' | 'ARCHIVE';
+  acl?: "private" | "public-read" | "authenticated-read";
+  storageClass?: "STANDARD" | "NEARLINE" | "COLDLINE" | "ARCHIVE";
 }
 
 export interface DownloadOptions {
@@ -97,12 +101,12 @@ export class GoogleCloudStorage extends BaseIntegration {
   private compressor: CompressionManager;
   private encryptor: EncryptionManager;
   private bandwidth: BandwidthManager;
-  
+
   // Active operations tracking
   private activeUploads: Map<string, UploadOperation> = new Map();
   private activeDownloads: Map<string, DownloadOperation> = new Map();
   private operationQueue: StorageOperation[] = [];
-  
+
   // Performance metrics
   private storageMetrics: StorageMetrics = {
     totalUploads: 0,
@@ -112,22 +116,22 @@ export class GoogleCloudStorage extends BaseIntegration {
     avgDownloadTime: 0,
     compressionRatio: 0,
     cdnHitRate: 0,
-    errorRate: 0
+    errorRate: 0,
   };
 
   constructor(config: GcsConfig) {
     super({
-      id: 'google-cloud-storage',
-      name: 'Google Cloud Storage',
-      version: '1.0.0',
+      id: "google-cloud-storage",
+      name: "Google Cloud Storage",
+      version: "1.0.0",
       enabled: true,
-      dependencies: ['@google-cloud/storage'],
+      dependencies: ["@google-cloud/storage"],
       features: {
         multipart: config.multipart.enabled,
         resumable: config.resumable.enabled,
         cdn: !!config.cdn,
         encryption: config.encryption,
-        compression: config.compression
+        compression: config.compression,
       },
       performance: {
         maxConcurrentOperations: config.multipart.maxParallel,
@@ -135,27 +139,27 @@ export class GoogleCloudStorage extends BaseIntegration {
         retryAttempts: config.resumable.maxRetries,
         cacheEnabled: true,
         cacheTTLMs: 3600000,
-        metricsEnabled: true
+        metricsEnabled: true,
       },
       security: {
         encryption: config.encryption,
         validateOrigins: true,
         allowedHosts: [],
         tokenExpiration: 3600,
-        auditLogging: true
+        auditLogging: true,
       },
       storage: {
-        provider: 'gcs',
+        provider: "gcs",
         bucket: config.bucket,
         region: config.region,
         credentials: config.credentials,
         encryption: config.encryption,
-        compression: config.compression
-      }
+        compression: config.compression,
+      },
     });
-    
+
     this.config = config;
-    this.logger = new Logger('GoogleCloudStorage');
+    this.logger = new Logger("GoogleCloudStorage");
     this.cdn = new CdnManager(config.cdn, this.logger);
     this.compressor = new CompressionManager(config.compression, this.logger);
     this.encryptor = new EncryptionManager(config.encryption, this.logger);
@@ -163,28 +167,28 @@ export class GoogleCloudStorage extends BaseIntegration {
       maxBandwidth: 100 * 1024 * 1024, // 100 MB/s default
       currentUsage: 0,
       queuedOperations: 0,
-      throttleEnabled: false
+      throttleEnabled: false,
     };
   }
 
   async initialize(): Promise<void> {
     try {
-      this.status = 'initializing';
-      this.logger.info('Initializing Google Cloud Storage', {
+      this.status = "initializing";
+      this.logger.info("Initializing Google Cloud Storage", {
         projectId: this.config.projectId,
         bucket: this.config.bucket,
-        region: this.config.region
+        region: this.config.region,
       });
 
       // Import GCS SDK
-      const { Storage } = await safeImport('@google-cloud/storage');
+      const { Storage } = await safeImport("@google-cloud/storage");
       if (!Storage) {
         throw new IntegrationBaseError(
-          'Google Cloud Storage SDK not available. Install @google-cloud/storage',
-          'GCS_SDK_MISSING',
-          'GoogleCloudStorage',
-          'critical',
-          false
+          "Google Cloud Storage SDK not available. Install @google-cloud/storage",
+          "GCS_SDK_MISSING",
+          "GoogleCloudStorage",
+          "critical",
+          false,
         );
       }
 
@@ -192,7 +196,7 @@ export class GoogleCloudStorage extends BaseIntegration {
       this.storage = new Storage({
         projectId: this.config.projectId,
         keyFilename: this.config.keyFilename,
-        credentials: this.config.credentials
+        credentials: this.config.credentials,
       });
 
       // Get bucket reference
@@ -217,21 +221,20 @@ export class GoogleCloudStorage extends BaseIntegration {
       // Start bandwidth monitoring
       this.startBandwidthMonitoring();
 
-      this.status = 'ready';
-      this.logger.info('Google Cloud Storage initialized successfully');
-      this.emit('initialized', { timestamp: new Date() });
-
+      this.status = "ready";
+      this.logger.info("Google Cloud Storage initialized successfully");
+      this.emit("initialized", { timestamp: new Date() });
     } catch (error) {
-      this.status = 'error';
+      this.status = "error";
       const storageError = new IntegrationBaseError(
         `Failed to initialize Google Cloud Storage: ${error.message}`,
-        'INIT_FAILED',
-        'GoogleCloudStorage',
-        'critical',
+        "INIT_FAILED",
+        "GoogleCloudStorage",
+        "critical",
         false,
-        { originalError: error.message }
+        { originalError: error.message },
       );
-      
+
       this.emitError(storageError);
       throw storageError;
     }
@@ -239,13 +242,13 @@ export class GoogleCloudStorage extends BaseIntegration {
 
   async shutdown(): Promise<void> {
     try {
-      this.logger.info('Shutting down Google Cloud Storage');
-      this.status = 'shutdown';
+      this.logger.info("Shutting down Google Cloud Storage");
+      this.status = "shutdown";
 
       // Cancel active operations
       const cancelPromises = [
-        ...Array.from(this.activeUploads.values()).map(op => op.cancel()),
-        ...Array.from(this.activeDownloads.values()).map(op => op.cancel())
+        ...Array.from(this.activeUploads.values()).map((op) => op.cancel()),
+        ...Array.from(this.activeDownloads.values()).map((op) => op.cancel()),
       ];
       await Promise.allSettled(cancelPromises);
 
@@ -254,11 +257,10 @@ export class GoogleCloudStorage extends BaseIntegration {
       await this.compressor.shutdown();
       await this.encryptor.shutdown();
 
-      this.logger.info('Google Cloud Storage shutdown complete');
-      this.emit('shutdown', { timestamp: new Date() });
-
+      this.logger.info("Google Cloud Storage shutdown complete");
+      this.emit("shutdown", { timestamp: new Date() });
     } catch (error) {
-      this.logger.error('Error during Google Cloud Storage shutdown', error);
+      this.logger.error("Error during Google Cloud Storage shutdown", error);
       throw error;
     }
   }
@@ -268,7 +270,7 @@ export class GoogleCloudStorage extends BaseIntegration {
       // Test bucket access
       const [exists] = await this.bucket.exists();
       if (!exists) {
-        return 'critical';
+        return "critical";
       }
 
       // Test simple operation
@@ -276,20 +278,19 @@ export class GoogleCloudStorage extends BaseIntegration {
 
       // Check CDN health
       const cdnHealth = await this.cdn.healthCheck();
-      if (cdnHealth === 'critical') {
-        return 'warning'; // CDN failure is not critical for storage
+      if (cdnHealth === "critical") {
+        return "warning"; // CDN failure is not critical for storage
       }
 
       // Check bandwidth usage
       if (this.bandwidth.currentUsage > this.bandwidth.maxBandwidth * 0.9) {
-        return 'warning';
+        return "warning";
       }
 
-      return 'healthy';
-
+      return "healthy";
     } catch (error) {
-      this.logger.error('Health check failed', error);
-      return 'critical';
+      this.logger.error("Health check failed", error);
+      return "critical";
     }
   }
 
@@ -300,7 +301,7 @@ export class GoogleCloudStorage extends BaseIntegration {
       activeDownloads: this.activeDownloads.size,
       queuedOperations: this.operationQueue.length,
       bandwidthUsage: this.bandwidth.currentUsage,
-      cdnMetrics: this.cdn.getMetrics()
+      cdnMetrics: this.cdn.getMetrics(),
     };
   }
 
@@ -309,17 +310,17 @@ export class GoogleCloudStorage extends BaseIntegration {
   async uploadFile(
     file: Buffer | string,
     destination: string,
-    options: UploadOptions = {}
+    options: UploadOptions = {},
   ): Promise<VideoFile> {
     const operationId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const startTime = performance.now();
-    
+
     try {
-      this.logger.info('Starting file upload', {
+      this.logger.info("Starting file upload", {
         operationId,
         destination,
-        size: typeof file === 'string' ? 0 : file.length,
-        options
+        size: typeof file === "string" ? 0 : file.length,
+        options,
       });
 
       // Check bandwidth availability
@@ -332,27 +333,34 @@ export class GoogleCloudStorage extends BaseIntegration {
         destination,
         options,
         this.config,
-        this.logger
+        this.logger,
       );
 
       this.activeUploads.set(operationId, operation);
 
       // Set up progress tracking
-      operation.on('progress', (progress) => {
-        this.emitProgress(operationId, progress.percentage, 'uploading', 
-          `${progress.bytesUploaded}/${progress.totalBytes} bytes`);
+      operation.on("progress", (progress) => {
+        this.emitProgress(
+          operationId,
+          progress.percentage,
+          "uploading",
+          `${progress.bytesUploaded}/${progress.totalBytes} bytes`,
+        );
       });
 
       // Preprocess file if needed
       let processedFile = file;
-      let fileSize = typeof file === 'string' ? 0 : file.length;
+      let fileSize = typeof file === "string" ? 0 : file.length;
 
       // Apply compression
       if (options.compression && this.config.compression) {
         processedFile = await this.compressor.compress(processedFile);
-        const compressedSize = typeof processedFile === 'string' ? 0 : processedFile.length;
-        this.storageMetrics.compressionRatio = 
-          (this.storageMetrics.compressionRatio + (fileSize - compressedSize) / fileSize) / 2;
+        const compressedSize =
+          typeof processedFile === "string" ? 0 : processedFile.length;
+        this.storageMetrics.compressionRatio =
+          (this.storageMetrics.compressionRatio +
+            (fileSize - compressedSize) / fileSize) /
+          2;
       }
 
       // Apply encryption
@@ -361,11 +369,17 @@ export class GoogleCloudStorage extends BaseIntegration {
       }
 
       // Determine upload strategy
-      const shouldUseResumable = this.shouldUseResumable(processedFile, options);
-      const shouldUseMultipart = this.shouldUseMultipart(processedFile, options);
+      const shouldUseResumable = this.shouldUseResumable(
+        processedFile,
+        options,
+      );
+      const shouldUseMultipart = this.shouldUseMultipart(
+        processedFile,
+        options,
+      );
 
       let uploadResult: any;
-      
+
       if (shouldUseResumable) {
         uploadResult = await this.uploadResumable(operation, processedFile);
       } else if (shouldUseMultipart) {
@@ -384,13 +398,13 @@ export class GoogleCloudStorage extends BaseIntegration {
         url: await this.getFileUrl(destination),
         checksum: uploadResult.md5Hash,
         metadata: {
-          codec: 'h264', // Would be detected
+          codec: "h264", // Would be detected
           bitrate: 5000000, // Would be detected
           framerate: 30, // Would be detected
           audioTracks: [],
           subtitles: [],
-          chapters: []
-        }
+          chapters: [],
+        },
       };
 
       // Upload to CDN if configured
@@ -402,43 +416,42 @@ export class GoogleCloudStorage extends BaseIntegration {
       const duration = performance.now() - startTime;
       this.storageMetrics.totalUploads++;
       this.storageMetrics.totalSize += videoFile.size;
-      this.storageMetrics.avgUploadTime = 
+      this.storageMetrics.avgUploadTime =
         (this.storageMetrics.avgUploadTime + duration) / 2;
 
-      this.logger.info('File upload completed', {
+      this.logger.info("File upload completed", {
         operationId,
         destination,
         size: videoFile.size,
         duration,
-        url: videoFile.url
+        url: videoFile.url,
       });
 
-      this.emit('upload_completed', { 
-        operationId, 
-        videoFile, 
-        duration, 
-        timestamp: new Date() 
+      this.emit("upload_completed", {
+        operationId,
+        videoFile,
+        duration,
+        timestamp: new Date(),
       });
 
       return videoFile;
-
     } catch (error) {
       const duration = performance.now() - startTime;
-      this.storageMetrics.errorRate = 
-        (this.storageMetrics.errorRate + 1) / Math.max(this.storageMetrics.totalUploads, 1);
+      this.storageMetrics.errorRate =
+        (this.storageMetrics.errorRate + 1) /
+        Math.max(this.storageMetrics.totalUploads, 1);
 
       const uploadError = new IntegrationBaseError(
         `File upload failed: ${error.message}`,
-        'UPLOAD_FAILED',
-        'GoogleCloudStorage',
-        'high',
+        "UPLOAD_FAILED",
+        "GoogleCloudStorage",
+        "high",
         true,
-        { operationId, destination, duration }
+        { operationId, destination, duration },
       );
-      
+
       this.emitError(uploadError);
       throw uploadError;
-      
     } finally {
       this.activeUploads.delete(operationId);
     }
@@ -447,49 +460,48 @@ export class GoogleCloudStorage extends BaseIntegration {
   async uploadChunked(
     chunks: Buffer[],
     destination: string,
-    options: UploadOptions = {}
+    options: UploadOptions = {},
   ): Promise<VideoFile> {
     const operationId = `upload_chunked_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     try {
-      this.logger.info('Starting chunked upload', {
+      this.logger.info("Starting chunked upload", {
         operationId,
         destination,
         chunks: chunks.length,
-        totalSize: chunks.reduce((total, chunk) => total + chunk.length, 0)
+        totalSize: chunks.reduce((total, chunk) => total + chunk.length, 0),
       });
 
       // Upload chunks in parallel with controlled concurrency
-      const chunkPromises = chunks.map((chunk, index) => 
-        this.uploadChunk(chunk, `${destination}_chunk_${index}`, options)
+      const chunkPromises = chunks.map((chunk, index) =>
+        this.uploadChunk(chunk, `${destination}_chunk_${index}`, options),
       );
 
       const chunkResults = await this.executeWithConcurrency(
         chunkPromises,
-        this.config.multipart.maxParallel
+        this.config.multipart.maxParallel,
       );
 
       // Combine chunks into final file
       const combinedFile = await this.combineChunks(chunkResults, destination);
 
-      this.logger.info('Chunked upload completed', {
+      this.logger.info("Chunked upload completed", {
         operationId,
         chunks: chunks.length,
-        finalSize: combinedFile.size
+        finalSize: combinedFile.size,
       });
 
       return combinedFile;
-
     } catch (error) {
       const chunkError = new IntegrationBaseError(
         `Chunked upload failed: ${error.message}`,
-        'CHUNKED_UPLOAD_FAILED',
-        'GoogleCloudStorage',
-        'high',
+        "CHUNKED_UPLOAD_FAILED",
+        "GoogleCloudStorage",
+        "high",
         true,
-        { operationId, destination }
+        { operationId, destination },
       );
-      
+
       this.emitError(chunkError);
       throw chunkError;
     }
@@ -499,16 +511,16 @@ export class GoogleCloudStorage extends BaseIntegration {
 
   async downloadFile(
     source: string,
-    options: DownloadOptions = {}
+    options: DownloadOptions = {},
   ): Promise<Buffer> {
     const operationId = `download_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const startTime = performance.now();
-    
+
     try {
-      this.logger.info('Starting file download', {
+      this.logger.info("Starting file download", {
         operationId,
         source,
-        options
+        options,
       });
 
       // Check CDN first
@@ -516,12 +528,12 @@ export class GoogleCloudStorage extends BaseIntegration {
         try {
           const cdnResult = await this.cdn.downloadFile(source);
           if (cdnResult) {
-            this.storageMetrics.cdnHitRate = 
+            this.storageMetrics.cdnHitRate =
               (this.storageMetrics.cdnHitRate + 1) / 2;
             return cdnResult;
           }
         } catch (error) {
-          this.logger.debug('CDN download failed, falling back to GCS', error);
+          this.logger.debug("CDN download failed, falling back to GCS", error);
         }
       }
 
@@ -531,14 +543,14 @@ export class GoogleCloudStorage extends BaseIntegration {
         source,
         options,
         this.config,
-        this.logger
+        this.logger,
       );
 
       this.activeDownloads.set(operationId, operation);
 
       // Execute download
       let downloadedData: Buffer;
-      
+
       if (options.stream) {
         downloadedData = await this.downloadStream(operation);
       } else if (options.range) {
@@ -563,43 +575,42 @@ export class GoogleCloudStorage extends BaseIntegration {
       // Update metrics
       const duration = performance.now() - startTime;
       this.storageMetrics.totalDownloads++;
-      this.storageMetrics.avgDownloadTime = 
+      this.storageMetrics.avgDownloadTime =
         (this.storageMetrics.avgDownloadTime + duration) / 2;
 
-      this.logger.info('File download completed', {
+      this.logger.info("File download completed", {
         operationId,
         source,
         size: processedData.length,
-        duration
+        duration,
       });
 
-      this.emit('download_completed', { 
-        operationId, 
-        source, 
+      this.emit("download_completed", {
+        operationId,
+        source,
         size: processedData.length,
-        duration, 
-        timestamp: new Date() 
+        duration,
+        timestamp: new Date(),
       });
 
       return processedData;
-
     } catch (error) {
       const duration = performance.now() - startTime;
-      this.storageMetrics.errorRate = 
-        (this.storageMetrics.errorRate + 1) / Math.max(this.storageMetrics.totalDownloads, 1);
+      this.storageMetrics.errorRate =
+        (this.storageMetrics.errorRate + 1) /
+        Math.max(this.storageMetrics.totalDownloads, 1);
 
       const downloadError = new IntegrationBaseError(
         `File download failed: ${error.message}`,
-        'DOWNLOAD_FAILED',
-        'GoogleCloudStorage',
-        'high',
+        "DOWNLOAD_FAILED",
+        "GoogleCloudStorage",
+        "high",
         true,
-        { operationId, source, duration }
+        { operationId, source, duration },
       );
-      
+
       this.emitError(downloadError);
       throw downloadError;
-      
     } finally {
       this.activeDownloads.delete(operationId);
     }
@@ -609,7 +620,7 @@ export class GoogleCloudStorage extends BaseIntegration {
 
   async deleteFile(path: string): Promise<void> {
     try {
-      this.logger.info('Deleting file', { path });
+      this.logger.info("Deleting file", { path });
 
       // Delete from GCS
       await this.bucket.file(path).delete();
@@ -619,19 +630,18 @@ export class GoogleCloudStorage extends BaseIntegration {
         await this.cdn.deleteFile(path);
       }
 
-      this.logger.info('File deleted successfully', { path });
-      this.emit('file_deleted', { path, timestamp: new Date() });
-
+      this.logger.info("File deleted successfully", { path });
+      this.emit("file_deleted", { path, timestamp: new Date() });
     } catch (error) {
       const deleteError = new IntegrationBaseError(
         `File deletion failed: ${error.message}`,
-        'DELETE_FAILED',
-        'GoogleCloudStorage',
-        'medium',
+        "DELETE_FAILED",
+        "GoogleCloudStorage",
+        "medium",
         true,
-        { path }
+        { path },
       );
-      
+
       this.emitError(deleteError);
       throw deleteError;
     }
@@ -640,36 +650,35 @@ export class GoogleCloudStorage extends BaseIntegration {
   async listFiles(prefix?: string): Promise<FileMetadata[]> {
     try {
       const [files] = await this.bucket.getFiles({ prefix });
-      
+
       const fileMetadata: FileMetadata[] = await Promise.all(
         files.map(async (file: any) => {
           const [metadata] = await file.getMetadata();
           return {
             name: file.name,
             path: file.name,
-            size: parseInt(metadata.size || '0'),
-            type: metadata.contentType || 'application/octet-stream',
+            size: parseInt(metadata.size || "0"),
+            type: metadata.contentType || "application/octet-stream",
             lastModified: new Date(metadata.updated),
-            checksum: metadata.md5Hash || '',
+            checksum: metadata.md5Hash || "",
             tags: [],
             permissions: [],
-            encryption: !!metadata.kmsKeyName
+            encryption: !!metadata.kmsKeyName,
           };
-        })
+        }),
       );
 
       return fileMetadata;
-
     } catch (error) {
       const listError = new IntegrationBaseError(
         `File listing failed: ${error.message}`,
-        'LIST_FAILED',
-        'GoogleCloudStorage',
-        'low',
+        "LIST_FAILED",
+        "GoogleCloudStorage",
+        "low",
         true,
-        { prefix }
+        { prefix },
       );
-      
+
       this.emitError(listError);
       throw listError;
     }
@@ -683,8 +692,8 @@ export class GoogleCloudStorage extends BaseIntegration {
 
       // Generate signed URL
       const options: any = {
-        version: 'v4',
-        action: 'read'
+        version: "v4",
+        action: "read",
       };
 
       if (expiration) {
@@ -695,15 +704,14 @@ export class GoogleCloudStorage extends BaseIntegration {
 
       const [url] = await this.bucket.file(path).getSignedUrl(options);
       return url;
-
     } catch (error) {
       throw new IntegrationBaseError(
         `Failed to get file URL: ${error.message}`,
-        'URL_GENERATION_FAILED',
-        'GoogleCloudStorage',
-        'medium',
+        "URL_GENERATION_FAILED",
+        "GoogleCloudStorage",
+        "medium",
         true,
-        { path }
+        { path },
       );
     }
   }
@@ -714,53 +722,54 @@ export class GoogleCloudStorage extends BaseIntegration {
     const lifecycle = {
       rule: [
         {
-          action: { type: 'SetStorageClass', storageClass: 'NEARLINE' },
-          condition: { age: this.config.lifecycle.transitionToIA }
+          action: { type: "SetStorageClass", storageClass: "NEARLINE" },
+          condition: { age: this.config.lifecycle.transitionToIA },
         },
         {
-          action: { type: 'SetStorageClass', storageClass: 'COLDLINE' },
-          condition: { age: this.config.lifecycle.transitionToColdline }
+          action: { type: "SetStorageClass", storageClass: "COLDLINE" },
+          condition: { age: this.config.lifecycle.transitionToColdline },
         },
         {
-          action: { type: 'Delete' },
-          condition: { age: this.config.lifecycle.deleteAfterDays }
-        }
-      ]
+          action: { type: "Delete" },
+          condition: { age: this.config.lifecycle.deleteAfterDays },
+        },
+      ],
     };
 
     await this.bucket.setMetadata({ lifecycle });
-    this.logger.info('Bucket lifecycle configured');
+    this.logger.info("Bucket lifecycle configured");
   }
 
   private startBandwidthMonitoring(): void {
     setInterval(() => {
       // Reset bandwidth usage counter
       this.bandwidth.currentUsage = 0;
-      
+
       // Process queued operations if bandwidth available
       this.processOperationQueue();
     }, 1000); // Reset every second
   }
 
   private async checkBandwidthAvailability(): Promise<void> {
-    if (this.bandwidth.throttleEnabled && 
-        this.bandwidth.currentUsage >= this.bandwidth.maxBandwidth) {
-      
+    if (
+      this.bandwidth.throttleEnabled &&
+      this.bandwidth.currentUsage >= this.bandwidth.maxBandwidth
+    ) {
       // Add to queue and wait
       return new Promise((resolve) => {
         this.operationQueue.push({
-          id: 'bandwidth_wait',
-          type: 'upload',
-          source: '',
-          destination: '',
+          id: "bandwidth_wait",
+          type: "upload",
+          source: "",
+          destination: "",
           size: 0,
-          checksum: '',
+          checksum: "",
           metadata: {},
           progress: 0,
-          status: 'pending',
-          startTime: new Date()
+          status: "pending",
+          startTime: new Date(),
         });
-        
+
         const checkAvailability = () => {
           if (this.bandwidth.currentUsage < this.bandwidth.maxBandwidth) {
             resolve();
@@ -768,7 +777,7 @@ export class GoogleCloudStorage extends BaseIntegration {
             setTimeout(checkAvailability, 100);
           }
         };
-        
+
         checkAvailability();
       });
     }
@@ -776,56 +785,79 @@ export class GoogleCloudStorage extends BaseIntegration {
 
   private processOperationQueue(): void {
     // Process queued operations based on available bandwidth
-    while (this.operationQueue.length > 0 && 
-           this.bandwidth.currentUsage < this.bandwidth.maxBandwidth) {
-      
+    while (
+      this.operationQueue.length > 0 &&
+      this.bandwidth.currentUsage < this.bandwidth.maxBandwidth
+    ) {
       const operation = this.operationQueue.shift();
       if (operation) {
         // Resume operation
-        this.emit('operation_resumed', operation);
+        this.emit("operation_resumed", operation);
       }
     }
   }
 
-  private shouldUseResumable(file: Buffer | string, options: UploadOptions): boolean {
+  private shouldUseResumable(
+    file: Buffer | string,
+    options: UploadOptions,
+  ): boolean {
     if (!this.config.resumable.enabled || !options.resumable) {
       return false;
     }
 
-    const fileSize = typeof file === 'string' ? 0 : file.length;
+    const fileSize = typeof file === "string" ? 0 : file.length;
     return fileSize > 5 * 1024 * 1024; // 5MB threshold
   }
 
-  private shouldUseMultipart(file: Buffer | string, options: UploadOptions): boolean {
+  private shouldUseMultipart(
+    file: Buffer | string,
+    options: UploadOptions,
+  ): boolean {
     if (!this.config.multipart.enabled || !options.multipart) {
       return false;
     }
 
-    const fileSize = typeof file === 'string' ? 0 : file.length;
+    const fileSize = typeof file === "string" ? 0 : file.length;
     return fileSize > this.config.multipart.minFileSize;
   }
 
-  private async uploadResumable(operation: UploadOperation, file: Buffer | string): Promise<any> {
+  private async uploadResumable(
+    operation: UploadOperation,
+    file: Buffer | string,
+  ): Promise<any> {
     // Implement resumable upload
-    return { size: 0, md5Hash: 'placeholder' };
+    return { size: 0, md5Hash: "placeholder" };
   }
 
-  private async uploadMultipart(operation: UploadOperation, file: Buffer | string): Promise<any> {
+  private async uploadMultipart(
+    operation: UploadOperation,
+    file: Buffer | string,
+  ): Promise<any> {
     // Implement multipart upload
-    return { size: 0, md5Hash: 'placeholder' };
+    return { size: 0, md5Hash: "placeholder" };
   }
 
-  private async uploadSimple(operation: UploadOperation, file: Buffer | string): Promise<any> {
+  private async uploadSimple(
+    operation: UploadOperation,
+    file: Buffer | string,
+  ): Promise<any> {
     // Implement simple upload
-    return { size: 0, md5Hash: 'placeholder' };
+    return { size: 0, md5Hash: "placeholder" };
   }
 
-  private async uploadChunk(chunk: Buffer, destination: string, options: UploadOptions): Promise<any> {
+  private async uploadChunk(
+    chunk: Buffer,
+    destination: string,
+    options: UploadOptions,
+  ): Promise<any> {
     // Upload individual chunk
     return { size: chunk.length, path: destination };
   }
 
-  private async combineChunks(chunkResults: any[], destination: string): Promise<VideoFile> {
+  private async combineChunks(
+    chunkResults: any[],
+    destination: string,
+  ): Promise<VideoFile> {
     // Combine uploaded chunks into final file
     return {
       id: destination,
@@ -834,15 +866,15 @@ export class GoogleCloudStorage extends BaseIntegration {
       duration: 0,
       size: chunkResults.reduce((total, chunk) => total + chunk.size, 0),
       url: await this.getFileUrl(destination),
-      checksum: 'combined-checksum',
+      checksum: "combined-checksum",
       metadata: {
-        codec: 'h264',
+        codec: "h264",
         bitrate: 5000000,
         framerate: 30,
         audioTracks: [],
         subtitles: [],
-        chapters: []
-      }
+        chapters: [],
+      },
     };
   }
 
@@ -863,31 +895,51 @@ export class GoogleCloudStorage extends BaseIntegration {
 
   private async executeWithConcurrency<T>(
     promises: Promise<T>[],
-    concurrency: number
+    concurrency: number,
   ): Promise<T[]> {
     const results: T[] = [];
-    
+
     for (let i = 0; i < promises.length; i += concurrency) {
       const batch = promises.slice(i, i + concurrency);
       const batchResults = await Promise.all(batch);
       results.push(...batchResults);
     }
-    
+
     return results;
   }
 
   private detectFormat(filename: string): VideoFormat {
-    const extension = filename.split('.').pop()?.toLowerCase();
-    
+    const extension = filename.split(".").pop()?.toLowerCase();
+
     switch (extension) {
-      case 'mp4':
-        return { container: 'mp4', codec: 'h264', audioCodec: 'aac', profile: 'high' };
-      case 'webm':
-        return { container: 'webm', codec: 'vp9', audioCodec: 'opus', profile: 'main' };
-      case 'avi':
-        return { container: 'avi', codec: 'h264', audioCodec: 'mp3', profile: 'main' };
+      case "mp4":
+        return {
+          container: "mp4",
+          codec: "h264",
+          audioCodec: "aac",
+          profile: "high",
+        };
+      case "webm":
+        return {
+          container: "webm",
+          codec: "vp9",
+          audioCodec: "opus",
+          profile: "main",
+        };
+      case "avi":
+        return {
+          container: "avi",
+          codec: "h264",
+          audioCodec: "mp3",
+          profile: "main",
+        };
       default:
-        return { container: 'mp4', codec: 'h264', audioCodec: 'aac', profile: 'main' };
+        return {
+          container: "mp4",
+          codec: "h264",
+          audioCodec: "aac",
+          profile: "main",
+        };
     }
   }
 }
@@ -909,7 +961,7 @@ class UploadOperation extends EventEmitter {
     destination: string,
     options: UploadOptions,
     config: GcsConfig,
-    logger: Logger
+    logger: Logger,
   ) {
     super();
     this.id = id;
@@ -943,7 +995,7 @@ class DownloadOperation extends EventEmitter {
     source: string,
     options: DownloadOptions,
     config: GcsConfig,
-    logger: Logger
+    logger: Logger,
   ) {
     super();
     this.id = id;
@@ -973,15 +1025,15 @@ class CdnManager {
   }
 
   async initialize(): Promise<void> {
-    this.logger.info('CDN manager initialized');
+    this.logger.info("CDN manager initialized");
   }
 
   async shutdown(): Promise<void> {
-    this.logger.info('CDN manager shutdown');
+    this.logger.info("CDN manager shutdown");
   }
 
   async healthCheck(): Promise<HealthStatus> {
-    return 'healthy';
+    return "healthy";
   }
 
   async uploadFile(file: VideoFile): Promise<void> {
@@ -1016,11 +1068,11 @@ class CompressionManager {
   }
 
   async initialize(): Promise<void> {
-    this.logger.info('Compression manager initialized');
+    this.logger.info("Compression manager initialized");
   }
 
   async shutdown(): Promise<void> {
-    this.logger.info('Compression manager shutdown');
+    this.logger.info("Compression manager shutdown");
   }
 
   async compress(data: Buffer | string): Promise<Buffer> {
@@ -1044,11 +1096,11 @@ class EncryptionManager {
   }
 
   async initialize(): Promise<void> {
-    this.logger.info('Encryption manager initialized');
+    this.logger.info("Encryption manager initialized");
   }
 
   async shutdown(): Promise<void> {
-    this.logger.info('Encryption manager shutdown');
+    this.logger.info("Encryption manager shutdown");
   }
 
   async encrypt(data: Buffer | string): Promise<Buffer> {

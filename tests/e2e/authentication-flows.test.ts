@@ -6,9 +6,9 @@
  */
 
 import { jest } from '@jest/globals';
-import { UnifiedAuthManager } from '../../src/core/auth/unified-auth-manager.js';
-import { OAuth2Provider } from '../../src/core/auth/oauth2-provider.js';
-import { VertexAIProvider } from '../../src/core/auth/vertex-ai-provider.js';
+import { UnifiedAuthManager } from '../../src/core/auth/unified-auth-manager';
+import { OAuth2Provider } from '../../src/core/auth/oauth2-provider';
+import { VertexAIProvider } from '../../src/core/auth/vertex-ai-provider';
 import { 
   UnifiedAuthConfig, 
   OAuth2Config, 
@@ -16,7 +16,7 @@ import {
   AuthCredentials,
   AuthContext,
   AuthEvent
-} from '../../src/types/auth.js';
+} from '../../src/types/auth';
 
 // Mock external dependencies
 const mockFetch = jest.fn();

@@ -3,13 +3,26 @@
  * Orchestrates all monitoring components for comprehensive observability
  */
 
-import { EventEmitter } from 'events';
-import { Logger } from '../utils/logger';
-import { SyntheticMonitor, DEFAULT_MONITORING_CONFIG } from './synthetic-monitoring';
-import { RealUserMonitor, DEFAULT_RUM_CONFIG } from './real-user-monitoring';
-import { DistributedTracing, getTracing, DEFAULT_TRACING_CONFIG } from './distributed-tracing';
-import { CustomMetricsCollector, DEFAULT_METRICS_CONFIG } from './custom-metrics-dashboard';
-import { SLAComplianceMonitor, DEFAULT_SLA_CONFIG } from './sla-compliance-monitor';
+import { EventEmitter } from "events";
+import { Logger } from "../utils/logger";
+import {
+  SyntheticMonitor,
+  DEFAULT_MONITORING_CONFIG,
+} from "./synthetic-monitoring";
+import { RealUserMonitor, DEFAULT_RUM_CONFIG } from "./real-user-monitoring";
+import {
+  DistributedTracing,
+  getTracing,
+  DEFAULT_TRACING_CONFIG,
+} from "./distributed-tracing";
+import {
+  CustomMetricsCollector,
+  DEFAULT_METRICS_CONFIG,
+} from "./custom-metrics-dashboard";
+import {
+  SLAComplianceMonitor,
+  DEFAULT_SLA_CONFIG,
+} from "./sla-compliance-monitor";
 
 interface MonitoringSystemConfig {
   enabled: boolean;
@@ -32,13 +45,13 @@ interface MonitoringSystemConfig {
 }
 
 interface AlertingChannel {
-  type: 'email' | 'slack' | 'webhook' | 'pagerduty';
+  type: "email" | "slack" | "webhook" | "pagerduty";
   config: Record<string, any>;
-  severity: ('low' | 'medium' | 'high' | 'critical')[];
+  severity: ("low" | "medium" | "high" | "critical")[];
 }
 
 interface MonitoringHealth {
-  overall: 'healthy' | 'degraded' | 'unhealthy';
+  overall: "healthy" | "degraded" | "unhealthy";
   components: {
     syntheticMonitoring: ComponentHealth;
     realUserMonitoring: ComponentHealth;
@@ -50,7 +63,7 @@ interface MonitoringHealth {
 }
 
 interface ComponentHealth {
-  status: 'healthy' | 'degraded' | 'unhealthy' | 'disabled';
+  status: "healthy" | "degraded" | "unhealthy" | "disabled";
   uptime: number;
   errors: number;
   lastError?: string;
@@ -78,18 +91,18 @@ export class ProductionMonitoringSystem extends EventEmitter {
   constructor(config: MonitoringSystemConfig) {
     super();
     this.config = config;
-    this.logger = new Logger('ProductionMonitoringSystem');
-    
+    this.logger = new Logger("ProductionMonitoringSystem");
+
     this.healthStatus = {
-      overall: 'healthy',
+      overall: "healthy",
       components: {
-        syntheticMonitoring: { status: 'disabled', uptime: 0, errors: 0 },
-        realUserMonitoring: { status: 'disabled', uptime: 0, errors: 0 },
-        distributedTracing: { status: 'disabled', uptime: 0, errors: 0 },
-        customMetrics: { status: 'disabled', uptime: 0, errors: 0 },
-        slaCompliance: { status: 'disabled', uptime: 0, errors: 0 }
+        syntheticMonitoring: { status: "disabled", uptime: 0, errors: 0 },
+        realUserMonitoring: { status: "disabled", uptime: 0, errors: 0 },
+        distributedTracing: { status: "disabled", uptime: 0, errors: 0 },
+        customMetrics: { status: "disabled", uptime: 0, errors: 0 },
+        slaCompliance: { status: "disabled", uptime: 0, errors: 0 },
       },
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
   }
 
@@ -98,17 +111,17 @@ export class ProductionMonitoringSystem extends EventEmitter {
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      this.logger.warn('Monitoring system already initialized');
+      this.logger.warn("Monitoring system already initialized");
       return;
     }
 
     if (!this.config.enabled) {
-      this.logger.info('Monitoring system disabled by configuration');
+      this.logger.info("Monitoring system disabled by configuration");
       return;
     }
 
     try {
-      this.logger.info('Initializing production monitoring system...');
+      this.logger.info("Initializing production monitoring system...");
 
       // Initialize distributed tracing first (needed by other components)
       if (this.config.components.distributedTracing) {
@@ -142,10 +155,9 @@ export class ProductionMonitoringSystem extends EventEmitter {
       this.startHealthMonitoring();
 
       this.isInitialized = true;
-      this.logger.info('Production monitoring system initialized successfully');
-
+      this.logger.info("Production monitoring system initialized successfully");
     } catch (error) {
-      this.logger.error('Failed to initialize monitoring system:', error);
+      this.logger.error("Failed to initialize monitoring system:", error);
       throw error;
     }
   }
@@ -159,12 +171,12 @@ export class ProductionMonitoringSystem extends EventEmitter {
     }
 
     if (this.isRunning) {
-      this.logger.warn('Monitoring system already running');
+      this.logger.warn("Monitoring system already running");
       return;
     }
 
     try {
-      this.logger.info('Starting production monitoring system...');
+      this.logger.info("Starting production monitoring system...");
 
       // Start components in dependency order
       const startPromises: Promise<void>[] = [];
@@ -191,11 +203,10 @@ export class ProductionMonitoringSystem extends EventEmitter {
       this.isRunning = true;
       this.startTime = new Date();
 
-      this.logger.info('Production monitoring system started successfully');
-      this.emit('system_started');
-
+      this.logger.info("Production monitoring system started successfully");
+      this.emit("system_started");
     } catch (error) {
-      this.logger.error('Failed to start monitoring system:', error);
+      this.logger.error("Failed to start monitoring system:", error);
       throw error;
     }
   }
@@ -205,12 +216,12 @@ export class ProductionMonitoringSystem extends EventEmitter {
    */
   async stop(): Promise<void> {
     if (!this.isRunning) {
-      this.logger.warn('Monitoring system not running');
+      this.logger.warn("Monitoring system not running");
       return;
     }
 
     try {
-      this.logger.info('Stopping production monitoring system...');
+      this.logger.info("Stopping production monitoring system...");
 
       // Stop components in reverse dependency order
       const stopPromises: Promise<void>[] = [];
@@ -240,11 +251,10 @@ export class ProductionMonitoringSystem extends EventEmitter {
 
       this.isRunning = false;
 
-      this.logger.info('Production monitoring system stopped');
-      this.emit('system_stopped');
-
+      this.logger.info("Production monitoring system stopped");
+      this.emit("system_stopped");
     } catch (error) {
-      this.logger.error('Error stopping monitoring system:', error);
+      this.logger.error("Error stopping monitoring system:", error);
     }
   }
 
@@ -255,12 +265,16 @@ export class ProductionMonitoringSystem extends EventEmitter {
     try {
       this.distributedTracing = getTracing(DEFAULT_TRACING_CONFIG);
       await this.distributedTracing.initialize();
-      
-      this.updateComponentHealth('distributedTracing', 'healthy');
-      this.logger.debug('Distributed tracing initialized');
+
+      this.updateComponentHealth("distributedTracing", "healthy");
+      this.logger.debug("Distributed tracing initialized");
     } catch (error) {
-      this.updateComponentHealth('distributedTracing', 'unhealthy', error.message);
-      this.logger.error('Failed to initialize distributed tracing:', error);
+      this.updateComponentHealth(
+        "distributedTracing",
+        "unhealthy",
+        error.message,
+      );
+      this.logger.error("Failed to initialize distributed tracing:", error);
       throw error;
     }
   }
@@ -272,14 +286,14 @@ export class ProductionMonitoringSystem extends EventEmitter {
     try {
       this.metricsCollector = new CustomMetricsCollector(
         DEFAULT_METRICS_CONFIG,
-        this.distributedTracing!
+        this.distributedTracing!,
       );
-      
-      this.updateComponentHealth('customMetrics', 'healthy');
-      this.logger.debug('Custom metrics collector initialized');
+
+      this.updateComponentHealth("customMetrics", "healthy");
+      this.logger.debug("Custom metrics collector initialized");
     } catch (error) {
-      this.updateComponentHealth('customMetrics', 'unhealthy', error.message);
-      this.logger.error('Failed to initialize custom metrics:', error);
+      this.updateComponentHealth("customMetrics", "unhealthy", error.message);
+      this.logger.error("Failed to initialize custom metrics:", error);
       throw error;
     }
   }
@@ -290,12 +304,16 @@ export class ProductionMonitoringSystem extends EventEmitter {
   private async initializeSyntheticMonitoring(): Promise<void> {
     try {
       this.syntheticMonitor = new SyntheticMonitor(DEFAULT_MONITORING_CONFIG);
-      
-      this.updateComponentHealth('syntheticMonitoring', 'healthy');
-      this.logger.debug('Synthetic monitoring initialized');
+
+      this.updateComponentHealth("syntheticMonitoring", "healthy");
+      this.logger.debug("Synthetic monitoring initialized");
     } catch (error) {
-      this.updateComponentHealth('syntheticMonitoring', 'unhealthy', error.message);
-      this.logger.error('Failed to initialize synthetic monitoring:', error);
+      this.updateComponentHealth(
+        "syntheticMonitoring",
+        "unhealthy",
+        error.message,
+      );
+      this.logger.error("Failed to initialize synthetic monitoring:", error);
       throw error;
     }
   }
@@ -307,12 +325,16 @@ export class ProductionMonitoringSystem extends EventEmitter {
     try {
       this.rumMonitor = new RealUserMonitor(DEFAULT_RUM_CONFIG);
       await this.rumMonitor.initialize();
-      
-      this.updateComponentHealth('realUserMonitoring', 'healthy');
-      this.logger.debug('Real user monitoring initialized');
+
+      this.updateComponentHealth("realUserMonitoring", "healthy");
+      this.logger.debug("Real user monitoring initialized");
     } catch (error) {
-      this.updateComponentHealth('realUserMonitoring', 'unhealthy', error.message);
-      this.logger.error('Failed to initialize RUM:', error);
+      this.updateComponentHealth(
+        "realUserMonitoring",
+        "unhealthy",
+        error.message,
+      );
+      this.logger.error("Failed to initialize RUM:", error);
       throw error;
     }
   }
@@ -323,20 +345,22 @@ export class ProductionMonitoringSystem extends EventEmitter {
   private async initializeSLACompliance(): Promise<void> {
     try {
       if (!this.metricsCollector || !this.syntheticMonitor) {
-        throw new Error('SLA compliance requires metrics collector and synthetic monitor');
+        throw new Error(
+          "SLA compliance requires metrics collector and synthetic monitor",
+        );
       }
 
       this.slaMonitor = new SLAComplianceMonitor(
         DEFAULT_SLA_CONFIG,
         this.metricsCollector,
-        this.syntheticMonitor
+        this.syntheticMonitor,
       );
-      
-      this.updateComponentHealth('slaCompliance', 'healthy');
-      this.logger.debug('SLA compliance monitoring initialized');
+
+      this.updateComponentHealth("slaCompliance", "healthy");
+      this.logger.debug("SLA compliance monitoring initialized");
     } catch (error) {
-      this.updateComponentHealth('slaCompliance', 'unhealthy', error.message);
-      this.logger.error('Failed to initialize SLA compliance:', error);
+      this.updateComponentHealth("slaCompliance", "unhealthy", error.message);
+      this.logger.error("Failed to initialize SLA compliance:", error);
       throw error;
     }
   }
@@ -346,48 +370,56 @@ export class ProductionMonitoringSystem extends EventEmitter {
    */
   private async startSyntheticMonitoring(): Promise<void> {
     if (!this.syntheticMonitor) return;
-    
+
     try {
       await this.syntheticMonitor.start();
-      this.logger.debug('Synthetic monitoring started');
+      this.logger.debug("Synthetic monitoring started");
     } catch (error) {
-      this.updateComponentHealth('syntheticMonitoring', 'unhealthy', error.message);
+      this.updateComponentHealth(
+        "syntheticMonitoring",
+        "unhealthy",
+        error.message,
+      );
       throw error;
     }
   }
 
   private async startRealUserMonitoring(): Promise<void> {
     if (!this.rumMonitor) return;
-    
+
     try {
       // RUM is automatically started when initialized
-      this.logger.debug('Real user monitoring started');
+      this.logger.debug("Real user monitoring started");
     } catch (error) {
-      this.updateComponentHealth('realUserMonitoring', 'unhealthy', error.message);
+      this.updateComponentHealth(
+        "realUserMonitoring",
+        "unhealthy",
+        error.message,
+      );
       throw error;
     }
   }
 
   private async startCustomMetrics(): Promise<void> {
     if (!this.metricsCollector) return;
-    
+
     try {
       await this.metricsCollector.start();
-      this.logger.debug('Custom metrics collector started');
+      this.logger.debug("Custom metrics collector started");
     } catch (error) {
-      this.updateComponentHealth('customMetrics', 'unhealthy', error.message);
+      this.updateComponentHealth("customMetrics", "unhealthy", error.message);
       throw error;
     }
   }
 
   private async startSLACompliance(): Promise<void> {
     if (!this.slaMonitor) return;
-    
+
     try {
       await this.slaMonitor.start();
-      this.logger.debug('SLA compliance monitoring started');
+      this.logger.debug("SLA compliance monitoring started");
     } catch (error) {
-      this.updateComponentHealth('slaCompliance', 'unhealthy', error.message);
+      this.updateComponentHealth("slaCompliance", "unhealthy", error.message);
       throw error;
     }
   }
@@ -398,30 +430,34 @@ export class ProductionMonitoringSystem extends EventEmitter {
   private setupEventHandling(): void {
     // Synthetic monitoring events
     if (this.syntheticMonitor) {
-      this.syntheticMonitor.on('result', (result) => {
-        this.emit('synthetic_result', result);
-        
+      this.syntheticMonitor.on("result", (result) => {
+        this.emit("synthetic_result", result);
+
         // Forward to SLA monitor
-        if (this.slaMonitor && result.success !== undefined && result.responseTime) {
+        if (
+          this.slaMonitor &&
+          result.success !== undefined &&
+          result.responseTime
+        ) {
           this.slaMonitor.recordRequest(result.success, result.responseTime);
         }
       });
 
-      this.syntheticMonitor.on('critical', (alert) => {
-        this.emit('critical_alert', { source: 'synthetic', alert });
-        this.handleCriticalAlert('synthetic', alert);
+      this.syntheticMonitor.on("critical", (alert) => {
+        this.emit("critical_alert", { source: "synthetic", alert });
+        this.handleCriticalAlert("synthetic", alert);
       });
     }
 
     // RUM events
     if (this.rumMonitor) {
-      this.rumMonitor.on('error', (error) => {
-        this.emit('rum_error', error);
+      this.rumMonitor.on("error", (error) => {
+        this.emit("rum_error", error);
       });
 
-      this.rumMonitor.on('metrics', (metrics) => {
-        this.emit('rum_metrics', metrics);
-        
+      this.rumMonitor.on("metrics", (metrics) => {
+        this.emit("rum_metrics", metrics);
+
         // Forward performance metrics to SLA monitor
         if (this.slaMonitor && metrics.ttfb) {
           this.slaMonitor.recordRequest(true, metrics.ttfb);
@@ -431,29 +467,29 @@ export class ProductionMonitoringSystem extends EventEmitter {
 
     // Metrics collector events
     if (this.metricsCollector) {
-      this.metricsCollector.on('alert', (alert) => {
-        this.emit('metrics_alert', alert);
+      this.metricsCollector.on("alert", (alert) => {
+        this.emit("metrics_alert", alert);
         this.handleMetricsAlert(alert);
       });
 
-      this.metricsCollector.on('metric', (metric) => {
-        this.emit('metric_recorded', metric);
+      this.metricsCollector.on("metric", (metric) => {
+        this.emit("metric_recorded", metric);
       });
     }
 
     // SLA compliance events
     if (this.slaMonitor) {
-      this.slaMonitor.on('violation', (violation) => {
-        this.emit('sla_violation', violation);
+      this.slaMonitor.on("violation", (violation) => {
+        this.emit("sla_violation", violation);
         this.handleSLAViolation(violation);
       });
 
-      this.slaMonitor.on('report', (report) => {
-        this.emit('sla_report', report);
+      this.slaMonitor.on("report", (report) => {
+        this.emit("sla_report", report);
       });
 
-      this.slaMonitor.on('escalation', (escalation) => {
-        this.emit('sla_escalation', escalation);
+      this.slaMonitor.on("escalation", (escalation) => {
+        this.emit("sla_escalation", escalation);
         this.handleSLAEscalation(escalation);
       });
     }
@@ -467,10 +503,10 @@ export class ProductionMonitoringSystem extends EventEmitter {
 
     if (this.config.alerting.enabled) {
       await this.sendAlert({
-        severity: 'critical',
+        severity: "critical",
         source,
         message: `Critical alert: ${alert.message || JSON.stringify(alert)}`,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
   }
@@ -479,14 +515,14 @@ export class ProductionMonitoringSystem extends EventEmitter {
    * Handle metrics alerts
    */
   private async handleMetricsAlert(alert: any): Promise<void> {
-    this.logger.warn('Metrics alert:', alert);
+    this.logger.warn("Metrics alert:", alert);
 
     if (this.config.alerting.enabled) {
       await this.sendAlert({
-        severity: alert.severity || 'medium',
-        source: 'metrics',
+        severity: alert.severity || "medium",
+        source: "metrics",
         message: `Metrics alert: ${alert.metric} ${alert.condition} ${alert.threshold}`,
-        timestamp: new Date(alert.timestamp)
+        timestamp: new Date(alert.timestamp),
       });
     }
   }
@@ -495,14 +531,14 @@ export class ProductionMonitoringSystem extends EventEmitter {
    * Handle SLA violations
    */
   private async handleSLAViolation(violation: any): Promise<void> {
-    this.logger.warn('SLA violation:', violation);
+    this.logger.warn("SLA violation:", violation);
 
     if (this.config.alerting.enabled) {
       await this.sendAlert({
-        severity: violation.impact === 'critical' ? 'critical' : 'high',
-        source: 'sla',
+        severity: violation.impact === "critical" ? "critical" : "high",
+        source: "sla",
         message: `SLA violation: ${violation.type} - ${violation.actual} vs ${violation.target}`,
-        timestamp: new Date(violation.timestamp)
+        timestamp: new Date(violation.timestamp),
       });
     }
   }
@@ -511,14 +547,14 @@ export class ProductionMonitoringSystem extends EventEmitter {
    * Handle SLA escalations
    */
   private async handleSLAEscalation(escalation: any): Promise<void> {
-    this.logger.error('SLA escalation:', escalation);
+    this.logger.error("SLA escalation:", escalation);
 
     if (this.config.alerting.enabled) {
       await this.sendAlert({
-        severity: 'critical',
-        source: 'sla_escalation',
+        severity: "critical",
+        source: "sla_escalation",
         message: `SLA escalation level ${escalation.level}: ${escalation.violation.type}`,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
   }
@@ -532,8 +568,8 @@ export class ProductionMonitoringSystem extends EventEmitter {
     message: string;
     timestamp: Date;
   }): Promise<void> {
-    const applicableChannels = this.config.alerting.channels.filter(channel =>
-      channel.severity.includes(alert.severity as any)
+    const applicableChannels = this.config.alerting.channels.filter((channel) =>
+      channel.severity.includes(alert.severity as any),
     );
 
     for (const channel of applicableChannels) {
@@ -548,18 +584,21 @@ export class ProductionMonitoringSystem extends EventEmitter {
   /**
    * Send alert to specific channel
    */
-  private async sendToChannel(channel: AlertingChannel, alert: any): Promise<void> {
+  private async sendToChannel(
+    channel: AlertingChannel,
+    alert: any,
+  ): Promise<void> {
     switch (channel.type) {
-      case 'email':
+      case "email":
         await this.sendEmailAlert(channel.config, alert);
         break;
-      case 'slack':
+      case "slack":
         await this.sendSlackAlert(channel.config, alert);
         break;
-      case 'webhook':
+      case "webhook":
         await this.sendWebhookAlert(channel.config, alert);
         break;
-      case 'pagerduty':
+      case "pagerduty":
         await this.sendPagerDutyAlert(channel.config, alert);
         break;
     }
@@ -567,22 +606,22 @@ export class ProductionMonitoringSystem extends EventEmitter {
 
   private async sendEmailAlert(config: any, alert: any): Promise<void> {
     // Implementation for email alerts
-    this.logger.debug('Sending email alert:', alert.message);
+    this.logger.debug("Sending email alert:", alert.message);
   }
 
   private async sendSlackAlert(config: any, alert: any): Promise<void> {
     // Implementation for Slack alerts
-    this.logger.debug('Sending Slack alert:', alert.message);
+    this.logger.debug("Sending Slack alert:", alert.message);
   }
 
   private async sendWebhookAlert(config: any, alert: any): Promise<void> {
     // Implementation for webhook alerts
-    this.logger.debug('Sending webhook alert:', alert.message);
+    this.logger.debug("Sending webhook alert:", alert.message);
   }
 
   private async sendPagerDutyAlert(config: any, alert: any): Promise<void> {
     // Implementation for PagerDuty alerts
-    this.logger.debug('Sending PagerDuty alert:', alert.message);
+    this.logger.debug("Sending PagerDuty alert:", alert.message);
   }
 
   /**
@@ -602,14 +641,14 @@ export class ProductionMonitoringSystem extends EventEmitter {
    * Update component health
    */
   private updateComponentHealth(
-    component: keyof MonitoringHealth['components'],
-    status: ComponentHealth['status'],
-    error?: string
+    component: keyof MonitoringHealth["components"],
+    status: ComponentHealth["status"],
+    error?: string,
   ): void {
     const uptime = Date.now() - this.startTime.getTime();
     const errorCount = this.componentErrors.get(component) || 0;
 
-    if (status === 'unhealthy' && error) {
+    if (status === "unhealthy" && error) {
       this.componentErrors.set(component, errorCount + 1);
     }
 
@@ -618,7 +657,7 @@ export class ProductionMonitoringSystem extends EventEmitter {
       uptime: uptime / 1000, // Convert to seconds
       errors: errorCount,
       lastError: error,
-      metrics: this.getComponentMetrics(component)
+      metrics: this.getComponentMetrics(component),
     };
 
     this.healthStatus.lastUpdated = new Date();
@@ -629,20 +668,26 @@ export class ProductionMonitoringSystem extends EventEmitter {
    */
   private updateHealthStatus(): void {
     const components = Object.values(this.healthStatus.components);
-    const unhealthyComponents = components.filter(c => c.status === 'unhealthy').length;
-    const degradedComponents = components.filter(c => c.status === 'degraded').length;
-    const enabledComponents = components.filter(c => c.status !== 'disabled').length;
+    const unhealthyComponents = components.filter(
+      (c) => c.status === "unhealthy",
+    ).length;
+    const degradedComponents = components.filter(
+      (c) => c.status === "degraded",
+    ).length;
+    const enabledComponents = components.filter(
+      (c) => c.status !== "disabled",
+    ).length;
 
     if (unhealthyComponents > 0) {
-      this.healthStatus.overall = 'unhealthy';
+      this.healthStatus.overall = "unhealthy";
     } else if (degradedComponents > 0 || enabledComponents === 0) {
-      this.healthStatus.overall = 'degraded';
+      this.healthStatus.overall = "degraded";
     } else {
-      this.healthStatus.overall = 'healthy';
+      this.healthStatus.overall = "healthy";
     }
 
     this.healthStatus.lastUpdated = new Date();
-    this.emit('health_updated', this.healthStatus);
+    this.emit("health_updated", this.healthStatus);
   }
 
   /**
@@ -650,15 +695,15 @@ export class ProductionMonitoringSystem extends EventEmitter {
    */
   private getComponentMetrics(component: string): Record<string, any> {
     switch (component) {
-      case 'syntheticMonitoring':
+      case "syntheticMonitoring":
         return this.syntheticMonitor?.getStatistics() || {};
-      case 'realUserMonitoring':
+      case "realUserMonitoring":
         return this.rumMonitor?.getSessionStats() || {};
-      case 'distributedTracing':
+      case "distributedTracing":
         return this.distributedTracing?.getHealthStatus() || {};
-      case 'customMetrics':
+      case "customMetrics":
         return this.metricsCollector?.getMetricsSummary() || {};
-      case 'slaCompliance':
+      case "slaCompliance":
         return this.slaMonitor?.getCurrentSLAStatus() || {};
       default:
         return {};
@@ -686,15 +731,15 @@ export class ProductionMonitoringSystem extends EventEmitter {
         uptime: (Date.now() - this.startTime.getTime()) / 1000,
         startTime: this.startTime,
         isRunning: this.isRunning,
-        isInitialized: this.isInitialized
+        isInitialized: this.isInitialized,
       },
       components: {
         syntheticMonitoring: this.syntheticMonitor?.getStatistics(),
         realUserMonitoring: this.rumMonitor?.getSessionStats(),
         distributedTracing: this.distributedTracing?.getHealthStatus(),
         customMetrics: this.metricsCollector?.getMetricsSummary(),
-        slaCompliance: this.slaMonitor?.getCurrentSLAStatus()
-      }
+        slaCompliance: this.slaMonitor?.getCurrentSLAStatus(),
+      },
     };
   }
 
@@ -708,12 +753,12 @@ export class ProductionMonitoringSystem extends EventEmitter {
       metrics: {
         synthetic: this.syntheticMonitor?.getStatistics(),
         rum: this.rumMonitor?.getSessionStats(),
-        sla: this.slaMonitor?.getCurrentSLAStatus()
+        sla: this.slaMonitor?.getCurrentSLAStatus(),
       },
       alerts: {
         active: 0, // Would track active alerts
-        recent: [] // Would track recent alerts
-      }
+        recent: [], // Would track recent alerts
+      },
     };
   }
 
@@ -724,26 +769,26 @@ export class ProductionMonitoringSystem extends EventEmitter {
     type: string;
     source: string;
     data: any;
-    severity?: 'low' | 'medium' | 'high' | 'critical';
+    severity?: "low" | "medium" | "high" | "critical";
   }): void {
     this.logger.info(`Event recorded: ${event.type} from ${event.source}`);
-    this.emit('custom_event', event);
+    this.emit("custom_event", event);
 
     // Forward to appropriate components
     if (this.metricsCollector) {
-      this.metricsCollector.recordMetric(
-        `event_${event.type}`,
-        1,
-        'counter',
-        { source: event.source, severity: event.severity || 'medium' }
-      );
+      this.metricsCollector.recordMetric(`event_${event.type}`, 1, "counter", {
+        source: event.source,
+        severity: event.severity || "medium",
+      });
     }
   }
 
   /**
    * Generate monitoring report
    */
-  public async generateReport(type: 'summary' | 'detailed' = 'summary'): Promise<any> {
+  public async generateReport(
+    type: "summary" | "detailed" = "summary",
+  ): Promise<any> {
     const systemStatus = this.getSystemStatus();
     const dashboardData = this.getDashboardData();
 
@@ -752,19 +797,19 @@ export class ProductionMonitoringSystem extends EventEmitter {
       type,
       system: systemStatus,
       dashboard: dashboardData,
-      recommendations: this.generateRecommendations(systemStatus)
+      recommendations: this.generateRecommendations(systemStatus),
     };
 
-    if (type === 'detailed') {
+    if (type === "detailed") {
       // Add detailed component data
       report.dashboard.detailed = {
         tracing: this.distributedTracing?.getHealthStatus(),
         metrics: this.metricsCollector?.getMetricsSummary(),
-        sla: await this.slaMonitor?.generateReport('daily').catch(() => null)
+        sla: await this.slaMonitor?.generateReport("daily").catch(() => null),
       };
     }
 
-    this.emit('report_generated', report);
+    this.emit("report_generated", report);
     return report;
   }
 
@@ -774,20 +819,26 @@ export class ProductionMonitoringSystem extends EventEmitter {
   private generateRecommendations(systemStatus: any): string[] {
     const recommendations: string[] = [];
 
-    if (systemStatus.health.overall !== 'healthy') {
-      recommendations.push('Review unhealthy monitoring components and address issues');
+    if (systemStatus.health.overall !== "healthy") {
+      recommendations.push(
+        "Review unhealthy monitoring components and address issues",
+      );
     }
 
     const unhealthyComponents = Object.entries(systemStatus.health.components)
-      .filter(([_, component]: [string, any]) => component.status === 'unhealthy')
+      .filter(
+        ([_, component]: [string, any]) => component.status === "unhealthy",
+      )
       .map(([name, _]) => name);
 
     if (unhealthyComponents.length > 0) {
-      recommendations.push(`Address issues with: ${unhealthyComponents.join(', ')}`);
+      recommendations.push(
+        `Address issues with: ${unhealthyComponents.join(", ")}`,
+      );
     }
 
     if (systemStatus.runtime.uptime < 3600) {
-      recommendations.push('System recently restarted - monitor for stability');
+      recommendations.push("System recently restarted - monitor for stability");
     }
 
     return recommendations;
@@ -796,31 +847,31 @@ export class ProductionMonitoringSystem extends EventEmitter {
 
 // Default configuration
 export const DEFAULT_MONITORING_SYSTEM_CONFIG: MonitoringSystemConfig = {
-  enabled: process.env.MONITORING_ENABLED !== 'false',
+  enabled: process.env.MONITORING_ENABLED !== "false",
   components: {
-    syntheticMonitoring: process.env.SYNTHETIC_MONITORING_ENABLED !== 'false',
-    realUserMonitoring: process.env.RUM_ENABLED !== 'false',
-    distributedTracing: process.env.TRACING_ENABLED !== 'false',
-    customMetrics: process.env.METRICS_ENABLED !== 'false',
-    slaCompliance: process.env.SLA_MONITORING_ENABLED !== 'false'
+    syntheticMonitoring: process.env.SYNTHETIC_MONITORING_ENABLED !== "false",
+    realUserMonitoring: process.env.RUM_ENABLED !== "false",
+    distributedTracing: process.env.TRACING_ENABLED !== "false",
+    customMetrics: process.env.METRICS_ENABLED !== "false",
+    slaCompliance: process.env.SLA_MONITORING_ENABLED !== "false",
   },
   alerting: {
-    enabled: process.env.ALERTING_ENABLED !== 'false',
+    enabled: process.env.ALERTING_ENABLED !== "false",
     channels: [
       {
-        type: 'webhook',
+        type: "webhook",
         config: {
-          url: process.env.ALERT_WEBHOOK_URL || ''
+          url: process.env.ALERT_WEBHOOK_URL || "",
         },
-        severity: ['high', 'critical']
-      }
-    ]
+        severity: ["high", "critical"],
+      },
+    ],
   },
   reporting: {
-    enabled: process.env.REPORTING_ENABLED !== 'false',
+    enabled: process.env.REPORTING_ENABLED !== "false",
     dashboard: true,
-    exportPath: process.env.REPORTS_PATH || './reports'
-  }
+    exportPath: process.env.REPORTS_PATH || "./reports",
+  },
 };
 
 // Singleton instance
@@ -829,10 +880,12 @@ let monitoringSystemInstance: ProductionMonitoringSystem | null = null;
 /**
  * Get or create the monitoring system instance
  */
-export function getMonitoringSystem(config?: MonitoringSystemConfig): ProductionMonitoringSystem {
+export function getMonitoringSystem(
+  config?: MonitoringSystemConfig,
+): ProductionMonitoringSystem {
   if (!monitoringSystemInstance) {
     monitoringSystemInstance = new ProductionMonitoringSystem(
-      config || DEFAULT_MONITORING_SYSTEM_CONFIG
+      config || DEFAULT_MONITORING_SYSTEM_CONFIG,
     );
   }
   return monitoringSystemInstance;
@@ -842,7 +895,7 @@ export function getMonitoringSystem(config?: MonitoringSystemConfig): Production
  * Initialize and start the complete monitoring system
  */
 export async function initializeProductionMonitoring(
-  config?: MonitoringSystemConfig
+  config?: MonitoringSystemConfig,
 ): Promise<ProductionMonitoringSystem> {
   const system = getMonitoringSystem(config);
   await system.initialize();
@@ -851,9 +904,9 @@ export async function initializeProductionMonitoring(
 }
 
 // Export types
-export type { 
-  MonitoringSystemConfig, 
-  MonitoringHealth, 
-  ComponentHealth, 
-  AlertingChannel 
+export type {
+  MonitoringSystemConfig,
+  MonitoringHealth,
+  ComponentHealth,
+  AlertingChannel,
 };
