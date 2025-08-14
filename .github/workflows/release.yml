@@ -1,179 +1,208 @@
-name: Automated Release
+name: Release Pipeline
 
 on:
   push:
-    branches: [main]
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE.md'
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
-      release_type:
-        description: 'Type of release'
+      version:
+        description: 'Release version (e.g., v1.3.0)'
         required: true
-        default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-      skip_tests:
-        description: 'Skip tests (not recommended)'
-        required: false
-        default: false
-        type: boolean
+        type: string
 
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
+env:
+  NODE_VERSION: '18.x'
+  REGISTRY_URL: 'https://registry.npmjs.org'
 
 jobs:
-  check-version:
+  validate:
+    name: Validate Release
     runs-on: ubuntu-latest
     outputs:
-      version-changed: ${{ steps.version-check.outputs.changed }}
-      new-version: ${{ steps.version-check.outputs.version }}
-      should-release: ${{ steps.release-check.outputs.should-release }}
-    
+      version: ${{ steps.extract.outputs.version }}
+      tag: ${{ steps.extract.outputs.tag }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Check if this is a release commit
-      id: release-check
-      run: |
-        # Skip release if commit message contains [skip-release] or [no-release]
-        if git log -1 --pretty=%B | grep -E '\[(skip-release|no-release)\]'; then
-          echo "should-release=false" >> $GITHUB_OUTPUT
-          echo "Release skipped due to commit message"
-        elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          echo "should-release=true" >> $GITHUB_OUTPUT
-          echo "Manual release triggered"
-        else
-          echo "should-release=true" >> $GITHUB_OUTPUT
-          echo "Automatic release check passed"
-        fi
-    
-    - name: Check if version changed or manual release
-      id: version-check
-      run: |
-        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          # For manual releases, calculate new version
-          CURRENT_VERSION=$(jq -r '.version' package.json)
-          RELEASE_TYPE="${{ github.event.inputs.release_type }}"
-          
-          # Use npm version to calculate new version
-          npm version $RELEASE_TYPE --no-git-tag-version --dry-run > /tmp/new_version.txt
-          NEW_VERSION=$(cat /tmp/new_version.txt | sed 's/v//')
-          
-          echo "changed=true" >> $GITHUB_OUTPUT
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "Manual release: $CURRENT_VERSION -> $NEW_VERSION ($RELEASE_TYPE)"
-        else
-          # For automatic releases, check if version changed
-          CURRENT_VERSION=$(jq -r '.version' package.json)
-          PREVIOUS_VERSION=$(git show HEAD~1:package.json | jq -r '.version' 2>/dev/null || echo "$CURRENT_VERSION")
-          
-          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-            echo "Version changed from $PREVIOUS_VERSION to $CURRENT_VERSION"
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Extract version
+        id: extract
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
           else
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No version change detected"
+            VERSION="${GITHUB_REF#refs/tags/}"
           fi
-        fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Releasing version: ${VERSION}"
+
+      - name: Validate package.json version
+        run: |
+          PACKAGE_VERSION="v$(node -p "require('./package.json').version")"
+          if [ "$PACKAGE_VERSION" != "${{ steps.extract.outputs.version }}" ]; then
+            echo "Version mismatch: package.json has $PACKAGE_VERSION, tag is ${{ steps.extract.outputs.version }}"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run type checking
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Build project
+        run: npm run build
 
   create-release:
-    needs: check-version
-    if: needs.check-version.outputs.version-changed == 'true' && needs.check-version.outputs.should-release == 'true'
+    name: Create GitHub Release
     runs-on: ubuntu-latest
-    
+    needs: validate
     permissions:
       contents: write
       packages: write
-      actions: read
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        registry-url: 'https://registry.npmjs.org'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-    
-    - name: Configure Git
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Update version for manual release
-      if: github.event_name == 'workflow_dispatch'
-      run: |
-        npm version ${{ github.event.inputs.release_type }} --no-git-tag-version
-        git add package.json package-lock.json
-        git commit -m "chore: bump version to v${{ needs.check-version.outputs.new-version }} [skip-release]"
-    
-    - name: Run tests
-      if: github.event.inputs.skip_tests != 'true'
-      run: npm test
-      env:
-        NODE_OPTIONS: '--experimental-vm-modules'
-    
-    - name: Build project
-      run: npm run build
-    
-    - name: Generate changelog
-      id: changelog
-      run: |
-        echo "## Changes in v${{ needs.check-version.outputs.new-version }}" > changelog.md
-        echo "" >> changelog.md
-        
-        # Get commits since last tag
-        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-        if [ -n "$LAST_TAG" ]; then
-          git log $LAST_TAG..HEAD --pretty=format:"- %s" >> changelog.md
-        else
-          git log --pretty=format:"- %s" >> changelog.md
-        fi
-        
-        echo "" >> changelog.md
-        echo "**Full Changelog**: https://github.com/clduab11/gemini-flow/compare/$LAST_TAG...v${{ needs.check-version.outputs.new-version }}" >> changelog.md
-    
-    - name: Create Git tag
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git tag -a "v${{ needs.check-version.outputs.new-version }}" -m "Release v${{ needs.check-version.outputs.new-version }}"
-        git push origin "v${{ needs.check-version.outputs.new-version }}"
-    
-    - name: Create GitHub Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ needs.check-version.outputs.new-version }}
-        release_name: Release v${{ needs.check-version.outputs.new-version }}
-        body_path: changelog.md
-        draft: false
-        prerelease: false
-    
-    - name: Publish to NPM
-      run: npm publish --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## What's Changed" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          
+          # Get commits since last tag
+          LAST_TAG=$(git tag --sort=-version:refname | grep -v "${{ needs.validate.outputs.tag }}" | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            LAST_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          
+          echo "### 🚀 Features" >> RELEASE_NOTES.md
+          git log --pretty=format:"- %s (%h)" ${LAST_TAG}..HEAD --grep="feat\|feature\|✨" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          
+          echo "### 🐛 Bug Fixes" >> RELEASE_NOTES.md
+          git log --pretty=format:"- %s (%h)" ${LAST_TAG}..HEAD --grep="fix\|🐛" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          
+          echo "### 📖 Documentation" >> RELEASE_NOTES.md
+          git log --pretty=format:"- %s (%h)" ${LAST_TAG}..HEAD --grep="docs\|📝\|📖" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          
+          echo "### 🔧 Maintenance" >> RELEASE_NOTES.md
+          git log --pretty=format:"- %s (%h)" ${LAST_TAG}..HEAD --grep="chore\|refactor\|🔧\|♻️" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          
+          echo "### 📦 Dependencies" >> RELEASE_NOTES.md
+          git log --pretty=format:"- %s (%h)" ${LAST_TAG}..HEAD --grep="deps\|dependencies\|📦" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+
+      - name: Create release assets
+        run: |
+          mkdir -p release-assets
+          
+          # Create distribution bundle
+          tar -czf release-assets/gemini-flow-${{ needs.validate.outputs.version }}.tar.gz \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=tests \
+            --exclude=coverage \
+            --exclude=.nyc_output \
+            .
+          
+          # Create documentation bundle
+          if [ -d "docs" ]; then
+            tar -czf release-assets/gemini-flow-docs-${{ needs.validate.outputs.version }}.tar.gz docs/
+          fi
+          
+          # Generate checksums
+          cd release-assets
+          sha256sum *.tar.gz > checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate.outputs.tag }}
+          name: Release ${{ needs.validate.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          files: |
+            release-assets/*.tar.gz
+            release-assets/checksums.txt
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-npm:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: [validate, create-release]
+    if: success()
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: ${{ env.REGISTRY_URL }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  notify:
+    name: Post-release Notifications
+    runs-on: ubuntu-latest
+    needs: [validate, create-release, publish-npm]
+    if: always()
+    steps:
+      - name: Release Summary
+        run: |
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitHub Release**: ${{ needs.create-release.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **npm Publish**: ${{ needs.publish-npm.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release URL**: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
