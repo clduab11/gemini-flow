@@ -867,46 +867,61 @@ export class AuthenticationManager extends EventEmitter {
   /**
    * Check Google AI Advanced subscription
    */
-  private async checkGoogleAIAdvanced(email: string): Promise<boolean> {
-    try {
-      // This would integrate with Google AI subscription API
-      // For now, return false as placeholder
-      // TODO: Implement actual Google AI Advanced API integration
-      return false;
-    } catch (error) {
-      this.logger.debug('Google AI Advanced check failed', { email, error });
-      return false;
-    }
+  private async checkGoogleAIAdvanced(_email: string): Promise<boolean> {
+    // This would integrate with Google AI subscription API
+    // For now, return false as placeholder
+    // TODO: Implement actual Google AI Advanced API integration
+    
+    // When implementing, wrap the actual API call in try-catch:
+    // try {
+    //   const result = await googleAIAPI.checkSubscription(email);
+    //   return result.hasAdvanced;
+    // } catch (error) {
+    //   this.logger.debug('Google AI Advanced check failed', { email, error });
+    //   return false;
+    // }
+    
+    return false;
   }
 
   /**
    * Check enterprise billing patterns
    */
-  private async checkEnterpriseBilling(email: string, _domain: string): Promise<boolean> {
-    try {
-      // Check for enterprise billing indicators
-      // This would integrate with Google Cloud Billing API
-      // TODO: Implement actual billing API integration
-      return false;
-    } catch (error) {
-      this.logger.debug('Enterprise billing check failed', { email, error });
-      return false;
-    }
+  private async checkEnterpriseBilling(_email: string, _domain: string): Promise<boolean> {
+    // Check for enterprise billing indicators
+    // This would integrate with Google Cloud Billing API
+    // TODO: Implement actual billing API integration
+    
+    // When implementing, wrap the actual API call in try-catch:
+    // try {
+    //   const result = await billingAPI.checkEnterprise(email, _domain);
+    //   return result.isEnterprise;
+    // } catch (error) {
+    //   this.logger.debug('Enterprise billing check failed', { email, error });
+    //   return false;
+    // }
+    
+    return false;
   }
 
   /**
    * Check for custom integrations
    */
-  private async checkCustomIntegrations(email: string): Promise<boolean> {
-    try {
-      // Check for signs of custom API integrations
-      // This could check API key usage, custom endpoints, etc.
-      // TODO: Implement custom integration detection
-      return false;
-    } catch (error) {
-      this.logger.debug('Custom integrations check failed', { email, error });
-      return false;
-    }
+  private async checkCustomIntegrations(_email: string): Promise<boolean> {
+    // Check for signs of custom API integrations
+    // This could check API key usage, custom endpoints, etc.
+    // TODO: Implement custom integration detection
+    
+    // When implementing, wrap the actual API call in try-catch:
+    // try {
+    //   const result = await customAPI.checkIntegrations(email);
+    //   return result.hasCustomIntegrations;
+    // } catch (error) {
+    //   this.logger.debug('Custom integrations check failed', { email, error });
+    //   return false;
+    // }
+    
+    return false;
   }
 
   /**
@@ -1046,16 +1061,21 @@ export class AuthenticationManager extends EventEmitter {
   /**
    * Check for payment method (enhanced from existing stub)
    */
-  private async checkPaymentMethod(email: string): Promise<boolean> {
-    try {
-      // This would integrate with payment processors (Stripe, etc.)
-      // Check if user has valid payment method on file
-      // TODO: Implement actual payment method verification
-      return false;
-    } catch (error) {
-      this.logger.debug('Payment method check failed', { email, error });
-      return false;
-    }
+  private async checkPaymentMethod(_email: string): Promise<boolean> {
+    // This would integrate with payment processors (Stripe, etc.)
+    // Check if user has valid payment method on file
+    // TODO: Implement actual payment method verification
+    
+    // When implementing, wrap the actual API call in try-catch:
+    // try {
+    //   const result = await paymentAPI.checkPaymentMethod(email);
+    //   return result.hasValidPayment;
+    // } catch (error) {
+    //   this.logger.debug('Payment method check failed', { email, error });
+    //   return false;
+    // }
+    
+    return false;
   }
 
   /**
@@ -1337,28 +1357,38 @@ export class AuthenticationManager extends EventEmitter {
    * Get current user context for security operations
    */
   async getCurrentUserContext(): Promise<{ userId: string; tier: string; permissions: string[] } | null> {
-    try {
-      // This would typically get from current session/token
-      // For now, return null - should be implemented based on session management
-      return null;
-    } catch (error) {
-      this.logger.error('Get current user context failed', error);
-      return null;
-    }
+    // This would typically get from current session/token
+    // For now, return null - should be implemented based on session management
+    
+    // When implementing, wrap the actual session logic in try-catch:
+    // try {
+    //   const session = await this.getCurrentSession();
+    //   return session ? session.userContext : null;
+    // } catch (error) {
+    //   this.logger.error('Get current user context failed', error);
+    //   return null;
+    // }
+    
+    return null;
   }
 
   /**
    * Get current user ID from active session
    */
   async getCurrentUserId(): Promise<string | null> {
-    try {
-      // This would typically extract from JWT token or session
-      // For now, return null - should be implemented based on session management
-      return null;
-    } catch (error) {
-      this.logger.error('Get current user ID failed', error);
-      return null;
-    }
+    // This would typically extract from JWT token or session
+    // For now, return null - should be implemented based on session management
+    
+    // When implementing, wrap the actual token logic in try-catch:
+    // try {
+    //   const token = await this.getCurrentToken();
+    //   return token ? token.userId : null;
+    // } catch (error) {
+    //   this.logger.error('Get current user ID failed', error);
+    //   return null;
+    // }
+    
+    return null;
   }
 
   /**

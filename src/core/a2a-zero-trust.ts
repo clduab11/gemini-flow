@@ -899,7 +899,7 @@ export class A2AZeroTrust extends EventEmitter {
   }
 
   private async performContinuousTrustUpdates(): Promise<void> {
-    for (const [agentId, trustScore] of this.trustScores) {
+    for (const [agentId] of this.trustScores) {
       // Perform behavioral analysis
       const behaviorUpdate = await this.behaviorAnalyzer.analyzeAgent(agentId);
       

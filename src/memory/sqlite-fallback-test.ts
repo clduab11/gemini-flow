@@ -5,7 +5,7 @@
  * different SQLite implementations
  */
 
-import { SQLiteMemoryManager } from './sqlite-manager.js';
+import { SQLiteMemoryManager, NamespaceUtils } from './sqlite-manager.js';
 import { detectSQLiteImplementations, SQLiteImplementation } from './sqlite-adapter.js';
 import { Logger } from '../utils/logger.js';
 
@@ -78,29 +78,55 @@ export async function testSingleImplementation(implementation: SQLiteImplementat
 }
 
 /**
- * Test basic memory operations
+ * Test basic memory operations including namespace functionality
  */
 async function testBasicOperations(manager: SQLiteMemoryManager): Promise<void> {
-  // Test store and retrieve
+  // Test hierarchical namespace store and retrieve
   await manager.store({
     key: 'test-key',
     value: { message: 'Hello from SQLite fallback!' },
-    namespace: 'test',
+    namespace: 'test/basic/operations',
     metadata: { version: '1.0' },
     ttl: 3600 // 1 hour
   });
   
-  const retrieved = await manager.retrieve('test-key', 'test');
+  const retrieved = await manager.retrieve('test-key', 'test/basic/operations');
   
   if (!retrieved || retrieved.value.message !== 'Hello from SQLite fallback!') {
     throw new Error('Store/retrieve test failed');
   }
   
-  // Test search
-  const searchResults = await manager.search('test-key', 'test');
+  // Test namespace validation
+  try {
+    await manager.store({
+      key: 'invalid-test',
+      value: { test: true },
+      namespace: 'invalid namespace with spaces!' // Should fail
+    });
+    throw new Error('Namespace validation should have failed');
+  } catch (error) {
+    if (!error.message.includes('Invalid namespace format')) {
+      throw new Error('Unexpected validation error');
+    }
+  }
+  
+  // Test wildcard search
+  const searchResults = await manager.search('test-key', 'test/*');
   
   if (searchResults.length === 0) {
-    throw new Error('Search test failed');
+    throw new Error('Wildcard search test failed');
+  }
+  
+  // Test namespace operations
+  const namespaceInfo = await manager.getNamespaceInfo('test/*');
+  if (namespaceInfo.length === 0) {
+    throw new Error('Namespace info test failed');
+  }
+  
+  // Test listing entries in namespace
+  const entries = await manager.list('test/basic/*');
+  if (entries.length === 0) {
+    throw new Error('Namespace list test failed');
   }
   
   // Test metrics
@@ -112,7 +138,56 @@ async function testBasicOperations(manager: SQLiteMemoryManager): Promise<void> 
     throw new Error('Metrics test failed');
   }
   
-  logger.debug('Basic operations test passed');
+  // Test namespace metrics
+  const nsMetrics = await manager.getNamespaceMetrics('test/*');
+  if (nsMetrics.length === 0) {
+    throw new Error('Namespace metrics test failed');
+  }
+  
+  logger.debug('Basic operations and namespace tests passed');
+}
+
+/**
+ * Test namespace utilities
+ */
+async function testNamespaceUtils(): Promise<void> {
+  // Test namespace validation
+  if (!NamespaceUtils.validateNamespace('valid/namespace/path')) {
+    throw new Error('Valid namespace validation failed');
+  }
+  
+  if (NamespaceUtils.validateNamespace('invalid namespace with spaces')) {
+    throw new Error('Invalid namespace validation should have failed');
+  }
+  
+  // Test namespace normalization
+  const normalized = NamespaceUtils.normalizeNamespace('//multiple///slashes//');
+  if (normalized !== 'multiple/slashes') {
+    throw new Error('Namespace normalization failed');
+  }
+  
+  // Test parent namespace
+  const parent = NamespaceUtils.getParentNamespace('app/module/feature');
+  if (parent !== 'app/module') {
+    throw new Error('Parent namespace test failed');
+  }
+  
+  // Test namespace depth
+  const depth = NamespaceUtils.getNamespaceDepth('app/module/feature');
+  if (depth !== 3) {
+    throw new Error('Namespace depth test failed');
+  }
+  
+  // Test pattern matching
+  if (!NamespaceUtils.matchesPattern('app/module/feature', 'app/*/feature')) {
+    throw new Error('Pattern matching test failed');
+  }
+  
+  if (!NamespaceUtils.matchesPattern('app/very/deep/structure', 'app/**')) {
+    throw new Error('Deep pattern matching test failed');
+  }
+  
+  logger.debug('Namespace utilities test passed');
 }
 
 /**
@@ -132,7 +207,10 @@ async function testAllTables(manager: SQLiteMemoryManager): Promise<void> {
     throw new Error('Implementation info test failed');
   }
   
-  logger.debug('All tables test passed');
+  // Test namespace utilities
+  await testNamespaceUtils();
+  
+  logger.debug('All tables and namespace utilities test passed');
 }
 
 /**

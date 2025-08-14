@@ -38,14 +38,21 @@ async function testSQLiteFallback() {
     // Wait for async initialization
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Test basic memory operations
+    // Test basic memory operations with hierarchical namespaces
     await memoryManager.store({
       key: 'test-fallback',
       value: { message: 'SQLite fallback working!', timestamp: Date.now() },
-      namespace: 'test'
+      namespace: 'test/basic/functionality'
     });
     
-    const retrieved = await memoryManager.retrieve('test-fallback', 'test');
+    // Store additional data in different namespace levels
+    await memoryManager.store({
+      key: 'config-test',
+      value: { config: 'namespace hierarchies', level: 'advanced' },
+      namespace: 'test/config'
+    });
+    
+    const retrieved = await memoryManager.retrieve('test-fallback', 'test/basic/functionality');
     
     if (retrieved && retrieved.value.message === 'SQLite fallback working!') {
       console.log('✅ Memory operations successful');
@@ -54,9 +61,13 @@ async function testSQLiteFallback() {
       console.log('❌ Memory operations failed\n');
     }
     
-    // Test search functionality
-    const searchResults = await memoryManager.search('fallback', 'test');
-    console.log(`✅ Search found ${searchResults.length} results\n`);
+    // Test wildcard search functionality
+    const searchResults = await memoryManager.search('*', 'test/*');
+    console.log(`✅ Wildcard search found ${searchResults.length} results\n`);
+    
+    // Test namespace info
+    const namespaceInfo = await memoryManager.getNamespaceInfo('test/*');
+    console.log(`✅ Found ${namespaceInfo.length} namespaces in test hierarchy\n`);
     
     // Clean up
     memoryManager.close();

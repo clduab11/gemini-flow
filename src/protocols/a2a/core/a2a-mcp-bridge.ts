@@ -20,6 +20,7 @@ import {
   MCPTool
 } from '../../../types/mcp.js';
 import { Logger } from '../../../utils/logger.js';
+import { TopologyType } from '../../protocol-activator.js';
 
 /**
  * Bridge metrics
@@ -54,6 +55,7 @@ export class A2AMCPBridge extends EventEmitter {
   private reverseMappings: Map<string, MCPToA2AMapping> = new Map();
   private transformationCache: Map<string, CacheEntry> = new Map();
   private isInitialized: boolean = false;
+  private topology?: TopologyType;
 
   // Metrics tracking
   private metrics: {
@@ -83,9 +85,10 @@ export class A2AMCPBridge extends EventEmitter {
   private cacheTTL: number = 300000; // 5 minutes
   private maxCacheSize: number = 1000;
 
-  constructor() {
+  constructor(options?: { topology: TopologyType }) {
     super();
     this.logger = new Logger('A2AMCPBridge');
+    this.topology = options?.topology;
 
     // Set up periodic cache cleanup
     setInterval(() => this.cleanupCache(), 60000); // Every minute
@@ -105,7 +108,8 @@ export class A2AMCPBridge extends EventEmitter {
       this.metrics.startTime = Date.now();
 
       this.logger.info('A2A MCP Bridge initialized successfully', {
-        mappings: this.mappings.size
+        mappings: this.mappings.size,
+        topology: this.topology || 'none'
       });
 
       this.emit('initialized');

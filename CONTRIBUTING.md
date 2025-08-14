@@ -107,6 +107,39 @@ When using AI tools (like Claude Code or GitHub Copilot) for contributions:
 - Update README.md if adding major features
 - Add examples for complex functionality
 
+## 🤖 AI-Powered PR & Issue Management
+
+### Automated Pull Request Handling
+
+Both **Claude** and **GitHub Copilot** can automatically handle pull requests and bug reports:
+
+#### Claude Integration
+- **PR Reviews**: Claude can perform comprehensive code reviews with context-aware analysis
+- **Bug Triage**: Automatically categorize and prioritize bug reports
+- **Fix Suggestions**: Generate patches and fixes for reported issues
+- **Documentation Updates**: Automatically update docs when code changes
+- **Test Generation**: Create test cases for new features and bug fixes
+
+#### GitHub Copilot Integration  
+- **Code Suggestions**: Real-time code completion during development
+- **PR Description**: Auto-generate detailed PR descriptions
+- **Issue Templates**: Fill issue templates with relevant information
+- **Conflict Resolution**: Suggest merge conflict resolutions
+
+### Enabling AI Automation
+
+To enable AI-assisted PR and issue handling:
+
+1. **For Claude**:
+   - Add `@claude-ai` as a collaborator to your fork
+   - Use `claude:` prefix in commit messages for AI review
+   - Tag issues with `claude-review` for automated analysis
+
+2. **For Copilot**:
+   - Enable GitHub Copilot in repository settings
+   - Use Copilot commands in PR comments
+   - Configure automated workflows in `.github/copilot.yml`
+
 ## 🐛 Reporting Issues
 
 When reporting issues:
@@ -118,6 +151,7 @@ When reporting issues:
    - Node.js version
    - Operating system
    - Gemini-Flow version
+5. **AI-Assisted Reporting**: Tag with `ai-assist` for automated triage
 
 ## 💡 Feature Requests
 

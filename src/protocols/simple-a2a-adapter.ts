@@ -5,17 +5,20 @@
  */
 
 import { Logger } from '../utils/logger.js';
+import { TopologyType } from './protocol-activator.js';
 
 export class SimpleA2AAdapter {
   private logger: Logger;
   private initialized = false;
+  private topology: TopologyType;
 
-  constructor() {
+  constructor(options: { topology: TopologyType }) {
     this.logger = new Logger('SimpleA2AAdapter');
+    this.topology = options.topology;
   }
 
   async initialize(): Promise<void> {
-    this.logger.info('Simple A2A adapter initialized (fallback mode)');
+    this.logger.info(`Simple A2A adapter initialized (fallback mode) with ${this.topology} topology`);
     this.initialized = true;
   }
 

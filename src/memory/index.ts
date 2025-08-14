@@ -5,8 +5,13 @@
  * cross-platform compatibility
  */
 
-export { SQLiteMemoryManager } from './sqlite-manager.js';
-export type { MemoryEntry } from './sqlite-manager.js';
+export { SQLiteMemoryManager, NamespaceUtils } from './sqlite-manager.js';
+export type { 
+  MemoryEntry, 
+  NamespaceInfo, 
+  NamespaceOperations, 
+  SearchOptions 
+} from './sqlite-manager.js';
 export { 
   detectSQLiteImplementations,
   createSQLiteDatabase 
@@ -17,3 +22,5 @@ export type {
   SQLiteDetectionResult
 } from './sqlite-adapter.js';
 export { runFallbackTests, testSingleImplementation } from './sqlite-fallback-test.js';
+export { SQLiteDetector } from './sqlite-detector.js';
+export type { SQLiteCapabilities } from './sqlite-detector.js';

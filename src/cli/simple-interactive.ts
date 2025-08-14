@@ -203,9 +203,10 @@ export class SimpleInteractive {
         await this.changeModel(parts.slice(1).join(' '));
         break;
 
-      case '/temperature':
+      case '/temperature': {
         this.changeTemperature(parts[1]);
         break;
+      }
 
       case '/save':
         await this.saveSession(parts[1]);

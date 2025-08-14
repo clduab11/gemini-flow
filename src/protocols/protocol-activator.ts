@@ -8,6 +8,9 @@
 import { Logger } from '../utils/logger.js';
 import { featureFlags } from '../core/feature-flags.js';
 import { EventEmitter } from 'events';
+import { RoutingStrategy } from '../types/a2a.js';
+
+export type TopologyType = 'hierarchical' | 'mesh' | 'ring' | 'star';
 
 export interface ProtocolConfig {
   name: string;
@@ -18,6 +21,7 @@ export interface ProtocolConfig {
   dependencies: string[];
   ports?: number[];
   endpoints?: string[];
+  topology?: TopologyType;
 }
 
 export interface ProtocolStatus {
@@ -42,6 +46,7 @@ export interface ActivationResult {
   capabilities: string[];
   endpoints: string[];
   fallbacksUsed: string[];
+  topology: TopologyType;
   error?: string;
 }
 
@@ -230,9 +235,22 @@ export class ProtocolActivator extends EventEmitter {
   }
 
   /**
-   * Activate a protocol
+   * Validate topology parameter
    */
-  async activateProtocol(protocolName: string): Promise<ActivationResult> {
+  private validateTopology(topology: TopologyType): void {
+    const validTopologies: TopologyType[] = ['hierarchical', 'mesh', 'ring', 'star'];
+    if (!validTopologies.includes(topology)) {
+      throw new Error(`Invalid topology '${topology}'. Must be one of: ${validTopologies.join(', ')}`);
+    }
+  }
+
+  /**
+   * Activate a protocol with required topology specification
+   */
+  async activateProtocol(protocolName: string, topology: TopologyType): Promise<ActivationResult> {
+    // Validate topology parameter
+    this.validateTopology(topology);
+
     const config = this.protocolConfigs.get(protocolName);
     if (!config) {
       return {
@@ -241,9 +259,13 @@ export class ProtocolActivator extends EventEmitter {
         capabilities: [],
         endpoints: [],
         fallbacksUsed: [],
+        topology,
         error: `Unknown protocol: ${protocolName}`
       };
     }
+
+    // Set topology in config
+    config.topology = topology;
 
     // Return existing activation promise if in progress
     if (this.activationPromises.has(protocolName)) {
@@ -251,7 +273,7 @@ export class ProtocolActivator extends EventEmitter {
     }
 
     // Create activation promise
-    const activationPromise = this.performActivation(config);
+    const activationPromise = this.performActivation(config, topology);
     this.activationPromises.set(protocolName, activationPromise);
 
     try {
@@ -267,7 +289,7 @@ export class ProtocolActivator extends EventEmitter {
   /**
    * Perform protocol activation
    */
-  private async performActivation(config: ProtocolConfig): Promise<ActivationResult> {
+  private async performActivation(config: ProtocolConfig, topology: TopologyType): Promise<ActivationResult> {
     const startTime = performance.now();
     this.logger.info(`Activating protocol: ${config.name}...`);
 
@@ -289,13 +311,13 @@ export class ProtocolActivator extends EventEmitter {
       // Load protocol implementation
       switch (config.name) {
         case 'A2A':
-          protocolInstance = await this.activateA2AProtocol(config, fallbacksUsed);
+          protocolInstance = await this.activateA2AProtocol(config, topology, fallbacksUsed);
           break;
         case 'MCP':
-          protocolInstance = await this.activateMCPProtocol(config, fallbacksUsed);
+          protocolInstance = await this.activateMCPProtocol(config, topology, fallbacksUsed);
           break;
         case 'Hybrid':
-          protocolInstance = await this.activateHybridProtocol(config, fallbacksUsed);
+          protocolInstance = await this.activateHybridProtocol(config, topology, fallbacksUsed);
           break;
         default:
           throw new Error(`Unknown protocol activation: ${config.name}`);
@@ -314,6 +336,7 @@ export class ProtocolActivator extends EventEmitter {
       const activationTime = performance.now() - startTime;
       
       this.logger.info(`Protocol activated: ${config.name}`, {
+        topology: topology,
         activationTime: `${activationTime.toFixed(2)}ms`,
         capabilities: config.capabilities.length,
         endpoints: status.endpoints.length,
@@ -322,6 +345,7 @@ export class ProtocolActivator extends EventEmitter {
 
       this.emit('protocol_activated', {
         protocol: config.name,
+        topology: topology,
         capabilities: config.capabilities,
         endpoints: status.endpoints,
         activationTime
@@ -332,7 +356,8 @@ export class ProtocolActivator extends EventEmitter {
         protocol: config.name,
         capabilities: config.capabilities,
         endpoints: status.endpoints,
-        fallbacksUsed
+        fallbacksUsed,
+        topology
       };
 
     } catch (error) {
@@ -353,6 +378,7 @@ export class ProtocolActivator extends EventEmitter {
         capabilities: [],
         endpoints: [],
         fallbacksUsed: [],
+        topology,
         error: error.message
       };
     }
@@ -361,7 +387,7 @@ export class ProtocolActivator extends EventEmitter {
   /**
    * Activate A2A protocol
    */
-  private async activateA2AProtocol(config: ProtocolConfig, fallbacks: string[]): Promise<any> {
+  private async activateA2AProtocol(config: ProtocolConfig, topology: TopologyType, fallbacks: string[]): Promise<any> {
     try {
       // Try loading full A2A implementation
       const { A2AProtocolManager } = await import('./a2a/core/a2a-protocol-manager.js');
@@ -369,6 +395,7 @@ export class ProtocolActivator extends EventEmitter {
       
       const protocolManager = new A2AProtocolManager({
         agentId: 'gemini-flow-agent',
+        topology: topology,
         agentCard: {
           id: 'gemini-flow-agent',
           name: 'Gemini Flow Agent',
@@ -387,8 +414,8 @@ export class ProtocolActivator extends EventEmitter {
         },
         transports: [],
         defaultTransport: 'http',
-        routingStrategy: 'direct',
-        maxHops: 3,
+        routingStrategy: this.getRoutingStrategy(topology),
+        maxHops: this.getMaxHops(topology),
         discoveryEnabled: false,
         discoveryInterval: 60000,
         securityEnabled: true,
@@ -418,7 +445,7 @@ export class ProtocolActivator extends EventEmitter {
       
       try {
         const { SimpleA2AAdapter } = await import('./simple-a2a-adapter.js');
-        const adapter = new SimpleA2AAdapter();
+        const adapter = new SimpleA2AAdapter({ topology });
         await adapter.initialize();
         return adapter;
       } catch (fallbackError) {
@@ -430,12 +457,12 @@ export class ProtocolActivator extends EventEmitter {
   /**
    * Activate MCP protocol
    */
-  private async activateMCPProtocol(config: ProtocolConfig, fallbacks: string[]): Promise<any> {
+  private async activateMCPProtocol(config: ProtocolConfig, topology: TopologyType, fallbacks: string[]): Promise<any> {
     try {
       // Try loading full MCP implementation
       const { MCPToGeminiAdapter } = await import('../core/mcp-adapter.js');
       
-      const mcpAdapter = new MCPToGeminiAdapter('', 'gemini-2.5-flash');
+      const mcpAdapter = new MCPToGeminiAdapter('', 'gemini-2.5-flash', { topology });
       // MCPToGeminiAdapter doesn't have initialize method, it initializes in constructor
       
       return mcpAdapter;
@@ -448,7 +475,7 @@ export class ProtocolActivator extends EventEmitter {
       
       try {
         const { SimpleMCPBridge } = await import('./simple-mcp-bridge.js');
-        const bridge = new SimpleMCPBridge();
+        const bridge = new SimpleMCPBridge({ topology });
         await bridge.initialize();
         return bridge;
       } catch (fallbackError) {
@@ -460,20 +487,20 @@ export class ProtocolActivator extends EventEmitter {
   /**
    * Activate hybrid protocol
    */
-  private async activateHybridProtocol(config: ProtocolConfig, fallbacks: string[]): Promise<any> {
-    // Ensure both A2A and MCP are active
+  private async activateHybridProtocol(config: ProtocolConfig, topology: TopologyType, fallbacks: string[]): Promise<any> {
+    // Ensure both A2A and MCP are active with same topology
     if (!this.isProtocolActive('A2A')) {
-      await this.activateProtocol('A2A');
+      await this.activateProtocol('A2A', topology);
     }
     
     if (!this.isProtocolActive('MCP')) {
-      await this.activateProtocol('MCP');
+      await this.activateProtocol('MCP', topology);
     }
 
     try {
       const { A2AMCPBridge } = await import('./a2a/core/a2a-mcp-bridge.js');
       
-      const bridge = new A2AMCPBridge();
+      const bridge = new A2AMCPBridge({ topology });
       // Configure bridge after instantiation if needed
       // bridge.configure({
       //   a2aProtocol: this.activeProtocols.get('A2A'),
@@ -551,15 +578,44 @@ export class ProtocolActivator extends EventEmitter {
   }
 
   /**
-   * Auto-activate protocols based on configuration
+   * Get routing strategy based on topology
    */
-  async autoActivate(): Promise<ActivationResult[]> {
+  private getRoutingStrategy(topology: TopologyType): RoutingStrategy {
+    switch (topology) {
+      case 'hierarchical': return 'shortest_path';
+      case 'mesh': return 'load_balanced';
+      case 'ring': return 'shortest_path';
+      case 'star': return 'direct';
+      default: return 'direct';
+    }
+  }
+
+  /**
+   * Get max hops based on topology
+   */
+  private getMaxHops(topology: TopologyType): number {
+    switch (topology) {
+      case 'hierarchical': return 5;
+      case 'mesh': return 3;
+      case 'ring': return 10;
+      case 'star': return 2;
+      default: return 3;
+    }
+  }
+
+  /**
+   * Auto-activate protocols based on configuration (requires topology)
+   */
+  async autoActivate(topology: TopologyType): Promise<ActivationResult[]> {
+    // Validate topology parameter
+    this.validateTopology(topology);
+    
     const results: ActivationResult[] = [];
     
-    for (const [name, config] of this.protocolConfigs) {
+    for (const [name, config] of Array.from(this.protocolConfigs.entries())) {
       if (config.enabled && config.autoDetect) {
         try {
-          const result = await this.activateProtocol(name);
+          const result = await this.activateProtocol(name, topology);
           results.push(result);
         } catch (error) {
           results.push({
@@ -568,6 +624,7 @@ export class ProtocolActivator extends EventEmitter {
             capabilities: [],
             endpoints: [],
             fallbacksUsed: [],
+            topology,
             error: error.message
           });
         }
@@ -599,8 +656,19 @@ export class ProtocolActivator extends EventEmitter {
         ])
       ),
       capabilities: Array.from(new Set(active.flatMap(s => s.capabilities))),
-      mode: this.determineMode()
+      mode: this.determineMode(),
+      topology: this.getCurrentTopology()
     };
+  }
+
+  /**
+   * Get current topology from active protocols
+   */
+  private getCurrentTopology(): TopologyType | null {
+    const activeConfigs = Array.from(this.protocolConfigs.values())
+      .filter(config => config.enabled && config.topology);
+    
+    return activeConfigs.length > 0 ? activeConfigs[0].topology! : null;
   }
 
   /**

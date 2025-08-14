@@ -443,6 +443,9 @@ export interface A2AProtocolConfig {
   agentId: AgentId;
   agentCard: AgentCard;
   
+  // Topology configuration
+  topology?: 'hierarchical' | 'mesh' | 'ring' | 'star';
+  
   // Transport configuration
   transports: TransportConfig[];
   defaultTransport: TransportProtocol;

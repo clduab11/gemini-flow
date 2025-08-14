@@ -5,6 +5,21 @@ All notable changes to Gemini Flow will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-01-14
+
+### Breaking Changes
+- Protocol initialization now requires topology specification
+- Memory operations require namespace parameter
+- Consensus protocols require minimum quorum configuration
+
+### Fixed
+- Fixed 136 ESLint errors across codebase
+- Fixed unreachable code in auth-manager
+- Fixed unused variables in multiple files
+
+### Added
+- Comprehensive test coverage for breaking changes
+
 ## [1.1.1] - 2025-08-04
 
 ### Added

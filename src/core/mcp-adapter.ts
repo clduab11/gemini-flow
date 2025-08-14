@@ -11,6 +11,7 @@ import { MCPTools, MCPToolName, MCPToolParameters, MCPToolReturnType } from '../
 import { Logger } from '../utils/logger.js';
 import { CacheManager } from './cache-manager.js';
 import { ContextOptimizer } from './context-optimizer.js';
+import { TopologyType } from '../protocols/protocol-activator.js';
 
 export class MCPToGeminiAdapter {
   private genAI: GoogleGenerativeAI;
@@ -18,6 +19,7 @@ export class MCPToGeminiAdapter {
   private cache: CacheManager;
   private optimizer: ContextOptimizer;
   private logger: Logger;
+  private topology?: TopologyType;
   
   // Performance metrics
   private metrics = {
@@ -27,12 +29,17 @@ export class MCPToGeminiAdapter {
     contextTokens: 0
   };
 
-  constructor(apiKey: string, modelName: string = 'gemini-2.5-flash') {
+  constructor(apiKey: string, modelName: string = 'gemini-2.5-flash', options?: { topology: TopologyType }) {
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ model: modelName });
     this.cache = new CacheManager();
     this.optimizer = new ContextOptimizer();
     this.logger = new Logger('MCPAdapter');
+    this.topology = options?.topology;
+    
+    if (this.topology) {
+      this.logger.info(`MCP adapter initialized with ${this.topology} topology`);
+    }
   }
 
   /**

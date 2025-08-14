@@ -731,16 +731,16 @@ export default app;`,
   private async generateSuggestions(_files: GeneratedFile[], _request: GenerationRequest): Promise<string[]> { return []; }
   private async selectBestPatterns(_request: GenerationRequest): Promise<CodePattern[]> { return []; }
   private async applyPattern(_pattern: CodePattern, _request: GenerationRequest): Promise<GeneratedFile | null> { return null; }
-  private async buildAIContext(request: GenerationRequest): Promise<any> { return {}; }
-  private buildGenerationPrompt(request: GenerationRequest, context: any): string { return ''; }
-  private async parseAIResponse(content: string, request: GenerationRequest): Promise<any> { return { files: [], suggestions: [], dependencies: [] }; }
-  private async identifyGenerationGaps(result: GeneratedCode, request: GenerationRequest): Promise<string[]> { return []; }
-  private async postProcessGeneration(generated: GeneratedCode, request: GenerationRequest): Promise<void> {}
-  private hasFrameworkTemplate(framework: string): boolean { return this.templates.has(`${framework}-component`) || this.templates.has(`${framework}-api`); }
-  private findFrameworkTemplate(framework: string): string { return `${framework}-component`; }
-  private findBestTemplate(request: GenerationRequest): string | undefined { return undefined; }
-  private async extractVariablesWithAI(task: string, variables: TemplateVariable[]): Promise<Record<string, any>> { return {}; }
-  private async reformatCode(content: string, style: StyleProfile, language: string): Promise<string> { return content; }
+  private async buildAIContext(_request: GenerationRequest): Promise<any> { return {}; }
+  private buildGenerationPrompt(_request: GenerationRequest, _context: any): string { return ''; }
+  private async parseAIResponse(_content: string, _request: GenerationRequest): Promise<any> { return { files: [], suggestions: [], dependencies: [] }; }
+  private async identifyGenerationGaps(_result: GeneratedCode, _request: GenerationRequest): Promise<string[]> { return []; }
+  private async postProcessGeneration(_generated: GeneratedCode, _request: GenerationRequest): Promise<void> {}
+  private hasFrameworkTemplate(_framework: string): boolean { return this.templates.has(`${_framework}-component`) || this.templates.has(`${_framework}-api`); }
+  private findFrameworkTemplate(_framework: string): string { return `${_framework}-component`; }
+  private findBestTemplate(_request: GenerationRequest): string | undefined { return undefined; }
+  private async extractVariablesWithAI(_task: string, _variables: TemplateVariable[]): Promise<Record<string, any>> { return {}; }
+  private async reformatCode(content: string, _style: StyleProfile, _language: string): Promise<string> { return content; }
 }
 
 export default CodeGenerationEngine;

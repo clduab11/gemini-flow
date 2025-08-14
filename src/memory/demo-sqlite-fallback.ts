@@ -47,7 +47,7 @@ async function demonstrateImplementation(implementation: SQLiteImplementation) {
     implementation
   );
   
-  // Store some demo data
+  // Store some demo data with hierarchical namespaces
   await manager.store({
     key: `demo-${implementation}`,
     value: { 
@@ -55,12 +55,26 @@ async function demonstrateImplementation(implementation: SQLiteImplementation) {
       timestamp: Date.now(),
       features: ['fallback', 'cross-platform', 'performance']
     },
-    namespace: 'demo'
+    namespace: `demo/implementations/${implementation}`
+  });
+  
+  // Store additional data in different namespace levels
+  await manager.store({
+    key: 'config',
+    value: { 
+      version: '1.0',
+      settings: { performance: 'high', compatibility: 'universal' }
+    },
+    namespace: `demo/config`
   });
   
   // Retrieve and display
-  const data = await manager.retrieve(`demo-${implementation}`, 'demo');
+  const data = await manager.retrieve(`demo-${implementation}`, `demo/implementations/${implementation}`);
   logger.info(`Retrieved data:`, data.value);
+  
+  // Test namespace search with wildcards
+  const allDemoData = await manager.search('*', 'demo/*');
+  logger.info(`Found ${allDemoData.length} entries in demo namespace hierarchy`);
   
   // Store metrics
   await manager.recordMetric(`${implementation}_performance`, Math.random() * 100, 'ms');
@@ -93,7 +107,7 @@ async function demonstrateFallbackBehavior() {
     logger.info(`Fallback selected: ${info.name}`);
     logger.info(`Priority order was: better-sqlite3 > sqlite3 > sql.js`);
     
-    // Test cross-implementation compatibility
+    // Test cross-implementation compatibility with hierarchical namespaces
     await manager.store({
       key: 'cross-platform-test',
       value: {
@@ -101,17 +115,42 @@ async function demonstrateFallbackBehavior() {
         compatibility: ['better-sqlite3', 'sqlite3', 'sql.js'],
         features: {
           ttl: 'Time-to-live support',
-          namespaces: 'Multi-tenant isolation',
-          search: 'Pattern-based search',
-          metrics: 'Performance tracking',
+          namespaces: 'Hierarchical multi-tenant isolation',
+          search: 'Pattern-based search with wildcards',
+          metrics: 'Performance tracking by namespace',
           tables: '12 specialized tables'
         }
       },
-      namespace: 'compatibility'
+      namespace: 'compatibility/cross-platform'
     });
     
-    const result = await manager.retrieve('cross-platform-test', 'compatibility');
+    // Store additional namespace data
+    await manager.store({
+      key: 'performance-data',
+      value: { benchmarks: { read: '1000 ops/sec', write: '800 ops/sec' } },
+      namespace: 'compatibility/performance'
+    });
+    
+    await manager.store({
+      key: 'feature-flags',
+      value: { hierarchicalNamespaces: true, wildcardSearch: true },
+      namespace: 'compatibility/features'
+    });
+    
+    const result = await manager.retrieve('cross-platform-test', 'compatibility/cross-platform');
     logger.info('Cross-platform data test:', result.value.message);
+    
+    // Test namespace operations
+    const namespaceInfo = await manager.getNamespaceInfo('compatibility/*');
+    logger.info('Namespace info:', namespaceInfo);
+    
+    // Test listing all entries in compatibility namespace
+    const compatibilityEntries = await manager.list('compatibility/*');
+    logger.info(`Found ${compatibilityEntries.length} entries in compatibility namespace hierarchy`);
+    
+    // Test namespace metrics
+    const metrics = await manager.getNamespaceMetrics('compatibility/*');
+    logger.info('Namespace metrics:', metrics);
     
     manager.close();
     logger.info('✅ Fallback behavior test complete');
@@ -131,9 +170,13 @@ async function showSystemCapabilities() {
     'Performance Optimized': '✅ Uses fastest available implementation',
     'WASM Compatibility': '✅ sql.js provides universal fallback',
     '12 Specialized Tables': '✅ All work across implementations',
-    'Memory Management': '✅ TTL, namespaces, cleanup',
-    'Metrics & Analytics': '✅ Performance tracking built-in',
-    'Error Handling': '✅ Graceful degradation',
+    'Hierarchical Namespaces': '✅ Multi-level organization (e.g., app/module/feature)',
+    'Namespace Wildcards': '✅ Pattern matching with * and ** support',
+    'Memory Management': '✅ TTL, cleanup, validation',
+    'Namespace Operations': '✅ List, delete, info, metrics by namespace',
+    'Advanced Search': '✅ Key/value patterns, sorting, filtering',
+    'Metrics & Analytics': '✅ Performance tracking per namespace',
+    'Error Handling': '✅ Graceful degradation with validation',
     'Async Operations': '✅ Promise-based API',
     'ES Module Support': '✅ Modern JavaScript imports'
   };

@@ -821,7 +821,7 @@ export class A2AKeyExchange extends EventEmitter {
     }
     
     // Check cache
-    const cachePattern = `keyexchange:keypair:${agentId}-*`;
+    // const cachePattern = `keyexchange:keypair:${agentId}-*`;
     // In a real implementation, you'd search the cache with pattern matching
     
     return null;
