@@ -63,7 +63,6 @@ export async function createGeminiAdapter(
   config: Partial<GeminiAdapterConfig>,
 ): Promise<GeminiAdapter> {
   const fullConfig: GeminiAdapterConfig = {
-    modelName: "gemini-adapter",
     modelName: "gemini-2.0-flash",
     timeout: 30000,
     retryAttempts: 3,
@@ -81,7 +80,6 @@ export async function createDeepMindAdapter(
   config: Partial<DeepMindAdapterConfig>,
 ): Promise<DeepMindAdapter> {
   const fullConfig: DeepMindAdapterConfig = {
-    modelName: "deepmind-adapter",
     modelName: "gemini-2.5-deepmind",
     projectId: config.projectId || process.env.GOOGLE_CLOUD_PROJECT_ID || "",
     location: config.location || "us-central1",

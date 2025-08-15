@@ -155,3 +155,64 @@ export interface PerformanceMetrics {
     uptime: number;
   };
 }
+
+// Additional streaming interfaces for unified-api compatibility
+export interface VideoStreamResponse {
+  id: string;
+  status: "success" | "error" | "streaming";
+  data?: Buffer;
+  metadata?: StreamMetadata;
+  error?: string;
+}
+
+export interface AudioStreamResponse {
+  id: string;
+  status: "success" | "error" | "streaming";
+  data?: Buffer;
+  metadata?: StreamMetadata;
+  error?: string;
+}
+
+export interface StreamingSession {
+  id: string;
+  status: "active" | "paused" | "stopped";
+  streams: {
+    video?: VideoStreamRequest;
+    audio?: AudioStreamRequest;
+  };
+  metadata: StreamMetadata;
+  startTime: number;
+  endTime?: number;
+}
+
+export interface StreamingContext {
+  sessionId: string;
+  userId?: string;
+  config: StreamingConfig;
+  performance: PerformanceMetrics;
+  network: NetworkConditions;
+}
+
+export interface StreamingConfig {
+  maxConcurrentStreams: number;
+  bufferSize: number;
+  retryAttempts: number;
+  timeout: number;
+  quality: StreamQuality;
+}
+
+export interface EdgeCacheConfig {
+  enabled: boolean;
+  ttl: number;
+  regions: string[];
+  compression: boolean;
+  warmupEnabled: boolean;
+}
+
+export interface CDNConfiguration {
+  provider: string;
+  endpoints: string[];
+  caching: EdgeCacheConfig;
+  bandwidth: number;
+  regions: string[];
+}

@@ -1180,12 +1180,12 @@ export const AGENT_DEFINITIONS: Record<string, AgentDefinition> = {
     systemPrompt:
       "You are a security framework manager. Coordinate comprehensive security measures across all system components.",
   },
-  "encryption-specialist": {
-    id: "encryption-specialist",
-    name: "Encryption Specialist",
+  "encryption-specialist-advanced": {
+    id: "encryption-specialist-advanced", 
+    name: "Advanced Encryption Specialist",
     type: "security",
     category: "security-framework",
-    description: "End-to-end encryption and cryptographic security specialist",
+    description: "Advanced end-to-end encryption and cryptographic security specialist",
     capabilities: [
       "e2e-encryption",
       "key-management",
