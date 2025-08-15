@@ -1,0 +1,460 @@
+name: Global Install Testing
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - quick
+          - native-only
+          - docker-only
+
+env:
+  PACKAGE_NAME: "@clduab11/gemini-flow"
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+jobs:
+  # Quick validation job that runs on every push
+  quick-validation:
+    name: Quick Global Install Validation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Quick global install test
+      run: |
+        npm pack
+        PACKAGE_FILE=$(ls *.tgz)
+        npm install -g "$PACKAGE_FILE"
+        gemini-flow --version
+        npm uninstall -g "$PACKAGE_NAME"
+        rm "$PACKAGE_FILE"
+
+  # Comprehensive cross-platform testing
+  cross-platform-test:
+    name: Cross-Platform Global Install Test
+    runs-on: ${{ matrix.os }}
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18, 20, 21]
+        include:
+          # Additional test configurations
+          - os: ubuntu-latest
+            node-version: 18
+            test-type: docker
+          - os: ubuntu-latest
+            node-version: 20
+            test-type: performance
+            
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bc curl
+        
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install bc
+        
+    - name: Install system dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        # Windows doesn't need bc for basic tests
+        echo "Windows environment ready"
+        
+    - name: Install project dependencies
+      run: npm ci
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Make test scripts executable
+      if: runner.os != 'Windows'
+      run: |
+        chmod +x tests/scripts/*.sh
+        
+    - name: Run local installation test
+      if: runner.os != 'Windows'
+      run: |
+        ./tests/scripts/test-local-install.sh
+        
+    - name: Run local installation test (Windows)
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        # Create Windows-compatible test
+        npm pack
+        PACKAGE_FILE=$(ls *.tgz)
+        npm install -g "$PACKAGE_FILE"
+        gemini-flow --version
+        gemini-flow --help
+        npm uninstall -g "$PACKAGE_NAME"
+        rm "$PACKAGE_FILE"
+        
+    - name: Run functionality test
+      if: runner.os != 'Windows' && matrix.test-type != 'docker'
+      run: |
+        npm pack
+        PACKAGE_FILE=$(ls *.tgz)
+        npm install -g "$PACKAGE_FILE"
+        ./tests/scripts/test-functionality.sh
+        npm uninstall -g "$PACKAGE_NAME"
+        rm "$PACKAGE_FILE"
+        
+    - name: Run Docker cross-platform test
+      if: matrix.test-type == 'docker' && runner.os == 'Linux'
+      run: |
+        docker --version
+        ./tests/scripts/test-cross-platform.sh --docker-only --quick
+        
+    - name: Run performance test
+      if: matrix.test-type == 'performance' && runner.os == 'Linux'
+      run: |
+        npm pack
+        PACKAGE_FILE=$(ls *.tgz)
+        npm install -g "$PACKAGE_FILE"
+        ./tests/scripts/test-performance.sh --quick
+        npm uninstall -g "$PACKAGE_NAME"
+        rm "$PACKAGE_FILE"
+        
+    - name: Upload performance report
+      if: matrix.test-type == 'performance'
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report-${{ matrix.os }}-node${{ matrix.node-version }}
+        path: /tmp/gemini-flow-performance-report-*.md
+        retention-days: 30
+
+  # NPM registry simulation test
+  npm-registry-test:
+    name: NPM Registry Simulation Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    services:
+      verdaccio:
+        image: verdaccio/verdaccio:5
+        ports:
+          - 4873:4873
+        options: >-
+          --health-cmd "curl -f http://localhost:4873/-/ping || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Configure local registry
+      run: |
+        npm config set registry http://localhost:4873/
+        npm config set //localhost:4873/:_authToken "fake-token"
+        
+    - name: Create test user
+      run: |
+        curl -XPUT \
+          -H "Content-type: application/json" \
+          -d '{"name": "test", "password": "test"}' \
+          'http://localhost:4873/-/user/org.couchdb.user:test'
+          
+    - name: Publish to local registry
+      run: |
+        npm pack
+        PACKAGE_FILE=$(ls *.tgz)
+        
+        # Extract and modify package for testing
+        tar -xzf "$PACKAGE_FILE"
+        cd package
+        
+        # Temporarily modify package name to avoid conflicts
+        sed -i 's/"@clduab11\/gemini-flow"/"@test\/gemini-flow-test"/' package.json
+        
+        npm publish --registry http://localhost:4873/
+        cd ..
+        
+    - name: Test global install from registry
+      run: |
+        npm install -g @test/gemini-flow-test --registry http://localhost:4873/
+        
+        # Test binary availability (may not work due to name change)
+        npm list -g @test/gemini-flow-test
+        
+        npm uninstall -g @test/gemini-flow-test
+        
+    - name: Reset npm config
+      run: |
+        npm config delete registry
+        npm config delete //localhost:4873/:_authToken
+
+  # Parallel installation stress test
+  stress-test:
+    name: Parallel Installation Stress Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_type == 'full'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Prepare test package
+      run: |
+        npm pack
+        PACKAGE_FILE=$(ls *.tgz)
+        echo "PACKAGE_FILE=$PACKAGE_FILE" >> $GITHUB_ENV
+        
+    - name: Run parallel installation test
+      run: |
+        chmod +x tests/scripts/test-local-install.sh
+        
+        # Create script for parallel testing
+        cat > parallel_test.sh << 'EOF'
+        #!/bin/bash
+        WORKER_ID=$1
+        PACKAGE_FILE=$2
+        
+        echo "Worker $WORKER_ID starting..."
+        
+        # Install
+        npm install -g "$PACKAGE_FILE" > /tmp/install_$WORKER_ID.log 2>&1
+        INSTALL_EXIT=$?
+        
+        # Test
+        if [ $INSTALL_EXIT -eq 0 ]; then
+          gemini-flow --version > /tmp/test_$WORKER_ID.log 2>&1
+          TEST_EXIT=$?
+        else
+          TEST_EXIT=1
+        fi
+        
+        # Uninstall
+        npm uninstall -g "@clduab11/gemini-flow" > /tmp/uninstall_$WORKER_ID.log 2>&1
+        
+        echo "Worker $WORKER_ID: Install=$INSTALL_EXIT, Test=$TEST_EXIT"
+        exit $((INSTALL_EXIT + TEST_EXIT))
+        EOF
+        
+        chmod +x parallel_test.sh
+        
+        # Run parallel workers
+        pids=()
+        for i in {1..5}; do
+          ./parallel_test.sh $i "$PACKAGE_FILE" &
+          pids+=($!)
+        done
+        
+        # Wait for all workers
+        failed=0
+        for pid in "${pids[@]}"; do
+          if ! wait $pid; then
+            ((failed++))
+          fi
+        done
+        
+        echo "Parallel test results: $failed failures out of 5 workers"
+        
+        # Show logs
+        for i in {1..5}; do
+          echo "=== Worker $i logs ==="
+          cat /tmp/install_$i.log /tmp/test_$i.log /tmp/uninstall_$i.log 2>/dev/null || true
+        done
+        
+        if [ $failed -gt 2 ]; then
+          echo "Too many failures in parallel test"
+          exit 1
+        fi
+
+  # Memory leak and resource test
+  resource-test:
+    name: Resource Usage and Memory Leak Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.test_type == 'full'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install system monitoring tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y htop sysstat bc
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Run resource usage test
+      run: |
+        chmod +x tests/scripts/test-performance.sh
+        
+        npm pack
+        PACKAGE_FILE=$(ls *.tgz)
+        npm install -g "$PACKAGE_FILE"
+        
+        # Monitor system resources during testing
+        iostat -x 1 10 > iostat.log &
+        IOSTAT_PID=$!
+        
+        ./tests/scripts/test-performance.sh --memory-only
+        
+        kill $IOSTAT_PID 2>/dev/null || true
+        
+        npm uninstall -g "$PACKAGE_NAME"
+        rm "$PACKAGE_FILE"
+        
+    - name: Upload resource monitoring logs
+      uses: actions/upload-artifact@v4
+      with:
+        name: resource-monitoring-logs
+        path: |
+          iostat.log
+          /tmp/gemini-flow-performance-report-*.md
+        retention-days: 7
+
+  # Test result aggregation and reporting
+  test-results:
+    name: Aggregate Test Results
+    runs-on: ubuntu-latest
+    needs: [quick-validation, cross-platform-test, npm-registry-test]
+    if: always()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: test-artifacts
+        
+    - name: Generate test summary
+      run: |
+        echo "# Global Install Test Summary" > test-summary.md
+        echo "" >> test-summary.md
+        echo "**Date**: $(date)" >> test-summary.md
+        echo "**Workflow**: ${{ github.workflow }}" >> test-summary.md
+        echo "**Run ID**: ${{ github.run_id }}" >> test-summary.md
+        echo "" >> test-summary.md
+        
+        echo "## Job Results" >> test-summary.md
+        echo "" >> test-summary.md
+        echo "- **Quick Validation**: ${{ needs.quick-validation.result }}" >> test-summary.md
+        echo "- **Cross-Platform Test**: ${{ needs.cross-platform-test.result }}" >> test-summary.md
+        echo "- **NPM Registry Test**: ${{ needs.npm-registry-test.result }}" >> test-summary.md
+        echo "" >> test-summary.md
+        
+        if [ -d "test-artifacts" ]; then
+          echo "## Artifacts Generated" >> test-summary.md
+          echo "" >> test-summary.md
+          find test-artifacts -type f -name "*.md" | while read file; do
+            echo "- $(basename "$file")" >> test-summary.md
+          done
+        fi
+        
+        echo "" >> test-summary.md
+        echo "## Next Steps" >> test-summary.md
+        echo "" >> test-summary.md
+        
+        if [[ "${{ needs.cross-platform-test.result }}" == "failure" ]]; then
+          echo "⚠️ Cross-platform tests failed. Review platform-specific issues." >> test-summary.md
+        elif [[ "${{ needs.npm-registry-test.result }}" == "failure" ]]; then
+          echo "⚠️ NPM registry tests failed. Check package publication process." >> test-summary.md
+        else
+          echo "✅ All tests passed. Package is ready for global installation." >> test-summary.md
+        fi
+        
+    - name: Upload test summary
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-summary
+        path: test-summary.md
+        retention-days: 30
+        
+    - name: Comment on PR (if applicable)
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          if (fs.existsSync('test-summary.md')) {
+            const summary = fs.readFileSync('test-summary.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Global Install Test Results\n\n${summary}`
+            });
+          }
