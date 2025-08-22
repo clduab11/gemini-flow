@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "allowJs": true,
     "outDir": "./dist",
     "rootDir": "./src",
@@ -16,7 +16,9 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "noEmitOnError": false
+    "noEmitOnError": false,
+    "types": ["node"],
+    "lib": ["ES2022", "DOM"]
   },
   "include": [
     "src/cli/**/*",
