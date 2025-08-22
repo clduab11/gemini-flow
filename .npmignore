@@ -1,0 +1,49 @@
+# .npmignore - Files to exclude from npm package
+# Note: dist/ is excluded from git but should be included in npm package
+
+# Development files
+.github/
+.vscode/
+*.tgz
+
+# Test files  
+tests/
+coverage/
+*.test.js
+*.spec.js
+
+# Documentation (optional, keep for now)
+# docs/
+
+# Development configs
+.eslintrc*
+.prettierrc*
+jest.config.*
+babel.config.*
+tsconfig*.json
+
+# Source maps (optional)
+# *.map
+
+# Environment files
+.env*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies (already in node_modules)
+node_modules/
+
+# Temporary files
+tmp/
+.tmp/
+
+# IDE files
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
