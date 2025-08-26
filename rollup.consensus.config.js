@@ -8,7 +8,7 @@ import { visualizer } from 'rollup-plugin-visualizer';
 const isProduction = process.env.NODE_ENV === 'production';
 
 export default {
-  input: 'src/consensus/consensus-coordinator.ts',
+  input: 'src/protocols/a2a/security/consensus-coordinator.ts',
   output: [
     {
       file: 'dist/consensus/consensus-coordinator.js',

@@ -9,10 +9,10 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 export default {
   input: {
-    'benchmark-runner': 'src/benchmarks/benchmark-runner.ts',
-    'google-services-performance': 'src/benchmarks/google-services-performance.ts',
-    'load-testing-coordinator': 'src/benchmarks/load-testing-coordinator.ts',
-    'performance-optimization-strategies': 'src/benchmarks/performance-optimization-strategies.ts'
+    'benchmark-runner': 'src/benchmarks/benchmark-runner.js',
+    'google-services-performance': 'src/benchmarks/google-services-performance-framework.js',
+    'load-testing-coordinator': 'src/benchmarks/load-testing-coordinator.js',
+    'performance-optimization-strategies': 'src/benchmarks/performance-optimization-strategies.js'
   },
   output: [
     {
