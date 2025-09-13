@@ -1118,7 +1118,7 @@ export class UnifiedAPI extends EventEmitter {
   async adaptStreamQuality(
     sessionId: string,
     streamId: string,
-    targetQuality?: any,
+    _targetQuality?: any,
   ): Promise<boolean> {
     if (!this.streamingAPI) {
       return false;

@@ -2,7 +2,7 @@
  * Smart Routing Performance Benchmark
  *
  * Standalone benchmark script to validate <75ms routing overhead
- * Run with: npx ts-node src/core/__tests__/routing-benchmark.ts
+ * Run with: npx ts-node tests/core/__tests__/routing-benchmark.ts
  */
 
 import { ModelRouter, RoutingDecision } from "../model-router.js";
