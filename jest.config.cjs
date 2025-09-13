@@ -13,7 +13,9 @@ module.exports = {
         tsconfig: {
           module: 'esnext',
           target: 'es2022',
-          moduleResolution: 'node'
+          moduleResolution: 'node',
+          allowSyntheticDefaultImports: true,
+          esModuleInterop: true
         }
       }
     ],
@@ -25,6 +27,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/tests/(.*)$': '<rootDir>/tests/$1'
   },
+  resolver: '<rootDir>/tests/jest-resolver.cjs',
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
