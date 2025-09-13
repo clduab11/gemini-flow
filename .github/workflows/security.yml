@@ -36,25 +36,54 @@ jobs:
     
     - name: Run npm audit
       run: |
-        echo "Running npm audit..."
-        npm audit --audit-level=moderate || true
+        echo "Running comprehensive npm audit..."
+        
+        # Basic audit for all levels
+        npm audit --audit-level=moderate || echo "⚠️ Moderate vulnerabilities found"
+        
+        # Get detailed audit information
+        npm audit --json > audit-results.json 2>/dev/null || echo "Could not generate JSON audit"
         
         # Check for high severity vulnerabilities
-        HIGH_VULNS=$(npm audit --audit-level=high --json 2>/dev/null | jq '.metadata.vulnerabilities.high // 0')
-        CRITICAL_VULNS=$(npm audit --audit-level=critical --json 2>/dev/null | jq '.metadata.vulnerabilities.critical // 0')
+        if command -v jq >/dev/null 2>&1; then
+          HIGH_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0' 2>/dev/null || echo "0")
+          CRITICAL_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0' 2>/dev/null || echo "0")
+        else
+          # Fallback method without jq
+          HIGH_VULNS=$(npm audit --audit-level=high --json 2>/dev/null | grep -o '"high":[0-9]*' | cut -d: -f2 || echo "0")
+          CRITICAL_VULNS=$(npm audit --audit-level=critical --json 2>/dev/null | grep -o '"critical":[0-9]*' | cut -d: -f2 || echo "0")
+        fi
         
         echo "High severity vulnerabilities: $HIGH_VULNS"
         echo "Critical severity vulnerabilities: $CRITICAL_VULNS"
         
-        if [ "$CRITICAL_VULNS" -gt 0 ]; then
+        # Create summary
+        echo "## Security Audit Summary" > audit-summary.md
+        echo "- High severity vulnerabilities: $HIGH_VULNS" >> audit-summary.md
+        echo "- Critical severity vulnerabilities: $CRITICAL_VULNS" >> audit-summary.md
+        echo "- Audit date: $(date)" >> audit-summary.md
+        
+        if [ "$CRITICAL_VULNS" != "0" ] && [ "$CRITICAL_VULNS" -gt 0 ] 2>/dev/null; then
           echo "❌ Critical vulnerabilities found!"
-          npm audit --audit-level=critical
+          npm audit --audit-level=critical || true
           exit 1
-        elif [ "$HIGH_VULNS" -gt 0 ]; then
+        elif [ "$HIGH_VULNS" != "0" ] && [ "$HIGH_VULNS" -gt 0 ] 2>/dev/null; then
           echo "⚠️ High severity vulnerabilities found!"
-          npm audit --audit-level=high
+          npm audit --audit-level=high || true
           # Don't fail on high severity, but warn
+        else
+          echo "✅ No critical or high severity vulnerabilities found"
         fi
+    
+    - name: Upload audit results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-audit-results
+        path: |
+          audit-results.json
+          audit-summary.md
+        retention-days: 30
     
     - name: Run dependency vulnerability scan
       uses: actions/dependency-review-action@v4

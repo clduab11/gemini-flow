@@ -75,15 +75,30 @@ jobs:
     
     - name: Validate package
       run: |
+        echo "Performing comprehensive package validation..."
+        
         # Check that dist directory exists and has content
-        if [ ! -d "dist" ] || [ -z "$(ls -A dist)" ]; then
+        if [ ! -d "dist" ] || [ -z "$(ls -A dist 2>/dev/null)" ]; then
           echo "❌ dist directory is missing or empty"
           exit 1
         fi
         
+        # Check for essential CLI files (flexible check)
+        CLI_FILES_FOUND=false
+        if [ -f "dist/cli/index.js" ] || [ -f "dist/cli/simple-index.js" ] || [ -f "dist/cli/gemini-cli.js" ]; then
+          CLI_FILES_FOUND=true
+          echo "✅ CLI files found"
+        else
+          echo "❌ No CLI files found"
+          echo "Available files:"
+          find dist -type f -name "*.js" | head -10 || echo "No JS files in dist"
+          exit 1
+        fi
+        
         # Test package locally
+        echo "Creating and testing package..."
         npm pack
-        TARBALL=$(ls *.tgz)
+        TARBALL=$(ls *.tgz | head -1)
         echo "Created tarball: $TARBALL"
         
         # Extract and verify contents
@@ -92,6 +107,39 @@ jobs:
         
         echo "Package contents:"
         find /tmp/package-test -type f | head -20
+        
+        # Verify essential files are in package
+        if [ ! -f "/tmp/package-test/package/package.json" ]; then
+          echo "❌ package.json not found in package"
+          exit 1
+        fi
+        
+        # Check bin directory or files
+        if [ -d "/tmp/package-test/package/bin" ] || find "/tmp/package-test/package" -name "gemini-flow" -type f | head -1; then
+          echo "✅ Binary files found in package"
+        else
+          echo "⚠️ No binary files found, checking if CLI is accessible"
+        fi
+        
+        # Verify dist files are included
+        if find "/tmp/package-test/package/dist" -name "*.js" | head -1; then
+          echo "✅ Dist files included in package"
+        else
+          echo "❌ No dist files found in package"
+          exit 1
+        fi
+        
+        # Test installation in isolated environment
+        echo "Testing package installation..."
+        cd /tmp/package-test
+        npm init -y
+        npm install ./package/*.tgz
+        
+        # Test if CLI is accessible through npx
+        echo "Testing CLI accessibility..."
+        npx gemini-flow --version >/dev/null 2>&1 || echo "⚠️ CLI not accessible via npx (may be normal)"
+        
+        echo "✅ Package validation completed"
 
   publish:
     name: Publish to NPM

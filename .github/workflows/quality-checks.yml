@@ -1,0 +1,352 @@
+name: Pre-commit Quality Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Comprehensive static analysis and quality checks
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Check for shebang issues
+      run: |
+        echo "🔍 Checking for shebang issues..."
+        
+        # Check for shebangs in TypeScript files that shouldn't have them
+        if find src -name "*.ts" -not -path "*/cli/*" | xargs grep -l "^#!" 2>/dev/null; then
+          echo "❌ Found shebangs in TypeScript files outside CLI directory"
+          echo "Shebangs should only be in executable CLI files"
+          exit 1
+        fi
+        
+        # Check for missing shebangs in CLI executables
+        if find src/cli -name "*.ts" -type f | head -1 >/dev/null 2>&1; then
+          echo "✅ CLI TypeScript files found, checking for appropriate structure"
+          # This is just a check - the actual executable handling is done in build
+        fi
+        
+        echo "✅ Shebang check passed"
+    
+    - name: Check dependency usage patterns
+      run: |
+        echo "🔍 Checking dependency usage patterns..."
+        
+        # Check for direct require() usage in ESM context
+        if find src -name "*.ts" -o -name "*.js" | xargs grep -n "require(" 2>/dev/null | head -5; then
+          echo "⚠️ Found require() usage in source files"
+          echo "Consider using import statements for ES modules"
+        fi
+        
+        # Check for external dependencies in CLI-only files
+        if find src/cli -name "*.ts" -o -name "*.js" | xargs grep -l "import.*commander\|import.*chalk\|import.*inquirer" 2>/dev/null | head -3; then
+          echo "ℹ️ External dependencies found in CLI files - ensure they are production dependencies"
+        fi
+        
+        # Check for relative imports that might break
+        if find src -name "*.ts" -o -name "*.js" | xargs grep -n "from.*'\.\./\.\./\.\./'" 2>/dev/null | head -3; then
+          echo "⚠️ Found deeply nested relative imports - consider absolute imports"
+        fi
+        
+        echo "✅ Dependency pattern check completed"
+    
+    - name: Check for common anti-patterns
+      run: |
+        echo "🔍 Checking for common anti-patterns..."
+        
+        # Check for console.log in non-CLI files
+        if find src -name "*.ts" -o -name "*.js" -not -path "*/cli/*" -not -path "*/tests/*" | xargs grep -n "console\.log" 2>/dev/null | head -3; then
+          echo "⚠️ Found console.log usage outside CLI/test files"
+          echo "Consider using proper logging instead"
+        fi
+        
+        # Check for TODO/FIXME comments
+        TODO_COUNT=$(find src -name "*.ts" -o -name "*.js" | xargs grep -i "TODO\|FIXME" 2>/dev/null | wc -l)
+        if [ "$TODO_COUNT" -gt 0 ]; then
+          echo "ℹ️ Found $TODO_COUNT TODO/FIXME comments"
+          find src -name "*.ts" -o -name "*.js" | xargs grep -in "TODO\|FIXME" 2>/dev/null | head -5
+        fi
+        
+        # Check for process.exit() usage
+        if find src -name "*.ts" -o -name "*.js" | xargs grep -n "process\.exit" 2>/dev/null | head -3; then
+          echo "⚠️ Found process.exit() usage - ensure it's appropriate"
+        fi
+        
+        echo "✅ Anti-pattern check completed"
+    
+    - name: Check package.json integrity
+      run: |
+        echo "🔍 Checking package.json integrity..."
+        
+        # Verify required fields
+        node -e "
+          const pkg = require('./package.json');
+          const required = ['name', 'version', 'description', 'main', 'bin', 'engines'];
+          let errors = 0;
+          
+          required.forEach(field => {
+            if (!pkg[field]) {
+              console.log(\`❌ Missing required field: \${field}\`);
+              errors++;
+            }
+          });
+          
+          // Check bin field
+          if (pkg.bin && typeof pkg.bin === 'object') {
+            Object.entries(pkg.bin).forEach(([cmd, path]) => {
+              console.log(\`ℹ️ Binary command: \${cmd} -> \${path}\`);
+            });
+          }
+          
+          // Check engines
+          if (pkg.engines && pkg.engines.node) {
+            console.log(\`ℹ️ Node.js requirement: \${pkg.engines.node}\`);
+          }
+          
+          if (errors > 0) {
+            process.exit(1);
+          }
+          
+          console.log('✅ package.json integrity check passed');
+        "
+    
+    - name: Check TypeScript configuration
+      run: |
+        echo "🔍 Checking TypeScript configuration..."
+        
+        # Check main tsconfig.json
+        if [ -f "tsconfig.json" ]; then
+          echo "✅ Main tsconfig.json found"
+          # Verify it's valid JSON
+          node -e "JSON.parse(require('fs').readFileSync('tsconfig.json', 'utf8')); console.log('✅ Main tsconfig.json is valid JSON');"
+        fi
+        
+        # Check CLI-specific tsconfig
+        if [ -f "tsconfig.cli.json" ]; then
+          echo "✅ CLI tsconfig.cli.json found"
+          node -e "JSON.parse(require('fs').readFileSync('tsconfig.cli.json', 'utf8')); console.log('✅ CLI tsconfig.cli.json is valid JSON');"
+          
+          # Check for common configuration issues
+          node -e "
+            const config = JSON.parse(require('fs').readFileSync('tsconfig.cli.json', 'utf8'));
+            const co = config.compilerOptions || {};
+            
+            if (co.module && co.moduleResolution) {
+              if ((co.module === 'ESNext' && co.moduleResolution !== 'node') ||
+                  (co.module === 'NodeNext' && co.moduleResolution !== 'nodenext')) {
+                console.log('⚠️ Potential module/moduleResolution mismatch in CLI config');
+              } else {
+                console.log('✅ Module configuration looks consistent');
+              }
+            }
+          "
+        fi
+        
+        echo "✅ TypeScript configuration check completed"
+
+  # File size and complexity analysis
+  complexity-analysis:
+    name: Complexity Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Analyze file sizes
+      run: |
+        echo "📊 Analyzing file sizes..."
+        
+        # Check for large source files
+        echo "Largest source files:"
+        find src -name "*.ts" -o -name "*.js" | xargs wc -l 2>/dev/null | sort -n | tail -10 || echo "No source files found"
+        
+        # Check total source code size
+        TOTAL_LINES=$(find src -name "*.ts" -o -name "*.js" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
+        echo "Total source lines: $TOTAL_LINES"
+        
+        if [ "$TOTAL_LINES" -gt 50000 ]; then
+          echo "⚠️ Large codebase detected ($TOTAL_LINES lines)"
+        fi
+        
+        echo "✅ File size analysis completed"
+    
+    - name: Check for duplicate code patterns
+      run: |
+        echo "🔍 Checking for potential duplicate code..."
+        
+        # Simple check for repeated function signatures
+        if find src -name "*.ts" | xargs grep -h "^export function\|^function " 2>/dev/null | sort | uniq -d | head -3; then
+          echo "⚠️ Found potential duplicate function signatures (may be false positive)"
+        fi
+        
+        # Check for repeated imports
+        if find src -name "*.ts" | xargs grep -h "^import " 2>/dev/null | sort | uniq -c | sort -nr | head -10 | awk '$1 > 5 {print}'; then
+          echo "ℹ️ Most common imports (may indicate opportunities for shared utilities)"
+        fi
+        
+        echo "✅ Duplicate code check completed"
+
+  # Build artifacts analysis
+  build-analysis:
+    name: Build Analysis
+    runs-on: ubuntu-latest
+    needs: static-analysis
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Analyze build output
+      run: |
+        echo "📊 Analyzing build output..."
+        
+        if [ -d "dist" ]; then
+          echo "Build output structure:"
+          find dist -type f | sort
+          
+          echo ""
+          echo "Build output sizes:"
+          find dist -type f -name "*.js" -exec wc -c {} \; | sort -n | tail -10
+          
+          echo ""
+          echo "Total build size:"
+          du -sh dist 2>/dev/null || echo "Could not determine size"
+          
+          # Check for source maps
+          if find dist -name "*.map" | head -1 >/dev/null; then
+            echo "✅ Source maps found"
+          else
+            echo "ℹ️ No source maps found"
+          fi
+          
+          # Check for declaration files
+          DECL_COUNT=$(find dist -name "*.d.ts" | wc -l)
+          echo "TypeScript declaration files: $DECL_COUNT"
+          
+        else
+          echo "❌ No build output found"
+          exit 1
+        fi
+        
+        echo "✅ Build analysis completed"
+    
+    - name: Test build artifacts
+      run: |
+        echo "🧪 Testing build artifacts..."
+        
+        # Test that main entry points are valid JavaScript
+        if [ -f "dist/index.js" ]; then
+          node -c dist/index.js && echo "✅ Main entry point is valid"
+        fi
+        
+        # Test CLI entry points
+        if [ -f "dist/cli/index.js" ]; then
+          node -c dist/cli/index.js && echo "✅ CLI entry point is valid"
+        fi
+        
+        if [ -f "dist/cli/simple-index.js" ]; then
+          node -c dist/cli/simple-index.js && echo "✅ Simple CLI entry point is valid"
+        fi
+        
+        if [ -f "dist/cli/gemini-cli.js" ]; then
+          node -c dist/cli/gemini-cli.js && echo "✅ Gemini CLI entry point is valid"
+        fi
+        
+        echo "✅ Build artifact testing completed"
+
+  # Summary report
+  quality-summary:
+    name: Quality Summary
+    runs-on: ubuntu-latest
+    needs: [static-analysis, complexity-analysis, build-analysis]
+    if: always()
+    
+    steps:
+    - name: Generate quality report
+      run: |
+        echo "## 🏆 Code Quality Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Date:** $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Job Results" >> $GITHUB_STEP_SUMMARY
+        echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Static Analysis | ${{ needs.static-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Complexity Analysis | ${{ needs.complexity-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Build Analysis | ${{ needs.build-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Determine overall status
+        FAILED_JOBS=0
+        if [ "${{ needs.static-analysis.result }}" = "failure" ]; then
+          ((FAILED_JOBS++))
+        fi
+        if [ "${{ needs.complexity-analysis.result }}" = "failure" ]; then
+          ((FAILED_JOBS++))
+        fi
+        if [ "${{ needs.build-analysis.result }}" = "failure" ]; then
+          ((FAILED_JOBS++))
+        fi
+        
+        if [ $FAILED_JOBS -eq 0 ]; then
+          echo "### ✅ Overall Status: PASSED" >> $GITHUB_STEP_SUMMARY
+          echo "All quality checks passed successfully!" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ❌ Overall Status: FAILED" >> $GITHUB_STEP_SUMMARY
+          echo "$FAILED_JOBS out of 3 quality checks failed." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "- Review any failed checks above" >> $GITHUB_STEP_SUMMARY
+        echo "- Address warnings and suggestions" >> $GITHUB_STEP_SUMMARY
+        echo "- Ensure all build artifacts are properly generated" >> $GITHUB_STEP_SUMMARY
