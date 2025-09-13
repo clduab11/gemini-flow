@@ -15,6 +15,8 @@ import {
 export interface JulesWorkflowConfig extends AdapterConfig {
   workflowId?: string;
   parameters?: Record<string, any>;
+  collaborativeMode?: boolean;
+  julesApiKey?: string;
 }
 
 export class JulesWorkflowAdapter extends BaseModelAdapter {

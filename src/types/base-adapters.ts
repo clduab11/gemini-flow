@@ -108,4 +108,6 @@ export interface JulesWorkflowConfig extends BaseAdapterConfig {
   modelName: string;
   workflowId?: string;
   parameters?: Record<string, any>;
+  collaborativeMode?: boolean;
+  julesApiKey?: string;
 }

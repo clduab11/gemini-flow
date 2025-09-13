@@ -213,6 +213,7 @@
       "pre-push": "npm run test:unit && npm run lint"
     }
   },
+
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
@@ -229,6 +230,7 @@
         "lines": 75,
         "statements": 75
       }
+
     }
   },
   "browserslist": [

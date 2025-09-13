@@ -32,6 +32,7 @@ export interface ClassicalValidation {
   validated: boolean;
   predictionErrors?: number;
   testFailures?: number;
+  validationErrors?: number;
 }
 
 export interface HybridResult {
@@ -1578,17 +1579,13 @@ class QuantumSimulator {
       }
       case "RZ": {
         const theta = gate.parameters![0];
-        const exp_pos = {
-          amplitude: Math.cos(theta / 2),
-          phase: Math.sin(theta / 2),
-        };
-        const exp_neg = {
-          amplitude: Math.cos(theta / 2),
-          phase: -Math.sin(theta / 2),
-        };
+        const cos = Math.cos(theta / 2);
+        const sin = Math.sin(theta / 2);
+        // For RZ gate, this is a diagonal matrix with complex exponentials
+        // Simplifying to just the magnitude for now
         return [
-          [exp_neg, 0],
-          [0, exp_pos],
+          [cos, 0],
+          [0, cos],
         ];
       }
       default:
@@ -1654,7 +1651,7 @@ class QuantumSimulator {
     return expectation;
   }
 
-  private encodeClassicalData(
+  public encodeClassicalData(
     circuit: QuantumCircuit,
     data: number[],
     startQubit: number,

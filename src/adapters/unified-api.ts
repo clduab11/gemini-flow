@@ -21,6 +21,8 @@ import { JulesWorkflowAdapter } from "./jules-workflow-adapter.js";
 import {
   EnhancedStreamingAPI,
   EnhancedStreamingConfig,
+  StreamingContext,
+  StreamSession,
 } from "../streaming/enhanced-streaming-api.js";
 import {
   VideoStreamRequest,
@@ -30,6 +32,9 @@ import {
   MultiModalChunk,
   StreamingSession,
   StreamingContext,
+  EdgeCacheConfig,
+  CDNConfiguration,
+
 } from "../types/streaming.js";
 
 export interface UnifiedAPIConfig {
@@ -125,7 +130,7 @@ export class UnifiedAPI extends EventEmitter {
 
   // Enhanced streaming capabilities
   private streamingAPI?: EnhancedStreamingAPI;
-  private streamingSessions = new Map<string, StreamingSession>();
+  private streamingSessions = new Map<string, StreamSession>();
 
   constructor(config: UnifiedAPIConfig) {
     super();
