@@ -23,6 +23,11 @@ export class Logger {
     this.initializeWinston();
   }
 
+  // Green: Added getName method to make TDD test pass
+  getName(): string {
+    return this.name;
+  }
+
   private async initializeWinston() {
     try {
       const winston = require('winston');
