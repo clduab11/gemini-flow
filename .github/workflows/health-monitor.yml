@@ -1,0 +1,366 @@
+name: Workflow Health Monitor
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of health check'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - quick
+          - critical-only
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Monitor workflow success rates and identify failing patterns
+  workflow-analysis:
+    name: Workflow Success Analysis
+    runs-on: ubuntu-latest
+    
+    permissions:
+      actions: read
+      contents: read
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Analyze workflow runs
+      uses: actions/github-script@v7
+      with:
+        script: |
+          console.log('📊 Analyzing workflow success rates...');
+          
+          // Get recent workflow runs
+          const workflows = await github.rest.actions.listWorkflowRuns({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            per_page: 100,
+            status: 'completed'
+          });
+          
+          // Analyze success rates by workflow
+          const workflowStats = {};
+          
+          for (const run of workflows.data.workflow_runs) {
+            const workflowName = run.name;
+            if (!workflowStats[workflowName]) {
+              workflowStats[workflowName] = { total: 0, success: 0, failure: 0 };
+            }
+            
+            workflowStats[workflowName].total++;
+            if (run.conclusion === 'success') {
+              workflowStats[workflowName].success++;
+            } else if (run.conclusion === 'failure') {
+              workflowStats[workflowName].failure++;
+            }
+          }
+          
+          // Generate report
+          let report = '# Workflow Health Report\n\n';
+          report += `**Generated:** ${new Date().toISOString()}\n`;
+          report += `**Analysis Period:** Last 100 completed workflow runs\n\n`;
+          
+          report += '## Workflow Success Rates\n\n';
+          report += '| Workflow | Success Rate | Total Runs | Failures |\n';
+          report += '|----------|--------------|------------|----------|\n';
+          
+          let criticalIssues = [];
+          
+          for (const [name, stats] of Object.entries(workflowStats)) {
+            const successRate = Math.round((stats.success / stats.total) * 100);
+            report += `| ${name} | ${successRate}% | ${stats.total} | ${stats.failure} |\n`;
+            
+            // Flag critical issues
+            if (successRate < 70 && stats.total >= 5) {
+              criticalIssues.push(`${name}: ${successRate}% success rate (${stats.failure} failures)`);
+            }
+          }
+          
+          report += '\n';
+          
+          if (criticalIssues.length > 0) {
+            report += '## 🚨 Critical Issues\n\n';
+            for (const issue of criticalIssues) {
+              report += `- ${issue}\n`;
+            }
+            report += '\n';
+          }
+          
+          // Save report
+          const fs = require('fs');
+          fs.writeFileSync('workflow-health-report.md', report);
+          
+          console.log('✅ Workflow analysis completed');
+          console.log(`Critical issues found: ${criticalIssues.length}`);
+    
+    - name: Upload workflow health report
+      uses: actions/upload-artifact@v4
+      with:
+        name: workflow-health-report
+        path: workflow-health-report.md
+        retention-days: 30
+
+  # Check for common configuration issues
+  config-validation:
+    name: Configuration Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Validate workflow files
+      run: |
+        echo "🔍 Validating GitHub workflow files..."
+        
+        WORKFLOW_DIR=".github/workflows"
+        ISSUES_FOUND=0
+        
+        if [ ! -d "$WORKFLOW_DIR" ]; then
+          echo "❌ No workflow directory found"
+          exit 1
+        fi
+        
+        echo "Found workflow files:"
+        find "$WORKFLOW_DIR" -name "*.yml" -o -name "*.yaml" | sort
+        
+        echo ""
+        echo "Validating workflow syntax..."
+        
+        # Check each workflow file
+        for workflow in "$WORKFLOW_DIR"/*.yml "$WORKFLOW_DIR"/*.yaml; do
+          if [ -f "$workflow" ]; then
+            echo "Checking $(basename "$workflow")..."
+            
+            # Basic YAML syntax check
+            if command -v python3 >/dev/null 2>&1; then
+              if python3 -c "import yaml; yaml.safe_load(open('$workflow'))" 2>/dev/null; then
+                echo "  ✅ Valid YAML syntax"
+              else
+                echo "  ❌ Invalid YAML syntax"
+                ((ISSUES_FOUND++))
+              fi
+            fi
+            
+            # Check for common issues
+            if grep -q "uses: actions/" "$workflow"; then
+              echo "  ✅ Uses GitHub Actions"
+            fi
+            
+            # Check for matrix strategy usage
+            if grep -q "matrix:" "$workflow"; then
+              echo "  ℹ️ Uses matrix strategy"
+            fi
+            
+            # Check for secrets usage
+            if grep -q "secrets\." "$workflow"; then
+              echo "  ℹ️ Uses secrets"
+            fi
+          fi
+        done
+        
+        if [ $ISSUES_FOUND -gt 0 ]; then
+          echo "❌ Found $ISSUES_FOUND workflow issues"
+          exit 1
+        else
+          echo "✅ All workflows validated successfully"
+        fi
+    
+    - name: Check package configuration
+      run: |
+        echo "🔍 Validating package configuration..."
+        
+        npm ci
+        
+        # Check for potential npm issues
+        echo "Checking npm configuration..."
+        npm doctor || echo "⚠️ npm doctor found potential issues"
+        
+        # Check dependencies for known issues
+        echo "Checking dependencies..."
+        npm ls --depth=0 || echo "⚠️ Dependency tree issues detected"
+        
+        # Check for outdated dependencies
+        echo "Checking for outdated dependencies..."
+        npm outdated || echo "ℹ️ Some dependencies may be outdated"
+        
+        echo "✅ Package configuration check completed"
+
+  # Test critical functionality
+  critical-functionality-test:
+    name: Critical Functionality Test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.check_type != 'quick'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies and build
+      run: |
+        npm ci
+        npm run build || echo "⚠️ Build had issues"
+    
+    - name: Test critical paths
+      run: |
+        echo "🧪 Testing critical functionality paths..."
+        
+        # Test CLI build artifacts exist
+        if [ -d "dist/cli" ]; then
+          echo "✅ CLI dist directory found"
+          
+          CLI_FILES=$(find dist/cli -name "*.js" | wc -l)
+          echo "CLI JavaScript files: $CLI_FILES"
+          
+          if [ "$CLI_FILES" -eq 0 ]; then
+            echo "❌ No CLI JavaScript files found"
+            exit 1
+          fi
+        else
+          echo "❌ CLI dist directory not found"
+          exit 1
+        fi
+        
+        # Test package creation
+        echo "Testing package creation..."
+        npm pack >/dev/null || {
+          echo "❌ Package creation failed"
+          exit 1
+        }
+        
+        PACKAGE_FILE=$(ls *.tgz | head -1)
+        if [ -f "$PACKAGE_FILE" ]; then
+          echo "✅ Package created: $PACKAGE_FILE"
+          
+          # Test package contents
+          tar -tzf "$PACKAGE_FILE" | head -10
+          
+          # Basic size check
+          PACKAGE_SIZE=$(stat -f%z "$PACKAGE_FILE" 2>/dev/null || stat -c%s "$PACKAGE_FILE" 2>/dev/null)
+          if [ "$PACKAGE_SIZE" -gt 100000 ]; then  # > 100KB
+            echo "✅ Package size looks reasonable: $(($PACKAGE_SIZE / 1024))KB"
+          else
+            echo "⚠️ Package size seems small: $(($PACKAGE_SIZE / 1024))KB"
+          fi
+          
+          rm "$PACKAGE_FILE"
+        else
+          echo "❌ Package file not found"
+          exit 1
+        fi
+        
+        echo "✅ Critical functionality tests completed"
+
+  # Generate health summary and recommendations
+  health-summary:
+    name: Health Summary
+    runs-on: ubuntu-latest
+    needs: [workflow-analysis, config-validation, critical-functionality-test]
+    if: always()
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: workflow-health-report
+        path: reports/
+      continue-on-error: true
+    
+    - name: Generate comprehensive health report
+      run: |
+        echo "# 🏥 Repository Health Summary" > health-summary.md
+        echo "" >> health-summary.md
+        echo "**Generated:** $(date)" >> health-summary.md
+        echo "**Repository:** ${{ github.repository }}" >> health-summary.md
+        echo "**Branch:** ${{ github.ref_name }}" >> health-summary.md
+        echo "" >> health-summary.md
+        
+        echo "## Job Results" >> health-summary.md
+        echo "| Job | Status |" >> health-summary.md
+        echo "|-----|--------|" >> health-summary.md
+        echo "| Workflow Analysis | ${{ needs.workflow-analysis.result }} |" >> health-summary.md
+        echo "| Configuration Validation | ${{ needs.config-validation.result }} |" >> health-summary.md
+        echo "| Critical Functionality Test | ${{ needs.critical-functionality-test.result }} |" >> health-summary.md
+        echo "" >> health-summary.md
+        
+        # Count failures
+        FAILED_JOBS=0
+        [ "${{ needs.workflow-analysis.result }}" = "failure" ] && ((FAILED_JOBS++))
+        [ "${{ needs.config-validation.result }}" = "failure" ] && ((FAILED_JOBS++))
+        [ "${{ needs.critical-functionality-test.result }}" = "failure" ] && ((FAILED_JOBS++))
+        
+        if [ $FAILED_JOBS -eq 0 ]; then
+          echo "## ✅ Overall Health: GOOD" >> health-summary.md
+          echo "" >> health-summary.md
+          echo "All health checks passed successfully." >> health-summary.md
+        else
+          echo "## ⚠️ Overall Health: NEEDS ATTENTION" >> health-summary.md
+          echo "" >> health-summary.md
+          echo "**$FAILED_JOBS out of 3 health checks failed.**" >> health-summary.md
+        fi
+        
+        echo "" >> health-summary.md
+        echo "## Recommendations" >> health-summary.md
+        echo "" >> health-summary.md
+        
+        if [ "${{ needs.workflow-analysis.result }}" = "failure" ]; then
+          echo "- 🔧 **Fix workflow issues**: Review and fix failing workflow patterns" >> health-summary.md
+        fi
+        
+        if [ "${{ needs.config-validation.result }}" = "failure" ]; then
+          echo "- ⚙️ **Fix configuration**: Address package and workflow configuration issues" >> health-summary.md
+        fi
+        
+        if [ "${{ needs.critical-functionality-test.result }}" = "failure" ]; then
+          echo "- 🚨 **Critical**: Fix core functionality issues immediately" >> health-summary.md
+        fi
+        
+        if [ $FAILED_JOBS -eq 0 ]; then
+          echo "- 🎯 **Maintain**: Continue current practices, all systems healthy" >> health-summary.md
+          echo "- 📊 **Monitor**: Keep tracking workflow success rates" >> health-summary.md
+          echo "- 🔄 **Update**: Regularly update dependencies and configurations" >> health-summary.md
+        fi
+        
+        # Include workflow analysis if available
+        if [ -f "reports/workflow-health-report.md" ]; then
+          echo "" >> health-summary.md
+          echo "---" >> health-summary.md
+          echo "" >> health-summary.md
+          cat reports/workflow-health-report.md >> health-summary.md
+        fi
+        
+        echo "Health summary generated."
+    
+    - name: Upload health summary
+      uses: actions/upload-artifact@v4
+      with:
+        name: repository-health-summary
+        path: health-summary.md
+        retention-days: 30
+    
+    - name: Update step summary
+      run: |
+        if [ -f "health-summary.md" ]; then
+          cat health-summary.md >> $GITHUB_STEP_SUMMARY
+        fi
