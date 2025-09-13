@@ -355,7 +355,11 @@ export class DynamicAdapterLoader extends EventEmitter {
       } catch {
         // Check if it's available in the package.json
         try {
-          const packageJson = require(process.cwd() + "/package.json");
+          const fs = await import("fs");
+          const path = await import("path");
+          const packageJsonPath = path.join(process.cwd(), "package.json");
+          const packageJsonContent = await fs.promises.readFile(packageJsonPath, 'utf-8');
+          const packageJson = JSON.parse(packageJsonContent);
           const allDeps = {
             ...packageJson.dependencies,
             ...packageJson.devDependencies,

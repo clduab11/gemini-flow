@@ -31,8 +31,10 @@ import {
   AudioStreamResponse,
   MultiModalChunk,
   StreamingSession,
+  StreamingContext,
   EdgeCacheConfig,
   CDNConfiguration,
+
 } from "../types/streaming.js";
 
 export interface UnifiedAPIConfig {
@@ -1121,7 +1123,7 @@ export class UnifiedAPI extends EventEmitter {
   async adaptStreamQuality(
     sessionId: string,
     streamId: string,
-    targetQuality?: any,
+    _targetQuality?: any,
   ): Promise<boolean> {
     if (!this.streamingAPI) {
       return false;

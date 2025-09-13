@@ -9,7 +9,6 @@ import { EventEmitter } from "events";
 import { Logger } from "../utils/logger.js";
 import { SecurityOptimizationManager } from "../core/security-optimization-manager.js";
 import crypto from "crypto";
-import axios from "axios";
 
 // Research interfaces
 export interface ResearchHypothesis {
@@ -971,48 +970,48 @@ export class ResearchCoordinator extends EventEmitter {
   }
 
   // Additional placeholder methods would be implemented with actual AI logic
-  private async suggestMethodology(params: any): Promise<string> {
+  private async suggestMethodology(_params: any): Promise<string> {
     return "Experimental design with randomized controlled trial";
   }
-  private async predictOutcomes(params: any): Promise<string[]> {
+  private async predictOutcomes(_params: any): Promise<string[]> {
     return ["Positive correlation expected", "Effect size: medium"];
   }
-  private async defineSucessCriteria(params: any): Promise<string[]> {
+  private async defineSucessCriteria(_params: any): Promise<string[]> {
     return ["p < 0.05", "Effect size > 0.3"];
   }
-  private async assessHypothesisConfidence(params: any): Promise<number> {
+  private async assessHypothesisConfidence(_params: any): Promise<number> {
     return 0.75;
   }
   private async addToKnowledgeGraph(
-    hypothesis: ResearchHypothesis,
-    type: string,
+    _hypothesis: ResearchHypothesis,
+    _type: string,
   ): Promise<void> {
     /* Implementation */
   }
   private async initializeValidationFramework(
-    hypothesis: ResearchHypothesis,
+    _hypothesis: ResearchHypothesis,
   ): Promise<void> {
     /* Implementation */
   }
 
   // More placeholder methods...
   private async selectResearchDesign(
-    hypothesis: ResearchHypothesis,
+    _hypothesis: ResearchHypothesis,
   ): Promise<string> {
     return "Randomized Controlled Trial";
   }
   private async calculateSampleSize(
-    hypothesis: ResearchHypothesis,
+    _hypothesis: ResearchHypothesis,
   ): Promise<number> {
     return 100;
   }
   private async identifyControls(
-    hypothesis: ResearchHypothesis,
+    _hypothesis: ResearchHypothesis,
   ): Promise<string[]> {
     return ["Placebo control", "Time control"];
   }
   private async selectStatisticalTests(
-    hypothesis: ResearchHypothesis,
+    _hypothesis: ResearchHypothesis,
   ): Promise<string[]> {
     return ["t-test", "ANOVA"];
   }
@@ -1068,8 +1067,8 @@ export class ResearchCoordinator extends EventEmitter {
   }
 
   private async searchSingleDatabase(
-    db: AcademicDatabase,
-    query: any,
+    _db: AcademicDatabase,
+    _query: any,
   ): Promise<ResearchPaper[]> {
     // Implementation would make actual API calls to each database
     // This is a simplified mock implementation

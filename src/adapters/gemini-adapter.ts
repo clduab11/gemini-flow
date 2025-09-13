@@ -57,7 +57,7 @@ export class GeminiAdapter extends BaseModelAdapter {
 
     try {
       // Transform request for Gemini API
-      const transformedRequest = this.transformRequest(request);
+      this.transformRequest(request);
 
       // Mock response for TDD
       const mockResponse = {
@@ -157,7 +157,7 @@ export class GeminiAdapter extends BaseModelAdapter {
 
   protected transformResponse(
     response: any,
-    request: ModelRequest,
+    _request: ModelRequest,
   ): ModelResponse {
     return {
       id: this.generateRequestId(),
@@ -175,7 +175,7 @@ export class GeminiAdapter extends BaseModelAdapter {
     };
   }
 
-  protected handleError(error: any, request: ModelRequest): never {
+  protected handleError(error: any, _request: ModelRequest): never {
     const adapterError = this.createError(
       error.message || "Gemini API error",
       error.code || "GEMINI_ERROR",

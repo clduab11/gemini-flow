@@ -138,7 +138,7 @@ export class DeepMindAdapter extends BaseModelAdapter {
 
   protected transformResponse(
     response: any,
-    request: ModelRequest,
+    _request: ModelRequest,
   ): ModelResponse {
     return {
       id: this.generateRequestId(),
@@ -156,7 +156,7 @@ export class DeepMindAdapter extends BaseModelAdapter {
     };
   }
 
-  protected handleError(error: any, request: ModelRequest): never {
+  protected handleError(error: any, _request: ModelRequest): never {
     const adapterError = this.createError(
       error.message || "DeepMind API error",
       error.code || "DEEPMIND_ERROR",

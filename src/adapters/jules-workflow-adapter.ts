@@ -157,7 +157,7 @@ export class JulesWorkflowAdapter extends BaseModelAdapter {
 
   protected transformResponse(
     response: any,
-    request: ModelRequest,
+    _request: ModelRequest,
   ): ModelResponse {
     return {
       id: this.generateRequestId(),
@@ -180,7 +180,7 @@ export class JulesWorkflowAdapter extends BaseModelAdapter {
     };
   }
 
-  protected handleError(error: any, request: ModelRequest): never {
+  protected handleError(error: any, _request: ModelRequest): never {
     const adapterError = this.createError(
       error.message || "Jules workflow error",
       error.code || "WORKFLOW_ERROR",
