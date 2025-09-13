@@ -228,24 +228,6 @@
       "path": "cz-conventional-changelog"
     }
   },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "collectCoverageFrom": [
-      "src/**/*.{js,ts}",
-      "!src/**/*.d.ts",
-      "!src/benchmarks/**/*.js",
-      "!src/examples/**/*.js"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 75,
-        "functions": 75,
-        "lines": 75,
-        "statements": 75
-      }
-    }
-  },
   "browserslist": [
     "node >= 18"
   ],

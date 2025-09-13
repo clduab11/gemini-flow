@@ -769,23 +769,25 @@ class PerformanceMonitor {
     const conditions: NetworkConditions = {
       bandwidth: { upload: 0, download: 0, available: 0 },
       latency: { rtt: 0, jitter: 0 },
+      jitter: 0,
+      packetLoss: 0,
       quality: { packetLoss: 0, stability: 1, congestion: 0 },
       timestamp: Date.now(),
     };
 
     stats.forEach((report) => {
       if (report.type === "candidate-pair" && report.state === "succeeded") {
-        conditions.latency.rtt = report.currentRoundTripTime * 1000;
+        (conditions.latency as { rtt: number; jitter: number }).rtt = report.currentRoundTripTime * 1000;
       }
 
       if (report.type === "inbound-rtp") {
-        conditions.quality.packetLoss =
+        conditions.quality!.packetLoss =
           report.packetsLost / (report.packetsLost + report.packetsReceived);
-        conditions.latency.jitter = report.jitter;
+        (conditions.latency as { rtt: number; jitter: number }).jitter = report.jitter;
       }
 
       if (report.type === "outbound-rtp") {
-        conditions.bandwidth.upload = (report.bytesSent / report.timestamp) * 8;
+        (conditions.bandwidth as { upload: number; download: number; available: number }).upload = (report.bytesSent / report.timestamp) * 8;
       }
     });
 

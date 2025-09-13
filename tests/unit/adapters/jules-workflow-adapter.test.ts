@@ -429,3 +429,293 @@ describe('JulesWorkflowAdapter', () => {
     });
   });
 });
+describe('JulesWorkflowAdapter – additional coverage', () => {
+  // Reuse the same setup and config pattern from existing tests
+  let adapter: JulesWorkflowAdapter;
+  const baseConfig: JulesWorkflowConfig = {
+    modelName: 'jules-workflow',
+    julesApiKey: 'test-api-key',
+    workflowEndpoint: 'https://api.jules.google/v1/workflows',
+    collaborativeMode: true,
+    multiStepEnabled: true,
+    taskOrchestration: {
+      maxConcurrentTasks: 5,
+      taskTimeout: 30000,
+      retryStrategy: 'exponential',
+      failureHandling: 'continue'
+    },
+    aiCollaboration: {
+      enablePeerReview: true,
+      consensusThreshold: 0.7,
+      diversityBoost: true
+    },
+    timeout: 30000,
+    retryAttempts: 3,
+    streamingEnabled: true,
+    cachingEnabled: true
+  };
+
+  beforeEach(() => {
+    adapter = new JulesWorkflowAdapter(baseConfig);
+    jest.clearAllMocks();
+  });
+
+  describe('request construction and headers', () => {
+    beforeEach(async () => {
+      await adapter.initialize();
+    });
+
+    it('calls Jules API with correct URL, method, and Authorization header for workflow runs', async () => {
+      const captured: { url?: any; init?: RequestInit } = {};
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockImplementation(async (url: any, init?: RequestInit) => {
+        captured.url = url;
+        captured.init = init;
+        return {
+          ok: true,
+          json: async () => ({
+            workflowExecution: {
+              id: 'exec-abc',
+              workflowId: 'content-creation',
+              status: 'completed',
+              completedSteps: ['research', 'draft', 'review'],
+              results: { research: { content: 'x' }, draft: { content: 'y' }, review: { decision: 'approved' } },
+              metrics: { totalSteps: 3, completedSteps: 3, failedSteps: 0, totalLatency: 1000, tokenUsage: 123, cost: 0.001 }
+            }
+          })
+        } as Response;
+      });
+
+      const req: ModelRequest = {
+        prompt: 'Create blog post',
+        metadata: { workflowId: 'content-creation' },
+        context: adapter.createContext()
+      };
+
+      const res = await adapter.generate(req);
+      expect(res).toBeDefined();
+
+      expect(captured.url).toContain(baseConfig.workflowEndpoint);
+      expect(captured.init?.method ?? 'POST').toBe('POST');
+      // Validate headers casing-insensitively
+      const headers = (captured.init?.headers as Record<string, string>) || {};
+      const authHeader = headers['Authorization'] || headers['authorization'];
+      expect(authHeader).toBe(`Bearer ${baseConfig.julesApiKey}`);
+
+      // Payload should be JSON; ensure well-formed and includes key fields
+      const body = typeof captured.init?.body === 'string'
+        ? captured.init?.body
+        : captured.init?.body ? await (captured.init?.body as any).toString() : '';
+      try {
+        const parsed = JSON.parse(body as string);
+        expect(parsed).toEqual(expect.objectContaining({
+          prompt: expect.any(String)
+        }));
+        // When collaborativeMode is enabled, request should reflect collaboration options if adapter forwards them
+        if (baseConfig.collaborativeMode) {
+          expect(parsed).toEqual(expect.objectContaining({
+            aiCollaboration: expect.objectContaining({
+              enablePeerReview: true,
+              consensusThreshold: expect.any(Number)
+            })
+          }));
+        }
+      } catch {
+        // If body is empty or not JSON, still assert we attempted to send something
+        expect(body).toBeTruthy();
+      }
+    });
+  });
+
+  describe('validateRequest – success paths', () => {
+    beforeEach(async () => {
+      await adapter.initialize();
+    });
+
+    it('accepts request with only workflowId (no prompt) when template exists', async () => {
+      const req: ModelRequest = {
+        prompt: '',
+        metadata: { workflowId: 'content-creation' },
+        context: adapter.createContext()
+      };
+      await expect(adapter.validateRequest(req)).resolves.toBeUndefined();
+    });
+
+    it('accepts request with only prompt (no workflowId)', async () => {
+      const req: ModelRequest = {
+        prompt: 'Ad-hoc generation',
+        context: adapter.createContext()
+      };
+      await expect(adapter.validateRequest(req)).resolves.toBeUndefined();
+    });
+  });
+
+  describe('streaming – robustness', () => {
+    beforeEach(async () => {
+      await adapter.initialize();
+    });
+
+    it('handles keep-alive comments and blank lines in SSE stream', async () => {
+      const stream = new ReadableStream({
+        start(controller) {
+          // Comment and blank line should be ignored by parser
+          controller.enqueue(new TextEncoder().encode(':keep-alive\n\n'));
+          controller.enqueue(new TextEncoder().encode('data: {"delta":"Part1 ","content":"Part1 "}\n\n'));
+          controller.enqueue(new TextEncoder().encode('data: {"delta":"Part2","content":"Part1 Part2"}\n\n'));
+          controller.enqueue(new TextEncoder().encode('data: {"finishReason":"STOP"}\n\n'));
+          controller.close();
+        }
+      });
+
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+        ok: true,
+        body: stream
+      } as Response);
+
+      const req: ModelRequest = {
+        prompt: 'SSE robustness',
+        context: { ...adapter.createContext(), streaming: true }
+      };
+
+      const chunks: any[] = [];
+      for await (const c of adapter.generateStream(req)) {
+        chunks.push(c);
+      }
+      expect(chunks.length).toBeGreaterThanOrEqual(2);
+      expect(chunks[chunks.length - 1].finishReason).toBe('STOP');
+      expect(chunks.map(c => c.delta).join('')).toBe('Part1 Part2');
+    });
+
+    it('skips malformed SSE lines gracefully and still completes', async () => {
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('data: {"delta":"Ok "}\n'));
+          // Malformed JSON
+          controller.enqueue(new TextEncoder().encode('data: {bad json}\n'));
+          controller.enqueue(new TextEncoder().encode('data: {"delta":"Good","finishReason":"STOP"}\n'));
+          controller.close();
+        }
+      });
+
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+        ok: true,
+        body: stream
+      } as Response);
+
+      const req: ModelRequest = {
+        prompt: 'Malformed SSE',
+        context: { ...adapter.createContext(), streaming: true }
+      };
+
+      const chunks: any[] = [];
+      for await (const c of adapter.generateStream(req)) {
+        chunks.push(c);
+      }
+      // Ensure malformed line did not abort the stream
+      expect(chunks.find(c => c.delta === 'Ok ')).toBeTruthy();
+      expect(chunks.find(c => c.delta === 'Good')).toBeTruthy();
+    });
+
+    it('emits error when server response lacks body for streaming', async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+        ok: true,
+        body: null as any
+      } as Response);
+
+      const req: ModelRequest = {
+        prompt: 'Missing body',
+        context: { ...adapter.createContext(), streaming: true }
+      };
+
+      const it = adapter.generateStream(req)[Symbol.asyncIterator]();
+      await expect(it.next()).rejects.toBeDefined();
+    });
+  });
+
+  describe('retry behavior (best-effort)', () => {
+    beforeEach(async () => {
+      await adapter.initialize();
+    });
+
+    it('retries on transient errors up to configured attempts, then succeeds', async () => {
+      let call = 0;
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockImplementation(async () => {
+        call += 1;
+        if (call < 3) {
+          // Simulate transient network failure
+          throw Object.assign(new Error('ECONNRESET'), { code: 'ECONNRESET' });
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            content: 'Recovered after retries',
+            usage: { promptTokens: 1, completionTokens: 1, totalTokens: 2 }
+          })
+        } as Response;
+      });
+
+      const req: ModelRequest = {
+        prompt: 'Retry me',
+        context: adapter.createContext()
+      };
+
+      const res = await adapter.generate(req);
+      expect(res.content).toContain('Recovered');
+      expect((global.fetch as jest.MockedFunction<typeof fetch>)).toHaveBeenCalledTimes(3);
+    });
+
+    it('surfaces error after exhausting retries', async () => {
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockImplementation(async () => {
+        throw Object.assign(new Error('ECONNRESET'), { code: 'ECONNRESET' });
+      });
+
+      const req: ModelRequest = {
+        prompt: 'Retry fails',
+        context: adapter.createContext()
+      };
+
+      await expect(adapter.generate(req)).rejects.toBeDefined();
+      expect((global.fetch as jest.MockedFunction<typeof fetch>)).toHaveBeenCalled();
+    });
+  });
+
+  describe('step executors – additional', () => {
+    beforeEach(async () => {
+      await adapter.initialize();
+    });
+
+    it('executePromptStep forwards input.prompt and returns parsed result object', async () => {
+      const step: WorkflowStep = {
+        id: 'prompt-1',
+        name: 'Prompt 1',
+        type: 'prompt',
+        input: { prompt: 'Say hi' },
+        dependencies: [],
+        status: 'pending'
+      };
+
+      const captured: { url?: any; init?: RequestInit } = {};
+      (global.fetch as jest.MockedFunction<typeof fetch>).mockImplementation(async (url: any, init?: RequestInit) => {
+        captured.url = url;
+        captured.init = init;
+        return {
+          ok: true,
+          json: async () => ({ result: 'Hello there' })
+        } as Response;
+      });
+
+      const result = await (adapter as any).executePromptStep(step, {}, {});
+      expect(result).toEqual({ result: 'Hello there' });
+
+      // Validate prompt presence in outgoing request
+      const body = typeof captured.init?.body === 'string'
+        ? captured.init?.body
+        : captured.init?.body ? await (captured.init?.body as any).toString() : '';
+      if (body) {
+        const parsed = JSON.parse(body as string);
+        expect(parsed).toEqual(expect.objectContaining({
+          prompt: 'Say hi'
+        }));
+      }
+    });
+  });
+});

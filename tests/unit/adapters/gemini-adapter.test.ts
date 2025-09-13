@@ -948,3 +948,232 @@ describe('GeminiAdapter', () => {
     });
   });
 });
+// ---------------- Additional tests appended by PR automation ----------------
+
+describe('GeminiAdapter – additional coverage', () => {
+  let adapter: GeminiAdapter;
+
+  const baseConfig: GeminiAdapterConfig = {
+    modelName: 'gemini-2.0-flash',
+    model: 'gemini-2.0-flash',
+    apiKey: 'test-api-key',
+    timeout: 200, // make timeouts fast for tests we add
+    retryAttempts: 3,
+    streamingEnabled: true,
+    cachingEnabled: true
+  };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    process.env.GOOGLE_AI_API_KEY = undefined;
+    adapter = new GeminiAdapter(baseConfig);
+    await adapter.initialize();
+  });
+
+  it('should prefer request.parameters over config.generationConfig when both are provided', async () => {
+    const GoogleGenerativeAI = require('@google/generative-ai').GoogleGenerativeAI;
+    const genModel = GoogleGenerativeAI().getGenerativeModel();
+    const genSpy = jest.spyOn(genModel, 'generateContent');
+
+    // Recreate adapter with a default generationConfig
+    adapter = new GeminiAdapter({
+      ...baseConfig,
+      generationConfig: {
+        temperature: 0.1,
+        topP: 0.2,
+        topK: 10,
+        maxOutputTokens: 256,
+        stopSequences: ['STOP_FROM_CONFIG'],
+      }
+    });
+    await adapter.initialize();
+
+    const request: ModelRequest = {
+      prompt: 'param precedence',
+      parameters: {
+        temperature: 0.9,
+        topP: 0.95,
+        topK: 50,
+        maxTokens: 1234,
+        stopSequences: ['END_FROM_REQUEST']
+      },
+      context: {
+        requestId: 'precedence-1',
+        priority: 'medium',
+        userTier: 'pro',
+        latencyTarget: 1000,
+      }
+    };
+
+    await adapter.generate(request);
+
+    // Ensure we called google sdk with request-level overrides
+    const lastCallArg = genSpy.mock.calls[0]?.[0];
+    // The argument can be either a single object or array of parts depending on implementation.
+    // We just assert generationConfig-like fields are somewhere present via string match to reduce tight coupling.
+    expect(JSON.stringify(lastCallArg)).toEqual(expect.stringContaining('"temperature":0.9'));
+    expect(JSON.stringify(lastCallArg)).toEqual(expect.stringContaining('"topP":0.95'));
+    expect(JSON.stringify(lastCallArg)).toEqual(expect.stringContaining('"topK":50'));
+    expect(JSON.stringify(lastCallArg)).toMatch(/(maxTokens|maxOutputTokens)\"\s*:\s*1234/);
+    expect(JSON.stringify(lastCallArg)).toEqual(expect.stringContaining('END_FROM_REQUEST'));
+  });
+
+  it('should retry transient errors and eventually succeed within retryAttempts', async () => {
+    jest.useFakeTimers({ now: Date.now() });
+    const GoogleGenerativeAI = require('@google/generative-ai').GoogleGenerativeAI;
+
+    let calls = 0;
+    GoogleGenerativeAI.mockImplementationOnce(() => ({
+      getGenerativeModel: jest.fn().mockReturnValue({
+        generateContent: jest.fn().mockImplementation(() => {
+          calls += 1;
+          if (calls < 3) {
+            // First two attempts fail with retryable 500
+            return Promise.reject({ status: 500, message: 'Transient' });
+          }
+          // Succeeds on 3rd
+          return Promise.resolve({
+            response: {
+              text: () => 'Recovered after retries',
+              candidates: [{ finishReason: 'STOP' }],
+              usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 1, totalTokenCount: 2 }
+            }
+          });
+        })
+      })
+    }));
+
+    adapter = new GeminiAdapter({ ...baseConfig, retryAttempts: 3 });
+    await adapter.initialize();
+
+    const p = adapter.generate({
+      prompt: 'retry please',
+      context: { requestId: 'retry-1', priority: 'medium', userTier: 'pro', latencyTarget: 1000 }
+    });
+
+    // Advance timers in case adapter uses backoff via setTimeout
+    jest.runAllTimers();
+
+    const res = await p;
+    expect(res.content).toBe('Recovered after retries');
+    expect(calls).toBe(3);
+    jest.useRealTimers();
+  });
+
+  it('should not use cache when cachingEnabled is false (subsequent identical calls hit provider again)', async () => {
+    const GoogleGenerativeAI = require('@google/generative-ai').GoogleGenerativeAI;
+    const genModel = GoogleGenerativeAI().getGenerativeModel();
+    const genSpy = jest.spyOn(genModel, 'generateContent');
+
+    const noCacheAdapter = new GeminiAdapter({ ...baseConfig, cachingEnabled: false });
+    await noCacheAdapter.initialize();
+
+    const req: ModelRequest = {
+      prompt: 'no-cache',
+      context: { requestId: 'nocache-1', priority: 'medium', userTier: 'pro', latencyTarget: 1000 }
+    };
+
+    await noCacheAdapter.generate(req);
+    await noCacheAdapter.generate(req);
+
+    // Should call the underlying API twice (no caching)
+    expect(genSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('should timeout long-running generation requests according to config.timeout', async () => {
+    jest.useFakeTimers({ now: Date.now() });
+    const GoogleGenerativeAI = require('@google/generative-ai').GoogleGenerativeAI;
+
+    // Mock a never-resolving promise to trigger timeout
+    GoogleGenerativeAI.mockImplementationOnce(() => ({
+      getGenerativeModel: jest.fn().mockReturnValue({
+        generateContent: jest.fn().mockImplementation(
+          () => new Promise(() => { /* never resolve */ })
+        )
+      })
+    }));
+
+    const shortTimeoutAdapter = new GeminiAdapter({ ...baseConfig, timeout: 50 });
+    await shortTimeoutAdapter.initialize();
+
+    const genPromise = shortTimeoutAdapter.generate({
+      prompt: 'hang',
+      context: { requestId: 'timeout-1', priority: 'medium', userTier: 'pro', latencyTarget: 1000 }
+    });
+
+    jest.advanceTimersByTime(60);
+
+    await expect(genPromise).rejects.toMatchObject({
+      code: expect.stringMatching(/TIMEOUT|REQUEST_TIMEOUT/i)
+    });
+
+    jest.useRealTimers();
+  });
+
+  it('should include requestId in the response id for correlation', async () => {
+    const request: ModelRequest = {
+      prompt: 'ID correlation test',
+      context: {
+        requestId: 'my-req-123',
+        priority: 'medium',
+        userTier: 'pro',
+        latencyTarget: 1000
+      }
+    };
+
+    const response = await adapter.generate(request);
+    expect(response.id).toEqual(expect.stringContaining('my-req-123'));
+  });
+
+  it('should accept audio/video multimodal inputs for models that support them', async () => {
+    const request: ModelRequest = {
+      prompt: 'Analyze av',
+      multimodal: {
+        audio: ['base64-audio'],
+        video: ['base64-video']
+      } as any,
+      context: {
+        requestId: 'av-1',
+        priority: 'medium',
+        userTier: 'pro',
+        latencyTarget: 1000
+      }
+    };
+
+    const isValid = await adapter.validateRequest(request);
+    expect(isValid).toBe(true);
+
+    const response = await adapter.generate(request);
+    expect(response.content).toBe('Gemini test response');
+  });
+
+  it('should map tools into Google function declarations shape when provided', async () => {
+    const GoogleGenerativeAI = require('@google/generative-ai').GoogleGenerativeAI;
+    const genModel = GoogleGenerativeAI().getGenerativeModel();
+    const genSpy = jest.spyOn(genModel, 'generateContent');
+
+    const request: ModelRequest = {
+      prompt: 'test tools mapping',
+      tools: [
+        { name: 'sum', description: 'adds', parameters: { a: { type: 'number' }, b: { type: 'number' } } },
+        { name: 'lookup', description: 'search', parameters: { q: { type: 'string' } } }
+      ] as any,
+      context: {
+        requestId: 'tools-1',
+        priority: 'medium',
+        userTier: 'pro',
+        latencyTarget: 1000
+      }
+    };
+
+    await adapter.generate(request);
+
+    const lastCallArg = genSpy.mock.calls[0]?.[0];
+    const payload = JSON.stringify(lastCallArg);
+    // Loosely assert that function declarations are present
+    expect(payload).toMatch(/function/i);
+    expect(payload).toMatch(/sum/);
+    expect(payload).toMatch(/lookup/);
+    expect(payload).toMatch(/parameters?/i);
+  });
+});

@@ -409,8 +409,8 @@ export class QualityAdaptationEngine extends EventEmitter {
 
     // Network degradation
     if (conditions.quality.packetLoss > 0.05) return true;
-    if (conditions.latency.rtt > 300) return true;
-    if (conditions.bandwidth.available < context.currentQuality.bandwidth * 0.8)
+    if ((conditions.latency as any).rtt > 300) return true;
+    if ((conditions.bandwidth as any).available < context.currentQuality.bandwidth * 0.8)
       return true;
 
     // Performance issues
@@ -424,7 +424,7 @@ export class QualityAdaptationEngine extends EventEmitter {
 
     // Improvement opportunity
     if (
-      conditions.bandwidth.available > context.currentQuality.bandwidth * 1.5 &&
+      (conditions.bandwidth as any).available > context.currentQuality.bandwidth * 1.5 &&
       context.userPreferences.autoAdjust
     )
       return true;
@@ -622,7 +622,7 @@ export class QualityAdaptationEngine extends EventEmitter {
     const sortedLadder = [...ladder].sort((a, b) => a.bandwidth - b.bandwidth);
 
     // Select based on available bandwidth with safety margin
-    const availableBandwidth = conditions.bandwidth.available * 0.8; // 20% safety margin
+    const availableBandwidth = (conditions.bandwidth as any).available * 0.8; // 20% safety margin
 
     for (let i = sortedLadder.length - 1; i >= 0; i--) {
       const quality = sortedLadder[i];
@@ -882,6 +882,8 @@ class NetworkMonitor {
   private conditions: NetworkConditions = {
     bandwidth: { upload: 0, download: 0, available: 0 },
     latency: { rtt: 0, jitter: 0 },
+    jitter: 0,
+    packetLoss: 0,
     quality: { packetLoss: 0, stability: 1, congestion: 0 },
     timestamp: Date.now(),
   };

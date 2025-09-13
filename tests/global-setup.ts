@@ -9,6 +9,7 @@ export default async function globalSetup() {
   // Set test environment variables
   process.env.NODE_ENV = 'test';
   process.env.TEST_MODE = 'true';
+  process.env.TEST_PROJECT_ID = 'gemini-flow-test';
   
   // Performance test configuration
   if (process.env.BENCHMARK === 'true') {

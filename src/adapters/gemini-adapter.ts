@@ -13,8 +13,10 @@ import {
 } from "./base-model-adapter.js";
 
 export interface GeminiAdapterConfig extends AdapterConfig {
+  model?: string;
   projectId?: string;
   location?: string;
+  generationConfig?: any;
 }
 
 export class GeminiAdapter extends BaseModelAdapter {
