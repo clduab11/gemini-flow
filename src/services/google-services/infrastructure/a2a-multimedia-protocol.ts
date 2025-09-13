@@ -8,6 +8,7 @@
 
 import { EventEmitter } from "events";
 import { Logger } from "../../../utils/logger.js";
+import * as zlib from "zlib";
 import {
   A2AProtocolConfig,
   ServiceResponse,
@@ -1917,22 +1918,22 @@ class CompressionEngine {
     }
   }
 
-  private getAvailableAlgorithms(): string[] {
+  private async getAvailableAlgorithms(): Promise<string[]> {
     const algorithms = ["gzip", "deflate"];
 
     // Check for additional compression libraries
     try {
-      require("lz4");
+      await import("lz4");
       algorithms.push("lz4");
     } catch {}
 
     try {
-      require("zstd");
+      await import("zstd");
       algorithms.push("zstd");
     } catch {}
 
     try {
-      require("brotli");
+      await import("brotli");
       algorithms.push("brotli");
     } catch {}
 
@@ -2004,32 +2005,28 @@ class CompressionEngine {
   }
 
   private gzipCompress(buffer: Buffer): string {
-    const zlib = require("zlib");
     const compressed = zlib.gzipSync(buffer);
     return compressed.toString("base64");
   }
 
   private gzipDecompress(buffer: Buffer): string {
-    const zlib = require("zlib");
     const decompressed = zlib.gunzipSync(buffer);
     return decompressed.toString("utf8");
   }
 
   private deflateCompress(buffer: Buffer): string {
-    const zlib = require("zlib");
     const compressed = zlib.deflateSync(buffer);
     return compressed.toString("base64");
   }
 
   private deflateDecompress(buffer: Buffer): string {
-    const zlib = require("zlib");
     const decompressed = zlib.inflateSync(buffer);
     return decompressed.toString("utf8");
   }
 
-  private lz4Compress(buffer: Buffer): string {
+  private async lz4Compress(buffer: Buffer): Promise<string> {
     try {
-      const lz4 = require("lz4");
+      const lz4 = await import("lz4");
       const compressed = lz4.encode(buffer);
       return compressed.toString("base64");
     } catch {
@@ -2038,9 +2035,9 @@ class CompressionEngine {
     }
   }
 
-  private lz4Decompress(buffer: Buffer): string {
+  private async lz4Decompress(buffer: Buffer): Promise<string> {
     try {
-      const lz4 = require("lz4");
+      const lz4 = await import("lz4");
       const decompressed = lz4.decode(buffer);
       return decompressed.toString("utf8");
     } catch {
@@ -2049,9 +2046,9 @@ class CompressionEngine {
     }
   }
 
-  private zstdCompress(buffer: Buffer): string {
+  private async zstdCompress(buffer: Buffer): Promise<string> {
     try {
-      const zstd = require("zstd");
+      const zstd = await import("zstd");
       const compressed = zstd.compress(buffer);
       return compressed.toString("base64");
     } catch {
@@ -2060,9 +2057,9 @@ class CompressionEngine {
     }
   }
 
-  private zstdDecompress(buffer: Buffer): string {
+  private async zstdDecompress(buffer: Buffer): Promise<string> {
     try {
-      const zstd = require("zstd");
+      const zstd = await import("zstd");
       const decompressed = zstd.decompress(buffer);
       return decompressed.toString("utf8");
     } catch {
@@ -2073,7 +2070,6 @@ class CompressionEngine {
 
   private brotliCompress(buffer: Buffer): string {
     try {
-      const zlib = require("zlib");
       const compressed = zlib.brotliCompressSync(buffer);
       return compressed.toString("base64");
     } catch {
@@ -2084,7 +2080,6 @@ class CompressionEngine {
 
   private brotliDecompress(buffer: Buffer): string {
     try {
-      const zlib = require("zlib");
       const decompressed = zlib.brotliDecompressSync(buffer);
       return decompressed.toString("utf8");
     } catch {
