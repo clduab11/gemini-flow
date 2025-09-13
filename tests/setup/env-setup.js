@@ -114,7 +114,7 @@ global.TEST_ENV_CONFIG = {
   serverPort: parseInt(process.env.TEST_SERVER_PORT),
   serverHost: process.env.TEST_SERVER_HOST,
   dbPath: process.env.TEST_DB_PATH,
-  hiveMemo ryPath: process.env.HIVE_MEMORY_PATH,
+  hiveMemoryPath: process.env.HIVE_MEMORY_PATH,
   thresholds: {
     responseTime: parseInt(process.env.MAX_RESPONSE_TIME),
     memoryUsage: parseInt(process.env.MAX_MEMORY_USAGE),

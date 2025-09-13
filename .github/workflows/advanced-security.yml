@@ -1,0 +1,630 @@
+name: Advanced Security Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * 1' # Weekly security scan on Monday at 2 AM UTC
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+# Security-focused permissions
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+  id-token: write # For OIDC token
+  attestations: write # For build attestations
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  # Dependency and vulnerability scanning
+  dependency-security:
+    name: Dependency Security Analysis
+    runs-on: ubuntu-latest
+    
+    outputs:
+      vuln-count: ${{ steps.audit.outputs.vulnerabilities }}
+      
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            registry.npmjs.org:443
+            objects.githubusercontent.com:443
+            nodejs.org:443
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --audit=false
+
+      # Generate Software Bill of Materials (SBOM)
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0.15.9
+        with:
+          path: ./
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      # Comprehensive dependency audit
+      - name: Enhanced dependency audit
+        id: audit
+        run: |
+          set -euo pipefail
+          
+          echo "🔍 Running comprehensive dependency audit..."
+          
+          # Generate detailed audit report
+          npm audit --json > audit-detailed.json || true
+          npm audit --audit-level=moderate --json > audit-moderate.json || true
+          
+          # Extract vulnerability counts
+          CRITICAL=$(jq -r '.metadata.vulnerabilities.critical // 0' audit-detailed.json)
+          HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' audit-detailed.json)
+          MODERATE=$(jq -r '.metadata.vulnerabilities.moderate // 0' audit-detailed.json)
+          LOW=$(jq -r '.metadata.vulnerabilities.low // 0' audit-detailed.json)
+          INFO=$(jq -r '.metadata.vulnerabilities.info // 0' audit-detailed.json)
+          
+          echo "Critical: $CRITICAL"
+          echo "High: $HIGH"
+          echo "Moderate: $MODERATE"
+          echo "Low: $LOW"
+          echo "Info: $INFO"
+          
+          # Set outputs
+          echo "vulnerabilities=$CRITICAL,$HIGH,$MODERATE,$LOW" >> $GITHUB_OUTPUT
+          
+          # Create security summary
+          cat > security-summary.md << EOF
+          # 🔒 Security Audit Summary
+          
+          | Severity | Count |
+          |----------|-------|
+          | Critical | $CRITICAL |
+          | High     | $HIGH |
+          | Moderate | $MODERATE |
+          | Low      | $LOW |
+          | Info     | $INFO |
+          
+          **Audit Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Node.js Version:** ${{ env.NODE_VERSION }}
+          **NPM Audit Level:** moderate
+          EOF
+          
+          # Fail on critical vulnerabilities
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "❌ Critical vulnerabilities detected: $CRITICAL"
+            echo "Please review and fix critical vulnerabilities before proceeding."
+            exit 1
+          fi
+          
+          # Warn on high vulnerabilities
+          if [ "$HIGH" -gt 5 ]; then
+            echo "⚠️ High number of high-severity vulnerabilities: $HIGH"
+            echo "Consider reviewing and addressing these vulnerabilities."
+          fi
+          
+          echo "✅ Dependency audit completed"
+
+      # License compliance check
+      - name: License compliance scan
+        run: |
+          echo "📋 Checking license compliance..."
+          npm install -g license-checker
+          
+          # Generate license report
+          license-checker --json --onlyAllow 'MIT;Apache-2.0;BSD-3-Clause;BSD-2-Clause;ISC;Unlicense;CC0-1.0' > license-report.json || {
+            echo "⚠️ Some licenses may not be compliant with policy"
+            license-checker --summary >> license-summary.txt
+          }
+          
+          echo "✅ License compliance check completed"
+
+      # Check for outdated packages
+      - name: Check for outdated packages
+        run: |
+          echo "📦 Checking for outdated packages..."
+          npm outdated --json > outdated-packages.json || true
+          
+          if [ -s outdated-packages.json ]; then
+            echo "📊 Outdated packages found:"
+            jq -r 'to_entries[] | "- \(.key): \(.value.current) -> \(.value.wanted)"' outdated-packages.json | head -10
+          else
+            echo "✅ All packages are up to date"
+          fi
+
+      # Supply chain security check
+      - name: Supply chain security
+        run: |
+          echo "🔗 Checking supply chain security..."
+          
+          # Check for suspicious packages
+          npx @socketsecurity/cli scan package.json || {
+            echo "⚠️ Supply chain security scan completed with warnings"
+          }
+
+      # Upload security artifacts
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            audit-detailed.json
+            audit-moderate.json
+            security-summary.md
+            license-report.json
+            license-summary.txt
+            outdated-packages.json
+            sbom.spdx.json
+          retention-days: 90
+
+      # Attest SBOM
+      - name: Attest SBOM
+        uses: actions/attest-sbom@v1
+        if: github.event_name == 'push'
+        with:
+          subject-path: ./
+          sbom-path: sbom.spdx.json
+
+  # Static Application Security Testing (SAST)
+  static-security-analysis:
+    name: Static Security Analysis
+    runs-on: ubuntu-latest
+    
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    
+    strategy:
+      matrix:
+        language: [typescript, javascript]
+        
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+          config: |
+            paths-ignore:
+              - node_modules
+              - dist
+              - coverage
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build for analysis
+        run: |
+          npm run build || npm run build:cli || {
+            echo "⚠️ Build failed, proceeding with available code"
+          }
+
+      # Custom security rules
+      - name: Run custom security linting
+        run: |
+          echo "🔍 Running custom security linting..."
+          
+          # Check for hardcoded secrets patterns
+          echo "Checking for potential secrets..."
+          if grep -r -n --include="*.ts" --include="*.js" --exclude-dir=node_modules \
+            -E "(api[_-]?key|password|secret|token|credential)" . | head -5; then
+            echo "⚠️ Potential secrets found - please review"
+          else
+            echo "✅ No obvious secrets patterns found"
+          fi
+          
+          # Check for insecure functions
+          echo "Checking for insecure function usage..."
+          if grep -r -n --include="*.ts" --include="*.js" --exclude-dir=node_modules \
+            -E "(eval\(|innerHTML|document\.write|\.exec\()" . | head -5; then
+            echo "⚠️ Potentially insecure functions found - please review"
+          else
+            echo "✅ No insecure function patterns found"
+          fi
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  # Secrets scanning
+  secrets-detection:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # TruffleHog for comprehensive secret scanning
+      - name: Run TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified --json --output=trufflehog-results.json
+
+      # GitLeaks as additional layer
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      # Custom secret patterns
+      - name: Custom secret pattern detection
+        run: |
+          echo "🔍 Running custom secret pattern detection..."
+          
+          # Common secret patterns
+          SECRET_PATTERNS=(
+            "(?i)(aws_access_key_id|aws_secret_access_key)"
+            "(?i)(google_api_key|google_client_secret)"
+            "(?i)(github_token|github_pat)"
+            "(?i)(openai_api_key|anthropic_api_key)"
+            "(?i)(private_key|-----BEGIN.*PRIVATE KEY-----)"
+          )
+          
+          for pattern in "${SECRET_PATTERNS[@]}"; do
+            if grep -r -E "$pattern" --exclude-dir=.git --exclude-dir=node_modules . ; then
+              echo "⚠️ Potential secret pattern found: $pattern"
+            fi
+          done
+
+      - name: Upload secret scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: secret-scan-results
+          path: |
+            trufflehog-results.json
+            gitleaks-report.json
+          retention-days: 30
+
+  # Infrastructure as Code (IaC) security
+  iac-security:
+    name: Infrastructure Security
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Checkov for IaC security
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          quiet: true
+          soft_fail: true
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+
+      # Upload IaC security results
+      - name: Upload Checkov scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+
+  # Container security (if Dockerfile exists)
+  container-security:
+    name: Container Security
+    runs-on: ubuntu-latest
+    if: hashFiles('**/Dockerfile*') != ''
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: gemini-flow:security-test
+          load: true
+
+      # Trivy security scanning
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'gemini-flow:security-test'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      # Hadolint for Dockerfile linting
+      - name: Lint Dockerfile with Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          format: sarif
+          output-file: hadolint-results.sarif
+          no-fail: true
+
+      - name: Upload container security results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: |
+            trivy-results.sarif
+            hadolint-results.sarif
+
+  # Dynamic Application Security Testing (DAST)
+  dynamic-security-analysis:
+    name: Dynamic Security Testing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application for DAST
+        run: |
+          # Start the application in background if it has a server mode
+          if npm run start --if-present & then
+            APP_PID=$!
+            echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+            sleep 10 # Wait for app to start
+          else
+            echo "No server mode available for DAST"
+            exit 0
+          fi
+
+      # OWASP ZAP security testing
+      - name: ZAP Scan
+        uses: zaproxy/action-full-scan@v0.9.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ ! -z "${APP_PID:-}" ]; then
+            kill $APP_PID || true
+          fi
+
+  # Security posture assessment
+  security-posture:
+    name: Security Posture Assessment
+    runs-on: ubuntu-latest
+    needs: [dependency-security, static-security-analysis, secrets-detection]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download security artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: security-reports
+          path: ./security-reports
+
+      - name: Generate security scorecard
+        run: |
+          echo "📊 Generating Security Scorecard..."
+          
+          # Initialize scores
+          TOTAL_SCORE=0
+          MAX_SCORE=100
+          
+          cat > security-scorecard.md << 'EOF'
+          # 🛡️ Security Scorecard
+          
+          ## Assessment Results
+          
+          | Category | Score | Status | Details |
+          |----------|-------|--------|---------|
+          EOF
+          
+          # Dependency Security Score (25 points)
+          if [ -f "./security-reports/audit-detailed.json" ]; then
+            CRITICAL=$(jq -r '.metadata.vulnerabilities.critical // 0' ./security-reports/audit-detailed.json)
+            HIGH=$(jq -r '.metadata.vulnerabilities.high // 0' ./security-reports/audit-detailed.json)
+            
+            if [ "$CRITICAL" -eq 0 ] && [ "$HIGH" -le 3 ]; then
+              DEPS_SCORE=25
+              DEPS_STATUS="✅ PASS"
+            elif [ "$CRITICAL" -eq 0 ]; then
+              DEPS_SCORE=15
+              DEPS_STATUS="⚠️ WARN"
+            else
+              DEPS_SCORE=0
+              DEPS_STATUS="❌ FAIL"
+            fi
+            
+            echo "| Dependencies | $DEPS_SCORE/25 | $DEPS_STATUS | Critical: $CRITICAL, High: $HIGH |" >> security-scorecard.md
+            TOTAL_SCORE=$((TOTAL_SCORE + DEPS_SCORE))
+          fi
+          
+          # Static Analysis Score (25 points)
+          if [ "${{ needs.static-security-analysis.result }}" = "success" ]; then
+            SAST_SCORE=25
+            SAST_STATUS="✅ PASS"
+          else
+            SAST_SCORE=10
+            SAST_STATUS="⚠️ WARN"
+          fi
+          echo "| Static Analysis | $SAST_SCORE/25 | $SAST_STATUS | CodeQL and custom rules |" >> security-scorecard.md
+          TOTAL_SCORE=$((TOTAL_SCORE + SAST_SCORE))
+          
+          # Secrets Detection Score (25 points)
+          if [ "${{ needs.secrets-detection.result }}" = "success" ]; then
+            SECRETS_SCORE=25
+            SECRETS_STATUS="✅ PASS"
+          else
+            SECRETS_SCORE=0
+            SECRETS_STATUS="❌ FAIL"
+          fi
+          echo "| Secrets Detection | $SECRETS_SCORE/25 | $SECRETS_STATUS | TruffleHog and GitLeaks |" >> security-scorecard.md
+          TOTAL_SCORE=$((TOTAL_SCORE + SECRETS_SCORE))
+          
+          # Security Practices Score (25 points)
+          PRACTICES_SCORE=20  # Base score, can be improved
+          if [ -f ".github/workflows/modern-ci.yml" ]; then
+            PRACTICES_SCORE=$((PRACTICES_SCORE + 5))
+          fi
+          echo "| Security Practices | $PRACTICES_SCORE/25 | ✅ PASS | CI/CD security practices |" >> security-scorecard.md
+          TOTAL_SCORE=$((TOTAL_SCORE + PRACTICES_SCORE))
+          
+          echo "" >> security-scorecard.md
+          echo "## Overall Score: $TOTAL_SCORE/$MAX_SCORE" >> security-scorecard.md
+          
+          if [ $TOTAL_SCORE -ge 80 ]; then
+            echo "### 🏆 Security Grade: A (Excellent)" >> security-scorecard.md
+          elif [ $TOTAL_SCORE -ge 60 ]; then
+            echo "### 🥈 Security Grade: B (Good)" >> security-scorecard.md
+          elif [ $TOTAL_SCORE -ge 40 ]; then
+            echo "### 🥉 Security Grade: C (Needs Improvement)" >> security-scorecard.md
+          else
+            echo "### ❌ Security Grade: D (Critical Issues)" >> security-scorecard.md
+          fi
+          
+          echo "" >> security-scorecard.md
+          echo "**Assessment Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> security-scorecard.md
+
+      - name: Upload security scorecard
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scorecard
+          path: security-scorecard.md
+          retention-days: 90
+
+      - name: Comment PR with security scorecard
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('security-scorecard.md')) {
+              const scorecard = fs.readFileSync('security-scorecard.md', 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: scorecard
+              });
+            }
+
+  # Security summary
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [dependency-security, static-security-analysis, secrets-detection, security-posture]
+    if: always()
+    
+    steps:
+      - name: Security summary
+        run: |
+          echo "## 🔒 Security Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Security | ${{ needs.dependency-security.result }} | Vulnerabilities: ${{ needs.dependency-security.outputs.vuln-count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Static Analysis | ${{ needs.static-security-analysis.result }} | CodeQL + Custom Rules |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secrets Detection | ${{ needs.secrets-detection.result }} | TruffleHog + GitLeaks |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Posture | ${{ needs.security-posture.result }} | Overall Assessment |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Determine overall security status
+          if [[ "${{ needs.dependency-security.result }}" == "success" && 
+                "${{ needs.static-security-analysis.result }}" == "success" && 
+                "${{ needs.secrets-detection.result }}" == "success" ]]; then
+            echo "### ✅ Security Status: PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "All security checks completed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⚠️ Security Status: NEEDS ATTENTION" >> $GITHUB_STEP_SUMMARY
+            echo "Some security checks require attention. Please review the results above." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Review security artifacts and reports" >> $GITHUB_STEP_SUMMARY
+          echo "- Address any critical or high-priority issues" >> $GITHUB_STEP_SUMMARY
+          echo "- Update dependencies with security patches" >> $GITHUB_STEP_SUMMARY
+          echo "- Implement recommended security practices" >> $GITHUB_STEP_SUMMARY

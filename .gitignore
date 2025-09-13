@@ -17,6 +17,29 @@
 .hive-mind/
 .benchmarks/
 
+# CI/CD and Quality Assurance artifacts
+reports/
+coverage/
+.nyc_output/
+*.tgz
+*.sarif
+audit-*.json
+security-*.md
+license-*.json
+load-test-*.json
+load-test-*.html
+axe-results.json
+lighthouse-*.json
+benchmark-*.js
+security-scorecard.md
+quality-reports/
+
+# Performance and monitoring
+benchmark-temp/
+perf-results/
+load-test-results/
+artillery-results/
+
 # Dependencies
 node_modules/
 .pnpm-debug.log*
