@@ -1,257 +1,316 @@
 #!/usr/bin/env node
 /**
- * Gemini-Flow - Simplified CLI (Minimal Implementation)
+ * Gemini-Flow - Simplified CLI
  *
- * Simple AI assistant CLI that works without external dependencies
+ * Simple AI assistant CLI matching official Gemini CLI patterns
  * Core commands: chat, generate, list-models, auth, config
  */
-
+import { Command } from "commander";
+import chalk from "chalk";
+import { Logger } from "../utils/logger.js";
+import { GeminiCLI } from "./gemini-cli.js";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
 // Read version from package.json
 const packagePath = join(__dirname, "../../package.json");
 const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
 const version = packageJson.version;
-
+const program = new Command();
+const logger = new Logger("GeminiFlow");
 // ASCII art banner - simplified
-const banner = `
+const banner = chalk.cyan(`
 ╔═══════════════════════════════════════════╗
 ║         🌟 Gemini-Flow v${version}         ║
 ║       Simple AI Assistant CLI            ║
 ║      Powered by Google Gemini            ║
 ╚═══════════════════════════════════════════╝
-`;
-
+`);
 /**
- * Simple CLI implementation without external dependencies
+ * Setup the simplified CLI program
  */
-class SimpleGeminiCLI {
-  constructor() {
-    this.models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.5-pro-latest'];
-  }
-
-  showHelp() {
-    console.log(banner);
-    console.log(`
-Usage: gemini-flow [command] [options]
-
-Commands:
-  chat, c              Start interactive chat
-  generate, g <text>   Generate content from prompt
-  list-models, models  List available models
-  auth                 Manage authentication
-  config               Manage configuration
-  doctor               System health check
-  --help, -h           Show this help
-  --version, -v        Show version
-
-Examples:
-  gemini-flow chat
-  gemini-flow generate "Hello world"
-  gemini-flow list-models
-  gemini-flow auth --key YOUR_API_KEY
-
-Environment Variables:
-  GEMINI_API_KEY       Google AI API key
-  GOOGLE_AI_API_KEY    Alternative API key variable
-    `);
-  }
-
-  async handleChat(args) {
-    console.log('🤖 Starting Gemini Chat Mode...');
-    console.log('(Minimal CLI implementation)');
-    
-    if (args.length > 0) {
-      const prompt = args.join(' ');
-      console.log(`\nYou: ${prompt}`);
-      console.log('Assistant: Hello! This is the minimal Gemini-Flow CLI.');
-      console.log('To use full AI capabilities, please ensure all dependencies are installed and configured.');
-    } else {
-      console.log('Type your messages below (Ctrl+C to exit):');
-      console.log('Note: This is a basic implementation. Install full dependencies for AI functionality.');
-    }
-  }
-
-  async handleGenerate(args) {
-    if (args.length === 0) {
-      console.log('Error: Please provide a prompt for generation');
-      console.log('Usage: gemini-flow generate "your prompt here"');
-      return;
-    }
-    
-    const prompt = args.join(' ');
-    console.log(`\nGenerating response for: "${prompt}"`);
-    console.log('\nGenerated Response:');
-    console.log('Hello! This is the minimal Gemini-Flow CLI implementation.');
-    console.log('To get real AI-generated responses, please ensure all dependencies are installed.');
-    console.log('\nFor full functionality:');
-    console.log('1. Set GEMINI_API_KEY environment variable');
-    console.log('2. Ensure all npm dependencies are installed');
-  }
-
-  handleListModels() {
-    console.log('\nAvailable Gemini Models:');
-    this.models.forEach((model, index) => {
-      console.log(`  ${index + 1}. ${model}`);
-    });
-    console.log('\nTo use these models, configure your API key with:');
-    console.log('  gemini-flow auth --key YOUR_API_KEY');
-  }
-
-  handleAuth(args) {
-    if (args.includes('--key')) {
-      const keyIndex = args.indexOf('--key') + 1;
-      if (keyIndex < args.length) {
-        const key = args[keyIndex];
-        console.log('✅ API key would be configured (minimal implementation)');
-        console.log('In full version, this would save your API key securely.');
-      } else {
-        console.log('❌ Error: Please provide an API key');
-        console.log('Usage: gemini-flow auth --key YOUR_API_KEY');
-      }
-    } else if (args.includes('--status')) {
-      const hasKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
-      console.log('\nAuthentication Status:');
-      console.log(`API Key in Environment: ${hasKey ? '✅ Found' : '❌ Not found'}`);
-      if (!hasKey) {
-        console.log('\nTo set your API key:');
-        console.log('  export GEMINI_API_KEY="your-key-here"');
-        console.log('  or');
-        console.log('  gemini-flow auth --key YOUR_API_KEY');
-      }
-    } else if (args.includes('--test')) {
-      console.log('🔧 Testing API key...');
-      console.log('(Minimal implementation - cannot actually test API key)');
-    } else if (args.includes('--clear')) {
-      console.log('🧹 API key cleared (minimal implementation)');
-    } else {
-      console.log('\nAuth Commands:');
-      console.log('  --key <key>    Set API key');
-      console.log('  --status       Show authentication status');
-      console.log('  --test         Test current API key');
-      console.log('  --clear        Clear authentication');
-    }
-  }
-
-  handleConfig(args) {
-    console.log('\nConfiguration (Minimal Implementation):');
-    console.log('Available environment variables:');
-    console.log('  GEMINI_API_KEY       - Your Google AI API key');
-    console.log('  GEMINI_FLOW_DEBUG    - Enable debug mode');
-    console.log('  GEMINI_FLOW_MODEL    - Default model to use');
-  }
-
-  handleDoctor() {
-    console.log('\n🏥 System Health Check:\n');
-    
-    const checks = [
-      {
-        name: 'Node.js version',
-        check: () => {
-          const version = process.version;
-          const major = parseInt(version.slice(1));
-          return major >= 18 && major <= 24;
-        }
-      },
-      {
-        name: 'Gemini API key',
-        check: () => !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY)
-      },
-      {
-        name: 'Memory available',
-        check: () => process.memoryUsage().heapTotal < 1024 * 1024 * 1024 // < 1GB
-      }
-    ];
-
-    let allPassed = true;
-    
-    checks.forEach(({ name, check }) => {
-      const passed = check();
-      const status = passed ? '✅ PASS' : '❌ FAIL';
-      console.log(`${status} ${name}`);
-      if (!passed) allPassed = false;
-    });
-
-    if (!allPassed) {
-      console.log('\n⚠️  Some checks failed. Please review the configuration.');
-      console.log('For help: gemini-flow --help');
-    } else {
-      console.log('\n✅ Basic system checks passed!');
-    }
-  }
-
-  async run() {
-    const args = process.argv.slice(2);
-    
-    // Handle version
-    if (args.includes('--version') || args.includes('-v')) {
-      console.log(version);
-      return;
-    }
-    
-    // Handle help or no arguments
-    if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
-      this.showHelp();
-      return;
-    }
-
-    const command = args[0];
-    const commandArgs = args.slice(1);
-    
-    try {
-      switch (command) {
-        case 'chat':
-        case 'c':
-          await this.handleChat(commandArgs);
-          break;
-        case 'generate':
-        case 'g':
-          await this.handleGenerate(commandArgs);
-          break;
-        case 'list-models':
-        case 'models':
-          this.handleListModels();
-          break;
-        case 'auth':
-          this.handleAuth(commandArgs);
-          break;
-        case 'config':
-          this.handleConfig(commandArgs);
-          break;
-        case 'doctor':
-          this.handleDoctor();
-          break;
-        default:
-          console.log(`❌ Unknown command: ${command}`);
-          this.showHelp();
-          process.exit(1);
-      }
-    } catch (error) {
-      console.error('❌ Error:', error.message);
-      process.exit(1);
-    }
-  }
+function setupProgram() {
+    program
+        .name("gemini-flow")
+        .description("Simple AI assistant CLI powered by Google Gemini")
+        .version(version)
+        .addHelpText("before", banner);
+    // Global options - simplified
+    program
+        .option("-v, --verbose", "Enable verbose output")
+        .option("--model <name>", "Model to use (gemini-1.5-flash, gemini-1.5-pro)")
+        .option("--temperature <temp>", "Temperature (0-2)", parseFloat, 0.7)
+        .option("--max-tokens <tokens>", "Maximum tokens", parseInt, 1000000)
+        .option("--json", "JSON output format");
 }
-
+/**
+ * Setup core commands
+ */
+function setupCommands() {
+    const geminiCLI = new GeminiCLI();
+    // Chat command (interactive mode) - primary interface
+    program
+        .command("chat")
+        .alias("c")
+        .description("Start interactive conversation (default mode)")
+        .argument("[prompt]", "optional initial prompt")
+        .option("--session <id>", "session ID for persistence")
+        .action(async (prompt, options) => {
+        const globalOptions = program.opts();
+        const mergedOptions = { ...globalOptions, ...options };
+        try {
+            await geminiCLI.executeCommand("chat", [prompt], mergedOptions);
+        }
+        catch (error) {
+            handleError(error, mergedOptions);
+        }
+    });
+    // Generate command (one-shot generation)
+    program
+        .command("generate")
+        .alias("g")
+        .description("Generate content from prompt")
+        .argument("[prompt]", "text prompt to generate from")
+        .option("-f, --file <path>", "read prompt from file")
+        .action(async (prompt, options) => {
+        const globalOptions = program.opts();
+        const mergedOptions = { ...globalOptions, ...options };
+        try {
+            const result = await geminiCLI.executeCommand("generate", [prompt], mergedOptions);
+            console.log(result);
+        }
+        catch (error) {
+            handleError(error, mergedOptions);
+        }
+    });
+    // List models command
+    program
+        .command("list-models")
+        .alias("models")
+        .description("List available models")
+        .option("--detailed", "show detailed model information")
+        .action(async (options) => {
+        const globalOptions = program.opts();
+        const mergedOptions = { ...globalOptions, ...options };
+        try {
+            const result = await geminiCLI.executeCommand("list-models", [], mergedOptions);
+            console.log(result);
+        }
+        catch (error) {
+            handleError(error, mergedOptions);
+        }
+    });
+    // Auth command
+    program
+        .command("auth")
+        .description("Manage authentication")
+        .option("--key <apikey>", "set API key")
+        .option("--test", "test current API key")
+        .option("--status", "show authentication status")
+        .option("--clear", "clear authentication")
+        .action(async (options) => {
+        try {
+            const result = await geminiCLI.executeCommand("auth", [], options);
+            if (result) {
+                console.log(result);
+            }
+        }
+        catch (error) {
+            handleError(error, options);
+        }
+    });
+    // Config command (simple configuration management)
+    program
+        .command("config")
+        .description("Manage configuration")
+        .option("--set <key=value>", "set configuration value")
+        .option("--get <key>", "get configuration value")
+        .option("--list", "list all configuration")
+        .option("--reset", "reset to defaults")
+        .action(async (options) => {
+        try {
+            await handleConfigCommand(options);
+        }
+        catch (error) {
+            handleError(error, options);
+        }
+    });
+    // Doctor command for diagnostics
+    program
+        .command("doctor")
+        .description("Check system configuration and dependencies")
+        .action(async () => {
+        try {
+            const checks = {
+                "Node.js version": process.version.startsWith("v18") ||
+                    process.version.startsWith("v20"),
+                "Gemini API key": !!process.env.GEMINI_API_KEY || !!process.env.GOOGLE_AI_API_KEY,
+                "Memory available": process.memoryUsage().heapTotal < 1024 * 1024 * 1024, // < 1GB
+                "Write permissions": true,
+            };
+            console.log(chalk.blue("\n🏥 System Health Check:\n"));
+            Object.entries(checks).forEach(([check, passed]) => {
+                const status = passed ? chalk.green("✅ PASS") : chalk.red("❌ FAIL");
+                console.log(`${status} ${check}`);
+            });
+            const allPassed = Object.values(checks).every((v) => v);
+            if (!allPassed) {
+                console.log(chalk.yellow("\n⚠️  Some checks failed. Please review the configuration."));
+            }
+            else {
+                console.log(chalk.green("\n✅ All checks passed! Gemini-Flow is ready to use."));
+            }
+        }
+        catch (error) {
+            handleError(error, {});
+        }
+    });
+}
+/**
+ * Handle config command
+ */
+async function handleConfigCommand(options) {
+    // Simple configuration management
+    const configFile = join(process.cwd(), ".gemini-flow-config.json");
+    if (options.reset) {
+        const fs = await import("fs");
+        if (fs.existsSync(configFile)) {
+            fs.unlinkSync(configFile);
+        }
+        console.log(chalk.green("✅ Configuration reset to defaults"));
+        return;
+    }
+    if (options.list) {
+        const fs = await import("fs");
+        if (fs.existsSync(configFile)) {
+            const config = JSON.parse(fs.readFileSync(configFile, "utf8"));
+            console.log(chalk.blue("\n📋 Current Configuration:\n"));
+            Object.entries(config).forEach(([key, value]) => {
+                console.log(chalk.cyan(`${key}: ${value}`));
+            });
+        }
+        else {
+            console.log(chalk.yellow("No configuration file found. Using defaults."));
+        }
+        return;
+    }
+    if (options.set) {
+        const [key, value] = options.set.split("=");
+        if (!key || !value) {
+            throw new Error("Invalid format. Use --set key=value");
+        }
+        const fs = await import("fs");
+        let config = {};
+        if (fs.existsSync(configFile)) {
+            config = JSON.parse(fs.readFileSync(configFile, "utf8"));
+        }
+        config[key] = value;
+        fs.writeFileSync(configFile, JSON.stringify(config, null, 2));
+        console.log(chalk.green(`✅ Set ${key} = ${value}`));
+        return;
+    }
+    if (options.get) {
+        const fs = await import("fs");
+        if (fs.existsSync(configFile)) {
+            const config = JSON.parse(fs.readFileSync(configFile, "utf8"));
+            const value = config[options.get];
+            if (value !== undefined) {
+                console.log(value);
+            }
+            else {
+                console.log(chalk.yellow(`Configuration key '${options.get}' not found`));
+            }
+        }
+        else {
+            console.log(chalk.yellow("No configuration file found"));
+        }
+        return;
+    }
+    // Default: show available options
+    console.log(chalk.blue("\n⚙️  Configuration Commands:\n"));
+    console.log(chalk.cyan("  --set key=value   "), chalk.gray("Set configuration value"));
+    console.log(chalk.cyan("  --get key         "), chalk.gray("Get configuration value"));
+    console.log(chalk.cyan("  --list            "), chalk.gray("List all configuration"));
+    console.log(chalk.cyan("  --reset           "), chalk.gray("Reset to defaults"));
+}
+/**
+ * Handle errors
+ */
+function handleError(error, options = {}) {
+    const message = error instanceof Error ? error.message : "Unknown error occurred";
+    if (options.json) {
+        console.error(JSON.stringify({ error: message }, null, 2));
+    }
+    else {
+        console.error(chalk.red("Error:"), message);
+        if (options.verbose && error instanceof Error && error.stack) {
+            console.error(chalk.gray(error.stack));
+        }
+    }
+    process.exit(1);
+}
+/**
+ * Check if should default to interactive mode
+ */
+function shouldUseInteractiveMode() {
+    const args = process.argv.slice(2);
+    // No arguments or just global options
+    if (args.length === 0)
+        return true;
+    // Check if only global options provided
+    const globalOptions = [
+        "--verbose",
+        "-v",
+        "--model",
+        "--temperature",
+        "--max-tokens",
+        "--json",
+    ];
+    const isOnlyGlobalOptions = args.every((arg) => globalOptions.includes(arg) ||
+        globalOptions.some((opt) => arg.startsWith(opt + "=")) ||
+        (!arg.startsWith("--") && !arg.startsWith("-")));
+    return isOnlyGlobalOptions;
+}
 /**
  * Main execution
  */
 async function main() {
-  const cli = new SimpleGeminiCLI();
-  await cli.run();
+    setupProgram();
+    setupCommands();
+    // Default to interactive mode if no specific command
+    if (shouldUseInteractiveMode()) {
+        console.log(banner);
+        console.log(chalk.yellow("Starting interactive mode... (use Ctrl+C to exit)\n"));
+        const geminiCLI = new GeminiCLI();
+        try {
+            await geminiCLI.executeCommand("chat", [], program.opts());
+        }
+        catch (error) {
+            handleError(error, program.opts());
+        }
+    }
+    else {
+        // Parse commands normally
+        try {
+            await program.parseAsync(process.argv);
+        }
+        catch (error) {
+            if (error.code === "commander.helpDisplayed") {
+                process.exit(0);
+            }
+            handleError(error, program.opts());
+        }
+    }
 }
-
+// Error handling
+program.exitOverride();
 // Start the CLI
-main().catch(error => {
-  console.error('CLI startup failed:', error.message);
-  process.exit(1);
+main().catch((error) => {
+    logger.error("CLI startup failed", error);
+    process.exit(1);
 });
-
-// Export for compatibility
-export { SimpleGeminiCLI as program };
+// Export for testing
+export { program };
