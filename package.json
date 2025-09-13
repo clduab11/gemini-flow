@@ -35,8 +35,8 @@
     "lint": "eslint src tests --ext .js,.ts,.jsx,.tsx",
     "lint:fix": "eslint src tests --ext .js,.ts,.jsx,.tsx --fix",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write \"src/**/*.{js,ts,jsx,tsx,json,md}\"",
-    "format:check": "prettier --check \"src/**/*.{js,ts,jsx,tsx,json,md}\"",
+    "format": "prettier --write \"src/**/*.{js,ts,jsx,tsx,json,md}\" \"tests/**/*.{js,ts,jsx,tsx,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,jsx,tsx,json,md}\" \"tests/**/*.{js,ts,jsx,tsx,json,md}\"",
     "clean": "rm -rf dist coverage .nyc_output",
     "consensus:start": "node src/consensus/consensus-coordinator.js",
     "swarm:init": "node src/swarm/swarm-initializer.js",
@@ -103,6 +103,7 @@
   "homepage": "https://github.com/claude-ai/gemini-flow#readme",
   "dependencies": {
     "@google-cloud/aiplatform": "^5.5.0",
+    "@google/generative-ai": "^0.24.1",
     "@types/config": "^3.3.3",
     "async": "^3.2.4",
     "axios": "^1.6.0",

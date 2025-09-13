@@ -226,7 +226,7 @@ describe('A2A Chaos Engineering Tests', () => {
 
     it('should handle file descriptor exhaustion', async () => {
       const fdExhaustionTest = await testSuite.runFileDescriptorExhaustionTest(
-        testSuite.chaos Agents[0].id,
+        testSuite.chaosAgents[0].id,
         {
           targetFDCount: 1000,    // Exhaust to near limit
           leakSimulation: true,   // Simulate FD leaks

@@ -378,18 +378,6 @@ describe('A2A Performance Benchmarks', () => {
     });
   });
 
-  private calculateConcurrencyScaling(results: Record<number, ConcurrencyMetrics>): number {
-    const levels = Object.keys(results).map(Number).sort((a, b) => a - b);
-    if (levels.length < 2) return 1;
-
-    const baseline = results[levels[0]];
-    const scaled = results[levels[levels.length - 1]];
-    
-    const theoreticalScaling = levels[levels.length - 1] / levels[0];
-    const actualScaling = scaled.totalThroughput / baseline.totalThroughput;
-    
-    return actualScaling / theoreticalScaling;
-  }
 });
 
 /**
@@ -659,6 +647,19 @@ class PerformanceBenchmarkSuite extends A2AComplianceTestSuite {
 
   async runTests(): Promise<void> {
     console.log('Running A2A Performance Benchmarks...');
+  }
+
+  private calculateConcurrencyScaling(results: Record<number, ConcurrencyMetrics>): number {
+    const levels = Object.keys(results).map(Number).sort((a, b) => a - b);
+    if (levels.length < 2) return 1;
+
+    const baseline = results[levels[0]];
+    const scaled = results[levels[levels.length - 1]];
+    
+    const theoreticalScaling = levels[levels.length - 1] / levels[0];
+    const actualScaling = scaled.totalThroughput / baseline.totalThroughput;
+    
+    return actualScaling / theoreticalScaling;
   }
 }
 
