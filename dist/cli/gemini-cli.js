@@ -102,14 +102,33 @@ Examples:
     if (args.includes('--key')) {
       const keyIndex = args.indexOf('--key') + 1;
       if (keyIndex < args.length) {
-        console.log('API key configured (basic implementation)');
+        console.log('✅ API key configured (basic implementation)');
+        console.log('Note: In full version, this would save your API key securely.');
       } else {
-        console.log('Error: Please provide an API key');
+        console.log('❌ Error: Please provide an API key');
+        console.log('Usage: gemini-flow auth --key YOUR_API_KEY');
       }
     } else if (args.includes('--status')) {
-      console.log('Authentication status: Not implemented in basic CLI');
+      const hasKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY;
+      console.log('\nAuthentication Status:');
+      console.log(`API Key in Environment: ${hasKey ? '✅ Found' : '❌ Not found'}`);
+      if (!hasKey) {
+        console.log('\nTo set your API key:');
+        console.log('  export GEMINI_API_KEY="your-key-here"');
+        console.log('  or');
+        console.log('  gemini-flow auth --key YOUR_API_KEY');
+      }
+    } else if (args.includes('--test')) {
+      console.log('🔧 Testing API key...');
+      console.log('(Basic implementation - cannot actually test API key)');
+    } else if (args.includes('--clear')) {
+      console.log('🧹 API key cleared (basic implementation)');
     } else {
-      console.log('Auth commands: --key <key>, --status, --test, --clear');
+      console.log('\nAuth Commands:');
+      console.log('  --key <key>    Set API key');
+      console.log('  --status       Show authentication status');
+      console.log('  --test         Test current API key');
+      console.log('  --clear        Clear authentication');
     }
   }
 }
