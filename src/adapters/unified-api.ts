@@ -30,8 +30,6 @@ import {
   MultiModalChunk,
   StreamingSession,
   StreamingContext,
-  EdgeCacheConfig,
-  CDNConfiguration,
 } from "../types/streaming.js";
 
 export interface UnifiedAPIConfig {

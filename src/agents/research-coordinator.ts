@@ -9,7 +9,6 @@ import { EventEmitter } from "events";
 import { Logger } from "../utils/logger.js";
 import { SecurityOptimizationManager } from "../core/security-optimization-manager.js";
 import crypto from "crypto";
-import axios from "axios";
 
 // Research interfaces
 export interface ResearchHypothesis {
