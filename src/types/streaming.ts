@@ -5,13 +5,16 @@
 
 export interface VideoStreamRequest {
   id: string;
-  source: "file" | "camera" | "generated";
+  source: "file" | "camera" | "generated" | "screen";
   quality: StreamQuality;
   endpoint: string;
   metadata?: StreamMetadata;
   priority?: "low" | "medium" | "high" | "critical";
   streaming?: StreamingOptions;
   preview?: PreviewOptions;
+  constraints?: {
+    video?: any;
+  };
 }
 
 export interface AudioStreamRequest {
@@ -21,6 +24,9 @@ export interface AudioStreamRequest {
   endpoint: string;
   processing?: AudioProcessing;
   metadata?: StreamMetadata;
+  constraints?: {
+    audio?: any;
+  };
 }
 
 export interface StreamQuality {
@@ -70,6 +76,8 @@ export interface StreamMetadata {
   sessionId: string;
   recordingEnabled?: boolean;
   multicast?: boolean;
+  transcriptionEnabled?: boolean;
+  language?: string;
 }
 
 export interface AudioProcessing {
@@ -165,6 +173,9 @@ export interface VideoStreamResponse {
   data?: Buffer;
   metadata?: StreamMetadata;
   error?: string;
+  stream?: any;
+  quality?: StreamQuality;
+  endpoints?: string[];
 }
 
 export interface AudioStreamResponse {
@@ -173,6 +184,20 @@ export interface AudioStreamResponse {
   data?: Buffer;
   metadata?: StreamMetadata;
   error?: string;
+  stream?: any;
+  quality?: StreamQuality;
+  endpoints?: string[];
+  transcription?: {
+    text: string;
+    confidence: number;
+    language: string;
+    enabled?: boolean;
+    segments: Array<{
+      start: number;
+      end: number;
+      text: string;
+    }>;
+  };
 }
 
 export interface StreamingSession {
@@ -231,4 +256,50 @@ export interface CDNConfiguration {
   caching: EdgeCacheConfig;
   bandwidth: number;
   regions: string[];
+}
+
+export interface WebRTCConfig {
+  iceServers: RTCIceServer[];
+  enableDataChannels: boolean;
+  enableTranscoding: boolean;
+  iceTransportPolicy?: RTCIceTransportPolicy;
+  bundlePolicy?: RTCBundlePolicy;
+  rtcpMuxPolicy?: RTCRtcpMuxPolicy;
+  iceCandidatePoolSize?: number;
+}
+
+export interface StreamingError {
+  code: string;
+  message: string;
+  timestamp: number;
+  recoverable: boolean;
+  severity?: string;
+}
+
+export interface QualityAdaptationRule {
+  condition: string;
+  action: string;
+  threshold: number;
+  priority?: number;
+}
+
+export interface SynchronizationConfig {
+  enabled: boolean;
+  bufferSize: number;
+  syncThreshold: number;
+  adaptiveSync: boolean;
+}
+
+export interface VideoStreamConfig {
+  codec: string;
+  bitrate: number;
+  framerate: number;
+  resolution: string;
+}
+
+export interface AudioStreamConfig {
+  codec: string;
+  bitrate: number;
+  sampleRate: number;
+  channels: number;
 }

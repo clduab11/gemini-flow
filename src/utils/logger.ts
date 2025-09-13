@@ -5,8 +5,6 @@
  * with fallback for environments without winston
  */
 
-import * as winston from 'winston';
-
 export enum LogLevel {
   ERROR = 0,
   WARN = 1,
@@ -27,6 +25,7 @@ export class Logger {
 
   private async initializeWinston() {
     try {
+      const winston = require('winston');
       this.winston = winston.createLogger({
         level: this.levelToString(this.level),
         format: winston.format.combine(
