@@ -5,6 +5,8 @@
  * with fallback for environments without winston
  */
 
+import * as winston from 'winston';
+
 export enum LogLevel {
   ERROR = 0,
   WARN = 1,
@@ -25,16 +27,15 @@ export class Logger {
 
   private async initializeWinston() {
     try {
-      const winston = await import("winston");
-      this.winston = winston.default.createLogger({
+      this.winston = winston.createLogger({
         level: this.levelToString(this.level),
-        format: winston.default.format.combine(
-          winston.default.format.timestamp(),
-          winston.default.format.printf(({ timestamp, level, message }) => {
+        format: winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.printf(({ timestamp, level, message }) => {
             return `${timestamp} [${this.name}] ${level.toUpperCase()}: ${message}`;
           }),
         ),
-        transports: [new winston.default.transports.Console()],
+        transports: [new winston.transports.Console()],
       });
     } catch (error) {
       // Fallback to console logging if winston is not available

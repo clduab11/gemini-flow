@@ -126,10 +126,12 @@ export interface SyncInfo {
 }
 
 export interface NetworkConditions {
-  latency: number;
+  latency: number | { rtt: number; jitter: number };
   jitter: number;
   packetLoss: number;
-  bandwidth: number;
+  bandwidth: number | { upload: number; download: number; available: number };
+  quality?: { packetLoss: number; stability: number; congestion: number };
+  timestamp?: number;
 }
 
 export interface PerformanceMetrics {
@@ -207,11 +209,25 @@ export interface EdgeCacheConfig {
   regions: string[];
   compression: boolean;
   warmupEnabled: boolean;
+  maxSize?: number;
+  purgeStrategy?: string;
+  cdnEndpoints?: string[];
+  strategy?: string;
+  cacheKeys?: {
+    includeQuality?: boolean;
+    includeUser?: boolean;
+    includeSession?: boolean;
+  };
+  edgeLocations?: string[];
 }
 
 export interface CDNConfiguration {
   provider: string;
-  endpoints: string[];
+  endpoints: string[] | {
+    primary: string;
+    fallback: string[];
+    geographic: Record<string, string>;
+  };
   caching: EdgeCacheConfig;
   bandwidth: number;
   regions: string[];
