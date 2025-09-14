@@ -294,7 +294,16 @@ export class LearnCommand extends Command {
     sourcePath: string,
     options: any,
   ): Promise<any> {
-    const data = {
+    const data: {
+      path: string;
+      fileCount: number;
+      languages: Record<string, number>;
+      files: string[];
+      testFiles: string[];
+      configFiles: string[];
+      recentChanges: string[];
+      [key: string]: any;
+    } = {
       path: sourcePath,
       fileCount: 0,
       languages: {},

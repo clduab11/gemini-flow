@@ -16,14 +16,22 @@ jest.mock('../../../src/core/context-window-manager.js');
 jest.mock('inquirer', () => ({
   prompt: jest.fn()
 }));
-jest.mock('chalk', () => ({
-  cyan: jest.fn((str) => str),
-  yellow: jest.fn((str) => str),
-  blue: jest.fn((str) => str),
-  green: jest.fn((str) => str),
-  red: jest.fn((str) => str),
-  gray: jest.fn((str) => str)
-}));
+jest.mock('chalk', () => {
+  const actualChalk = jest.requireActual('chalk');
+  return {
+    __esModule: true,
+    ...actualChalk,
+    default: {
+      cyan: jest.fn((str) => str),
+      yellow: jest.fn((str) => str),
+      blue: jest.fn((str) => str),
+      green: jest.fn((str) => str),
+      red: jest.fn((str) => str),
+      gray: jest.fn((str) => str),
+      white: jest.fn((str) => str),
+    },
+  };
+});
 jest.mock('ora', () => ({
   __esModule: true,
   default: jest.fn(() => ({

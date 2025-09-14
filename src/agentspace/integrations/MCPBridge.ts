@@ -141,19 +141,20 @@ export class MCPBridge extends EventEmitter {
       );
 
       // Initialize AgentSpace swarm context
-      const agentSpaceContext =
+      const { zone, workspace } =
         await this.agentSpaceManager.createCollaborativeWorkspace(
           [], // Will be populated with agent IDs as they're spawned
           `MCP Swarm ${swarmId}`,
           spatialArrangement[0], // Primary coordination position
         );
+      const agentSpaceContext = { zone, workspace } as any;
 
       // Execute MCP swarm initialization (placeholder for actual MCP call)
       const mcpIntegration = await this.executeMCPWorkflow("swarm_init", {
         topology: params.topology,
         maxAgents: params.maxAgents,
         strategy: params.strategy || "adaptive",
-        agentSpaceWorkspaceId: agentSpaceContext.workspace.id,
+        agentSpaceWorkspaceId: (agentSpaceContext.workspace?.id) ?? zone.id,
       });
 
       // Create swarm coordination bridge
@@ -177,7 +178,7 @@ export class MCPBridge extends EventEmitter {
         swarmId,
         executionTime: `${executionTime.toFixed(2)}ms`,
         spatialPositions: spatialArrangement.length,
-        workspaceId: agentSpaceContext.workspace.id,
+        workspaceId: (agentSpaceContext.workspace?.id) ?? zone.id,
       });
 
       this.emit("swarm_initialized", {
@@ -217,7 +218,7 @@ export class MCPBridge extends EventEmitter {
     },
   ): Promise<{
     agentId: string;
-    workspace: AgentWorkspace;
+    workspace: any;
     mcpAgent: any;
     spatialContext: any;
   }> {

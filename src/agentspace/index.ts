@@ -30,9 +30,7 @@ export * from "./types/AgentSpaceTypes.js";
 export * from "./AgentSpaceInitializer.js";
 
 // === INTEGRATIONS ===
-export * from "./integrations/MCPBridge.js";
-export * from "./integrations/StreamingIntegration.js";
-export * from "./integrations/SecurityIntegration.js";
+// Integrations can be imported directly by consumers as needed.
 
 // === INTEGRATION FACTORY ===
 export class AgentSpaceIntegrationFactory {

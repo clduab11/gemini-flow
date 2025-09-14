@@ -669,7 +669,7 @@ export class GeminiCommand extends Command {
           );
           console.log(
             chalk.blue("  Entropy Quality:"),
-            `${(result.quantumExploration.entropy * 100).toFixed(2)}%`,
+            `${(((result.quantumExploration?.entropy ?? 0) * 100)).toFixed(2)}%`,
           );
           console.log(chalk.blue("  Measurement Fidelity:"), "99.95%");
 
@@ -709,7 +709,7 @@ export class GeminiCommand extends Command {
           console.log(chalk.blue("  Key Length:"), `${options.keyLength} bits`);
           console.log(
             chalk.blue("  Entropy Rate:"),
-            `${result.quantumExploration.entropy.toFixed(3)} bits/bit`,
+            `${(result.quantumExploration?.entropy ?? 0).toFixed(3)} bits/bit`,
           );
           console.log(
             chalk.blue("  Security Strength:"),

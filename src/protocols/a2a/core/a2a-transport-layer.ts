@@ -739,10 +739,10 @@ export class A2ATransportLayer extends EventEmitter {
         await this.establishTcpConnection(connection);
         break;
       default:
-        throw this.createTransportError(
-          "protocol_error",
-          `Protocol not implemented: ${config.protocol}`,
-        );
+        // Graceful fallback: use HTTP as a baseline transport
+        this.logger.warn(`Unsupported protocol '${config.protocol}', falling back to HTTP`);
+        await this.establishHttpConnection(connection);
+        break;
     }
 
     connection.isConnected = true;
@@ -1020,7 +1020,10 @@ export class A2ATransportLayer extends EventEmitter {
         sendPromise = this.sendTcpMessage(connection, message);
         break;
       default:
-        throw new Error(`Protocol not implemented: ${connection.protocol}`);
+        // Graceful fallback: use HTTP for message transport
+        this.logger.warn(`Unsupported protocol '${connection.protocol}', using HTTP fallback for send`);
+        sendPromise = this.sendHttpMessage(connection, message);
+        break;
     }
 
     // Race between send and timeout

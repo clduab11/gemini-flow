@@ -291,7 +291,7 @@ export class QualityAdaptationEngine extends EventEmitter {
    */
   addAdaptationRule(rule: QualityAdaptationRule): void {
     this.adaptationRules.push(rule);
-    this.adaptationRules.sort((a, b) => b.priority - a.priority);
+    this.adaptationRules.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
 
     this.logger.info("Adaptation rule added", { priority: rule.priority });
   }
@@ -408,9 +408,11 @@ export class QualityAdaptationEngine extends EventEmitter {
     const metrics = context.sessionMetrics;
 
     // Network degradation
-    if (conditions.quality.packetLoss > 0.05) return true;
-    if ((conditions.latency as any).rtt > 300) return true;
-    if ((conditions.bandwidth as any).available < context.currentQuality.bandwidth * 0.8)
+    if ((conditions.quality?.packetLoss ?? 0) > 0.05) return true;
+    const rtt = typeof conditions.latency === 'number' ? conditions.latency : (conditions.latency?.rtt ?? 0);
+    if (rtt > 300) return true;
+    const availableBw = typeof conditions.bandwidth === 'number' ? conditions.bandwidth : (conditions.bandwidth?.available ?? 0);
+    if (availableBw < context.currentQuality.bandwidth * 0.8)
       return true;
 
     // Performance issues
@@ -423,10 +425,7 @@ export class QualityAdaptationEngine extends EventEmitter {
     if (context.deviceCapabilities.memory.usage > 85) return true;
 
     // Improvement opportunity
-    if (
-      (conditions.bandwidth as any).available > context.currentQuality.bandwidth * 1.5 &&
-      context.userPreferences.autoAdjust
-    )
+    if (availableBw > context.currentQuality.bandwidth * 1.5 && context.userPreferences.autoAdjust)
       return true;
 
     return false;
@@ -682,7 +681,7 @@ export class QualityAdaptationEngine extends EventEmitter {
     newQuality: StreamQuality,
   ): any {
     const bandwidthRatio = newQuality.bandwidth / currentQuality.bandwidth;
-    const qualityIndex = { low: 1, medium: 2, high: 3, ultra: 4 };
+    const qualityIndex: Record<string, number> = { low: 1, medium: 2, high: 3, ultra: 4, auto: 2 };
     const currentIndex = qualityIndex[currentQuality.level] || 2;
     const newIndex = qualityIndex[newQuality.level] || 2;
 

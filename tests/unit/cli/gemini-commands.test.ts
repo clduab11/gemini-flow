@@ -13,7 +13,65 @@ import { InteractiveMode } from '../../../src/cli/interactive-mode';
 import { ContextWindowManager } from '../../../src/core/context-window-manager';
 
 // Mock dependencies
-jest.mock('commander');
+jest.mock('commander', () => {
+  const createMockCommand = () => {
+    const mock = {
+      _commands: [], // Internal array to store commands
+      _options: [],  // Internal array to store options
+
+      name: jest.fn().mockReturnThis(),
+      description: jest.fn().mockReturnThis(),
+      version: jest.fn().mockReturnThis(),
+      addHelpText: jest.fn().mockReturnThis(),
+      alias: jest.fn().mockReturnThis(),
+      parse: jest.fn((args) => {
+        const options: Record<string, any> = {};
+        for (let i = 0; i < args.length; i++) {
+          if (args[i].startsWith('--')) {
+            const optionName = args[i].substring(2);
+            if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
+              options[optionName] = args[i + 1];
+              i++;
+            } else {
+              options[optionName] = true;
+            }
+          }
+        }
+        mock.opts.mockReturnValue(options);
+        return mock;
+      }),
+      // Expose commands and options for testing
+      get commands() { return this._commands; },
+      get options() { return this._options; },
+
+      // Override option and command to populate internal arrays
+      option: jest.fn((flags, description, fn, defaultValue) => {
+        const opt = { flags, description, fn, defaultValue, long: flags.split(', ')[1] || flags };
+        mock._options.push(opt);
+        return mock;
+      }),
+      command: jest.fn((name) => {
+        const newCommand = createMockCommand();
+        newCommand.name.mockReturnValue(name); // Set the name for the new command
+        mock._commands.push(newCommand);
+        return newCommand;
+      }),
+      action: jest.fn().mockReturnThis(),
+      argument: jest.fn().mockReturnThis(),
+      opts: jest.fn(() => ({})),
+    };
+    return mock;
+  };
+
+  const mockProgramInstance = createMockCommand();
+  const mockCommander = jest.fn(() => mockProgramInstance);
+
+  mockCommander.Command = jest.fn(() => createMockCommand());
+
+  return {
+    Command: mockCommander,
+  };
+});
 jest.mock('../../../src/core/google-ai-auth.js');
 jest.mock('../../../src/cli/interactive-mode.js');
 jest.mock('../../../src/core/context-window-manager.js');

@@ -144,7 +144,7 @@ export class InitCommand extends Command {
         name: "maxAgents",
         message: "Maximum number of agents:",
         default: 8,
-        validate: (input) => input > 0 && input <= 64,
+        validate: (input: any) => Number(input) > 0 && Number(input) <= 64,
       },
       {
         type: "confirm",

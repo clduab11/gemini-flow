@@ -5,17 +5,17 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { ExecuteCommand } from '../../gemini-flow/src/cli/commands/execute';
-import { ConfigManager } from '../../gemini-flow/src/cli/config/config-manager';
-import { Logger } from '../../gemini-flow/src/utils/logger';
+import { ExecuteCommand } from '@/cli/commands/execute';
+import { ConfigManager } from '@/cli/config/config-manager';
+import { Logger } from '@/utils/logger';
 import { writeFile, mkdir, rmdir } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
 // Mock external dependencies
-jest.mock('../../gemini-flow/src/utils/logger');
-jest.mock('../../gemini-flow/src/core/model-orchestrator');
-jest.mock('../../gemini-flow/src/adapters/gemini-adapter');
+jest.mock('../src/utils/logger');
+jest.mock('../src/core/model-orchestrator');
+jest.mock('../src/adapters/gemini-adapter');
 
 describe('ExecuteCommand', () => {
   let executeCommand: ExecuteCommand;

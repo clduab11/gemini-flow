@@ -153,7 +153,7 @@ export class ResearchCoordinator extends EventEmitter {
   private papers: Map<string, ResearchPaper> = new Map();
   private peerReviews: Map<string, PeerReview> = new Map();
   private knowledgeGraphs: Map<string, KnowledgeGraph> = new Map();
-  private citationManager: CitationManager;
+  private citationManager!: CitationManager;
 
   // Academic database integrations
   private academicDatabases: Map<string, AcademicDatabase> = new Map();
@@ -221,7 +221,7 @@ export class ResearchCoordinator extends EventEmitter {
     methodology?: string;
   }): Promise<ResearchHypothesis> {
     try {
-      await this.securityManager.validateAccess(
+      await this.securityManager.requireAccess(
         "research",
         "hypothesis-generation",
       );
@@ -284,7 +284,7 @@ export class ResearchCoordinator extends EventEmitter {
         throw new Error(`Hypothesis ${hypothesisId} not found`);
       }
 
-      await this.securityManager.validateAccess(
+      await this.securityManager.requireAccess(
         "research",
         "hypothesis-validation",
       );
@@ -385,7 +385,7 @@ export class ResearchCoordinator extends EventEmitter {
     maxResults?: number;
   }): Promise<ResearchPaper[]> {
     try {
-      await this.securityManager.validateAccess("research", "database-search");
+      await this.securityManager.requireAccess("research", "database-search");
 
       const databases =
         query.databases || Array.from(this.academicDatabases.keys());
@@ -462,7 +462,7 @@ export class ResearchCoordinator extends EventEmitter {
         throw new Error(`Paper ${paperId} not found`);
       }
 
-      await this.securityManager.validateAccess("research", "peer-review");
+      await this.securityManager.requireAccess("research", "peer-review");
 
       // Generate default reviewer profiles if none provided
       if (reviewerProfiles.length === 0) {
@@ -528,7 +528,7 @@ export class ResearchCoordinator extends EventEmitter {
         );
       }
 
-      await this.securityManager.validateAccess("research", "paper-generation");
+      await this.securityManager.requireAccess("research", "paper-generation");
 
       // Generate paper structure
       const sections = params.sections || [
@@ -564,9 +564,9 @@ export class ResearchCoordinator extends EventEmitter {
         title: paper.title,
         abstract: "",
         sections: {} as Record<string, string>,
-        references: [],
-        figures: [],
-        tables: [],
+        references: [] as string[],
+        figures: [] as any[],
+        tables: [] as any[],
       };
 
       // Generate each section
@@ -588,11 +588,11 @@ export class ResearchCoordinator extends EventEmitter {
       paper.abstract = document.abstract;
 
       // Generate references using citation manager
-      document.references = await this.generateReferences(
+      document.references = (await this.generateReferences(
         hypothesis,
         validation,
         params.citationStyle || "APA",
-      );
+      )) as string[];
 
       // Store paper
       this.papers.set(paperId, paper);
@@ -625,7 +625,7 @@ export class ResearchCoordinator extends EventEmitter {
     },
   ): Promise<KnowledgeGraph> {
     try {
-      await this.securityManager.validateAccess("research", "knowledge-graph");
+      await this.securityManager.requireAccess("research", "knowledge-graph");
 
       const graphId = `kg_${domain}_${Date.now()}`;
       const knowledgeGraph: KnowledgeGraph = {
@@ -717,7 +717,7 @@ export class ResearchCoordinator extends EventEmitter {
     analysisType?: "impact" | "network" | "trends";
   }): Promise<any> {
     try {
-      await this.securityManager.validateAccess(
+      await this.securityManager.requireAccess(
         "research",
         "citation-management",
       );
@@ -775,7 +775,7 @@ export class ResearchCoordinator extends EventEmitter {
         throw new Error(`Research data not found for ${params.hypothesisId}`);
       }
 
-      await this.securityManager.validateAccess(
+      await this.securityManager.requireAccess(
         "research",
         "method-validation",
       );

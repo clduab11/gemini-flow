@@ -8,6 +8,10 @@
 import { Logger } from "../utils/logger.js";
 import { featureFlags } from "../core/feature-flags.js";
 import { EventEmitter } from "events";
+import { createRequire } from "node:module";
+import fs from "node:fs";
+import path from "node:path";
+const require = createRequire(import.meta.url);
 
 export interface AdapterSpec {
   name: string;
@@ -264,7 +268,8 @@ export class DynamicAdapterLoader extends EventEmitter {
 
       return loadedAdapter;
     } catch (error) {
-      this.logger.error(`Failed to load adapter ${spec.name}:`, error);
+      const msg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to load adapter ${spec.name}:`, msg);
 
       // Try fallback
       if (spec.fallback) {
@@ -278,7 +283,7 @@ export class DynamicAdapterLoader extends EventEmitter {
         loadTime,
         loadedAt: new Date(),
         status: "failed",
-        error: error.message,
+        error: msg,
       };
 
       this.loadedAdapters.set(spec.key, failedAdapter);
@@ -290,7 +295,7 @@ export class DynamicAdapterLoader extends EventEmitter {
       this.emit("adapter_failed", {
         key: spec.key,
         name: spec.name,
-        error: error.message,
+        error: msg,
         loadTime,
       });
 
@@ -355,17 +360,15 @@ export class DynamicAdapterLoader extends EventEmitter {
       } catch {
         // Check if it's available in the package.json
         try {
-          const fs = await import("fs");
-          const path = await import("path");
           const packageJsonPath = path.join(process.cwd(), "package.json");
-          const packageJsonContent = await fs.promises.readFile(packageJsonPath, 'utf-8');
+          const packageJsonContent = fs.readFileSync(packageJsonPath, "utf-8");
           const packageJson = JSON.parse(packageJsonContent);
           const allDeps = {
-            ...packageJson.dependencies,
-            ...packageJson.devDependencies,
-            ...packageJson.peerDependencies,
-            ...packageJson.optionalDependencies,
-          };
+            ...(packageJson.dependencies || {}),
+            ...(packageJson.devDependencies || {}),
+            ...(packageJson.peerDependencies || {}),
+            ...(packageJson.optionalDependencies || {}),
+          } as Record<string, string>;
 
           if (!allDeps[dep]) {
             missing.push(dep);
@@ -397,7 +400,8 @@ export class DynamicAdapterLoader extends EventEmitter {
             loaded.set(key, adapter);
           }
         } catch (error) {
-          this.logger.warn(`Failed to load adapter ${key}:`, error.message);
+          const msg = error instanceof Error ? error.message : String(error);
+          this.logger.warn(`Failed to load adapter ${key}:`, msg);
         }
       }
     }
@@ -486,7 +490,8 @@ export class DynamicAdapterLoader extends EventEmitter {
       const adapter = await this.loadAdapter(key);
       return adapter ? adapter.status !== "failed" : false;
     } catch (error) {
-      this.logger.error(`On-demand loading failed for ${key}:`, error);
+      const msg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`On-demand loading failed for ${key}:`, msg);
       return false;
     }
   }
@@ -513,7 +518,8 @@ export class DynamicAdapterLoader extends EventEmitter {
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to unload adapter ${key}:`, error);
+      const msg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to unload adapter ${key}:`, msg);
       return false;
     }
   }

@@ -382,38 +382,14 @@ export class WebRTCArchitecture extends EventEmitter {
   ): Promise<StreamingSession> {
     const session: StreamingSession = {
       id: sessionId,
-      type: "multicast",
-      participants: participants.map((id) => ({
-        id,
-        role: "prosumer",
-        capabilities: ["video", "audio", "data"],
-        connection: this.peers.get(id)?.connection || new RTCPeerConnection(),
-      })),
-      streams: {
-        video: [],
-        audio: [],
-        data: [],
+      status: "active",
+      streams: {},
+      metadata: {
+        timestamp: Date.now(),
+        sessionId,
       },
-      coordination: {
-        master: participants[0], // First participant is master
-        consensus: true,
-        synchronization: {
-          enabled: true,
-          tolerance: 50, // 50ms
-          maxDrift: 200,
-          resyncThreshold: 500,
-          method: "rtp",
-          masterClock: "audio",
-        },
-      },
-      metrics: {
-        startTime: Date.now(),
-        duration: 0,
-        totalBytes: 0,
-        qualityChanges: 0,
-        errors: 0,
-        averageLatency: 0,
-      },
+      startTime: Date.now(),
+      participants,
     };
 
     this.sessions.set(sessionId, session);
@@ -434,7 +410,6 @@ export class WebRTCArchitecture extends EventEmitter {
     const dataChannel = connection.createDataChannel("coordination", {
       ordered: false,
       maxRetransmits: 0,
-      priority: "high",
     });
 
     dataChannel.onopen = () => {
@@ -695,8 +670,8 @@ export class WebRTCArchitecture extends EventEmitter {
       enabled: true,
       language: language || "en-US",
       confidence: 0,
-      interim: "",
-      final: "",
+      text: "",
+      segments: [],
     };
   }
 

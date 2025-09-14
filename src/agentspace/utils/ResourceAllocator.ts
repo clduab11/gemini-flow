@@ -48,6 +48,7 @@ export interface ResourceAllocationUnit {
   sharable: boolean;
   actualUsage: number;
   efficiency: number;
+  resourceType: string;
 }
 
 export interface AllocationPlan {
@@ -418,7 +419,7 @@ export class ResourceAllocator {
   }
 
   private getDefaultCapacity(resourceType: string): number {
-    const capacities = {
+    const capacities: Record<string, number> = {
       memory: 10240, // 10GB
       cpu: 100, // 100 CPU units
       network: 1000, // 1000 Mbps
@@ -593,6 +594,7 @@ export class ResourceAllocator {
         sharable: allocation.shareLevel !== "exclusive",
         actualUsage: 0,
         efficiency: allocation.performance.efficiency,
+        resourceType: allocation.resourceType,
       };
 
       // Update resource pool

@@ -12,7 +12,6 @@
 import { EventEmitter } from "events";
 import { Logger } from "../utils/logger.js";
 import {
-  A2AMultimediaExtension,
   StreamingSession,
   MultiModalChunk,
   VideoStreamRequest,
@@ -96,7 +95,7 @@ export interface LoadBalancingStrategy {
 
 export class A2AMultimediaExtension extends EventEmitter {
   private logger: Logger;
-  private extension: A2AMultimediaExtension;
+  private extension: any;
   private agents = new Map<string, A2AStreamingAgent>();
   private sessions = new Map<string, StreamingSession>();
   private messageQueue: A2AMultimediaMessage[] = [];
@@ -206,6 +205,9 @@ export class A2AMultimediaExtension extends EventEmitter {
     // Create session with coordination
     const session: StreamingSession = {
       id: sessionId,
+      status: "active",
+      metadata: { timestamp: Date.now(), sessionId },
+      startTime: Date.now(),
       type: sessionType,
       participants: selectedAgents.map((agent) => ({
         id: agent.id,
@@ -307,10 +309,10 @@ export class A2AMultimediaExtension extends EventEmitter {
     const proposal: ConsensusProposal = {
       id: this.generateProposalId(),
       type: "quality_change",
-      proposer: session.coordination.master,
+      proposer: (session as any).coordination?.master,
       data: { newQuality, reason },
       votes: new Map(),
-      threshold: Math.ceil(session.participants.length / 2), // Majority
+      threshold: Math.ceil(((session.participants || []).length) / 2), // Majority
       deadline: Date.now() + 5000, // 5 seconds to vote
       status: "pending",
     };
@@ -320,7 +322,7 @@ export class A2AMultimediaExtension extends EventEmitter {
     // Request votes from all participants
     const voteMessage: A2AMultimediaMessage = {
       type: "consensus_vote",
-      from: session.coordination.master,
+      from: (session as any).coordination?.master,
       to: "broadcast",
       sessionId,
       timestamp: Date.now(),
@@ -328,7 +330,7 @@ export class A2AMultimediaExtension extends EventEmitter {
       data: {
         proposal: proposal.id,
         type: "quality_change",
-        currentQuality: session.streams.video[0]?.quality,
+        currentQuality: (session as any).streams?.video?.[0]?.quality,
         proposedQuality: newQuality,
         reason,
       },
@@ -374,7 +376,7 @@ export class A2AMultimediaExtension extends EventEmitter {
 
     // Find affected sessions
     const affectedSessions = Array.from(this.sessions.values()).filter(
-      (session) => session.participants.some((p) => p.id === failedAgentId),
+      (session) => (session.participants || []).some((p: any) => p.id === failedAgentId),
     );
 
     // Coordinate failover for each affected session
@@ -459,13 +461,13 @@ export class A2AMultimediaExtension extends EventEmitter {
       })),
       sessions: Array.from(this.sessions.values()).map((session) => ({
         id: session.id,
-        type: session.type,
-        participants: session.participants.length,
-        master: session.coordination.master,
+        type: (session as any).type,
+        participants: (session.participants || []).length,
+        master: (session as any).coordination?.master,
         streams: {
-          video: session.streams.video.length,
-          audio: session.streams.audio.length,
-          data: session.streams.data.length,
+          video: (session as any).streams?.video?.length || 0,
+          audio: (session as any).streams?.audio?.length || 0,
+          data: (session as any).streams?.data?.length || 0,
         },
       })),
       connections: this.getConnectionMatrix(),
@@ -649,9 +651,9 @@ export class A2AMultimediaExtension extends EventEmitter {
         action: "session_setup",
         session: {
           id: session.id,
-          type: session.type,
-          participants: session.participants,
-          coordination: session.coordination,
+          type: (session as any).type,
+          participants: session.participants || [],
+          coordination: (session as any).coordination,
         },
       },
       priority: "high",
@@ -678,10 +680,10 @@ export class A2AMultimediaExtension extends EventEmitter {
     const session = this.sessions.get(sessionId);
     if (!session) return;
 
-    for (const participant of session.participants) {
+    for (const participant of (session.participants || [])) {
       const participantMessage = {
         ...message,
-        to: participant.id,
+        to: (participant as any).id,
       };
       await this.sendMessage(participantMessage);
     }
@@ -843,13 +845,13 @@ export class A2AMultimediaExtension extends EventEmitter {
     replacementAgent: A2AStreamingAgent,
   ): Promise<void> {
     // Update session participants
-    const participantIndex = session.participants.findIndex(
-      (p) => p.id === failedAgentId,
+    const participantIndex = (session.participants || []).findIndex(
+      (p: any) => p.id === failedAgentId,
     );
-    if (participantIndex !== -1) {
-      session.participants[participantIndex] = {
+    if (participantIndex !== -1 && session.participants) {
+      (session.participants as any[])[participantIndex] = {
         id: replacementAgent.id,
-        role: session.participants[participantIndex].role,
+        role: (session.participants as any[])[participantIndex].role,
         capabilities: Object.keys(
           replacementAgent.capabilities.supportedCodecs,
         ),
@@ -891,8 +893,8 @@ export class A2AMultimediaExtension extends EventEmitter {
     failedAgentId: string,
   ): Promise<void> {
     // Remove failed agent from session
-    session.participants = session.participants.filter(
-      (p) => p.id !== failedAgentId,
+    session.participants = (session.participants || []).filter(
+      (p: any) => p.id !== failedAgentId,
     );
 
     // Adjust quality if needed

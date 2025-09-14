@@ -4,6 +4,8 @@
  * These tests are designed to be framework-agnostic where possible.
  */
 
+import { QualityAdaptationEngine } from '@/streaming/quality-adaptation-engine';
+
 // Helpers to construct representations and samples
 type MockRep = { id: string; bitrate: number; width?: number; height?: number };
 const reps = (...arr: MockRep[]) => arr.map(r => ({ id: r.id, bitrate: r.bitrate, width: r.width, height: r.height })) as unknown as Representation[];

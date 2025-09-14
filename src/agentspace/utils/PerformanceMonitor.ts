@@ -900,7 +900,7 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   private generateResolutionPlan(bottleneckType: string): ResolutionStep[] {
-    const plans = {
+    const plans: Record<string, ResolutionStep[]> = {
       cpu: [
         {
           step: 1,

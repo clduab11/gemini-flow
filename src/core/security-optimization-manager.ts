@@ -691,6 +691,13 @@ export class SecurityOptimizationManager extends EventEmitter {
   }
 
   /**
+   * Public wrapper for access validation to allow external callers (e.g., coordinators)
+   */
+  public async requireAccess(permission: string, resource: string): Promise<boolean> {
+    return this.validateAccess(permission, resource);
+  }
+
+  /**
    * Create comprehensive audit event
    */
   private async createAuditEvent(

@@ -6,6 +6,7 @@
  */
 
 import { Logger } from "../utils/logger.js";
+import { getErrorMessage } from "../utils/errors.js";
 import { DistributedMemoryManager } from "../protocols/a2a/memory/distributed-memory-manager.js";
 import {
   AgentSpaceManager,
@@ -131,7 +132,7 @@ export async function initializeAgentSpace(
     };
   } catch (error) {
     logger.error("Failed to initialize AgentSpace system", {
-      error: error.message,
+      error: getErrorMessage(error),
     });
     throw error;
   }
@@ -196,7 +197,7 @@ export async function deployFullAgentSwarm(
     };
   } catch (error) {
     logger.error("Failed to deploy full agent swarm", {
-      error: error.message,
+      error: getErrorMessage(error),
     });
     throw error;
   }
@@ -232,7 +233,7 @@ export async function integrateMCPTools(
     logger.info("MCP tools integration completed");
   } catch (error) {
     logger.error("Failed to integrate MCP tools", {
-      error: error.message,
+      error: getErrorMessage(error),
     });
     throw error;
   }
@@ -404,12 +405,14 @@ async function autoDeployAgents(
             constraints: {},
           },
         ],
-        collaborationPreferences: {
-          preferredDistance: 15,
-          maxCollaborators: 5,
-          communicationStyle: "mesh",
-          trustThreshold: 0.7,
-        },
+        collaborationPreferences: [
+          {
+            preferredDistance: 15,
+            maxCollaborators: 5,
+            communicationStyle: "mesh",
+            trustThreshold: 0.7,
+          },
+        ],
         securityClearance: {
           level: agentDefinition.type.includes("security")
             ? "secret"
@@ -418,7 +421,7 @@ async function autoDeployAgents(
       };
 
       const deploymentPlan =
-        await agentSpaceManager.deployAgent(enhancedDefinition);
+        await agentSpaceManager.deployAgent(enhancedDefinition, { x: 0, y: 0, z: 0 });
       deployedAgents.push(deploymentPlan.agentId);
 
       logger.debug("Agent deployed", {
@@ -428,7 +431,7 @@ async function autoDeployAgents(
     } catch (error) {
       logger.error("Failed to deploy agent", {
         agentType,
-        error: error.message,
+        error: getErrorMessage(error),
       });
     }
   }

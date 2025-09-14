@@ -104,17 +104,16 @@ export async function createJulesWorkflowAdapter(
 ): Promise<JulesWorkflowAdapter> {
   const fullConfig: JulesWorkflowConfig = {
     modelName: "jules-workflow-adapter",
-    apiKey: config.apiKey || process.env.JULES_API_KEY || "",
+    julesApiKey: config.julesApiKey || process.env.JULES_API_KEY || "",
     timeout: 60000,
     retryAttempts: 2,
     streamingEnabled: true,
     cachingEnabled: false, // Workflows are typically not cached
     collaborativeMode: false,
-    multiStepEnabled: true,
     ...config,
   };
 
-  if (!fullConfig.apiKey) {
+  if (!fullConfig.julesApiKey) {
     throw new Error("Jules API key is required for workflow adapter");
   }
 

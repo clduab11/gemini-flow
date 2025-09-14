@@ -164,7 +164,7 @@ export class CostReportCommand extends Command {
             ? 1
             : 3;
 
-    const costData = {
+    const costData: any = {
       period: options.period,
       totalCost: 384.75 * periodMultiplier,
       currency: "USD",
@@ -315,7 +315,13 @@ export class CostReportCommand extends Command {
     costData: any,
     options: any,
   ): Promise<any> {
-    const breakdown = {
+    const breakdown: {
+      summary: any;
+      byCategory: Record<string, number>;
+      byModel: Record<string, any>;
+      byTier: Record<string, any>;
+      trends: Record<string, string>;
+    } = {
       summary: {
         totalCost: costData.totalCost,
         period: costData.period,
@@ -570,7 +576,17 @@ export class CostReportCommand extends Command {
     roiAnalysis: any,
     options: any,
   ): any {
-    const report = {
+    const report: {
+      metadata: any;
+      executiveSummary: any;
+      costData: any;
+      usageAnalysis: any;
+      costBreakdown: any;
+      optimizationReport: any;
+      forecast: any;
+      roiAnalysis: any;
+      alerts: Array<{ level: string; category: string; message: string; action: string }>;
+    } = {
       metadata: {
         generatedAt: new Date().toISOString(),
         period: options.period,

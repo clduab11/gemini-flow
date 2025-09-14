@@ -262,7 +262,14 @@ export class AnalyzeCommand extends Command {
   private analyzeRepositoryStructure(repoPath: string): any {
     try {
       // Get basic repository statistics
-      const stats = {
+      const stats: {
+        path: string;
+        fileCount: number;
+        directories: string[];
+        languages: Record<string, number>;
+        largeFiles: string[];
+        configFiles: string[];
+      } = {
         path: repoPath,
         fileCount: 0,
         directories: [],
@@ -312,7 +319,13 @@ export class AnalyzeCommand extends Command {
 
   private analyzeGitHistory(repoPath: string, period: string): any {
     try {
-      const stats = {
+      const stats: {
+        commits: { hash: string; author: string; date: string; message: string }[];
+        contributors: Record<string, number>;
+        files: Record<string, number>;
+        period: string;
+        error?: string;
+      } = {
         commits: [],
         contributors: {},
         files: {},

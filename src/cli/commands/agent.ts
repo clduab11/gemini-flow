@@ -797,7 +797,7 @@ export class AgentCommand extends Command {
         name: "count",
         message: "Number of agents to spawn:",
         default: 1,
-        validate: (input) => input > 0 && input <= 16,
+        validate: (input: any) => Number(input) > 0 && Number(input) <= 16,
       },
       {
         type: "input",

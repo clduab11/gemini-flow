@@ -458,7 +458,7 @@ export class GoogleWorkspaceIntegration extends EventEmitter {
   async syncWithMemory(memory: any): Promise<void> {
     try {
       // Store sync metadata
-      const syncData = {
+      const syncData: { lastSync: Date; documentCount: number; syncedFiles: string[] } = {
         lastSync: new Date(),
         documentCount: 0,
         syncedFiles: [],

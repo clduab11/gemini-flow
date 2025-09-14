@@ -68,7 +68,7 @@ export class BufferSyncManager extends EventEmitter {
   private bufferPools = new Map<string, BufferPool>();
   private syncPoints = new Map<number, SyncPoint[]>();
   private clockReferences = new Map<string, ClockReference>();
-  private masterClock: ClockReference;
+  private masterClock!: ClockReference;
   private syncConfig: SynchronizationConfig;
   private adaptiveAlgorithm: AdaptiveBufferingAlgorithm;
   private jitterBuffer: JitterBuffer;
@@ -161,7 +161,7 @@ export class BufferSyncManager extends EventEmitter {
         streamId,
         chunkId: chunk.id,
         priority: chunk.metadata.priority === "critical" ? 10 : 5,
-        tolerance: this.syncConfig.tolerance,
+        tolerance: this.syncConfig.tolerance ?? this.syncConfig.syncThreshold,
         dependencies: chunk.sync.dependencies,
       });
     }
@@ -187,7 +187,7 @@ export class BufferSyncManager extends EventEmitter {
     }
 
     // Find the chunk that should be played at current time
-    const tolerance = this.syncConfig.tolerance;
+    const tolerance = this.syncConfig.tolerance ?? this.syncConfig.syncThreshold;
     const chunkIndex = pool.chunks.findIndex((chunk) => {
       const playTime = chunk.sync?.presentationTimestamp || chunk.timestamp;
       return Math.abs(playTime - currentTime) <= tolerance;
@@ -245,7 +245,7 @@ export class BufferSyncManager extends EventEmitter {
         adjustments: Object.fromEntries(adjustments),
       });
 
-      return syncAccuracy <= this.syncConfig.tolerance;
+      return syncAccuracy <= (this.syncConfig.tolerance ?? this.syncConfig.syncThreshold);
     } catch (error) {
       this.logger.error("Stream synchronization failed", {
         streamIds,
@@ -722,7 +722,7 @@ class AdaptiveBufferingAlgorithm {
     // Adjust strategy based on conditions
     const newStrategy = { ...current };
 
-    if (conditions.quality.packetLoss > 0.05) {
+    if (conditions.quality && conditions.quality.packetLoss > 0.05) {
       // High packet loss - increase buffer size
       newStrategy.bufferSize = Math.min(
         current.bufferSize * 1.5,
@@ -730,7 +730,11 @@ class AdaptiveBufferingAlgorithm {
       );
     }
 
-    if (conditions.latency.rtt > 200) {
+    const latencyRtt =
+      typeof conditions.latency === "object"
+        ? (conditions.latency as { rtt: number; jitter: number }).rtt
+        : (conditions.latency as number);
+    if (latencyRtt > 200) {
       // High latency - adjust target latency
       newStrategy.targetLatency = Math.max(current.targetLatency * 1.2, 500);
     }
@@ -775,10 +779,14 @@ class AdaptiveBufferingAlgorithm {
     // Adjust based on conditions
     let multiplier = 1.0;
 
-    if (conditions.bandwidth.available < 1000000) {
+    const availableBw =
+      typeof conditions.bandwidth === "object"
+        ? (conditions.bandwidth as { upload: number; download: number; available: number }).available
+        : (conditions.bandwidth as number);
+    if (availableBw < 1000000) {
       // < 1 Mbps
       multiplier *= 0.5;
-    } else if (conditions.bandwidth.available > 10000000) {
+    } else if (availableBw > 10000000) {
       // > 10 Mbps
       multiplier *= 1.5;
     }

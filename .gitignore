@@ -44,31 +44,25 @@ artillery-results/
 node_modules/
 .pnpm-debug.log*
 
-# Environment
+# Environment and Secrets
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+.env.test
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Build
-dist/
-build/
-*.tsbuildinfo
-
-# Security
-*.pem
+# API Keys and Authentication
 *.key
+*.pem
 auth_token.json
 service-account-key.json
+google-credentials.json
+oauth-credentials.json
+
+# MCP Settings with potential secrets
+temp_mcp_settings.json
+.mcp-config-local.json
 
 # Package artifacts
 *.tgz

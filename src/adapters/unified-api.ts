@@ -30,11 +30,10 @@ import {
   VideoStreamResponse,
   AudioStreamResponse,
   MultiModalChunk,
-  StreamingSession,
-  StreamingContext,
+  StreamingSession as TypesStreamingSession,
+  StreamingContext as TypesStreamingContext,
   EdgeCacheConfig,
   CDNConfiguration,
-
 } from "../types/streaming.js";
 
 export interface UnifiedAPIConfig {
@@ -944,7 +943,7 @@ export class UnifiedAPI extends EventEmitter {
     sessionId: string,
     type: "video" | "audio" | "multimodal" | "data",
     context: StreamingContext,
-  ): Promise<StreamingSession | null> {
+  ): Promise<StreamSession | null> {
     if (!this.streamingAPI) {
       throw new Error(
         "Streaming API not initialized. Enable streaming in configuration.",
@@ -1271,7 +1270,7 @@ export class UnifiedAPI extends EventEmitter {
    * Create default streaming configuration
    */
   private createDefaultStreamingConfig(): EnhancedStreamingConfig {
-    return {
+    return ({
       webrtc: {
         iceServers: [
           { urls: "stun:stun.l.google.com:19302" },
@@ -1341,7 +1340,7 @@ export class UnifiedAPI extends EventEmitter {
         enableAuthentication: true,
         enableIntegrityChecks: true,
       },
-    };
+    }) as unknown as EnhancedStreamingConfig;
   }
 
   // Helper methods

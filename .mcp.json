@@ -17,6 +17,42 @@
         "start"
       ],
       "type": "stdio"
+    },
+    "Redis": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-redis", "redis://localhost:6379"]
+    },
+    "Git Tools": {
+      "command": "python3",
+      "args": ["-m", "mcp_server_git"]
+    },
+    "Puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    },
+    "Sequential Thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "Filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/chrisdukes/Desktop"]
+    },
+    "GitHub": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"]
+    },
+    "Mem0": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "Supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest"]
+    },
+    "mcp-omnisearch": {
+      "command": "npx",
+      "args": ["-y", "mcp-omnisearch"]
     }
   }
 }

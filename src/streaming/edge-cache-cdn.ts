@@ -160,7 +160,7 @@ export class EdgeCacheCDN extends EventEmitter {
   private cacheEntries = new Map<string, CacheEntry>();
   private cacheStrategies = new Map<string, CacheStrategy>();
   private cdnEndpoints = new Map<string, CDNEndpoint>();
-  private analytics: CacheAnalytics;
+  private analytics!: CacheAnalytics;
   private nodeSelector: NodeSelector;
   private predictionEngine: CachePredictionEngine;
   private invalidationManager: InvalidationManager;
@@ -222,13 +222,16 @@ export class EdgeCacheCDN extends EventEmitter {
       );
 
       // Create cache entry
+      const rawData: any = compressedData.data as any;
+      const computedSize = typeof rawData === 'string' ? rawData.length : (rawData?.byteLength ?? (Array.isArray(rawData) ? rawData.length : 0));
+
       const entry: CacheEntry = {
         id: this.generateEntryId(),
         key,
         data: compressedData.data,
         metadata: {
           ...metadata,
-          size: compressedData.data.byteLength || compressedData.data.length,
+          size: computedSize,
           encoding: compressedData.encoding,
           checksum: await this.calculateChecksum(compressedData.data),
         },
@@ -445,7 +448,9 @@ export class EdgeCacheCDN extends EventEmitter {
     let prefetchedCount = 0;
 
     for (const prediction of predictions) {
-      if (prediction.probability > this.config.cacheKeys.custom?.[0] || 0.7) {
+      // Prefetch when probability exceeds default 0.7 threshold
+      const threshold = 0.7;
+      if (prediction.probability > threshold) {
         try {
           // Fetch content from origin
           const content = await this.fetchFromOrigin(prediction.key);
@@ -560,8 +565,8 @@ export class EdgeCacheCDN extends EventEmitter {
       }
     }
 
-    // Default behavior based on strategy
-    return strategy.type !== "bypass";
+    // Default behavior based on strategy: cache by default
+    return true;
   }
 
   /**
@@ -894,7 +899,10 @@ export class EdgeCacheCDN extends EventEmitter {
    * Initialize CDN endpoints
    */
   private initializeCDNEndpoints(): void {
-    for (const endpoint of this.cdnConfig.endpoints.primary) {
+    const eps = Array.isArray(this.cdnConfig.endpoints)
+      ? this.cdnConfig.endpoints
+      : (this.cdnConfig.endpoints as any).primary || [];
+    for (const endpoint of eps) {
       const cdnEndpoint: CDNEndpoint = {
         id: `cdn-${Date.now()}`,
         provider: this.cdnConfig.provider,

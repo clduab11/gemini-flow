@@ -86,6 +86,8 @@ export interface SecureCollaborationZone {
 export interface SecureAgentParticipant {
   agentId: string;
   securityClearance: SecurityClearance;
+  role?: string;
+  clearance?: SecurityClearance;
   spatialPermissions: {
     allowedMovement: boolean;
     boundaryConstraints: Vector3D[];

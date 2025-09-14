@@ -275,9 +275,13 @@ export class EnhancedStreamingAPI extends EventEmitter {
       });
 
       // Optimize codec selection
+      const bandwidthAvailable =
+        typeof context.networkConditions.bandwidth === "object"
+          ? context.networkConditions.bandwidth.available
+          : (context.networkConditions.bandwidth as number);
       const optimalCodec = this.codecManager.getOptimalCodec("video", {
         quality: session.quality,
-        bandwidth: context.networkConditions.bandwidth.available,
+        bandwidth: bandwidthAvailable,
         latency: this.config.performance.multimediaLatencyTarget,
         compatibility: ["webm", "mp4"],
         hardwareAcceleration: true,
@@ -423,9 +427,13 @@ export class EnhancedStreamingAPI extends EventEmitter {
       });
 
       // Optimize for low latency
+      const audioBandwidthAvailable =
+        typeof context.networkConditions.bandwidth === "object"
+          ? context.networkConditions.bandwidth.available
+          : (context.networkConditions.bandwidth as number);
       const optimalCodec = this.codecManager.getOptimalCodec("audio", {
         quality: session.quality,
-        bandwidth: context.networkConditions.bandwidth.available,
+        bandwidth: audioBandwidthAvailable,
         latency: 50, // Aggressive audio latency target
         compatibility: ["opus", "aac"],
         hardwareAcceleration: false, // Audio doesn't typically use hardware acceleration
@@ -545,7 +553,15 @@ export class EnhancedStreamingAPI extends EventEmitter {
       }
 
       // Update session metrics
-      session.metrics.encoding.fps = this.calculateCurrentFPS(session);
+      session.metrics.encoding = {
+        fps: 0,
+        keyframeInterval: 0,
+        bitrate: 0,
+        cpuUsage: 0,
+        memoryUsage: 0,
+        ...(session.metrics.encoding || {}),
+      } as any;
+      (session.metrics.encoding as any).fps = this.calculateCurrentFPS(session);
       session.timestamps.lastActivity = Date.now();
 
       const processingTime = performance.now() - startTime;
@@ -618,7 +634,15 @@ export class EnhancedStreamingAPI extends EventEmitter {
 
       // Update session quality
       session.quality = decision.newQuality;
-      session.metrics.coordination.qualityChanges++;
+      session.metrics.coordination = {
+        ...(session.metrics.coordination || {
+          agentCount: 1,
+          syncAccuracy: 1,
+          consensusTime: 0,
+          messageLatency: 0,
+        }),
+        qualityChanges: ((session.metrics.coordination as any)?.qualityChanges || 0) + 1,
+      } as any;
 
       this.logger.info("Stream quality adapted", {
         sessionId,
@@ -656,16 +680,37 @@ export class EnhancedStreamingAPI extends EventEmitter {
       ...session.metrics,
       coordination: {
         ...session.metrics.coordination,
-        agentCount: session.coordination.a2aSession?.participants.length || 1,
+        agentCount:
+          Array.isArray(session.coordination.a2aSession?.participants)
+            ? (session.coordination.a2aSession!.participants as any).length
+            : 1,
         syncAccuracy: this.calculateSyncAccuracy(session),
         consensusTime: this.calculateAverageConsensusTime(session),
         messageLatency: this.calculateMessageLatency(session),
       },
     };
 
-    // Update session duration
-    metrics.encoding.memoryUsage = this.getMemoryUsage();
-    metrics.playback.bufferHealth = this.getAverageBufferHealth(session);
+    // Ensure optional metric sections exist then update derived fields
+    const enc: any = {
+      fps: 0,
+      keyframeInterval: 0,
+      bitrate: 0,
+      cpuUsage: 0,
+      memoryUsage: 0,
+      ...(metrics.encoding || {}),
+    };
+    enc.memoryUsage = this.getMemoryUsage();
+    metrics.encoding = enc;
+
+    const pb: any = {
+      droppedFrames: 0,
+      bufferHealth: 0,
+      qualityLevel: "unknown",
+      stallEvents: 0,
+      ...(metrics.playback || {}),
+    };
+    pb.bufferHealth = this.getAverageBufferHealth(session);
+    metrics.playback = pb;
 
     return metrics;
   }
@@ -753,16 +798,18 @@ export class EnhancedStreamingAPI extends EventEmitter {
 
       // Stop all streams
       for (const [streamId, response] of session.streams.video) {
-        if (response.endpoints.webrtc) {
-          response.endpoints.webrtc.close();
+        const _eps: any = (response as any).endpoints;
+        if (_eps?.webrtc) {
+          _eps.webrtc.close();
         }
         this.qualityEngine.removeStream(streamId);
         this.bufferSync.flushBuffer(streamId);
       }
 
       for (const [streamId, response] of session.streams.audio) {
-        if (response.endpoints.webrtc) {
-          response.endpoints.webrtc.close();
+        const _eps: any = (response as any).endpoints;
+        if (_eps?.webrtc) {
+          _eps.webrtc.close();
         }
         this.qualityEngine.removeStream(streamId);
         this.bufferSync.flushBuffer(streamId);

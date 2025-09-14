@@ -35,7 +35,7 @@ export class Logger {
         level: this.levelToString(this.level),
         format: winston.format.combine(
           winston.format.timestamp(),
-          winston.format.printf(({ timestamp, level, message }) => {
+          winston.format.printf(({ timestamp, level, message }: { timestamp: string; level: string; message: string }) => {
             return `${timestamp} [${this.name}] ${level.toUpperCase()}: ${message}`;
           }),
         ),

@@ -5,7 +5,13 @@
 
 export interface VideoStreamRequest {
   id: string;
-  source: "file" | "camera" | "generated" | "screen";
+  source:
+    | "file"
+    | "camera"
+    | "generated"
+    | "screen"
+    | "virtual"
+    | "3d_render";
   quality: StreamQuality;
   endpoint: string;
   metadata?: StreamMetadata;
@@ -19,7 +25,7 @@ export interface VideoStreamRequest {
 
 export interface AudioStreamRequest {
   id: string;
-  source: "file" | "microphone" | "generated";
+  source: "file" | "microphone" | "generated" | "system" | "virtual" | "synthesized";
   quality: StreamQuality;
   endpoint: string;
   processing?: AudioProcessing;
@@ -143,27 +149,38 @@ export interface NetworkConditions {
 }
 
 export interface PerformanceMetrics {
-  throughput: {
-    video: number;
-    audio: number;
-    total: number;
+  // Enhanced streaming metrics (optional)
+  encoding?: {
+    fps: number;
+    keyframeInterval: number;
+    bitrate: number;
+    cpuUsage: number;
+    memoryUsage: number;
   };
-  latency: {
-    average: number;
-    p95: number;
-    p99: number;
-    max: number;
+  network?: {
+    throughput: number;
+    latency: number;
+    jitter: number;
+    packetLoss: number;
   };
-  quality: {
-    video: number;
-    audio: number;
-    overall: number;
+  playback?: {
+    droppedFrames: number;
+    bufferHealth: number;
+    qualityLevel: string;
+    stallEvents: number;
   };
-  reliability: {
-    packetsLost: number;
-    errorsRecovered: number;
-    uptime: number;
+  coordination?: {
+    agentCount: number;
+    syncAccuracy: number;
+    consensusTime: number;
+    messageLatency: number;
   };
+  // Legacy metrics for compatibility (optional)
+  throughput?: { video: number; audio: number; total: number };
+  latency?: { average: number; p95: number; p99: number; max: number };
+  quality?: { video: number; audio: number; overall: number };
+  reliability?: { packetsLost: number; errorsRecovered: number; uptime: number };
+  [key: string]: any;
 }
 
 // Additional streaming interfaces for unified-api compatibility
@@ -175,7 +192,13 @@ export interface VideoStreamResponse {
   error?: string;
   stream?: any;
   quality?: StreamQuality;
-  endpoints?: string[];
+  endpoints?:
+    | string[]
+    | {
+        webrtc?: RTCPeerConnection;
+        [key: string]: any;
+      };
+  stats?: any;
 }
 
 export interface AudioStreamResponse {
@@ -186,7 +209,12 @@ export interface AudioStreamResponse {
   error?: string;
   stream?: any;
   quality?: StreamQuality;
-  endpoints?: string[];
+  endpoints?:
+    | string[]
+    | {
+        webrtc?: RTCPeerConnection;
+        [key: string]: any;
+      };
   transcription?: {
     text: string;
     confidence: number;
@@ -198,26 +226,39 @@ export interface AudioStreamResponse {
       text: string;
     }>;
   };
+  stats?: any;
 }
 
 export interface StreamingSession {
   id: string;
   status: "active" | "paused" | "stopped";
   streams: {
-    video?: VideoStreamRequest;
-    audio?: AudioStreamRequest;
+    video?: VideoStreamRequest | any;
+    audio?: AudioStreamRequest | any;
+    [key: string]: any;
   };
   metadata: StreamMetadata;
   startTime: number;
   endTime?: number;
+  participants?: any[];
+  type?: string;
+  coordination?: any;
+  metrics?: any;
 }
 
 export interface StreamingContext {
   sessionId: string;
   userId?: string;
-  config: StreamingConfig;
-  performance: PerformanceMetrics;
-  network: NetworkConditions;
+  // Enhanced context (optional to maintain backward compatibility)
+  userPreferences?: UserPreferences;
+  deviceCapabilities?: any;
+  networkConditions?: NetworkConditions;
+  constraints?: QualityConstraints;
+  metadata?: Record<string, any>;
+  // Legacy/general fields
+  config?: StreamingConfig;
+  performance?: PerformanceMetrics;
+  network?: NetworkConditions;
 }
 
 export interface StreamingConfig {
@@ -228,12 +269,45 @@ export interface StreamingConfig {
   quality: StreamQuality;
 }
 
+// Media/codec types used by codec manager
+export interface MediaCodec {
+  name: string;
+  mimeType: string;
+  bitrate: number;
+  sampleRate?: number;
+  channels?: number;
+  profile?: string;
+  level?: string;
+}
+
+// Shared user preferences and constraints (for enhanced streaming)
+export interface UserPreferences {
+  qualityPriority: "battery" | "quality" | "data" | "balanced";
+  maxBitrate: number;
+  autoAdjust: boolean;
+  preferredResolution: { width: number; height: number };
+  latencyTolerance: number;
+  dataUsageLimit: number;
+  adaptationSpeed: "slow" | "medium" | "fast";
+}
+
+export interface QualityConstraints {
+  minBitrate: number;
+  maxBitrate: number;
+  minResolution: { width: number; height: number };
+  maxResolution: { width: number; height: number };
+  minFramerate: number;
+  maxFramerate: number;
+  latencyBudget: number;
+  powerBudget: number;
+}
+
 export interface EdgeCacheConfig {
   enabled: boolean;
   ttl: number;
-  regions: string[];
-  compression: boolean;
-  warmupEnabled: boolean;
+  regions?: string[];
+  compression?: boolean;
+  warmupEnabled?: boolean;
   maxSize?: number;
   purgeStrategy?: string;
   cdnEndpoints?: string[];
@@ -254,8 +328,8 @@ export interface CDNConfiguration {
     geographic: Record<string, string>;
   };
   caching: EdgeCacheConfig;
-  bandwidth: number;
-  regions: string[];
+  bandwidth?: number;
+  regions?: string[];
 }
 
 export interface WebRTCConfig {
@@ -274,13 +348,27 @@ export interface StreamingError {
   timestamp: number;
   recoverable: boolean;
   severity?: string;
+  category?: string;
+  context?: any;
+  recovery?: {
+    suggested: string[];
+    automatic: boolean;
+    retryable: boolean;
+    fallback?: string;
+  };
 }
 
 export interface QualityAdaptationRule {
-  condition: string;
-  action: string;
-  threshold: number;
+  condition: {
+    packetLoss?: { min?: number; max?: number };
+    bandwidth?: { min?: number; max?: number };
+    latency?: { min?: number; max?: number };
+    bufferHealth?: { min?: number; max?: number };
+    [key: string]: any;
+  };
+  action: { type: "upgrade" | "downgrade" | "maintain" | "emergency"; targetQuality?: StreamQuality };
   priority?: number;
+  cooldown?: number;
 }
 
 export interface SynchronizationConfig {
@@ -288,18 +376,28 @@ export interface SynchronizationConfig {
   bufferSize: number;
   syncThreshold: number;
   adaptiveSync: boolean;
+  tolerance?: number;
+}
+
+export interface BufferingStrategy {
+  type: "fixed" | "adaptive" | string;
+  bufferSize: number;
+  targetLatency: number;
+  [key: string]: any;
 }
 
 export interface VideoStreamConfig {
-  codec: string;
+  codec: string | VideoCodec;
   bitrate: number;
   framerate: number;
-  resolution: string;
+  resolution: Resolution;
+  keyframeInterval?: number;
 }
 
 export interface AudioStreamConfig {
-  codec: string;
+  codec: string | AudioCodec;
   bitrate: number;
   sampleRate: number;
   channels: number;
+  bufferSize?: number;
 }

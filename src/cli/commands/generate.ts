@@ -268,7 +268,7 @@ export class GenerateCommand extends Command {
       }
 
       // Built-in style profiles
-      const builtInProfiles = {
+      const builtInProfiles: Record<string, any> = {
         clean: {
           naming: "camelCase for variables, PascalCase for classes",
           indentation: "2 spaces",

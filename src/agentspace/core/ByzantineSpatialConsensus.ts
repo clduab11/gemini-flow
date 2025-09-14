@@ -118,12 +118,12 @@ export interface ConflictResolution {
     | "priority_based"
     | "resource_sharing"
     | "temporal_separation";
-  actions: ResolutionAction[];
+  actions: ByzantineResolutionAction[];
   expectedOutcome: any;
   implementationOrder: number[];
 }
 
-export interface ResolutionAction {
+export interface ByzantineResolutionAction {
   agentId: string;
   actionType: "move" | "wait" | "resize" | "share_resource" | "change_priority";
   parameters: any;
@@ -977,7 +977,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
     conflict: SpatialConflict,
   ): ConflictResolution {
     const agentIds = conflict.involvedAgents;
-    const actions: ResolutionAction[] = [];
+    const actions: ByzantineResolutionAction[] = [];
 
     // Implement temporal separation
     agentIds.forEach((agentId, index) => {
@@ -1020,7 +1020,7 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   }
 
   private async executeResolutionAction(
-    action: ResolutionAction,
+    action: ByzantineResolutionAction,
   ): Promise<void> {
     this.logger.debug("Executing resolution action", {
       agentId: action.agentId,

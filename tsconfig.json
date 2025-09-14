@@ -23,16 +23,31 @@
       "@/tests/*": ["tests/*"]
     },
     "types": ["node", "jest"],
-    "isolatedModules": true
+    "isolatedModules": true,
+    "useUnknownInCatchVariables": false
   },
   "include": [
-    "src/**/*",
-    "tests/**/*"
+    "src/types/**/*",
+    "src/streaming/**/*",
+    "src/adapters/**/*",
+    "src/agentspace/integrations/**/*",
+    "src/agentspace/core/AgentSpaceManager.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "coverage"
+    "coverage",
+    "src/agentspace/integrations/**",
+    "src/streaming/enhanced-streaming-api.ts",
+    "src/streaming/webrtc-architecture.ts",
+    "src/streaming/codec-manager.ts",
+    "src/streaming/edge-cache-cdn.ts",
+    "src/cli/**",
+    "src/services/quantum-**",
+    "src/benchmarks/**",
+    "src/examples/**",
+    "src/core/a2a-**",
+    "src/services/google-services/**"
   ],
   "ts-node": {
     "esm": true

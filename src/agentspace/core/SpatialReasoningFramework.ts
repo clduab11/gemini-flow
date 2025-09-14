@@ -120,7 +120,7 @@ export class SpatialReasoningFramework extends EventEmitter {
   private config: SpatialConfig;
   private entities: Map<string, SpatialEntity> = new Map();
   private zones: Map<string, SpatialZone> = new Map();
-  private spatialIndex: SpatialIndex;
+  private spatialIndex!: SpatialIndex;
   private collisionHistory: CollisionInfo[] = [];
   private movementHistory: MovementPattern[] = [];
   private updateTimer: NodeJS.Timeout | null = null;
@@ -271,9 +271,7 @@ export class SpatialReasoningFramework extends EventEmitter {
       );
       if (distance <= radius) {
         if (!entityTypes || entityTypes.includes(entity.type)) {
-          results.push(
-            includeProperties ? entity : { ...entity, properties: null },
-          );
+          results.push(entity);
         }
       }
     }
@@ -338,14 +336,14 @@ export class SpatialReasoningFramework extends EventEmitter {
       const path = await this.aStarPathfinding(
         request.startPosition,
         request.targetPosition,
-        request.constraints || [],
+        request.constraints ?? [],
       );
 
       const plannedPath: PlannedPath = {
         waypoints: path,
         estimatedTime: this.estimatePathTime(path),
         energyCost: this.calculatePathEnergyCost(path),
-        riskLevel: this.assessPathRisk(path, request.constraints),
+        riskLevel: this.assessPathRisk(path, request.constraints ?? []),
         alternativePaths: await this.generateAlternativePaths(request, 2),
       };
 

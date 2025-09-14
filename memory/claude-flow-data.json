@@ -1,5 +1,5 @@
 {
-  "agents": [],
+  "agents": [{"id": "test-agent-1", "name": "Test Agent", "type": "coder", "status": "active"}],
   "tasks": [],
   "lastUpdated": 1754077243667
 }

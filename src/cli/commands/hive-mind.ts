@@ -161,7 +161,7 @@ export class HiveMindCommand extends Command {
       this.logger.info("Spawning hive for objective", { objective, options });
 
       const workerTypes = options.workerTypes
-        ? options.workerTypes.split(",").map((t) => t.trim())
+        ? options.workerTypes.split(",").map((t: string) => t.trim())
         : ["researcher", "analyst", "coder", "coordinator"];
 
       // Check for global Gemini integration or local --gemini flag
@@ -388,8 +388,8 @@ export class HiveMindCommand extends Command {
         name: "nodes",
         message: "How many nodes should the hive have?",
         default: 5,
-        validate: (value) =>
-          (value > 0 && value <= 20) || "Please enter 1-20 nodes",
+        validate: (value: any) =>
+          (Number(value) > 0 && Number(value) <= 20) || "Please enter 1-20 nodes",
       },
       {
         type: "list",
