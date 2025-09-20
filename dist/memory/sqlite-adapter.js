@@ -166,7 +166,7 @@ async function createSQLite3Database(dbPath) {
         },
         pragma(pragma) {
             // SQLite3 doesn't support pragma directly, implement as exec
-            db.exec(`PRAGMA ${pragma}`);
+            this.exec(`PRAGMA ${pragma}`);
             return null;
         },
         close() {
@@ -280,8 +280,7 @@ async function createSqlJsDatabase(dbPath) {
         },
         pragma(pragma) {
             // Execute pragma as regular SQL
-            db.exec(`PRAGMA ${pragma}`);
-            scheduleSync();
+            this.exec(`PRAGMA ${pragma}`);
             return null;
         },
         close() {

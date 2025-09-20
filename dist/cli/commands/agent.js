@@ -8,334 +8,332 @@ import ora from "ora";
 import inquirer from "inquirer";
 import { Logger } from "../../utils/logger.js";
 export class AgentCommand extends Command {
-    logger;
-    _configManager;
-    // 64+ specialized agent types available
-    agentTypes = {
-        // Core Development Agents
-        coder: {
-            description: "Code implementation specialist",
-            capabilities: ["coding", "debugging", "refactoring"],
-        },
-        reviewer: {
-            description: "Code quality assurance",
-            capabilities: ["code-review", "quality-analysis", "best-practices"],
-        },
-        tester: {
-            description: "Test creation and validation",
-            capabilities: ["test-generation", "validation", "qa"],
-        },
-        planner: {
-            description: "Strategic planning",
-            capabilities: ["task-planning", "coordination", "strategy"],
-        },
-        researcher: {
-            description: "Information gathering",
-            capabilities: ["research", "data-analysis", "documentation"],
-        },
-        // Swarm Coordination Agents
-        "hierarchical-coordinator": {
-            description: "Queen-led coordination",
-            capabilities: ["hierarchy-management", "delegation", "oversight"],
-        },
-        "mesh-coordinator": {
-            description: "Peer-to-peer networks",
-            capabilities: ["p2p-coordination", "consensus", "distributed-decision"],
-        },
-        "adaptive-coordinator": {
-            description: "Dynamic topology",
-            capabilities: [
-                "topology-adaptation",
-                "performance-optimization",
-                "auto-scaling",
-            ],
-        },
-        "collective-intelligence-coordinator": {
-            description: "Hive-mind intelligence",
-            capabilities: [
-                "collective-reasoning",
-                "knowledge-synthesis",
-                "emergence",
-            ],
-        },
-        "swarm-memory-manager": {
-            description: "Distributed memory",
-            capabilities: [
-                "memory-management",
-                "data-synchronization",
-                "persistence",
-            ],
-        },
-        // Consensus & Distributed Systems
-        "byzantine-coordinator": {
-            description: "Byzantine fault tolerance",
-            capabilities: ["fault-tolerance", "byzantine-consensus", "security"],
-        },
-        "raft-manager": {
-            description: "Leader election protocols",
-            capabilities: ["leader-election", "log-replication", "consistency"],
-        },
-        "gossip-coordinator": {
-            description: "Epidemic dissemination",
-            capabilities: [
-                "gossip-protocols",
-                "information-spread",
-                "eventual-consistency",
-            ],
-        },
-        "consensus-builder": {
-            description: "Decision-making algorithms",
-            capabilities: ["consensus-building", "voting", "agreement"],
-        },
-        "crdt-synchronizer": {
-            description: "Conflict-free replication",
-            capabilities: [
-                "crdt-management",
-                "conflict-resolution",
-                "synchronization",
-            ],
-        },
-        "quorum-manager": {
-            description: "Dynamic quorum management",
-            capabilities: [
-                "quorum-management",
-                "availability",
-                "partition-tolerance",
-            ],
-        },
-        "security-manager": {
-            description: "Cryptographic security",
-            capabilities: ["cryptography", "authentication", "authorization"],
-        },
-        // Performance & Optimization
-        "perf-analyzer": {
-            description: "Bottleneck identification",
-            capabilities: [
-                "performance-analysis",
-                "bottleneck-detection",
-                "optimization",
-            ],
-        },
-        "performance-benchmarker": {
-            description: "Performance testing",
-            capabilities: ["benchmarking", "load-testing", "metrics-collection"],
-        },
-        "task-orchestrator": {
-            description: "Workflow optimization",
-            capabilities: [
-                "workflow-management",
-                "task-scheduling",
-                "resource-allocation",
-            ],
-        },
-        "memory-coordinator": {
-            description: "Memory management",
-            capabilities: ["memory-optimization", "garbage-collection", "caching"],
-        },
-        "smart-agent": {
-            description: "Intelligent coordination",
-            capabilities: [
-                "ai-coordination",
-                "predictive-scaling",
-                "adaptive-behavior",
-            ],
-        },
-        // GitHub & Repository Management
-        "github-modes": {
-            description: "GitHub integration",
-            capabilities: [
-                "github-api",
-                "repository-management",
-                "workflow-automation",
-            ],
-        },
-        "pr-manager": {
-            description: "Pull request management",
-            capabilities: [
-                "pr-management",
-                "code-review-automation",
-                "merge-coordination",
-            ],
-        },
-        "code-review-swarm": {
-            description: "Multi-agent code review",
-            capabilities: [
-                "distributed-review",
-                "quality-assurance",
-                "feedback-synthesis",
-            ],
-        },
-        "issue-tracker": {
-            description: "Issue management",
-            capabilities: ["issue-tracking", "bug-triage", "project-management"],
-        },
-        "release-manager": {
-            description: "Release coordination",
-            capabilities: [
-                "release-management",
-                "versioning",
-                "deployment-coordination",
-            ],
-        },
-        "workflow-automation": {
-            description: "CI/CD automation",
-            capabilities: ["ci-cd", "automation", "pipeline-management"],
-        },
-        "project-board-sync": {
-            description: "Project tracking",
-            capabilities: [
-                "project-tracking",
-                "board-synchronization",
-                "progress-monitoring",
-            ],
-        },
-        "repo-architect": {
-            description: "Repository optimization",
-            capabilities: [
-                "repository-structure",
-                "architecture-design",
-                "best-practices",
-            ],
-        },
-        "multi-repo-swarm": {
-            description: "Cross-repository coordination",
-            capabilities: [
-                "multi-repo-management",
-                "cross-project-coordination",
-                "dependency-tracking",
-            ],
-        },
-        // SPARC Methodology Agents
-        "sparc-coord": {
-            description: "SPARC orchestration",
-            capabilities: [
-                "sparc-methodology",
-                "tdd-coordination",
-                "process-management",
-            ],
-        },
-        "sparc-coder": {
-            description: "TDD implementation",
-            capabilities: [
-                "test-driven-development",
-                "red-green-refactor",
-                "implementation",
-            ],
-        },
-        specification: {
-            description: "Requirements analysis",
-            capabilities: [
-                "requirements-analysis",
-                "specification-writing",
-                "acceptance-criteria",
-            ],
-        },
-        pseudocode: {
-            description: "Algorithm design",
-            capabilities: [
-                "algorithm-design",
-                "pseudocode-generation",
-                "logic-modeling",
-            ],
-        },
-        architecture: {
-            description: "System design",
-            capabilities: [
-                "system-architecture",
-                "design-patterns",
-                "architectural-decisions",
-            ],
-        },
-        refinement: {
-            description: "Iterative improvement",
-            capabilities: [
-                "iterative-development",
-                "continuous-improvement",
-                "refactoring",
-            ],
-        },
-        // Specialized Development
-        "backend-dev": {
-            description: "API development",
-            capabilities: [
-                "backend-development",
-                "api-design",
-                "database-management",
-            ],
-        },
-        "mobile-dev": {
-            description: "React Native development",
-            capabilities: ["mobile-development", "react-native", "cross-platform"],
-        },
-        "ml-developer": {
-            description: "Machine learning",
-            capabilities: ["machine-learning", "data-science", "model-training"],
-        },
-        "cicd-engineer": {
-            description: "CI/CD pipelines",
-            capabilities: [
-                "ci-cd-engineering",
-                "devops",
-                "infrastructure-automation",
-            ],
-        },
-        "api-docs": {
-            description: "OpenAPI documentation",
-            capabilities: ["api-documentation", "openapi", "technical-writing"],
-        },
-        "system-architect": {
-            description: "High-level design",
-            capabilities: [
-                "system-architecture",
-                "scalability-design",
-                "technology-selection",
-            ],
-        },
-        "code-analyzer": {
-            description: "Code quality analysis",
-            capabilities: ["static-analysis", "code-metrics", "quality-assessment"],
-        },
-        "base-template-generator": {
-            description: "Boilerplate creation",
-            capabilities: [
-                "template-generation",
-                "scaffolding",
-                "project-initialization",
-            ],
-        },
-        // Testing & Validation
-        "tdd-london-swarm": {
-            description: "Mock-driven TDD",
-            capabilities: ["london-school-tdd", "mocking", "interaction-testing"],
-        },
-        "production-validator": {
-            description: "Real implementation validation",
-            capabilities: [
-                "production-testing",
-                "integration-validation",
-                "system-testing",
-            ],
-        },
-        // Migration & Planning
-        "migration-planner": {
-            description: "System migrations",
-            capabilities: [
-                "migration-planning",
-                "data-migration",
-                "system-modernization",
-            ],
-        },
-        "swarm-init": {
-            description: "Topology initialization",
-            capabilities: [
-                "swarm-initialization",
-                "topology-setup",
-                "configuration-management",
-            ],
-        },
-    };
     constructor(configManager) {
         super("agent");
+        // 64+ specialized agent types available
+        this.agentTypes = {
+            // Core Development Agents
+            coder: {
+                description: "Code implementation specialist",
+                capabilities: ["coding", "debugging", "refactoring"],
+            },
+            reviewer: {
+                description: "Code quality assurance",
+                capabilities: ["code-review", "quality-analysis", "best-practices"],
+            },
+            tester: {
+                description: "Test creation and validation",
+                capabilities: ["test-generation", "validation", "qa"],
+            },
+            planner: {
+                description: "Strategic planning",
+                capabilities: ["task-planning", "coordination", "strategy"],
+            },
+            researcher: {
+                description: "Information gathering",
+                capabilities: ["research", "data-analysis", "documentation"],
+            },
+            // Swarm Coordination Agents
+            "hierarchical-coordinator": {
+                description: "Queen-led coordination",
+                capabilities: ["hierarchy-management", "delegation", "oversight"],
+            },
+            "mesh-coordinator": {
+                description: "Peer-to-peer networks",
+                capabilities: ["p2p-coordination", "consensus", "distributed-decision"],
+            },
+            "adaptive-coordinator": {
+                description: "Dynamic topology",
+                capabilities: [
+                    "topology-adaptation",
+                    "performance-optimization",
+                    "auto-scaling",
+                ],
+            },
+            "collective-intelligence-coordinator": {
+                description: "Hive-mind intelligence",
+                capabilities: [
+                    "collective-reasoning",
+                    "knowledge-synthesis",
+                    "emergence",
+                ],
+            },
+            "swarm-memory-manager": {
+                description: "Distributed memory",
+                capabilities: [
+                    "memory-management",
+                    "data-synchronization",
+                    "persistence",
+                ],
+            },
+            // Consensus & Distributed Systems
+            "byzantine-coordinator": {
+                description: "Byzantine fault tolerance",
+                capabilities: ["fault-tolerance", "byzantine-consensus", "security"],
+            },
+            "raft-manager": {
+                description: "Leader election protocols",
+                capabilities: ["leader-election", "log-replication", "consistency"],
+            },
+            "gossip-coordinator": {
+                description: "Epidemic dissemination",
+                capabilities: [
+                    "gossip-protocols",
+                    "information-spread",
+                    "eventual-consistency",
+                ],
+            },
+            "consensus-builder": {
+                description: "Decision-making algorithms",
+                capabilities: ["consensus-building", "voting", "agreement"],
+            },
+            "crdt-synchronizer": {
+                description: "Conflict-free replication",
+                capabilities: [
+                    "crdt-management",
+                    "conflict-resolution",
+                    "synchronization",
+                ],
+            },
+            "quorum-manager": {
+                description: "Dynamic quorum management",
+                capabilities: [
+                    "quorum-management",
+                    "availability",
+                    "partition-tolerance",
+                ],
+            },
+            "security-manager": {
+                description: "Cryptographic security",
+                capabilities: ["cryptography", "authentication", "authorization"],
+            },
+            // Performance & Optimization
+            "perf-analyzer": {
+                description: "Bottleneck identification",
+                capabilities: [
+                    "performance-analysis",
+                    "bottleneck-detection",
+                    "optimization",
+                ],
+            },
+            "performance-benchmarker": {
+                description: "Performance testing",
+                capabilities: ["benchmarking", "load-testing", "metrics-collection"],
+            },
+            "task-orchestrator": {
+                description: "Workflow optimization",
+                capabilities: [
+                    "workflow-management",
+                    "task-scheduling",
+                    "resource-allocation",
+                ],
+            },
+            "memory-coordinator": {
+                description: "Memory management",
+                capabilities: ["memory-optimization", "garbage-collection", "caching"],
+            },
+            "smart-agent": {
+                description: "Intelligent coordination",
+                capabilities: [
+                    "ai-coordination",
+                    "predictive-scaling",
+                    "adaptive-behavior",
+                ],
+            },
+            // GitHub & Repository Management
+            "github-modes": {
+                description: "GitHub integration",
+                capabilities: [
+                    "github-api",
+                    "repository-management",
+                    "workflow-automation",
+                ],
+            },
+            "pr-manager": {
+                description: "Pull request management",
+                capabilities: [
+                    "pr-management",
+                    "code-review-automation",
+                    "merge-coordination",
+                ],
+            },
+            "code-review-swarm": {
+                description: "Multi-agent code review",
+                capabilities: [
+                    "distributed-review",
+                    "quality-assurance",
+                    "feedback-synthesis",
+                ],
+            },
+            "issue-tracker": {
+                description: "Issue management",
+                capabilities: ["issue-tracking", "bug-triage", "project-management"],
+            },
+            "release-manager": {
+                description: "Release coordination",
+                capabilities: [
+                    "release-management",
+                    "versioning",
+                    "deployment-coordination",
+                ],
+            },
+            "workflow-automation": {
+                description: "CI/CD automation",
+                capabilities: ["ci-cd", "automation", "pipeline-management"],
+            },
+            "project-board-sync": {
+                description: "Project tracking",
+                capabilities: [
+                    "project-tracking",
+                    "board-synchronization",
+                    "progress-monitoring",
+                ],
+            },
+            "repo-architect": {
+                description: "Repository optimization",
+                capabilities: [
+                    "repository-structure",
+                    "architecture-design",
+                    "best-practices",
+                ],
+            },
+            "multi-repo-swarm": {
+                description: "Cross-repository coordination",
+                capabilities: [
+                    "multi-repo-management",
+                    "cross-project-coordination",
+                    "dependency-tracking",
+                ],
+            },
+            // SPARC Methodology Agents
+            "sparc-coord": {
+                description: "SPARC orchestration",
+                capabilities: [
+                    "sparc-methodology",
+                    "tdd-coordination",
+                    "process-management",
+                ],
+            },
+            "sparc-coder": {
+                description: "TDD implementation",
+                capabilities: [
+                    "test-driven-development",
+                    "red-green-refactor",
+                    "implementation",
+                ],
+            },
+            specification: {
+                description: "Requirements analysis",
+                capabilities: [
+                    "requirements-analysis",
+                    "specification-writing",
+                    "acceptance-criteria",
+                ],
+            },
+            pseudocode: {
+                description: "Algorithm design",
+                capabilities: [
+                    "algorithm-design",
+                    "pseudocode-generation",
+                    "logic-modeling",
+                ],
+            },
+            architecture: {
+                description: "System design",
+                capabilities: [
+                    "system-architecture",
+                    "design-patterns",
+                    "architectural-decisions",
+                ],
+            },
+            refinement: {
+                description: "Iterative improvement",
+                capabilities: [
+                    "iterative-development",
+                    "continuous-improvement",
+                    "refactoring",
+                ],
+            },
+            // Specialized Development
+            "backend-dev": {
+                description: "API development",
+                capabilities: [
+                    "backend-development",
+                    "api-design",
+                    "database-management",
+                ],
+            },
+            "mobile-dev": {
+                description: "React Native development",
+                capabilities: ["mobile-development", "react-native", "cross-platform"],
+            },
+            "ml-developer": {
+                description: "Machine learning",
+                capabilities: ["machine-learning", "data-science", "model-training"],
+            },
+            "cicd-engineer": {
+                description: "CI/CD pipelines",
+                capabilities: [
+                    "ci-cd-engineering",
+                    "devops",
+                    "infrastructure-automation",
+                ],
+            },
+            "api-docs": {
+                description: "OpenAPI documentation",
+                capabilities: ["api-documentation", "openapi", "technical-writing"],
+            },
+            "system-architect": {
+                description: "High-level design",
+                capabilities: [
+                    "system-architecture",
+                    "scalability-design",
+                    "technology-selection",
+                ],
+            },
+            "code-analyzer": {
+                description: "Code quality analysis",
+                capabilities: ["static-analysis", "code-metrics", "quality-assessment"],
+            },
+            "base-template-generator": {
+                description: "Boilerplate creation",
+                capabilities: [
+                    "template-generation",
+                    "scaffolding",
+                    "project-initialization",
+                ],
+            },
+            // Testing & Validation
+            "tdd-london-swarm": {
+                description: "Mock-driven TDD",
+                capabilities: ["london-school-tdd", "mocking", "interaction-testing"],
+            },
+            "production-validator": {
+                description: "Real implementation validation",
+                capabilities: [
+                    "production-testing",
+                    "integration-validation",
+                    "system-testing",
+                ],
+            },
+            // Migration & Planning
+            "migration-planner": {
+                description: "System migrations",
+                capabilities: [
+                    "migration-planning",
+                    "data-migration",
+                    "system-modernization",
+                ],
+            },
+            "swarm-init": {
+                description: "Topology initialization",
+                capabilities: [
+                    "swarm-initialization",
+                    "topology-setup",
+                    "configuration-management",
+                ],
+            },
+        };
         this._configManager = configManager;
         this.logger = new Logger("AgentCommand");
         this.description("Manage AI agents with 64+ specialized types")
@@ -684,7 +682,7 @@ export class AgentCommand extends Command {
                 name: "count",
                 message: "Number of agents to spawn:",
                 default: 1,
-                validate: (input) => input > 0 && input <= 16,
+                validate: (input) => Number(input) > 0 && Number(input) <= 16,
             },
             {
                 type: "input",

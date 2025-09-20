@@ -8,9 +8,6 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 export class SimpleAuth {
-    logger;
-    configPath;
-    apiKey;
     constructor() {
         this.logger = new Logger("SimpleAuth");
         this.configPath = path.join(os.homedir(), ".gemini-flow-auth.json");

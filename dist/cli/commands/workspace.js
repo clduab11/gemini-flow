@@ -8,32 +8,30 @@ import ora from "ora";
 import inquirer from "inquirer";
 import { Logger } from "../../utils/logger.js";
 export class WorkspaceCommand extends Command {
-    logger;
-    configManager;
-    workspaceTypes = {
-        project: {
-            description: "Standard development project",
-            template: "standard",
-        },
-        template: {
-            description: "Reusable project template",
-            template: "template",
-        },
-        experiment: {
-            description: "Experimental or research project",
-            template: "experiment",
-        },
-        api: { description: "API development project", template: "api" },
-        frontend: { description: "Frontend application", template: "frontend" },
-        fullstack: { description: "Full-stack application", template: "fullstack" },
-        microservice: {
-            description: "Microservice project",
-            template: "microservice",
-        },
-        ml: { description: "Machine learning project", template: "ml" },
-    };
     constructor(configManager) {
         super("workspace");
+        this.workspaceTypes = {
+            project: {
+                description: "Standard development project",
+                template: "standard",
+            },
+            template: {
+                description: "Reusable project template",
+                template: "template",
+            },
+            experiment: {
+                description: "Experimental or research project",
+                template: "experiment",
+            },
+            api: { description: "API development project", template: "api" },
+            frontend: { description: "Frontend application", template: "frontend" },
+            fullstack: { description: "Full-stack application", template: "fullstack" },
+            microservice: {
+                description: "Microservice project",
+                template: "microservice",
+            },
+            ml: { description: "Machine learning project", template: "ml" },
+        };
         this.configManager = configManager;
         this.logger = new Logger("WorkspaceCommand");
         this.description("Manage workspaces and projects")

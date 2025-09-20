@@ -13,8 +13,6 @@ import { GeminiAdapter, } from "../../adapters/gemini-adapter.js";
 import { promises as fs } from "fs";
 import path from "path";
 export class HiveMindCommand extends Command {
-    logger;
-    geminiAdapter;
     constructor() {
         super("hive-mind");
         this.logger = new Logger("HiveMind");
@@ -273,7 +271,7 @@ export class HiveMindCommand extends Command {
                 name: "nodes",
                 message: "How many nodes should the hive have?",
                 default: 5,
-                validate: (value) => (value > 0 && value <= 20) || "Please enter 1-20 nodes",
+                validate: (value) => (Number(value) > 0 && Number(value) <= 20) || "Please enter 1-20 nodes",
             },
             {
                 type: "list",

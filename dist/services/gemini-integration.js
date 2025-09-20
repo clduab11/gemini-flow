@@ -8,11 +8,9 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { Logger } from "../utils/logger.js";
 export class GeminiIntegrationService {
-    logger;
-    static instance;
-    cachedContext = null;
-    detectionResult = null;
     constructor() {
+        this.cachedContext = null;
+        this.detectionResult = null;
         this.logger = new Logger("GeminiIntegration");
     }
     static getInstance() {

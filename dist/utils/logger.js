@@ -12,9 +12,6 @@ export var LogLevel;
     LogLevel[LogLevel["DEBUG"] = 3] = "DEBUG";
 })(LogLevel || (LogLevel = {}));
 export class Logger {
-    name;
-    level;
-    winston;
     constructor(name, level = LogLevel.INFO) {
         this.name = name;
         this.level = level;

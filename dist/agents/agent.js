@@ -7,15 +7,6 @@ export var AgentStatus;
     AgentStatus["ERROR"] = "error";
 })(AgentStatus || (AgentStatus = {}));
 export class Agent extends EventEmitter {
-    id;
-    name;
-    type;
-    category;
-    capabilities;
-    status;
-    definition;
-    adapter;
-    logger;
     constructor(definition, adapter) {
         super();
         this.id = definition.id;

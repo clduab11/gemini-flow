@@ -18,21 +18,9 @@ import { A2AMultimediaExtension } from "./a2a-multimedia-extension.js";
 import { QualityAdaptationEngine } from "./quality-adaptation-engine.js";
 import { EdgeCacheCDN } from "./edge-cache-cdn.js";
 export class EnhancedStreamingAPI extends EventEmitter {
-    logger;
-    config;
-    webrtc;
-    codecManager;
-    bufferSync;
-    a2aExtension;
-    qualityEngine;
-    edgeCache;
-    sessions = new Map();
-    performanceMonitor;
-    errorHandler;
-    optimizationEngine;
-    securityManager;
     constructor(config) {
         super();
+        this.sessions = new Map();
         this.logger = new Logger("EnhancedStreamingAPI");
         this.config = config;
         // Initialize core components
@@ -132,9 +120,12 @@ export class EnhancedStreamingAPI extends EventEmitter {
                 streamId: request.id,
             });
             // Optimize codec selection
+            const bandwidthAvailable = typeof context.networkConditions.bandwidth === "object"
+                ? context.networkConditions.bandwidth.available
+                : context.networkConditions.bandwidth;
             const optimalCodec = this.codecManager.getOptimalCodec("video", {
                 quality: session.quality,
-                bandwidth: context.networkConditions.bandwidth.available,
+                bandwidth: bandwidthAvailable,
                 latency: this.config.performance.multimediaLatencyTarget,
                 compatibility: ["webm", "mp4"],
                 hardwareAcceleration: true,
@@ -238,9 +229,12 @@ export class EnhancedStreamingAPI extends EventEmitter {
                 streamId: request.id,
             });
             // Optimize for low latency
+            const audioBandwidthAvailable = typeof context.networkConditions.bandwidth === "object"
+                ? context.networkConditions.bandwidth.available
+                : context.networkConditions.bandwidth;
             const optimalCodec = this.codecManager.getOptimalCodec("audio", {
                 quality: session.quality,
-                bandwidth: context.networkConditions.bandwidth.available,
+                bandwidth: audioBandwidthAvailable,
                 latency: 50, // Aggressive audio latency target
                 compatibility: ["opus", "aac"],
                 hardwareAcceleration: false, // Audio doesn't typically use hardware acceleration
@@ -324,6 +318,14 @@ export class EnhancedStreamingAPI extends EventEmitter {
                 await this.a2aExtension.synchronizeMultiAgentStreams(sessionId, chunk.sync.presentationTimestamp);
             }
             // Update session metrics
+            session.metrics.encoding = {
+                fps: 0,
+                keyframeInterval: 0,
+                bitrate: 0,
+                cpuUsage: 0,
+                memoryUsage: 0,
+                ...(session.metrics.encoding || {}),
+            };
             session.metrics.encoding.fps = this.calculateCurrentFPS(session);
             session.timestamps.lastActivity = Date.now();
             const processingTime = performance.now() - startTime;
@@ -368,7 +370,15 @@ export class EnhancedStreamingAPI extends EventEmitter {
             }
             // Update session quality
             session.quality = decision.newQuality;
-            session.metrics.coordination.qualityChanges++;
+            session.metrics.coordination = {
+                ...(session.metrics.coordination || {
+                    agentCount: 1,
+                    syncAccuracy: 1,
+                    consensusTime: 0,
+                    messageLatency: 0,
+                }),
+                qualityChanges: (session.metrics.coordination?.qualityChanges || 0) + 1,
+            };
             this.logger.info("Stream quality adapted", {
                 sessionId,
                 streamId,
@@ -403,15 +413,34 @@ export class EnhancedStreamingAPI extends EventEmitter {
             ...session.metrics,
             coordination: {
                 ...session.metrics.coordination,
-                agentCount: session.coordination.a2aSession?.participants.length || 1,
+                agentCount: Array.isArray(session.coordination.a2aSession?.participants)
+                    ? session.coordination.a2aSession.participants.length
+                    : 1,
                 syncAccuracy: this.calculateSyncAccuracy(session),
                 consensusTime: this.calculateAverageConsensusTime(session),
                 messageLatency: this.calculateMessageLatency(session),
             },
         };
-        // Update session duration
-        metrics.encoding.memoryUsage = this.getMemoryUsage();
-        metrics.playback.bufferHealth = this.getAverageBufferHealth(session);
+        // Ensure optional metric sections exist then update derived fields
+        const enc = {
+            fps: 0,
+            keyframeInterval: 0,
+            bitrate: 0,
+            cpuUsage: 0,
+            memoryUsage: 0,
+            ...(metrics.encoding || {}),
+        };
+        enc.memoryUsage = this.getMemoryUsage();
+        metrics.encoding = enc;
+        const pb = {
+            droppedFrames: 0,
+            bufferHealth: 0,
+            qualityLevel: "unknown",
+            stallEvents: 0,
+            ...(metrics.playback || {}),
+        };
+        pb.bufferHealth = this.getAverageBufferHealth(session);
+        metrics.playback = pb;
         return metrics;
     }
     /**
@@ -483,15 +512,17 @@ export class EnhancedStreamingAPI extends EventEmitter {
             this.logger.info("Ending streaming session", { sessionId });
             // Stop all streams
             for (const [streamId, response] of session.streams.video) {
-                if (response.endpoints.webrtc) {
-                    response.endpoints.webrtc.close();
+                const _eps = response.endpoints;
+                if (_eps?.webrtc) {
+                    _eps.webrtc.close();
                 }
                 this.qualityEngine.removeStream(streamId);
                 this.bufferSync.flushBuffer(streamId);
             }
             for (const [streamId, response] of session.streams.audio) {
-                if (response.endpoints.webrtc) {
-                    response.endpoints.webrtc.close();
+                const _eps = response.endpoints;
+                if (_eps?.webrtc) {
+                    _eps.webrtc.close();
                 }
                 this.qualityEngine.removeStream(streamId);
                 this.bufferSync.flushBuffer(streamId);
@@ -833,11 +864,10 @@ export class EnhancedStreamingAPI extends EventEmitter {
  * Performance monitoring system
  */
 class PerformanceMonitor extends EventEmitter {
-    config;
-    streams = new Map();
-    startTime = Date.now();
     constructor(config) {
         super();
+        this.streams = new Map();
+        this.startTime = Date.now();
         this.config = config;
     }
     start() {
@@ -892,7 +922,6 @@ class StreamingErrorHandler {
  * Performance optimization engine
  */
 class PerformanceOptimizationEngine {
-    config;
     constructor(config) {
         this.config = config;
     }
@@ -901,7 +930,6 @@ class PerformanceOptimizationEngine {
  * Streaming security manager
  */
 class StreamingSecurityManager {
-    config;
     constructor(config) {
         this.config = config;
     }

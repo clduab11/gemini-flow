@@ -7,20 +7,19 @@
 import { Logger } from "../utils/logger.js";
 import { EventEmitter } from "events";
 export class PerformanceMonitor extends EventEmitter {
-    logger;
-    metrics = new Map();
-    maxHistorySize = 1000;
-    alertThresholds = new Map();
-    // Performance targets
-    targets = {
-        orchestration_latency: 2000, // 2 seconds max
-        routing_overhead: 100, // 100ms max
-        cache_hit_rate: 0.7, // 70% minimum
-        model_availability: 0.99, // 99% uptime
-        error_rate: 0.01, // 1% max error rate
-    };
     constructor() {
         super();
+        this.metrics = new Map();
+        this.maxHistorySize = 1000;
+        this.alertThresholds = new Map();
+        // Performance targets
+        this.targets = {
+            orchestration_latency: 2000, // 2 seconds max
+            routing_overhead: 100, // 100ms max
+            cache_hit_rate: 0.7, // 70% minimum
+            model_availability: 0.99, // 99% uptime
+            error_rate: 0.01, // 1% max error rate
+        };
         this.logger = new Logger("PerformanceMonitor");
         this.setupDefaultThresholds();
         this.startPeriodicAnalysis();

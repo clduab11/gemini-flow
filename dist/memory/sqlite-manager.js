@@ -90,12 +90,9 @@ export class NamespaceUtils {
     }
 }
 export class SQLiteMemoryManager extends EventEmitter {
-    db;
-    logger;
-    cleanupInterval;
-    implementation = "sql.js";
     constructor(db, implementation) {
         super();
+        this.implementation = "sql.js";
         this.logger = new Logger("SQLiteMemory");
         this.db = db;
         this.implementation = implementation;
@@ -623,7 +620,7 @@ export class SQLiteMemoryManager extends EventEmitter {
         try {
             const stmt = this.db.prepare("SELECT 1 as test");
             const result = await stmt.get();
-            return !!(result && result.test === 1);
+            return result && result.test === 1;
         }
         catch (error) {
             this.logger.error("Database connection test failed:", error);

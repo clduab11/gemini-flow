@@ -12,11 +12,9 @@ import { Logger } from "../../utils/logger.js";
 import { EventEmitter } from "events";
 import { asUserTier } from "../../types/index.js";
 class QueryMiniSwarm extends EventEmitter {
-    orchestrator;
-    logger;
-    activeAgents = new Map();
     constructor(orchestrator) {
         super();
+        this.activeAgents = new Map();
         this.orchestrator = orchestrator;
         this.logger = new Logger("QuerySwarm");
     }
