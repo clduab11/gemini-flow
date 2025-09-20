@@ -1,9 +1,8 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "allowJs": true,
     "outDir": "./dist",
     "rootDir": "./src",
@@ -18,7 +17,8 @@
     "esModuleInterop": true,
     "noEmitOnError": false,
     "types": ["node"],
-    "lib": ["ES2022", "DOM"]
+    "lib": ["ES2022"],
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": [
     "src/cli/**/*",

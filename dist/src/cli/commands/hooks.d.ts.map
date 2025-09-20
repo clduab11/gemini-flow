@@ -1,1 +1,0 @@
-{"version":3,"file":"hooks.d.ts","sourceRoot":"","sources":["../../../../src/cli/commands/hooks.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAEH,OAAO,EAAE,OAAO,EAAE,MAAM,WAAW,CAAC;AAIpC,qBAAa,YAAa,SAAQ,OAAO;IACvC,OAAO,CAAC,MAAM,CAAS;;YA2DT,OAAO;YAsBP,QAAQ;YAoBR,QAAQ;YAwBR,cAAc;YAkBd,UAAU;YAyBV,MAAM;YAgBN,SAAS;CAaxB;AAGD,eAAe,YAAY,CAAC"}

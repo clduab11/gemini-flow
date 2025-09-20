@@ -6,7 +6,7 @@
  */
 
 import inquirer from "inquirer";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import ora from "ora";
 import { GoogleAIAuth } from "../core/google-ai-auth.js";
 import { ContextWindowManager } from "../core/context-window-manager.js";
@@ -106,7 +106,7 @@ export class InteractiveMode {
               return true;
             },
           },
-        ]);
+        ] as any);
 
         if (!this.running) break;
 

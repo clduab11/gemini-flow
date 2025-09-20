@@ -1,1 +1,0 @@
-{"version":3,"file":"context-optimizer.d.ts","sourceRoot":"","sources":["../../../src/core/context-optimizer.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAGH,OAAO,EAAE,UAAU,EAAE,MAAM,iBAAiB,CAAC;AAE7C,qBAAa,gBAAgB;IAC3B,OAAO,CAAC,MAAM,CAAS;;IAMvB;;OAEG;IACG,QAAQ,CAAC,OAAO,EAAE,UAAU,GAAG,OAAO,CAAC,UAAU,CAAC;CAWzD"}

@@ -447,7 +447,7 @@ export class SwarmCommand extends Command {
       } as any);
     }
 
-    return await inquirer.prompt(questions);
+    return await inquirer.prompt(questions as any[]);
   }
 
   private buildSwarmConfig(options: any): any {
