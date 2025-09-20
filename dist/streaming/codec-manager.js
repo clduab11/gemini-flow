@@ -11,13 +11,12 @@
 import { EventEmitter } from "events";
 import { Logger } from "../utils/logger.js";
 export class CodecManager extends EventEmitter {
-    logger;
-    supportedCodecs = new Map();
-    transcodingJobs = new Map();
-    hardwareCapabilities = {};
-    qualityPresets = new Map();
     constructor() {
         super();
+        this.supportedCodecs = new Map();
+        this.transcodingJobs = new Map();
+        this.hardwareCapabilities = {};
+        this.qualityPresets = new Map();
         this.logger = new Logger("CodecManager");
         this.initializeCodecs();
         this.detectHardwareCapabilities();

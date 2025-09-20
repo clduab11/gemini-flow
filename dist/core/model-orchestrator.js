@@ -13,24 +13,19 @@ import { CacheManager } from "./cache-manager.js";
 import { EventEmitter } from "events";
 import { safeImport } from "../utils/feature-detection.js";
 export class ModelOrchestrator extends EventEmitter {
-    models = new Map();
-    clients = new Map();
-    router;
-    auth;
-    performance;
-    cache;
-    logger;
-    // Performance tracking
-    metrics = {
-        totalRequests: 0,
-        routingTime: 0,
-        modelSwitches: 0,
-        cacheHits: 0,
-        failovers: 0,
-        tierUpgrades: 0,
-    };
     constructor(config) {
         super();
+        this.models = new Map();
+        this.clients = new Map();
+        // Performance tracking
+        this.metrics = {
+            totalRequests: 0,
+            routingTime: 0,
+            modelSwitches: 0,
+            cacheHits: 0,
+            failovers: 0,
+            tierUpgrades: 0,
+        };
         this.logger = new Logger("ModelOrchestrator");
         this.performance = new PerformanceMonitor();
         this.cache = new CacheManager({ maxMemorySize: config?.cacheSize || 1000 });

@@ -7,11 +7,9 @@ import { join, dirname } from "path";
 import { homedir } from "os";
 import { Logger } from "../../utils/logger.js";
 export class ConfigManager {
-    logger;
-    config = null;
-    configPath;
-    globalOptions = {};
     constructor() {
+        this.config = null;
+        this.globalOptions = {};
         this.logger = new Logger("ConfigManager");
         this.configPath = join(homedir(), ".gemini-flow", "config.json");
     }

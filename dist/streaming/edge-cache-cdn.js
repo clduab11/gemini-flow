@@ -11,21 +11,12 @@
 import { EventEmitter } from "events";
 import { Logger } from "../utils/logger.js";
 export class EdgeCacheCDN extends EventEmitter {
-    logger;
-    config;
-    cdnConfig;
-    edgeNodes = new Map();
-    cacheEntries = new Map();
-    cacheStrategies = new Map();
-    cdnEndpoints = new Map();
-    analytics;
-    nodeSelector;
-    predictionEngine;
-    invalidationManager;
-    loadBalancer;
-    compressionEngine;
     constructor(config, cdnConfig) {
         super();
+        this.edgeNodes = new Map();
+        this.cacheEntries = new Map();
+        this.cacheStrategies = new Map();
+        this.cdnEndpoints = new Map();
         this.logger = new Logger("EdgeCacheCDN");
         this.config = config;
         this.cdnConfig = cdnConfig;
@@ -57,13 +48,15 @@ export class EdgeCacheCDN extends EventEmitter {
             // Compress content if beneficial
             const compressedData = await this.compressionEngine.compress(data, metadata.mimeType);
             // Create cache entry
+            const rawData = compressedData.data;
+            const computedSize = typeof rawData === 'string' ? rawData.length : (rawData?.byteLength ?? (Array.isArray(rawData) ? rawData.length : 0));
             const entry = {
                 id: this.generateEntryId(),
                 key,
                 data: compressedData.data,
                 metadata: {
                     ...metadata,
-                    size: compressedData.data.byteLength || compressedData.data.length,
+                    size: computedSize,
                     encoding: compressedData.encoding,
                     checksum: await this.calculateChecksum(compressedData.data),
                 },
@@ -211,7 +204,9 @@ export class EdgeCacheCDN extends EventEmitter {
     async prefetchContent(predictions) {
         let prefetchedCount = 0;
         for (const prediction of predictions) {
-            if (prediction.probability > this.config.cacheKeys.custom?.[0] || 0.7) {
+            // Prefetch when probability exceeds default 0.7 threshold
+            const threshold = 0.7;
+            if (prediction.probability > threshold) {
                 try {
                     // Fetch content from origin
                     const content = await this.fetchFromOrigin(prediction.key);
@@ -290,8 +285,8 @@ export class EdgeCacheCDN extends EventEmitter {
                 return rule.action === "cache";
             }
         }
-        // Default behavior based on strategy
-        return strategy.type !== "bypass";
+        // Default behavior based on strategy: cache by default
+        return true;
     }
     /**
      * Check if key/metadata matches cache rule
@@ -559,7 +554,10 @@ export class EdgeCacheCDN extends EventEmitter {
      * Initialize CDN endpoints
      */
     initializeCDNEndpoints() {
-        for (const endpoint of this.cdnConfig.endpoints.primary) {
+        const eps = Array.isArray(this.cdnConfig.endpoints)
+            ? this.cdnConfig.endpoints
+            : this.cdnConfig.endpoints.primary || [];
+        for (const endpoint of eps) {
             const cdnEndpoint = {
                 id: `cdn-${Date.now()}`,
                 provider: this.cdnConfig.provider,

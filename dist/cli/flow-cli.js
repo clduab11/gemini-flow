@@ -8,7 +8,6 @@ import chalk from "chalk";
 import { SQLiteMemoryManager } from "../memory/sqlite-manager.js";
 import { HiveMindManager } from "../core/hive-mind-manager.js";
 export class GeminiFlowCLI {
-    program;
     constructor() {
         this.program = new Command();
         this.setupProgram();
@@ -18,7 +17,7 @@ export class GeminiFlowCLI {
         this.program
             .name("gemini-flow")
             .description("A revolutionary multi-model AI orchestration platform.")
-            .version("1.3.0")
+            .version("1.3.2")
             .addHelpText("before", chalk.cyan(`
 ╔══════════════════════════════════════════════════════════╗
 ║                🌌 Gemini-Flow CLI                       ║

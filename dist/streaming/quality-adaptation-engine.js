@@ -11,19 +11,13 @@
 import { EventEmitter } from "events";
 import { Logger } from "../utils/logger.js";
 export class QualityAdaptationEngine extends EventEmitter {
-    logger;
-    adaptationRules = [];
-    contexts = new Map();
-    adaptationHistory = [];
-    mlModels = new Map();
-    qualityLadder = new Map();
-    networkMonitor;
-    deviceMonitor;
-    predictionEngine;
-    decisionEngine;
-    metricsCollector;
     constructor() {
         super();
+        this.adaptationRules = [];
+        this.contexts = new Map();
+        this.adaptationHistory = [];
+        this.mlModels = new Map();
+        this.qualityLadder = new Map();
         this.logger = new Logger("QualityAdaptationEngine");
         this.networkMonitor = new NetworkMonitor();
         this.deviceMonitor = new DeviceMonitor();
@@ -138,7 +132,7 @@ export class QualityAdaptationEngine extends EventEmitter {
      */
     addAdaptationRule(rule) {
         this.adaptationRules.push(rule);
-        this.adaptationRules.sort((a, b) => b.priority - a.priority);
+        this.adaptationRules.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
         this.logger.info("Adaptation rule added", { priority: rule.priority });
     }
     /**
@@ -232,11 +226,13 @@ export class QualityAdaptationEngine extends EventEmitter {
         const conditions = context.networkConditions;
         const metrics = context.sessionMetrics;
         // Network degradation
-        if (conditions.quality.packetLoss > 0.05)
+        if ((conditions.quality?.packetLoss ?? 0) > 0.05)
             return true;
-        if (conditions.latency.rtt > 300)
+        const rtt = typeof conditions.latency === 'number' ? conditions.latency : (conditions.latency?.rtt ?? 0);
+        if (rtt > 300)
             return true;
-        if (conditions.bandwidth.available < context.currentQuality.bandwidth * 0.8)
+        const availableBw = typeof conditions.bandwidth === 'number' ? conditions.bandwidth : (conditions.bandwidth?.available ?? 0);
+        if (availableBw < context.currentQuality.bandwidth * 0.8)
             return true;
         // Performance issues
         if (metrics.bufferHealth < 0.3)
@@ -251,8 +247,7 @@ export class QualityAdaptationEngine extends EventEmitter {
         if (context.deviceCapabilities.memory.usage > 85)
             return true;
         // Improvement opportunity
-        if (conditions.bandwidth.available > context.currentQuality.bandwidth * 1.5 &&
-            context.userPreferences.autoAdjust)
+        if (availableBw > context.currentQuality.bandwidth * 1.5 && context.userPreferences.autoAdjust)
             return true;
         return false;
     }
@@ -453,7 +448,7 @@ export class QualityAdaptationEngine extends EventEmitter {
      */
     estimateImpact(currentQuality, newQuality) {
         const bandwidthRatio = newQuality.bandwidth / currentQuality.bandwidth;
-        const qualityIndex = { low: 1, medium: 2, high: 3, ultra: 4 };
+        const qualityIndex = { low: 1, medium: 2, high: 3, ultra: 4, auto: 2 };
         const currentIndex = qualityIndex[currentQuality.level] || 2;
         const newIndex = qualityIndex[newQuality.level] || 2;
         return {
@@ -625,14 +620,16 @@ export class QualityAdaptationEngine extends EventEmitter {
  * Network conditions monitor
  */
 class NetworkMonitor {
-    conditions = {
-        bandwidth: { upload: 0, download: 0, available: 0 },
-        latency: { rtt: 0, jitter: 0 },
-        jitter: 0,
-        packetLoss: 0,
-        quality: { packetLoss: 0, stability: 1, congestion: 0 },
-        timestamp: Date.now(),
-    };
+    constructor() {
+        this.conditions = {
+            bandwidth: { upload: 0, download: 0, available: 0 },
+            latency: { rtt: 0, jitter: 0 },
+            jitter: 0,
+            packetLoss: 0,
+            quality: { packetLoss: 0, stability: 1, congestion: 0 },
+            timestamp: Date.now(),
+        };
+    }
     start() {
         // Start network monitoring
         setInterval(() => {
@@ -654,26 +651,28 @@ class NetworkMonitor {
  * Device capabilities monitor
  */
 class DeviceMonitor {
-    capabilities = {
-        cpu: { cores: 4, usage: 0, maxFrequency: 2400, architecture: "x64" },
-        memory: { total: 8192, available: 4096, usage: 50 },
-        display: {
-            resolution: { width: 1920, height: 1080 },
-            refreshRate: 60,
-            colorDepth: 24,
-            hdr: false,
-        },
-        network: {
-            type: "wifi",
-            speed: { upload: 10000000, download: 50000000 },
-            reliability: 0.95,
-        },
-        hardware: {
-            videoDecoding: ["h264", "vp9"],
-            audioProcessing: ["opus", "aac"],
-            acceleration: true,
-        },
-    };
+    constructor() {
+        this.capabilities = {
+            cpu: { cores: 4, usage: 0, maxFrequency: 2400, architecture: "x64" },
+            memory: { total: 8192, available: 4096, usage: 50 },
+            display: {
+                resolution: { width: 1920, height: 1080 },
+                refreshRate: 60,
+                colorDepth: 24,
+                hdr: false,
+            },
+            network: {
+                type: "wifi",
+                speed: { upload: 10000000, download: 50000000 },
+                reliability: 0.95,
+            },
+            hardware: {
+                videoDecoding: ["h264", "vp9"],
+                audioProcessing: ["opus", "aac"],
+                acceleration: true,
+            },
+        };
+    }
     start() {
         // Start device monitoring
         setInterval(() => {

@@ -5,19 +5,12 @@
  * interaction with context management and 1M+ token support
  */
 import inquirer from "inquirer";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import ora from "ora";
 import { Logger } from "../utils/logger.js";
 export class InteractiveMode {
-    auth;
-    contextManager;
-    running = false;
-    logger;
-    model;
-    maxTokens;
-    temperature;
-    sessionId;
     constructor(options) {
+        this.running = false;
         this.auth = options.auth;
         this.contextManager = options.contextManager;
         this.model = options.model || "gemini-1.5-flash";

@@ -10,8 +10,6 @@ import ora from "ora";
 import inquirer from "inquirer";
 import { Logger } from "../../utils/logger.js";
 export class InitCommand extends Command {
-    logger;
-    _configManager;
     constructor(configManager) {
         super("init");
         this._configManager = configManager;
@@ -122,7 +120,7 @@ export class InitCommand extends Command {
                 name: "maxAgents",
                 message: "Maximum number of agents:",
                 default: 8,
-                validate: (input) => input > 0 && input <= 64,
+                validate: (input) => Number(input) > 0 && Number(input) <= 64,
             },
             {
                 type: "confirm",

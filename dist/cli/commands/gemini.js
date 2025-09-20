@@ -10,9 +10,6 @@ import { Logger } from "../../utils/logger.js";
 import { GeminiIntegrationService } from "../../services/gemini-integration.js";
 import { QuantumClassicalHybridService } from "../../services/quantum-classical-hybrid.js";
 export class GeminiCommand extends Command {
-    logger;
-    integrationService;
-    quantumService;
     constructor() {
         super("gemini");
         this.logger = new Logger("GeminiCommand");
@@ -394,7 +391,7 @@ export class GeminiCommand extends Command {
                 console.log(chalk.yellow("\n⚛️  QUANTUM RANDOMNESS GENERATION:"));
                 console.log(chalk.blue("  Entropy Source:"), options.quantumSource);
                 console.log(chalk.blue("  True Randomness:"), chalk.green("Quantum mechanical origin"));
-                console.log(chalk.blue("  Entropy Quality:"), `${(result.quantumExploration.entropy * 100).toFixed(2)}%`);
+                console.log(chalk.blue("  Entropy Quality:"), `${(((result.quantumExploration?.entropy ?? 0) * 100)).toFixed(2)}%`);
                 console.log(chalk.blue("  Measurement Fidelity:"), "99.95%");
                 console.log(chalk.yellow("\n🔐 QUANTUM KEY DISTRIBUTION:"));
                 console.log(chalk.blue("  Protocol:"), "BB84 (Bennett-Brassard 1984)");
@@ -407,7 +404,7 @@ export class GeminiCommand extends Command {
                 console.log(chalk.blue("  Quantum Resistance:"), chalk.green("POST-QUANTUM SECURE"));
                 console.log(chalk.yellow("\n🔑 GENERATED KEY PROPERTIES:"));
                 console.log(chalk.blue("  Key Length:"), `${options.keyLength} bits`);
-                console.log(chalk.blue("  Entropy Rate:"), `${result.quantumExploration.entropy.toFixed(3)} bits/bit`);
+                console.log(chalk.blue("  Entropy Rate:"), `${(result.quantumExploration?.entropy ?? 0).toFixed(3)} bits/bit`);
                 console.log(chalk.blue("  Security Strength:"), `${result.optimality * parseInt(options.keyLength)} effective bits`);
                 console.log(chalk.green("\n✅ QUANTUM CRYPTOGRAPHIC ADVANTAGES:"));
                 console.log(chalk.gray("  • True randomness from quantum mechanics"));

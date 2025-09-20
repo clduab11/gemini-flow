@@ -8,30 +8,24 @@ import { Logger } from "../utils/logger.js";
 import { EventEmitter } from "events";
 import { createSQLiteDatabase, detectSQLiteImplementations, } from "../memory/sqlite-adapter.js";
 export class CacheManager extends EventEmitter {
-    logger;
-    config;
-    // Memory cache (L1)
-    memoryCache = new Map();
-    memorySize = 0;
-    // Disk cache (L2)
-    db;
-    diskSize = 0;
-    dbReady = false;
-    dbInitPromise;
-    // Statistics
-    stats = {
-        hits: 0,
-        misses: 0,
-        evictions: 0,
-        writes: 0,
-        reads: 0,
-    };
-    // Performance optimization
-    accessOrder = []; // For LRU
-    frequencyMap = new Map(); // For LFU
-    cleanupInterval;
     constructor(config = {}) {
         super();
+        // Memory cache (L1)
+        this.memoryCache = new Map();
+        this.memorySize = 0;
+        this.diskSize = 0;
+        this.dbReady = false;
+        // Statistics
+        this.stats = {
+            hits: 0,
+            misses: 0,
+            evictions: 0,
+            writes: 0,
+            reads: 0,
+        };
+        // Performance optimization
+        this.accessOrder = []; // For LRU
+        this.frequencyMap = new Map(); // For LFU
         this.logger = new Logger("CacheManager");
         this.config = {
             maxMemorySize: config.maxMemorySize || 100 * 1024 * 1024, // 100MB

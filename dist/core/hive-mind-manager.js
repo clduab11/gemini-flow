@@ -2,7 +2,6 @@ import { AgentFactory } from "../agents/agent-factory.js";
 import { Logger } from "../utils/logger.js";
 import { GeminiAdapter } from "../adapters/gemini-adapter.js";
 export class HiveMindManager {
-    logger;
     constructor() {
         this.logger = new Logger("HiveMindManager");
     }

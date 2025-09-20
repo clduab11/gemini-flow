@@ -16,8 +16,6 @@ import { PerformanceMonitor } from "../../core/performance-monitor.js";
 import { AuthenticationManager } from "../../core/auth-manager.js";
 import { ModelRouter } from "../../core/model-router.js";
 export class SecurityFlagsCommand extends Command {
-    logger;
-    securityManager;
     constructor() {
         super("optimize");
         this.logger = new Logger("SecurityFlagsCommand");

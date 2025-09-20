@@ -7,190 +7,188 @@ import chalk from "chalk";
 import ora from "ora";
 import { Logger } from "../../utils/logger.js";
 export class SparcCommand extends Command {
-    logger;
-    configManager;
-    // SPARC development modes with specialized workflows
-    sparcModes = {
-        dev: {
-            name: "Development Mode",
-            description: "Full SPARC TDD workflow for feature development",
-            phases: [
-                "specification",
-                "pseudocode",
-                "architecture",
-                "refinement",
-                "completion",
-            ],
-            agentTypes: [
-                "sparc-coord",
-                "specification",
-                "pseudocode",
-                "architecture",
-                "sparc-coder",
-                "tester",
-                "reviewer",
-            ],
-        },
-        api: {
-            name: "API Development",
-            description: "SPARC workflow optimized for API development",
-            phases: [
-                "specification",
-                "api-design",
-                "implementation",
-                "testing",
-                "documentation",
-            ],
-            agentTypes: [
-                "sparc-coord",
-                "backend-dev",
-                "api-docs",
-                "tester",
-                "code-analyzer",
-            ],
-        },
-        ui: {
-            name: "UI Development",
-            description: "SPARC workflow for user interface development",
-            phases: [
-                "specification",
-                "ui-design",
-                "component-architecture",
-                "implementation",
-                "testing",
-            ],
-            agentTypes: [
-                "sparc-coord",
-                "mobile-dev",
-                "system-architect",
-                "tester",
-                "reviewer",
-            ],
-        },
-        test: {
-            name: "Test-First Development",
-            description: "Test-driven development with London School TDD",
-            phases: [
-                "test-specification",
-                "mock-design",
-                "implementation",
-                "refactoring",
-                "integration",
-            ],
-            agentTypes: [
-                "sparc-coord",
-                "tdd-london-swarm",
-                "sparc-coder",
-                "production-validator",
-            ],
-        },
-        refactor: {
-            name: "Refactoring Mode",
-            description: "Systematic code refactoring with SPARC methodology",
-            phases: [
-                "analysis",
-                "design",
-                "incremental-refactor",
-                "testing",
-                "validation",
-            ],
-            agentTypes: [
-                "sparc-coord",
-                "code-analyzer",
-                "architecture",
-                "refinement",
-                "tester",
-            ],
-        },
-        research: {
-            name: "Research Mode",
-            description: "Research-driven development with analysis",
-            phases: [
-                "research",
-                "analysis",
-                "prototyping",
-                "validation",
-                "implementation",
-            ],
-            agentTypes: ["researcher", "sparc-coord", "code-analyzer", "sparc-coder"],
-        },
-        migration: {
-            name: "Migration Mode",
-            description: "System migration with SPARC planning",
-            phases: [
-                "assessment",
-                "migration-plan",
-                "incremental-migration",
-                "testing",
-                "validation",
-            ],
-            agentTypes: [
-                "migration-planner",
-                "sparc-coord",
-                "system-architect",
-                "tester",
-                "production-validator",
-            ],
-        },
-        performance: {
-            name: "Performance Optimization",
-            description: "Performance-focused SPARC workflow",
-            phases: [
-                "profiling",
-                "analysis",
-                "optimization-design",
-                "implementation",
-                "benchmarking",
-            ],
-            agentTypes: [
-                "perf-analyzer",
-                "performance-benchmarker",
-                "sparc-coord",
-                "code-analyzer",
-            ],
-        },
-        security: {
-            name: "Security-First Development",
-            description: "Security-focused SPARC methodology",
-            phases: [
-                "threat-modeling",
-                "security-design",
-                "secure-implementation",
-                "security-testing",
-                "validation",
-            ],
-            agentTypes: [
-                "security-manager",
-                "sparc-coord",
-                "code-analyzer",
-                "tester",
-            ],
-        },
-        pipeline: {
-            name: "Full SPARC Pipeline",
-            description: "Complete SPARC pipeline with all phases",
-            phases: [
-                "specification",
-                "pseudocode",
-                "architecture",
-                "refinement",
-                "completion",
-                "deployment",
-            ],
-            agentTypes: [
-                "sparc-coord",
-                "specification",
-                "pseudocode",
-                "architecture",
-                "sparc-coder",
-                "tester",
-                "reviewer",
-                "cicd-engineer",
-            ],
-        },
-    };
     constructor(configManager) {
         super("sparc");
+        // SPARC development modes with specialized workflows
+        this.sparcModes = {
+            dev: {
+                name: "Development Mode",
+                description: "Full SPARC TDD workflow for feature development",
+                phases: [
+                    "specification",
+                    "pseudocode",
+                    "architecture",
+                    "refinement",
+                    "completion",
+                ],
+                agentTypes: [
+                    "sparc-coord",
+                    "specification",
+                    "pseudocode",
+                    "architecture",
+                    "sparc-coder",
+                    "tester",
+                    "reviewer",
+                ],
+            },
+            api: {
+                name: "API Development",
+                description: "SPARC workflow optimized for API development",
+                phases: [
+                    "specification",
+                    "api-design",
+                    "implementation",
+                    "testing",
+                    "documentation",
+                ],
+                agentTypes: [
+                    "sparc-coord",
+                    "backend-dev",
+                    "api-docs",
+                    "tester",
+                    "code-analyzer",
+                ],
+            },
+            ui: {
+                name: "UI Development",
+                description: "SPARC workflow for user interface development",
+                phases: [
+                    "specification",
+                    "ui-design",
+                    "component-architecture",
+                    "implementation",
+                    "testing",
+                ],
+                agentTypes: [
+                    "sparc-coord",
+                    "mobile-dev",
+                    "system-architect",
+                    "tester",
+                    "reviewer",
+                ],
+            },
+            test: {
+                name: "Test-First Development",
+                description: "Test-driven development with London School TDD",
+                phases: [
+                    "test-specification",
+                    "mock-design",
+                    "implementation",
+                    "refactoring",
+                    "integration",
+                ],
+                agentTypes: [
+                    "sparc-coord",
+                    "tdd-london-swarm",
+                    "sparc-coder",
+                    "production-validator",
+                ],
+            },
+            refactor: {
+                name: "Refactoring Mode",
+                description: "Systematic code refactoring with SPARC methodology",
+                phases: [
+                    "analysis",
+                    "design",
+                    "incremental-refactor",
+                    "testing",
+                    "validation",
+                ],
+                agentTypes: [
+                    "sparc-coord",
+                    "code-analyzer",
+                    "architecture",
+                    "refinement",
+                    "tester",
+                ],
+            },
+            research: {
+                name: "Research Mode",
+                description: "Research-driven development with analysis",
+                phases: [
+                    "research",
+                    "analysis",
+                    "prototyping",
+                    "validation",
+                    "implementation",
+                ],
+                agentTypes: ["researcher", "sparc-coord", "code-analyzer", "sparc-coder"],
+            },
+            migration: {
+                name: "Migration Mode",
+                description: "System migration with SPARC planning",
+                phases: [
+                    "assessment",
+                    "migration-plan",
+                    "incremental-migration",
+                    "testing",
+                    "validation",
+                ],
+                agentTypes: [
+                    "migration-planner",
+                    "sparc-coord",
+                    "system-architect",
+                    "tester",
+                    "production-validator",
+                ],
+            },
+            performance: {
+                name: "Performance Optimization",
+                description: "Performance-focused SPARC workflow",
+                phases: [
+                    "profiling",
+                    "analysis",
+                    "optimization-design",
+                    "implementation",
+                    "benchmarking",
+                ],
+                agentTypes: [
+                    "perf-analyzer",
+                    "performance-benchmarker",
+                    "sparc-coord",
+                    "code-analyzer",
+                ],
+            },
+            security: {
+                name: "Security-First Development",
+                description: "Security-focused SPARC methodology",
+                phases: [
+                    "threat-modeling",
+                    "security-design",
+                    "secure-implementation",
+                    "security-testing",
+                    "validation",
+                ],
+                agentTypes: [
+                    "security-manager",
+                    "sparc-coord",
+                    "code-analyzer",
+                    "tester",
+                ],
+            },
+            pipeline: {
+                name: "Full SPARC Pipeline",
+                description: "Complete SPARC pipeline with all phases",
+                phases: [
+                    "specification",
+                    "pseudocode",
+                    "architecture",
+                    "refinement",
+                    "completion",
+                    "deployment",
+                ],
+                agentTypes: [
+                    "sparc-coord",
+                    "specification",
+                    "pseudocode",
+                    "architecture",
+                    "sparc-coder",
+                    "tester",
+                    "reviewer",
+                    "cicd-engineer",
+                ],
+            },
+        };
         this.configManager = configManager;
         this.logger = new Logger("SparcCommand");
         this.description("SPARC methodology for systematic Test-Driven Development")
