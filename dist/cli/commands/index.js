@@ -16,3 +16,4 @@ export { SecurityFlagsCommand } from "./security-flags.js";
 export { ConfigCommand } from "./config.js";
 export { WorkspaceCommand } from "./workspace.js";
 export { GeminiCommand } from "./gemini.js";
+export { DGMCommand } from "./dgm.js";
