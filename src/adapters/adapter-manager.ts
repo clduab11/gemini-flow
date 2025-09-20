@@ -1144,7 +1144,7 @@ class PerformancePredictor {
 
     // In production, this would train an actual ML model
     // For now, we just log that training occurred
-    console.log(
+    this.logger.info(
       `Performance predictor trained with ${this.trainingData.length} samples`,
     );
   }

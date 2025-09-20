@@ -44,6 +44,14 @@ artillery-results/
 node_modules/
 .pnpm-debug.log*
 
+# Build artifacts and outputs
+dist/
+dist/dist/
+*.d.ts.map
+*.d.cts.map
+build/
+.tsbuildinfo
+
 # Environment and Secrets
 .env
 .env.local
