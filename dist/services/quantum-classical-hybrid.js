@@ -8,11 +8,6 @@
 import { Logger } from "../utils/logger.js";
 import { GeminiIntegrationService } from "./gemini-integration.js";
 export class QuantumClassicalHybridService {
-    logger;
-    geminiService;
-    quantumSimulator;
-    classicalProcessor;
-    hybridCoordinator;
     constructor() {
         this.logger = new Logger("QuantumClassicalHybrid");
         this.geminiService = GeminiIntegrationService.getInstance();
@@ -1836,8 +1831,6 @@ class HybridCoordinator {
  * Quantum Performance Benchmarking and Analysis
  */
 export class QuantumPerformanceBenchmark {
-    logger;
-    quantumService;
     constructor(quantumService) {
         this.logger = new Logger("QuantumBenchmark");
         this.quantumService = quantumService;

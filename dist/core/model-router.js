@@ -8,34 +8,33 @@
 import { Logger } from "../utils/logger.js";
 import { EventEmitter } from "events";
 export class ModelRouter extends EventEmitter {
-    logger;
-    rules = new Map();
-    performance = new Map();
-    loadBalancer = new Map(); // Model usage counters
-    // High-performance LRU cache with 1000 entry limit
-    routingCache = new Map();
-    cacheAccessOrder = [];
-    CACHE_LIMIT = 1000;
-    CACHE_TTL = 300000; // 5 minutes
-    // Performance monitoring
-    routingTimes = [];
-    MAX_ROUTING_TIME_SAMPLES = 100;
-    ROUTING_TIME_TARGET = 75; // milliseconds
-    // Intelligent complexity analysis cache
-    complexityCache = new Map();
-    // Routing weights for different factors (optimized for <75ms)
-    weights = {
-        latency: 0.35,
-        cost: 0.15,
-        reliability: 0.25,
-        userTier: 0.15,
-        complexity: 0.1,
-    };
-    // Model tier mapping for quick access
-    modelTierMap = new Map();
-    availabilityMap = new Map();
     constructor() {
         super();
+        this.rules = new Map();
+        this.performance = new Map();
+        this.loadBalancer = new Map(); // Model usage counters
+        // High-performance LRU cache with 1000 entry limit
+        this.routingCache = new Map();
+        this.cacheAccessOrder = [];
+        this.CACHE_LIMIT = 1000;
+        this.CACHE_TTL = 300000; // 5 minutes
+        // Performance monitoring
+        this.routingTimes = [];
+        this.MAX_ROUTING_TIME_SAMPLES = 100;
+        this.ROUTING_TIME_TARGET = 75; // milliseconds
+        // Intelligent complexity analysis cache
+        this.complexityCache = new Map();
+        // Routing weights for different factors (optimized for <75ms)
+        this.weights = {
+            latency: 0.35,
+            cost: 0.15,
+            reliability: 0.25,
+            userTier: 0.15,
+            complexity: 0.1,
+        };
+        // Model tier mapping for quick access
+        this.modelTierMap = new Map();
+        this.availabilityMap = new Map();
         this.logger = new Logger("SmartModelRouter");
         this.initializeDefaultRules();
         this.startPerformanceMonitoring();

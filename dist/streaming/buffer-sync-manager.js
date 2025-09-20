@@ -11,17 +11,11 @@
 import { EventEmitter } from "events";
 import { Logger } from "../utils/logger.js";
 export class BufferSyncManager extends EventEmitter {
-    logger;
-    bufferPools = new Map();
-    syncPoints = new Map();
-    clockReferences = new Map();
-    masterClock;
-    syncConfig;
-    adaptiveAlgorithm;
-    jitterBuffer;
-    performanceMonitor;
     constructor(syncConfig) {
         super();
+        this.bufferPools = new Map();
+        this.syncPoints = new Map();
+        this.clockReferences = new Map();
         this.logger = new Logger("BufferSyncManager");
         this.syncConfig = syncConfig;
         this.adaptiveAlgorithm = new AdaptiveBufferingAlgorithm();
@@ -94,7 +88,7 @@ export class BufferSyncManager extends EventEmitter {
                 streamId,
                 chunkId: chunk.id,
                 priority: chunk.metadata.priority === "critical" ? 10 : 5,
-                tolerance: this.syncConfig.tolerance,
+                tolerance: this.syncConfig.tolerance ?? this.syncConfig.syncThreshold,
                 dependencies: chunk.sync.dependencies,
             });
         }
@@ -116,7 +110,7 @@ export class BufferSyncManager extends EventEmitter {
             return null;
         }
         // Find the chunk that should be played at current time
-        const tolerance = this.syncConfig.tolerance;
+        const tolerance = this.syncConfig.tolerance ?? this.syncConfig.syncThreshold;
         const chunkIndex = pool.chunks.findIndex((chunk) => {
             const playTime = chunk.sync?.presentationTimestamp || chunk.timestamp;
             return Math.abs(playTime - currentTime) <= tolerance;
@@ -161,7 +155,7 @@ export class BufferSyncManager extends EventEmitter {
                 accuracy: syncAccuracy,
                 adjustments: Object.fromEntries(adjustments),
             });
-            return syncAccuracy <= this.syncConfig.tolerance;
+            return syncAccuracy <= (this.syncConfig.tolerance ?? this.syncConfig.syncThreshold);
         }
         catch (error) {
             this.logger.error("Stream synchronization failed", {
@@ -515,17 +509,22 @@ export class BufferSyncManager extends EventEmitter {
  * Adaptive buffering algorithm implementation
  */
 class AdaptiveBufferingAlgorithm {
-    history = new Map();
+    constructor() {
+        this.history = new Map();
+    }
     calculateOptimalStrategy(current, conditions, metrics) {
         // Analyze current performance
         const performanceScore = this.calculatePerformanceScore(metrics);
         // Adjust strategy based on conditions
         const newStrategy = { ...current };
-        if (conditions.quality.packetLoss > 0.05) {
+        if (conditions.quality && conditions.quality.packetLoss > 0.05) {
             // High packet loss - increase buffer size
             newStrategy.bufferSize = Math.min(current.bufferSize * 1.5, current.bufferSize * 3);
         }
-        if (conditions.latency.rtt > 200) {
+        const latencyRtt = typeof conditions.latency === "object"
+            ? conditions.latency.rtt
+            : conditions.latency;
+        if (latencyRtt > 200) {
             // High latency - adjust target latency
             newStrategy.targetLatency = Math.max(current.targetLatency * 1.2, 500);
         }
@@ -555,11 +554,14 @@ class AdaptiveBufferingAlgorithm {
         const baseSize = type === "video" ? 10 * 1024 * 1024 : 1024 * 1024;
         // Adjust based on conditions
         let multiplier = 1.0;
-        if (conditions.bandwidth.available < 1000000) {
+        const availableBw = typeof conditions.bandwidth === "object"
+            ? conditions.bandwidth.available
+            : conditions.bandwidth;
+        if (availableBw < 1000000) {
             // < 1 Mbps
             multiplier *= 0.5;
         }
-        else if (conditions.bandwidth.available > 10000000) {
+        else if (availableBw > 10000000) {
             // > 10 Mbps
             multiplier *= 1.5;
         }
@@ -589,7 +591,9 @@ class AdaptiveBufferingAlgorithm {
  * Jitter buffer implementation
  */
 class JitterBuffer {
-    buffers = new Map();
+    constructor() {
+        this.buffers = new Map();
+    }
     addPacket(streamId, packet) {
         // Jitter buffer implementation
     }

@@ -4,7 +4,6 @@
  */
 import { BaseModelAdapter, } from "./base-model-adapter.js";
 export class JulesWorkflowAdapter extends BaseModelAdapter {
-    workflowConfig;
     constructor(config) {
         super(config);
         this.workflowConfig = config;

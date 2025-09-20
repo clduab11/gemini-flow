@@ -8,8 +8,6 @@ import ora from "ora";
 import inquirer from "inquirer";
 import { Logger } from "../../utils/logger.js";
 export class SwarmCommand extends Command {
-    logger;
-    configManager;
     constructor(configManager) {
         super("swarm");
         this.configManager = configManager;

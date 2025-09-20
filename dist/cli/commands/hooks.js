@@ -7,7 +7,6 @@ import { Command } from "commander";
 import chalk from "chalk";
 import { Logger } from "../../utils/logger.js";
 export class HooksCommand extends Command {
-    logger;
     constructor() {
         super("hooks");
         this.logger = new Logger("Hooks");

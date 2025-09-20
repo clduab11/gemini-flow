@@ -9,29 +9,24 @@ import { CacheManager } from "./cache-manager.js";
 import { EventEmitter } from "events";
 import { safeImport, getFeatureCapabilities, } from "../utils/feature-detection.js";
 export class AuthenticationManager extends EventEmitter {
-    oauth2Client; // OAuth2Client when available
-    googleAuth; // GoogleAuth when available
-    cache;
-    logger;
-    config;
-    userTokens = new Map(); // User token storage
-    tokenRefreshTimers = new Map(); // Auto-refresh timers
-    TOKEN_REFRESH_BUFFER = 300000; // 5 minutes before expiry
-    // Default scopes for user authentication
-    DEFAULT_SCOPES = [
-        "https://www.googleapis.com/auth/userinfo.email",
-        "https://www.googleapis.com/auth/userinfo.profile",
-        "https://www.googleapis.com/auth/cloud-platform",
-    ];
-    // Enhanced scopes for tier detection
-    TIER_DETECTION_SCOPES = [
-        "https://www.googleapis.com/auth/admin.directory.user.readonly",
-        "https://www.googleapis.com/auth/admin.directory.domain.readonly",
-        "https://www.googleapis.com/auth/apps.licensing",
-        "https://www.googleapis.com/auth/cloud-billing.readonly",
-    ];
     constructor(config = {}) {
         super();
+        this.userTokens = new Map(); // User token storage
+        this.tokenRefreshTimers = new Map(); // Auto-refresh timers
+        this.TOKEN_REFRESH_BUFFER = 300000; // 5 minutes before expiry
+        // Default scopes for user authentication
+        this.DEFAULT_SCOPES = [
+            "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/cloud-platform",
+        ];
+        // Enhanced scopes for tier detection
+        this.TIER_DETECTION_SCOPES = [
+            "https://www.googleapis.com/auth/admin.directory.user.readonly",
+            "https://www.googleapis.com/auth/admin.directory.domain.readonly",
+            "https://www.googleapis.com/auth/apps.licensing",
+            "https://www.googleapis.com/auth/cloud-billing.readonly",
+        ];
         this.config = config;
         this.logger = new Logger("AuthManager");
         this.cache = new CacheManager();

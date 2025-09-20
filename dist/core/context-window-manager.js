@@ -9,13 +9,8 @@ import * as path from "path";
 import * as os from "os";
 import { Logger } from "../utils/logger.js";
 export class ContextWindowManager {
-    messages = [];
-    maxTokens;
-    sessionPath;
-    truncationStrategy;
-    compressionEnabled;
-    logger;
     constructor(options = {}) {
+        this.messages = [];
         this.maxTokens = options.maxTokens || 1000000; // 1M tokens default
         this.sessionPath = options.sessionPath || this.getDefaultSessionPath();
         this.truncationStrategy = options.truncationStrategy || "hybrid";

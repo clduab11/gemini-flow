@@ -11,17 +11,11 @@
 import { EventEmitter } from "events";
 import { Logger } from "../utils/logger.js";
 export class WebRTCArchitecture extends EventEmitter {
-    logger;
-    config;
-    peers = new Map();
-    sessions = new Map();
-    signalingEndpoints = [];
-    iceServers;
-    performanceMonitor;
-    qualityAdapter;
-    syncManager;
     constructor(config) {
         super();
+        this.peers = new Map();
+        this.sessions = new Map();
+        this.signalingEndpoints = [];
         this.logger = new Logger("WebRTCArchitecture");
         this.config = config;
         this.iceServers = config.iceServers;
@@ -258,38 +252,14 @@ export class WebRTCArchitecture extends EventEmitter {
     async createCoordinationSession(sessionId, participants) {
         const session = {
             id: sessionId,
-            type: "multicast",
-            participants: participants.map((id) => ({
-                id,
-                role: "prosumer",
-                capabilities: ["video", "audio", "data"],
-                connection: this.peers.get(id)?.connection || new RTCPeerConnection(),
-            })),
-            streams: {
-                video: [],
-                audio: [],
-                data: [],
+            status: "active",
+            streams: {},
+            metadata: {
+                timestamp: Date.now(),
+                sessionId,
             },
-            coordination: {
-                master: participants[0], // First participant is master
-                consensus: true,
-                synchronization: {
-                    enabled: true,
-                    tolerance: 50, // 50ms
-                    maxDrift: 200,
-                    resyncThreshold: 500,
-                    method: "rtp",
-                    masterClock: "audio",
-                },
-            },
-            metrics: {
-                startTime: Date.now(),
-                duration: 0,
-                totalBytes: 0,
-                qualityChanges: 0,
-                errors: 0,
-                averageLatency: 0,
-            },
+            startTime: Date.now(),
+            participants,
         };
         this.sessions.set(sessionId, session);
         this.syncManager.initializeSession(session);
@@ -307,7 +277,6 @@ export class WebRTCArchitecture extends EventEmitter {
         const dataChannel = connection.createDataChannel("coordination", {
             ordered: false,
             maxRetransmits: 0,
-            priority: "high",
         });
         dataChannel.onopen = () => {
             this.logger.debug("Coordination data channel opened");
@@ -520,8 +489,8 @@ export class WebRTCArchitecture extends EventEmitter {
             enabled: true,
             language: language || "en-US",
             confidence: 0,
-            interim: "",
-            final: "",
+            text: "",
+            segments: [],
         };
     }
     /**
@@ -600,8 +569,10 @@ class PerformanceMonitor {
  * Quality adaptation helper class
  */
 class QualityAdapter {
-    adaptationRules = [];
-    cooldowns = new Map();
+    constructor() {
+        this.adaptationRules = [];
+        this.cooldowns = new Map();
+    }
     startAdaptation(streamId, type, initialQuality) {
         // Initialize adaptation monitoring
     }
