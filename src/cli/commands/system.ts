@@ -87,7 +87,7 @@ export function registerSystemCommands(program: Command) {
   const agentEnhancement = new AgentEnhancement({ defaultReasoningModel: 'gemini-pro' }, modelOrchestrator);
   const databaseCoordinator = new DatabaseCoordinator({ projectID: 'your-gcp-project-id' });
   const computeCoordinator = new ComputeCoordinator({ projectID: 'your-gcp-project-id' });
-  const communicationCoordinator = new CommunicationCoordinator({ projectID: 'your-gcp-project-id', defaultTopic: 'gemini-flow-events' });
+  const communicationCoordinator = new CommunicationCoordinator({ projectID: 'your-gcp-project-id' });
 
   const queenAgent = new QueenAgent({ id: 'queen-001', name: 'HiveQueen', vertexAiModel: 'gemini-pro', firestoreCollection: 'hive_global_state' }, dbCore, memoryIntelligence, toolExecutor, toolRegistry);
   const byzantineConsensus = new ByzantineConsensus({ minParticipants: 3, faultTolerancePercentage: 0.33, timeoutMs: 1000 }, dbCore);

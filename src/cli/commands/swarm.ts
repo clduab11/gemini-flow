@@ -447,7 +447,15 @@ export class SwarmCommand extends Command {
       } as any);
     }
 
-    return await inquirer.prompt(questions);
+    const answers: any = {};
+    
+    // Prompt each question individually for v12 compatibility
+    for (const question of questions) {
+      const result = await inquirer.prompt(question);
+      Object.assign(answers, result);
+    }
+    
+    return answers;
   }
 
   private buildSwarmConfig(options: any): any {
