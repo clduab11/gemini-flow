@@ -1,6 +1,6 @@
-import { ToolCapability } from '../../types/mcp-config';
-import { SQLiteMemoryCore } from './sqlite-memory-core';
-import { Logger } from '../../utils/logger';
+import { ToolCapability } from '../../types/mcp-config.js';
+import { SQLiteMemoryCore } from './sqlite-memory-core.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * @interface RegisteredToolMetadata

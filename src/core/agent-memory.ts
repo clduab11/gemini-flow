@@ -1,5 +1,5 @@
-import { SQLiteMemoryCore, Agent, Memory, Context, Performance } from './sqlite-memory-core';
-import { MemoryIntelligence } from './memory-intelligence';
+import { SQLiteMemoryCore, Agent, Memory, Context, Performance } from './sqlite-memory-core.js';
+import { MemoryIntelligence } from './memory-intelligence.js';
 
 /**
  * @class AgentMemory

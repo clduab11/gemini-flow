@@ -1,5 +1,5 @@
-import { Logger } from '../../utils/logger';
-import { ModelOrchestrator } from '../../integrations/vertex-ai/model-orchestrator';
+import { Logger } from '../../utils/logger.js';
+import { ModelOrchestrator } from '../../integrations/vertex-ai/model-orchestrator.js';
 
 /**
  * @interface VertexAiPerformanceOptimizerConfig

@@ -1,11 +1,11 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 
 // Import all major subsystem components (conceptual for now)
-// import { MCPSettingsManager } from '../mcp-settings-manager';
-// import { SQLiteMemoryCore } from '../sqlite-memory-core';
-// import { QueenAgent } from '../hive-mind/queen-agent';
-// import { WasmNeuralEngine } from '../neural/wasm-engine';
-// import { HookRegistry } from '../hooks/hook-registry';
+// import { MCPSettingsManager } from '../mcp-settings-manager.js';
+// import { SQLiteMemoryCore } from '../sqlite-memory-core.js';
+// import { QueenAgent } from '../hive-mind/queen-agent.js';
+// import { WasmNeuralEngine } from '../neural/wasm-engine.js';
+// import { HookRegistry } from '../hooks/hook-registry.js';
 
 /**
  * @interface SystemControllerConfig

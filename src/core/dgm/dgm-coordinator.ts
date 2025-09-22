@@ -6,13 +6,13 @@
  * pattern archiving, autonomous monitoring, and fitness evaluation.
  */
 
-import { Logger } from '../../utils/logger';
-import { PerformanceMonitor } from '../performance-monitor';
-import { CoordinationOptimizer } from '../advanced-coordination/optimization';
-import { DGMEvolutionaryOrchestrator, DGMConfig, EvolutionStrategy, ValidationResult, CleanupTarget } from './evolutionary-orchestrator';
-import { DGMPatternArchive, ArchivedPattern, PatternQuery } from './pattern-archive';
-import { DGMAutonomousMonitor, MonitoringConfig, DebtMetrics } from './autonomous-monitor';
-import { DGMFitnessFunction, FitnessConfig, FitnessEvaluation } from './fitness-function';
+import { Logger } from '../../utils/logger.js';
+import { PerformanceMonitor } from '../performance-monitor.js';
+import { CoordinationOptimizer } from '../advanced-coordination/optimization.js';
+import { DGMEvolutionaryOrchestrator, DGMConfig, EvolutionStrategy, ValidationResult, CleanupTarget } from './evolutionary-orchestrator.js';
+import { DGMPatternArchive, ArchivedPattern, PatternQuery } from './pattern-archive.js';
+import { DGMAutonomousMonitor, MonitoringConfig, DebtMetrics } from './autonomous-monitor.js';
+import { DGMFitnessFunction, FitnessConfig, FitnessEvaluation } from './fitness-function.js';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 

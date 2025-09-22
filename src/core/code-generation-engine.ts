@@ -634,8 +634,8 @@ export class CodeGenerationEngine {
         {
           path: "{{componentName}}/{{componentName}}.tsx",
           content: `import React{{#if useHooks}}, { useState, useEffect }{{/if}} from 'react';
-import { {{componentName}}Props } from './{{componentName}}.types';
-import styles from './{{componentName}}.module.css';
+import { {{componentName}}Props } from './{{componentName}}.types.js';
+import styles from './{{componentName}}.module.css.js';
 
 export const {{componentName}}: React.FC<{{componentName}}Props> = ({
   {{#each props}}
@@ -705,10 +705,10 @@ export default {{componentName}};`,
           content: `import express from 'express';
 import cors from 'cors';
 {{#if useAuth}}
-import { authMiddleware } from './middleware/auth';
+import { authMiddleware } from './middleware/auth.js';
 {{/if}}
 {{#each routes}}
-import {{name}}Router from './routes/{{name}}';
+import {{name}}Router from './routes/{{name}}.js';
 {{/each}}
 
 const app = express();

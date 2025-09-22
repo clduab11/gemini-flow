@@ -249,7 +249,7 @@ export class CostReportCommand extends Command {
                 currency: costData.currency,
             },
             byCategory: {
-                "Model Usage": Object.values(costData.modelCosts).reduce((sum, model) => sum + model.cost, 0),
+                "Model Usage": Object.values(costData.modelCosts).reduce((sum, model) => sum + (model?.cost || 0), 0),
                 Infrastructure: costData.operationalCosts.infrastructure,
                 Monitoring: costData.operationalCosts.monitoring,
                 Storage: costData.operationalCosts.storage,

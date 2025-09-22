@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 /**
  * @class CiCdPipeline
  * @description Implements automated CI/CD pipelines for testing, building, and deploying Gemini-Flow.

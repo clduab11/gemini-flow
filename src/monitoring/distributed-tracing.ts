@@ -25,7 +25,7 @@ import {
   SpanKind,
   SpanStatusCode,
 } from "@opentelemetry/api";
-import { Logger } from "../utils/logger";
+import { Logger } from "../utils/logger.js";
 
 interface TracingConfig {
   serviceName: string;

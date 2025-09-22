@@ -4,8 +4,8 @@
  */
 
 import { EventEmitter } from "events";
-import { Logger } from "../utils/logger";
-import { DistributedTracing } from "./distributed-tracing";
+import { Logger } from "../utils/logger.js";
+import { DistributedTracing } from "./distributed-tracing.js";
 
 interface MetricsConfig {
   collection: {

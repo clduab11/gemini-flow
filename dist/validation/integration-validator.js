@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 /**
  * @class IntegrationValidator
  * @description Provides comprehensive validation for the integration of components across Sprints 4-6.

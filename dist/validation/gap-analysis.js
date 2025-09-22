@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 /**
  * @class GapAnalyzer
  * @description Identifies missing components, performance shortfalls, and implements automated remediation.

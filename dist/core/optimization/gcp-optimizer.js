@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class GcpOptimizer
  * @description Optimizes Google Cloud Platform integration for cost, performance, and reliability.

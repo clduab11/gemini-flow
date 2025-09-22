@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class ModelOrchestrator
  * @description Manages dynamic model selection, invocation, and optimization for Vertex AI.

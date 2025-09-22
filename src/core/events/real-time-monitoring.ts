@@ -1,6 +1,6 @@
-import { Logger } from '../../utils/logger';
-import { EventBus } from './event-bus';
-import { GcpOperationsSuiteIntegration } from '../performance/gcp-operations-suite-integration';
+import { Logger } from '../../utils/logger.js';
+import { EventBus } from './event-bus.js';
+import { GcpOperationsSuiteIntegration } from '../performance/gcp-operations-suite-integration.js';
 
 /**
  * @interface RealTimeMonitoringConfig

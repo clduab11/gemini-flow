@@ -1,6 +1,6 @@
-import { SQLiteMemoryCore } from './sqlite-memory-core';
-import { MemoryIntelligence } from './memory-intelligence';
-import { Logger } from '../../utils/logger';
+import { SQLiteMemoryCore } from './sqlite-memory-core.js';
+import { MemoryIntelligence } from './memory-intelligence.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * @class MemoryPerformanceOptimizer

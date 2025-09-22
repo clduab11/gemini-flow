@@ -1,5 +1,5 @@
-import { MCPSettingsManager } from './mcp-settings-manager';
-import { MCPSettings, ToolCapability } from '../../types/mcp-config';
+import { MCPSettingsManager } from './mcp-settings-manager.js';
+import { MCPSettings, ToolCapability } from '../../types/mcp-config.js';
 
 /**
  * @interface RegisteredMCPServer

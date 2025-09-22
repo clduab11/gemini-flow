@@ -6,6 +6,8 @@
  * and fitness evaluation for continuous system improvement.
  */
 
+import { DGMSystemCoordinator } from './dgm-coordinator.js';
+
 export { 
   DGMEvolutionaryOrchestrator,
   type DGMConfig,
@@ -49,14 +51,15 @@ export {
 /**
  * Create a complete DGM system with default configuration
  */
+/**
+ * Create a complete DGM system with default configuration
+ */
 export function createDGMSystem(projectPath: string, options?: {
   evolutionCycles?: number;
   fitnessThreshold?: number;
   autoEvolutionEnabled?: boolean;
   scanInterval?: number;
 }) {
-  const { DGMSystemCoordinator: Coordinator } = require('./dgm-coordinator.js');
-  
   const config = {
     projectPath,
     evolution: {
@@ -150,7 +153,7 @@ export function createDGMSystem(projectPath: string, options?: {
     experimentalFeatures: []
   };
   
-  return new Coordinator(config);
+  return new DGMSystemCoordinator(config);
 }
 
 /**

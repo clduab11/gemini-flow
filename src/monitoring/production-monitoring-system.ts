@@ -4,25 +4,25 @@
  */
 
 import { EventEmitter } from "events";
-import { Logger } from "../utils/logger";
+import { Logger } from "../utils/logger.js";
 import {
   SyntheticMonitor,
   DEFAULT_MONITORING_CONFIG,
-} from "./synthetic-monitoring";
-import { RealUserMonitor, DEFAULT_RUM_CONFIG } from "./real-user-monitoring";
+} from "./synthetic-monitoring.js";
+import { RealUserMonitor, DEFAULT_RUM_CONFIG } from "./real-user-monitoring.js";
 import {
   DistributedTracing,
   getTracing,
   DEFAULT_TRACING_CONFIG,
-} from "./distributed-tracing";
+} from "./distributed-tracing.js";
 import {
   CustomMetricsCollector,
   DEFAULT_METRICS_CONFIG,
-} from "./custom-metrics-dashboard";
+} from "./custom-metrics-dashboard.js";
 import {
   SLAComplianceMonitor,
   DEFAULT_SLA_CONFIG,
-} from "./sla-compliance-monitor";
+} from "./sla-compliance-monitor.js";
 
 interface MonitoringSystemConfig {
   enabled: boolean;

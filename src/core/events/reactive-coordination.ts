@@ -1,7 +1,7 @@
-import { Logger } from '../../utils/logger';
-import { EventBus } from './event-bus';
-import { ComputeCoordinator } from '../../integrations/gcp/compute-coordinator';
-import { CoordinationEngine } from '../coordination-engine';
+import { Logger } from '../../utils/logger.js';
+import { EventBus } from './event-bus.js';
+import { ComputeCoordinator } from '../../integrations/gcp/compute-coordinator.js';
+import { CoordinationEngine } from '../coordination-engine.js';
 
 /**
  * @interface ReactiveCoordinationConfig

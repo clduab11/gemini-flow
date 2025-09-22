@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class EnterpriseSecurity
  * @description Implements enterprise-grade security features including encryption, IAM integration, and audit logging.

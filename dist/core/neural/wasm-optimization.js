@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class WasmPerformanceOptimizer
  * @description Provides advanced optimization techniques for WASM-accelerated neural networks.

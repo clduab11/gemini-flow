@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 /**
  * @class ComponentValidator
  * @description Provides comprehensive validation for individual components implemented in Sprints 1-3.

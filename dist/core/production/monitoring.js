@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class ProductionMonitoring
  * @description Provides comprehensive observability with Google Cloud Operations Suite, custom metrics, distributed tracing, and predictive monitoring.

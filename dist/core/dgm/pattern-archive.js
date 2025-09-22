@@ -4,7 +4,7 @@
  * Manages storage and retrieval of successful evolutionary patterns
  * for future strategy generation and optimization.
  */
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 import { EventEmitter } from 'events';
 import * as fs from 'fs/promises';
 import * as path from 'path';

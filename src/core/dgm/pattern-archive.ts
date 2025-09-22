@@ -5,8 +5,8 @@
  * for future strategy generation and optimization.
  */
 
-import { Logger } from '../../utils/logger';
-import { EvolutionStrategy, ValidationResult } from './evolutionary-orchestrator';
+import { Logger } from '../../utils/logger.js';
+import { EvolutionStrategy, ValidationResult } from './evolutionary-orchestrator.js';
 import { EventEmitter } from 'events';
 import * as fs from 'fs/promises';
 import * as path from 'path';

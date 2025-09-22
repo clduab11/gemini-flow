@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 /**
  * @class E2eWorkflowTester
  * @description Orchestrates and executes comprehensive end-to-end workflow tests, performance benchmarking, and load testing.

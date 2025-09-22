@@ -5,7 +5,7 @@
  */
 
 import { EventEmitter } from "events";
-import { ConsensusMessage, ConsensusProposal } from "./byzantine-consensus";
+import { ConsensusMessage, ConsensusProposal } from "./byzantine-consensus.js";
 
 export interface OptimizationConfig {
   batchSize: number;

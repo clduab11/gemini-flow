@@ -1,6 +1,6 @@
-import { Logger } from '../../utils/logger';
-import { VertexAiPerformanceOptimizer } from '../performance/vertex-ai-performance-optimizer';
-import { GcpOperationsSuiteIntegration } from '../performance/gcp-operations-suite-integration';
+import { Logger } from '../../utils/logger.js';
+import { VertexAiPerformanceOptimizer } from '../performance/vertex-ai-performance-optimizer.js';
+import { GcpOperationsSuiteIntegration } from '../performance/gcp-operations-suite-integration.js';
 
 /**
  * @interface GcpOptimizerConfig

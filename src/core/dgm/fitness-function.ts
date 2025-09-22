@@ -5,8 +5,8 @@
  * and evolutionary strategy assessment.
  */
 
-import { Logger } from '../../utils/logger';
-import { EvolutionStrategy, ValidationResult } from './evolutionary-orchestrator';
+import { Logger } from '../../utils/logger.js';
+import { EvolutionStrategy, ValidationResult } from './evolutionary-orchestrator.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 

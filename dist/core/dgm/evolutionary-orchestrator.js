@@ -4,7 +4,7 @@
  * Coordinates evolutionary cleanup strategies and self-improving system processes.
  * Extends existing CoordinationOptimizer to implement Darwin Gödel Machine principles.
  */
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 import { EventEmitter } from 'events';
 /**
  * Darwin Gödel Machine Evolutionary Orchestrator
@@ -121,7 +121,7 @@ export class DGMEvolutionaryOrchestrator extends EventEmitter {
                 const result = await this.executeStrategy(strategy, true);
                 // Validate results
                 const validation = await this.validateStrategy(strategy, result);
-                validation.strategy = strategy.id;
+                // Note: strategy property would be added to ValidationResult interface if needed
                 // Calculate fitness
                 strategy.fitness = this.calculateFitness(validation);
                 results.set(strategy.id, validation);

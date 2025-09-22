@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class ReactiveCoordination
  * @description Implements reactive systems that respond to real-time conditions and events.

@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class WasmNeuralEngine
  * @description Provides high-performance neural processing with WebAssembly acceleration.

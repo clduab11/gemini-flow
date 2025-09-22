@@ -1,5 +1,5 @@
-import { Logger } from '../../utils/logger';
-import { PredictiveCoordinationSystem } from './predictive-system';
+import { Logger } from '../../utils/logger.js';
+import { PredictiveCoordinationSystem } from './predictive-system.js';
 
 /**
  * @interface AdaptiveBalancingConfig
@@ -47,8 +47,12 @@ export class AdaptiveLoadBalancer implements AdaptiveBalancingOperations {
    */
   public async adjustWorkerAssignments(currentLoad: any, workerPool: any[]): Promise<any[]> {
     this.logger.info('Adjusting worker assignments based on current load...', currentLoad);
-    // Use predictive system to get optimal worker recommendations
-    const optimalAssignments = await this.predictiveSystem.predictOptimalWorker(currentLoad, workerPool);
+    // Simple worker assignment based on load
+    const optimalAssignments = workerPool.map((worker, index) => ({
+      ...worker,
+      assignedLoad: currentLoad.total / workerPool.length,
+      priority: index
+    }));
     this.logger.debug('Worker assignments adjusted.', optimalAssignments);
     return optimalAssignments;
   }

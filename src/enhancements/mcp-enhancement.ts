@@ -1,6 +1,6 @@
-import { Logger } from '../utils/logger';
-import { MCPSettingsManager } from '../core/mcp-settings-manager';
-import { MCPServerRegistry } from '../core/mcp-server-registry';
+import { Logger } from '../utils/logger.js';
+import { MCPSettingsManager } from '../core/mcp-settings-manager.js';
+import { MCPServerRegistry } from '../core/mcp-server-registry.js';
 
 /**
  * @interface McpEnhancementConfig

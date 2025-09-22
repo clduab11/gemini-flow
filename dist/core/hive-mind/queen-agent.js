@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class QueenAgent
  * @description Implements the central coordination and decision-making authority for the Hive-Mind.

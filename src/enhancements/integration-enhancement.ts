@@ -1,7 +1,7 @@
-import { Logger } from '../utils/logger';
-import { CrossComponentCommunication } from '../core/integration/cross-communication';
-import { SystemReliability } from '../core/production/reliability';
-import { ProductionMonitoring } from '../core/production/monitoring';
+import { Logger } from '../utils/logger.js';
+import { CrossComponentCommunication } from '../core/integration/cross-communication.js';
+import { SystemReliability } from '../core/production/reliability.js';
+import { ProductionMonitoring } from '../core/production/monitoring.js';
 
 /**
  * @interface IntegrationEnhancementConfig

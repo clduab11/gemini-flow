@@ -1,5 +1,5 @@
-import { HookContext, HookExecutionResult } from './hook-registry';
-import { Logger } from '../../utils/logger';
+import { HookContext, HookExecutionResult } from './hook-registry.js';
+import { Logger } from '../../utils/logger.js';
 
 const logger = new Logger('ProcessingHooks');
 

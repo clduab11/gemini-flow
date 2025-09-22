@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class NeuralOptimizer
  * @description Optimizes neural network performance, including WASM tuning, model optimization, and GPU acceleration.

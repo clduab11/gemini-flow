@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class NeuralPerformanceOptimizer
  * @description Provides AI-driven system performance tuning and optimization using neural networks.

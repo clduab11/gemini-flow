@@ -1,13 +1,13 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { Logger } from '../../utils/logger';
-import { ToolDiscoveryEngine } from '../../core/tool-discovery';
-import { ToolExecutor } from '../../core/tool-executor';
-import { ToolRegistry } from '../../core/tool-registry';
-import { ToolIntegration } from '../../core/tool-integration';
-import { SQLiteMemoryCore } from '../../core/sqlite-memory-core';
-import { MemoryIntelligence } from '../../core/memory-intelligence';
+import { Logger } from '../../utils/logger.js';
+import { ToolDiscoveryEngine } from '../../core/tool-discovery.js';
+import { ToolExecutor } from '../../core/tool-executor.js';
+import { ToolRegistry } from '../../core/tool-registry.js';
+import { ToolIntegration } from '../../core/tool-integration.js';
+import { SQLiteMemoryCore } from '../../core/sqlite-memory-core.js';
+import { MemoryIntelligence } from '../../core/memory-intelligence.js';
 
 export function registerToolsCommands(program: Command) {
   const toolsCommand = program.command('tools').description('Manage MCP tools and their ecosystem');

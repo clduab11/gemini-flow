@@ -1,12 +1,12 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 
 // Import core components from previous sprints (conceptual for validation)
-// import { MCPSettingsManager } from '../core/mcp-settings-manager';
-// import { MCPServerRegistry } from '../core/mcp-server-registry';
-// import { ToolOrchestrator } from '../core/tool-orchestrator';
-// import { SQLiteMemoryCore } from '../core/sqlite-memory-core';
-// import { MemoryIntelligence } from '../core/memory-intelligence';
-// import { ToolDiscoveryEngine } from '../core/tool-discovery';
+// import { MCPSettingsManager } from '../core/mcp-settings-manager.js';
+// import { MCPServerRegistry } from '../core/mcp-server-registry.js';
+// import { ToolOrchestrator } from '../core/tool-orchestrator.js';
+// import { SQLiteMemoryCore } from '../core/sqlite-memory-core.js';
+// import { MemoryIntelligence } from '../core/memory-intelligence.js';
+// import { ToolDiscoveryEngine } from '../core/tool-discovery.js';
 
 /**
  * @interface ComponentValidatorConfig

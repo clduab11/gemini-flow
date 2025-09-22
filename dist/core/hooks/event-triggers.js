@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class EventTriggers
  * @description Manages real-time event detection and publishes them to the Hook Registry.

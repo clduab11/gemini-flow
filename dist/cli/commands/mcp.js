@@ -1,5 +1,5 @@
-import { MCPSettingsManager } from '../../core/mcp-settings-manager';
-import { MCPServerRegistry } from '../../core/mcp-server-registry';
+import { MCPSettingsManager } from '../../core/mcp-settings-manager.js';
+import { MCPServerRegistry } from '../../core/mcp-server-registry.js';
 export function registerMcpCommands(program) {
     const mcpCommand = program.command('mcp').description('Manage MCP servers and tools');
     mcpCommand

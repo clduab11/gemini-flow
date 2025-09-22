@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class PredictiveCoordinationSystem
  * @description Implements predictive coordination capabilities for enhanced hive-mind operations.

@@ -5,7 +5,7 @@
  * interaction with context management and 1M+ token support
  */
 import inquirer from "inquirer";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import ora from "ora";
 import { Logger } from "../utils/logger.js";
 export class InteractiveMode {

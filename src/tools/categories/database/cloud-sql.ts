@@ -1,4 +1,4 @@
-import { ToolCapability } from '../../../types/mcp-config';
+import { ToolCapability } from '../../../types/mcp-config.js';
 
 /**
  * @interface CloudSQLConfig

@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class ToolRegistry
  * @description Implements comprehensive tool management, including metadata, versioning, and access control.

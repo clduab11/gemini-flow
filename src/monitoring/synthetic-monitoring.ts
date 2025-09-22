@@ -15,7 +15,7 @@ import { performance } from "perf_hooks";
 import { EventEmitter } from "events";
 import { promises as fs } from "fs";
 import path from "path";
-import { Logger } from "../utils/logger";
+import { Logger } from "../utils/logger.js";
 
 interface MonitoringConfig {
   endpoints: MonitoringEndpoint[];

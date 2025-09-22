@@ -1,6 +1,6 @@
-import { Logger } from '../../utils/logger';
-import { WasmPerformanceManager } from '../performance/wasm-manager';
-import { NeuralCoordinationModels } from '../neural/coordination-models';
+import { Logger } from '../../utils/logger.js';
+import { WasmPerformanceManager } from '../performance/wasm-manager.js';
+import { NeuralCoordinationModels } from '../neural/coordination-models.js';
 
 /**
  * @interface NeuralOptimizerConfig

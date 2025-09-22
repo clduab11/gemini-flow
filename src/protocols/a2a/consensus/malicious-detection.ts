@@ -5,8 +5,8 @@
  */
 
 import { EventEmitter } from "events";
-import { Agent, ConsensusMessage } from "./byzantine-consensus";
-import { Vote, VotingProposal } from "./voting-mechanisms";
+import { Agent, ConsensusMessage } from "./byzantine-consensus.js";
+import { Vote, VotingProposal } from "./voting-mechanisms.js";
 
 export interface MaliciousBehavior {
   type:

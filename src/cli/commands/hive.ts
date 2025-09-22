@@ -4,28 +4,28 @@ import ora from 'ora';
 import { Logger } from '../../utils/logger.js';
 
 // Import Hive-Mind Core Components
-import { QueenAgent, QueenConfig } from '../../core/hive-mind/queen-agent';
-import { WorkerAgent, WorkerConfig } from '../../core/hive-mind/worker-swarm';
-import { ByzantineConsensus, ConsensusConfig } from '../../core/hive-mind/consensus';
-import { CoordinationEngine, CoordinationEngineConfig } from '../../core/coordination-engine';
+import { QueenAgent, QueenConfig } from '../../core/hive-mind/queen-agent.js';
+import { WorkerAgent, WorkerConfig } from '../../core/hive-mind/worker-swarm.js';
+import { ByzantineConsensus, ConsensusConfig } from '../../core/hive-mind/consensus.js';
+import { CoordinationEngine, CoordinationEngineConfig } from '../../core/coordination-engine.js';
 
 // Import Integrations
-import { ModelOrchestrator, ModelOrchestratorConfig } from '../../integrations/vertex-ai/model-orchestrator';
-import { AgentEnhancement, AgentEnhancementConfig } from '../../integrations/vertex-ai/agent-enhancement';
-import { DatabaseCoordinator, DatabaseCoordinatorConfig } from '../../integrations/gcp/database-coordinator';
-import { ComputeCoordinator, ComputeCoordinatorConfig } from '../../integrations/gcp/compute-coordinator';
-import { CommunicationCoordinator, CommunicationCoordinatorConfig } from '../../integrations/gcp/communication-coordinator';
+import { ModelOrchestrator, ModelOrchestratorConfig } from '../../integrations/vertex-ai/model-orchestrator.js';
+import { AgentEnhancement, AgentEnhancementConfig } from '../../integrations/vertex-ai/agent-enhancement.js';
+import { DatabaseCoordinator, DatabaseCoordinatorConfig } from '../../integrations/gcp/database-coordinator.js';
+import { ComputeCoordinator, ComputeCoordinatorConfig } from '../../integrations/gcp/compute-coordinator.js';
+import { CommunicationCoordinator, CommunicationCoordinatorConfig } from '../../integrations/gcp/communication-coordinator.js';
 
 // Import Performance Components
-import { GcpOperationsSuiteIntegration, GcpOperationsSuiteConfig } from '../../core/performance/gcp-operations-suite-integration';
-import { VertexAiPerformanceOptimizer, VertexAiPerformanceOptimizerConfig } from '../../core/performance/vertex-ai-performance-optimizer';
+import { GcpOperationsSuiteIntegration, GcpOperationsSuiteConfig } from '../../core/performance/gcp-operations-suite-integration.js';
+import { VertexAiPerformanceOptimizer, VertexAiPerformanceOptimizerConfig } from '../../core/performance/vertex-ai-performance-optimizer.js';
 
 // Import Memory Components (dependencies for Queen/Worker)
-import { SQLiteMemoryCore } from '../../core/sqlite-memory-core';
-import { MemoryIntelligence } from '../../core/memory-intelligence';
-import { ToolExecutor } from '../../core/tool-executor';
-import { ToolRegistry } from '../../core/tool-registry';
-import { ToolDiscoveryEngine } from '../../core/tool-discovery';
+import { SQLiteMemoryCore } from '../../core/sqlite-memory-core.js';
+import { MemoryIntelligence } from '../../core/memory-intelligence.js';
+import { ToolExecutor } from '../../core/tool-executor.js';
+import { ToolRegistry } from '../../core/tool-registry.js';
+import { ToolDiscoveryEngine } from '../../core/tool-discovery.js';
 
 export function registerHiveCommands(program: Command) {
   const hiveCommand = program.command('hive').description('Manage the Hive-Mind Intelligence Core');

@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class AgentEnhancement
  * @description Provides Vertex AI-powered reasoning, decision making, and model optimization for agents.

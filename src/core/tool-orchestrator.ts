@@ -1,5 +1,5 @@
-import { MCPServerRegistry, RegisteredMCPServer } from './mcp-server-registry';
-import { ToolCapability } from '../../types/mcp-config';
+import { MCPServerRegistry, RegisteredMCPServer } from './mcp-server-registry.js';
+import { ToolCapability } from '../../types/mcp-config.js';
 
 /**
  * @interface ToolDefinition

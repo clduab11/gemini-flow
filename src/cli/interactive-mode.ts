@@ -6,7 +6,7 @@
  */
 
 import inquirer from "inquirer";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import ora from "ora";
 import { GoogleAIAuth } from "../core/google-ai-auth.js";
 import { ContextWindowManager } from "../core/context-window-manager.js";
@@ -93,20 +93,19 @@ export class InteractiveMode {
     // Main conversation loop
     while (this.running) {
       try {
-        const { message } = await inquirer.prompt([
-          {
-            type: "input",
-            name: "message",
-            message: chalk.cyan("You:"),
-            prefix: "",
-            validate: (input: string) => {
-              if (input.trim() === "" && !input.startsWith("/")) {
-                return "Please enter a message or use /help for commands";
-              }
-              return true;
-            },
+        const answers = await inquirer.prompt({
+          type: "input",
+          name: "message",
+          message: chalk.cyan("You:"),
+          prefix: "",
+          validate: (input: string) => {
+            if (input.trim() === "" && !input.startsWith("/")) {
+              return "Please enter a message or use /help for commands";
+            }
+            return true;
           },
-        ]);
+        });
+        const { message } = answers;
 
         if (!this.running) break;
 

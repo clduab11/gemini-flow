@@ -1,7 +1,7 @@
-import { Logger } from '../../utils/logger';
-import { ModelOrchestrator } from '../../integrations/vertex-ai/model-orchestrator';
-import { ComputeCoordinator } from '../../integrations/gcp/compute-coordinator';
-import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator';
+import { Logger } from '../../utils/logger.js';
+import { ModelOrchestrator } from '../../integrations/vertex-ai/model-orchestrator.js';
+import { ComputeCoordinator } from '../../integrations/gcp/compute-coordinator.js';
+import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator.js';
 
 /**
  * @interface CoordinationEngineConfig
