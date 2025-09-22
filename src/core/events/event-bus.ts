@@ -1,5 +1,5 @@
-import { Logger } from '../../utils/logger';
-import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator';
+import { Logger } from '../../utils/logger.js';
+import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator.js';
 
 /**
  * @interface EventBusConfig

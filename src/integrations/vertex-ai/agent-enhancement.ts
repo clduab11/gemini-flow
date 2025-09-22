@@ -1,5 +1,5 @@
-import { Logger } from '../../utils/logger';
-import { ModelOrchestrator } from './model-orchestrator';
+import { Logger } from '../../utils/logger.js';
+import { ModelOrchestrator } from './model-orchestrator.js';
 
 /**
  * @interface AgentEnhancementConfig

@@ -5,9 +5,9 @@
  * Extends existing CoordinationOptimizer to implement Darwin Gödel Machine principles.
  */
 
-import { Logger } from '../../utils/logger';
-import { CoordinationOptimizer, CoordinationOptimizationConfig } from '../advanced-coordination/optimization';
-import { PerformanceMonitor } from '../performance-monitor';
+import { Logger } from '../../utils/logger.js';
+import { CoordinationOptimizer, CoordinationOptimizationConfig } from '../advanced-coordination/optimization.js';
+import { PerformanceMonitor } from '../performance-monitor.js';
 import { EventEmitter } from 'events';
 
 export interface DGMConfig extends CoordinationOptimizationConfig {

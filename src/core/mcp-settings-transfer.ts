@@ -1,5 +1,5 @@
 import * as fs from 'fs/promises';
-import { MCPSettingsManager, MCPSettings } from './mcp-settings-manager';
+import { MCPSettingsManager, MCPSettings } from './mcp-settings-manager.js';
 import * as path from 'path';
 
 // Define the absolute path to the source Roo Code MCP settings file

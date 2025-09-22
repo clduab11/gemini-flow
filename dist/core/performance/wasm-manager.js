@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class WasmPerformanceManager
  * @description Manages WebAssembly module lifecycle, memory, and task offloading for performance enhancement.

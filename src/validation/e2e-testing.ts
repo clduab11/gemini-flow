@@ -1,11 +1,11 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 
 // Import core components for conceptual E2E testing
-// import { ToolExecutor } from '../core/tool-executor';
-// import { SQLiteMemoryCore } from '../core/sqlite-memory-core';
-// import { QueenAgent } from '../core/hive-mind/queen-agent';
-// import { NeuralCoordinationModels } from '../core/neural/coordination-models';
-// import { EventTriggers } from '../core/hooks/event-triggers';
+// import { ToolExecutor } from '../core/tool-executor.js';
+// import { SQLiteMemoryCore } from '../core/sqlite-memory-core.js';
+// import { QueenAgent } from '../core/hive-mind/queen-agent.js';
+// import { NeuralCoordinationModels } from '../core/neural/coordination-models.js';
+// import { EventTriggers } from '../core/hooks/event-triggers.js';
 
 /**
  * @interface E2eTestingConfig

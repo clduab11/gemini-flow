@@ -1,8 +1,8 @@
-import { SQLiteMemoryCore } from './sqlite-memory-core';
-import { MemoryIntelligence } from './memory-intelligence';
-import { ToolExecutor } from './tool-executor';
-import { ToolRegistry } from './tool-registry';
-import { Logger } from '../../utils/logger';
+import { SQLiteMemoryCore } from './sqlite-memory-core.js';
+import { MemoryIntelligence } from './memory-intelligence.js';
+import { ToolExecutor } from './tool-executor.js';
+import { ToolRegistry } from './tool-registry.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * @class ToolIntegration

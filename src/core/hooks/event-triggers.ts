@@ -1,5 +1,5 @@
-import { HookRegistry, HookContext } from './hook-registry';
-import { Logger } from '../../utils/logger';
+import { HookRegistry, HookContext } from './hook-registry.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * @interface EventTriggerConfig

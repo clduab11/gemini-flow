@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class DatabaseCoordinator
  * @description Orchestrates data operations across Google Cloud SQL, Cloud Spanner, Firestore, BigQuery, and Cloud Bigtable.

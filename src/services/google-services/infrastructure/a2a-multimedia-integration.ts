@@ -3,10 +3,10 @@
  * Integration layer for connecting A2A protocol with Google Cloud services
  */
 
-import { Logger } from '../../../utils/logger';
-import { A2AMultimediaProtocol, A2AMultimediaSession } from './a2a-multimedia-protocol';
-import { GoogleServicesOrchestrator } from '../orchestrator';
-import { ServiceResponse } from '../interfaces';
+import { Logger } from '../../../utils/logger.js';
+import { A2AMultimediaProtocol, A2AMultimediaSession } from './a2a-multimedia-protocol.js';
+import { GoogleServicesOrchestrator } from '../orchestrator.js';
+import { ServiceResponse } from '../interfaces.js';
 
 export interface GoogleServicesIntegrationConfig {
   projectId: string;

@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class SystemOptimizer
  * @description Fine-tunes the entire system for production deployment by optimizing memory, CPU, network, and database performance.

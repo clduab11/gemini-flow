@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 /**
  * @class ComprehensiveTestRunner
  * @description Orchestrates and executes a comprehensive test suite including unit, integration, performance, and security tests.

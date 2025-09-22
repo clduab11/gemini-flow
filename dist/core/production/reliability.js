@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class SystemReliability
  * @description Implements features for ensuring system reliability and resilience, including circuit breakers, retries, and failover.

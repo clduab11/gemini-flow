@@ -4,9 +4,9 @@
  */
 
 import { EventEmitter } from "events";
-import { Logger } from "../utils/logger";
-import { CustomMetricsCollector } from "./custom-metrics-dashboard";
-import { SyntheticMonitor } from "./synthetic-monitoring";
+import { Logger } from "../utils/logger.js";
+import { CustomMetricsCollector } from "./custom-metrics-dashboard.js";
+import { SyntheticMonitor } from "./synthetic-monitoring.js";
 
 interface SLAConfig {
   targets: {

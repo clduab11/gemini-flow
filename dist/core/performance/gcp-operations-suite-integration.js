@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class GcpOperationsSuiteIntegration
  * @description Provides enterprise-grade monitoring and observability by integrating with Google Cloud Operations Suite.

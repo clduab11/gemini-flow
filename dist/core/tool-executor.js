@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class ToolExecutor
  * @description Creates a robust tool execution infrastructure with async execution, error handling, and chaining.

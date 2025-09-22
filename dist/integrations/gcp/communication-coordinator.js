@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class CommunicationCoordinator
  * @description Orchestrates real-time messaging, persistent storage, and data distribution across Google Cloud Pub/Sub, Cloud Storage, Firebase Realtime Database, Cloud CDN, and Cloud Endpoints.

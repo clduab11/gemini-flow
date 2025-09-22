@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 /**
  * @class MonitoringSetup
  * @description Configures Google Cloud Operations Suite for comprehensive monitoring and alerting.

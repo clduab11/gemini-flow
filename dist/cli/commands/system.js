@@ -1,63 +1,63 @@
 import chalk from 'chalk';
 import ora from 'ora';
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 // Import System Integration Components
-import { SystemController } from '../../core/integration/system-controller';
-import { CrossComponentCommunication } from '../../core/integration/cross-communication';
-import { UnifiedConfigManager } from '../../core/integration/config-manager';
+import { SystemController } from '../../core/integration/system-controller.js';
+import { CrossComponentCommunication } from '../../core/integration/cross-communication.js';
+import { UnifiedConfigManager } from '../../core/integration/config-manager.js';
 // Import Production Readiness Components
-import { EnterpriseSecurity } from '../../core/production/security';
-import { SystemReliability } from '../../core/production/reliability';
-import { ProductionMonitoring } from '../../core/production/monitoring';
+import { EnterpriseSecurity } from '../../core/production/security.js';
+import { SystemReliability } from '../../core/production/reliability.js';
+import { ProductionMonitoring } from '../../core/production/monitoring.js';
 // Import Testing Components
-import { ComprehensiveTestRunner } from '../../testing/test-runner';
+import { ComprehensiveTestRunner } from '../../testing/test-runner.js';
 // Import Documentation Components
-import { DocumentationGenerator } from '../../documentation/documentation-generator';
+import { DocumentationGenerator } from '../../documentation/documentation-generator.js';
 // Import Deployment Components
-import { CiCdPipeline } from '../../deployment/ci-cd-pipeline';
-import { InfrastructureManager } from '../../deployment/infrastructure-manager';
-import { MonitoringSetup } from '../../deployment/monitoring-setup';
+import { CiCdPipeline } from '../../deployment/ci-cd-pipeline.js';
+import { InfrastructureManager } from '../../deployment/infrastructure-manager.js';
+import { MonitoringSetup } from '../../deployment/monitoring-setup.js';
 // Import Core Components from previous sprints (for instantiation)
-import { SQLiteMemoryCore } from '../../core/sqlite-memory-core';
-import { MemoryIntelligence } from '../../core/memory-intelligence';
-import { ToolDiscoveryEngine } from '../../core/tool-discovery';
-import { ToolExecutor } from '../../core/tool-executor';
-import { ToolRegistry } from '../../core/tool-registry';
-import { ModelOrchestrator } from '../../integrations/vertex-ai/model-orchestrator';
-import { AgentEnhancement } from '../../integrations/vertex-ai/agent-enhancement';
-import { DatabaseCoordinator } from '../../integrations/gcp/database-coordinator';
-import { ComputeCoordinator } from '../../integrations/gcp/compute-coordinator';
-import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator';
-import { QueenAgent } from '../../core/hive-mind/queen-agent';
-import { ByzantineConsensus } from '../../core/hive-mind/consensus';
-import { CoordinationEngine } from '../../core/coordination-engine';
-import { GcpOperationsSuiteIntegration } from '../../core/performance/gcp-operations-suite-integration';
-import { VertexAiPerformanceOptimizer } from '../../core/performance/vertex-ai-performance-optimizer';
-import { HookRegistry } from '../../core/hooks/hook-registry';
-import { EventTriggers } from '../../core/hooks/event-triggers';
-import { WasmNeuralEngine } from '../../core/neural/wasm-engine';
-import { NeuralCoordinationModels } from '../../core/neural/coordination-models';
-import { WasmPerformanceOptimizer } from '../../core/neural/wasm-optimization';
-import { PredictiveCoordinationSystem } from '../../core/advanced-coordination/predictive-system';
-import { AdaptiveLoadBalancer } from '../../core/advanced-coordination/adaptive-balancing';
-import { CoordinationOptimizer } from '../../core/advanced-coordination/optimization';
-import { EventBus } from '../../core/events/event-bus';
-import { ReactiveCoordination } from '../../core/events/reactive-coordination';
-import { RealTimeMonitoring } from '../../core/events/real-time-monitoring';
-import { WasmPerformanceManager } from '../../core/performance/wasm-manager';
-import { NeuralPerformanceOptimizer } from '../../core/performance/neural-optimization';
-import { SystemOptimizer } from '../../core/optimization/system-optimizer';
-import { GcpOptimizer } from '../../core/optimization/gcp-optimizer';
-import { NeuralOptimizer } from '../../core/optimization/neural-optimizer';
+import { SQLiteMemoryCore } from '../../core/sqlite-memory-core.js';
+import { MemoryIntelligence } from '../../core/memory-intelligence.js';
+import { ToolDiscoveryEngine } from '../../core/tool-discovery.js';
+import { ToolExecutor } from '../../core/tool-executor.js';
+import { ToolRegistry } from '../../core/tool-registry.js';
+import { ModelOrchestrator } from '../../integrations/vertex-ai/model-orchestrator.js';
+import { AgentEnhancement } from '../../integrations/vertex-ai/agent-enhancement.js';
+import { DatabaseCoordinator } from '../../integrations/gcp/database-coordinator.js';
+import { ComputeCoordinator } from '../../integrations/gcp/compute-coordinator.js';
+import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator.js';
+import { QueenAgent } from '../../core/hive-mind/queen-agent.js';
+import { ByzantineConsensus } from '../../core/hive-mind/consensus.js';
+import { CoordinationEngine } from '../../core/coordination-engine.js';
+import { GcpOperationsSuiteIntegration } from '../../core/performance/gcp-operations-suite-integration.js';
+import { VertexAiPerformanceOptimizer } from '../../core/performance/vertex-ai-performance-optimizer.js';
+import { HookRegistry } from '../../core/hooks/hook-registry.js';
+import { EventTriggers } from '../../core/hooks/event-triggers.js';
+import { WasmNeuralEngine } from '../../core/neural/wasm-engine.js';
+import { NeuralCoordinationModels } from '../../core/neural/coordination-models.js';
+import { WasmPerformanceOptimizer } from '../../core/neural/wasm-optimization.js';
+import { PredictiveCoordinationSystem } from '../../core/advanced-coordination/predictive-system.js';
+import { AdaptiveLoadBalancer } from '../../core/advanced-coordination/adaptive-balancing.js';
+import { CoordinationOptimizer } from '../../core/advanced-coordination/optimization.js';
+import { EventBus } from '../../core/events/event-bus.js';
+import { ReactiveCoordination } from '../../core/events/reactive-coordination.js';
+import { RealTimeMonitoring } from '../../core/events/real-time-monitoring.js';
+import { WasmPerformanceManager } from '../../core/performance/wasm-manager.js';
+import { NeuralPerformanceOptimizer } from '../../core/performance/neural-optimization.js';
+import { SystemOptimizer } from '../../core/optimization/system-optimizer.js';
+import { GcpOptimizer } from '../../core/optimization/gcp-optimizer.js';
+import { NeuralOptimizer } from '../../core/optimization/neural-optimizer.js';
 // Import Validation Components
-import { ComponentValidator } from '../../validation/component-validator';
-import { IntegrationValidator } from '../../validation/integration-validator';
-import { McpVerification } from '../../validation/mcp-verification';
-import { E2eWorkflowTester } from '../../validation/e2e-testing';
-import { GapAnalyzer } from '../../validation/gap-analysis';
+import { ComponentValidator } from '../../validation/component-validator.js';
+import { IntegrationValidator } from '../../validation/integration-validator.js';
+import { McpVerification } from '../../validation/mcp-verification.js';
+import { E2eWorkflowTester } from '../../validation/e2e-testing.js';
+import { GapAnalyzer } from '../../validation/gap-analysis.js';
 // Import Reporting Components
-import { ReportGenerator } from '../../reporting/report-generator';
-import { MCPSettingsManager } from '../../core/mcp-settings-manager';
+import { ReportGenerator } from '../../reporting/report-generator.js';
+import { MCPSettingsManager } from '../../core/mcp-settings-manager.js';
 export function registerSystemCommands(program) {
     const systemCommand = program.command('system').description('Manage the entire Gemini-Flow system');
     // --- Initialize Core Components (these would typically be singleton instances) ---

@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class SystemController
  * @description Provides central coordination, health checking, and lifecycle management for all Gemini-Flow subsystems.

@@ -1,17 +1,17 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
 // Import validators and optimizers (conceptual for data aggregation)
-// import { ComponentValidator } from '../validation/component-validator';
-// import { IntegrationValidator } from '../validation/integration-validator';
-// import { McpVerification } from '../validation/mcp-verification';
-// import { E2eWorkflowTester } from '../validation/e2e-testing';
-// import { GapAnalyzer } from '../validation/gap-analysis';
-// import { SystemOptimizer } from '../core/optimization/system-optimizer';
-// import { EnterpriseSecurity } from '../core/production/security';
-// import { SystemReliability } from '../core/production/reliability';
-// import { ProductionMonitoring } from '../core/production/monitoring';
+// import { ComponentValidator } from '../validation/component-validator.js';
+// import { IntegrationValidator } from '../validation/integration-validator.js';
+// import { McpVerification } from '../validation/mcp-verification.js';
+// import { E2eWorkflowTester } from '../validation/e2e-testing.js';
+// import { GapAnalyzer } from '../validation/gap-analysis.js';
+// import { SystemOptimizer } from '../core/optimization/system-optimizer.js';
+// import { EnterpriseSecurity } from '../core/production/security.js';
+// import { SystemReliability } from '../core/production/reliability.js';
+// import { ProductionMonitoring } from '../core/production/monitoring.js';
 
 /**
  * @interface ReportGeneratorConfig

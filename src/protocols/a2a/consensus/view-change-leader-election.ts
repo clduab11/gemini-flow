@@ -6,7 +6,7 @@
 
 import { EventEmitter } from "events";
 import { createHash } from "crypto";
-import { Agent, ConsensusMessage, ConsensusState } from "./byzantine-consensus";
+import { Agent, ConsensusMessage, ConsensusState } from "./byzantine-consensus.js";
 
 export interface ViewChangeMessage {
   type: "view-change" | "new-view" | "view-change-ack";

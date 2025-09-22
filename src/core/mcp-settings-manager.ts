@@ -2,8 +2,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { MCPSettings } from '../../types/mcp-config'; // Import MCPSettings
-export type { MCPSettings } from '../../types/mcp-config';
+import { MCPSettings } from '../../types/mcp-config.js'; // Import MCPSettings
+export type { MCPSettings } from '../../types/mcp-config.js';
 
 // Define the absolute path to the settings file
 // Assuming ~/.gemini/settings.json is located in the user's home directory

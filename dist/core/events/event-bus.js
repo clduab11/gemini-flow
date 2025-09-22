@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class EventBus
  * @description Implements a high-performance event routing system with Google Cloud Pub/Sub integration.

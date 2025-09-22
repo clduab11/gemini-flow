@@ -5,16 +5,19 @@
  * Provides comprehensive evolutionary strategies, pattern archiving, autonomous monitoring,
  * and fitness evaluation for continuous system improvement.
  */
-export { DGMEvolutionaryOrchestrator } from './evolutionary-orchestrator';
-export { DGMPatternArchive } from './pattern-archive';
-export { DGMAutonomousMonitor } from './autonomous-monitor';
-export { DGMFitnessFunction } from './fitness-function';
-export { DGMSystemCoordinator } from './dgm-coordinator';
+import { DGMSystemCoordinator } from './dgm-coordinator.js';
+export { DGMEvolutionaryOrchestrator } from './evolutionary-orchestrator.js';
+export { DGMPatternArchive } from './pattern-archive.js';
+export { DGMAutonomousMonitor } from './autonomous-monitor.js';
+export { DGMFitnessFunction } from './fitness-function.js';
+export { DGMSystemCoordinator } from './dgm-coordinator.js';
+/**
+ * Create a complete DGM system with default configuration
+ */
 /**
  * Create a complete DGM system with default configuration
  */
 export function createDGMSystem(projectPath, options) {
-    const { DGMSystemCoordinator } = require('./dgm-coordinator');
     const config = {
         projectPath,
         evolution: {

@@ -2,24 +2,24 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { Logger } from '../../utils/logger.js';
 // Import Hive-Mind Core Components
-import { QueenAgent } from '../../core/hive-mind/queen-agent';
-import { ByzantineConsensus } from '../../core/hive-mind/consensus';
-import { CoordinationEngine } from '../../core/coordination-engine';
+import { QueenAgent } from '../../core/hive-mind/queen-agent.js';
+import { ByzantineConsensus } from '../../core/hive-mind/consensus.js';
+import { CoordinationEngine } from '../../core/coordination-engine.js';
 // Import Integrations
-import { ModelOrchestrator } from '../../integrations/vertex-ai/model-orchestrator';
-import { AgentEnhancement } from '../../integrations/vertex-ai/agent-enhancement';
-import { DatabaseCoordinator } from '../../integrations/gcp/database-coordinator';
-import { ComputeCoordinator } from '../../integrations/gcp/compute-coordinator';
-import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator';
+import { ModelOrchestrator } from '../../integrations/vertex-ai/model-orchestrator.js';
+import { AgentEnhancement } from '../../integrations/vertex-ai/agent-enhancement.js';
+import { DatabaseCoordinator } from '../../integrations/gcp/database-coordinator.js';
+import { ComputeCoordinator } from '../../integrations/gcp/compute-coordinator.js';
+import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator.js';
 // Import Performance Components
-import { GcpOperationsSuiteIntegration } from '../../core/performance/gcp-operations-suite-integration';
-import { VertexAiPerformanceOptimizer } from '../../core/performance/vertex-ai-performance-optimizer';
+import { GcpOperationsSuiteIntegration } from '../../core/performance/gcp-operations-suite-integration.js';
+import { VertexAiPerformanceOptimizer } from '../../core/performance/vertex-ai-performance-optimizer.js';
 // Import Memory Components (dependencies for Queen/Worker)
-import { SQLiteMemoryCore } from '../../core/sqlite-memory-core';
-import { MemoryIntelligence } from '../../core/memory-intelligence';
-import { ToolExecutor } from '../../core/tool-executor';
-import { ToolRegistry } from '../../core/tool-registry';
-import { ToolDiscoveryEngine } from '../../core/tool-discovery';
+import { SQLiteMemoryCore } from '../../core/sqlite-memory-core.js';
+import { MemoryIntelligence } from '../../core/memory-intelligence.js';
+import { ToolExecutor } from '../../core/tool-executor.js';
+import { ToolRegistry } from '../../core/tool-registry.js';
+import { ToolDiscoveryEngine } from '../../core/tool-discovery.js';
 export function registerHiveCommands(program) {
     const hiveCommand = program.command('hive').description('Manage the Hive-Mind Intelligence Core');
     // Initialize core components (these would typically be singleton instances managed by a central app context)

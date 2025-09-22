@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 

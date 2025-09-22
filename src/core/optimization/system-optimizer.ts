@@ -1,6 +1,6 @@
-import { Logger } from '../../utils/logger';
-import { SQLiteMemoryCore } from '../sqlite-memory-core';
-import { NeuralCoordinationModels } from '../neural/coordination-models';
+import { Logger } from '../../utils/logger.js';
+import { SQLiteMemoryCore } from '../sqlite-memory-core.js';
+import { NeuralCoordinationModels } from '../neural/coordination-models.js';
 
 /**
  * @interface SystemOptimizerConfig

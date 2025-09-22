@@ -1,5 +1,5 @@
-import { Logger } from '../utils/logger';
-import { GcpOperationsSuiteIntegration } from '../core/performance/gcp-operations-suite-integration';
+import { Logger } from '../utils/logger.js';
+import { GcpOperationsSuiteIntegration } from '../core/performance/gcp-operations-suite-integration.js';
 
 /**
  * @interface MonitoringSetupConfig

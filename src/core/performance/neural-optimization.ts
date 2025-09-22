@@ -1,6 +1,6 @@
-import { Logger } from '../../utils/logger';
-import { NeuralCoordinationModels } from '../neural/coordination-models';
-import { VertexAiPerformanceOptimizer } from './vertex-ai-performance-optimizer';
+import { Logger } from '../../utils/logger.js';
+import { NeuralCoordinationModels } from '../neural/coordination-models.js';
+import { VertexAiPerformanceOptimizer } from './vertex-ai-performance-optimizer.js';
 
 /**
  * @interface NeuralOptimizationConfig

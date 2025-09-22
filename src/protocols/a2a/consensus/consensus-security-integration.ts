@@ -10,26 +10,26 @@ import {
   Agent,
   ConsensusProposal,
   ConsensusMessage,
-} from "./byzantine-consensus";
+} from "./byzantine-consensus.js";
 import {
   VotingMechanisms,
   VotingProposal,
   Voter,
   Vote,
-} from "./voting-mechanisms";
-import { MaliciousDetection, MaliciousBehavior } from "./malicious-detection";
+} from "./voting-mechanisms.js";
+import { MaliciousDetection, MaliciousBehavior } from "./malicious-detection.js";
 import {
   StateMachineReplication,
   StateOperation,
-} from "./state-machine-replication";
-import { ViewChangeLeaderElection } from "./view-change-leader-election";
-import { PerformanceOptimizer } from "./performance-optimizer";
+} from "./state-machine-replication.js";
+import { ViewChangeLeaderElection } from "./view-change-leader-election.js";
+import { PerformanceOptimizer } from "./performance-optimizer.js";
 import {
   A2ASecurityManager,
   A2AIdentity,
   A2AMessage,
   SecurityEvent,
-} from "../../../core/a2a-security-manager";
+} from "../../../core/a2a-security-manager.js";
 
 export interface SecureConsensusConfig {
   totalAgents: number;

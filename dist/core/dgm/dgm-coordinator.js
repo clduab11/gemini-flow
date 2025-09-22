@@ -5,13 +5,13 @@
  * Orchestrates all DGM components including evolutionary strategies,
  * pattern archiving, autonomous monitoring, and fitness evaluation.
  */
-import { Logger } from '../../utils/logger';
-import { PerformanceMonitor } from '../performance-monitor';
-import { CoordinationOptimizer } from '../advanced-coordination/optimization';
-import { DGMEvolutionaryOrchestrator } from './evolutionary-orchestrator';
-import { DGMPatternArchive } from './pattern-archive';
-import { DGMAutonomousMonitor } from './autonomous-monitor';
-import { DGMFitnessFunction } from './fitness-function';
+import { Logger } from '../../utils/logger.js';
+import { PerformanceMonitor } from '../performance-monitor.js';
+import { CoordinationOptimizer } from '../advanced-coordination/optimization.js';
+import { DGMEvolutionaryOrchestrator } from './evolutionary-orchestrator.js';
+import { DGMPatternArchive } from './pattern-archive.js';
+import { DGMAutonomousMonitor } from './autonomous-monitor.js';
+import { DGMFitnessFunction } from './fitness-function.js';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 /**

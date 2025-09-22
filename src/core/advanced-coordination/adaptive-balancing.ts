@@ -1,5 +1,5 @@
-import { Logger } from '../../utils/logger';
-import { PredictiveCoordinationSystem } from './predictive-system';
+import { Logger } from '../../utils/logger.js';
+import { PredictiveCoordinationSystem } from './predictive-system.js';
 
 /**
  * @interface AdaptiveBalancingConfig

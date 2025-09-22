@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class CoordinationOptimizer
  * @description Implements advanced optimization techniques for coordination strategies.

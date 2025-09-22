@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class AdaptiveLoadBalancer
  * @description Implements real-time adjustment of worker assignments and dynamic scaling based on predicted demand.

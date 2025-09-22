@@ -1,7 +1,7 @@
-import { Logger } from '../../utils/logger';
-import { EventBus } from '../events/event-bus';
-import { DatabaseCoordinator } from '../../integrations/gcp/database-coordinator';
-import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator';
+import { Logger } from '../../utils/logger.js';
+import { EventBus } from '../events/event-bus.js';
+import { DatabaseCoordinator } from '../../integrations/gcp/database-coordinator.js';
+import { CommunicationCoordinator } from '../../integrations/gcp/communication-coordinator.js';
 
 /**
  * @interface CrossCommunicationConfig

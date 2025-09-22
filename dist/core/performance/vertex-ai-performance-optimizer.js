@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class VertexAiPerformanceOptimizer
  * @description Provides enterprise-grade optimization for Vertex AI model performance and cost.

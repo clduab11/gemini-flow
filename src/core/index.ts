@@ -15,7 +15,7 @@ export { MCPToGeminiAdapter } from "./mcp-adapter.js";
 export { BatchTool } from "./batch-tool.js";
 
 // GitHub A2A Integration Components - Temporarily disabled for v1.1.0 release
-// export { GitHubA2ABridge, type GitHubA2AConfig, type A2AAgent, type GitHubOperation, type A2ACommunication } from './github-a2a-bridge';
+// export { GitHubA2ABridge, type GitHubA2AConfig, type A2AAgent, type GitHubOperation, type A2ACommunication } from './github-a2a-bridge.js';
 
 // Pull Request System - Temporarily disabled for v1.1.0 release
 // export {
@@ -26,7 +26,7 @@ export { BatchTool } from "./batch-tool.js";
 //   type ReviewFinding,
 //   type ReviewSuggestion,
 //   type PRAnalysis
-// } from './github-a2a-pr-system';
+// } from './github-a2a-pr-system.js';
 
 // Cross-Repository Communication - Temporarily disabled for v1.1.0 release
 // export {
@@ -36,7 +36,7 @@ export { BatchTool } from "./batch-tool.js";
 //   type CrossRepoOperation,
 //   type RepoSyncRequest,
 //   type CrossRepoMessage
-// } from './github-a2a-cross-repo';
+// } from './github-a2a-cross-repo.js';
 
 // Issue Tracking System - Temporarily disabled for v1.1.0 release
 // export {
@@ -46,7 +46,7 @@ export { BatchTool } from "./batch-tool.js";
 //   type IssueAnalysis,
 //   type AgentAssignment,
 //   type IssueWorkflow
-// } from './github-a2a-issue-tracker';
+// } from './github-a2a-issue-tracker.js';
 
 // CI/CD Orchestration - Temporarily disabled for v1.1.0 release
 // export {
@@ -56,7 +56,7 @@ export { BatchTool } from "./batch-tool.js";
 //   type PipelineJob,
 //   type DeploymentStrategy,
 //   type WorkflowExecution
-// } from './github-a2a-cicd-orchestrator';
+// } from './github-a2a-cicd-orchestrator.js';
 
 // GitHub Actions Integration - Temporarily disabled for v1.1.0 release
 // export {
@@ -65,7 +65,7 @@ export { BatchTool } from "./batch-tool.js";
 //   type ActionTrigger,
 //   type AgentSpawningConfig,
 //   type ActionExecution
-// } from './github-a2a-actions';
+// } from './github-a2a-actions.js';
 
 // Comprehensive Bridge - Temporarily disabled for v1.1.0 release
 // export {
@@ -75,7 +75,7 @@ export { BatchTool } from "./batch-tool.js";
 //   type OperationRequest,
 //   type OperationResult,
 //   type AgentPool
-// } from './github-a2a-comprehensive-bridge';
+// } from './github-a2a-comprehensive-bridge.js';
 
 // Integration Manager - Temporarily disabled for v1.1.0 release
 // export {
@@ -85,16 +85,16 @@ export { BatchTool } from "./batch-tool.js";
 //   type SlackIntegration,
 //   type DiscordIntegration,
 //   type EmailIntegration
-// } from './github-a2a-integration-manager';
+// } from './github-a2a-integration-manager.js';
 
 // Supporting A2A Components - Temporarily disabled for v1.1.0 release
-// export { A2AIntegration } from './a2a-integration';
-// export { A2ASecurityManager } from './a2a-security-manager';
-// export { A2AZeroTrust } from './a2a-zero-trust';
-// export { A2AKeyExchange } from './a2a-key-exchange';
-// export { A2AMessageSecurity } from './a2a-message-security';
-// export { A2ARateLimiter } from './a2a-rate-limiter';
-// export { A2AAuditLogger } from './a2a-audit-logger';
+// export { A2AIntegration } from './a2a-integration.js';
+// export { A2ASecurityManager } from './a2a-security-manager.js';
+// export { A2AZeroTrust } from './a2a-zero-trust.js';
+// export { A2AKeyExchange } from './a2a-key-exchange.js';
+// export { A2AMessageSecurity } from './a2a-message-security.js';
+// export { A2ARateLimiter } from './a2a-rate-limiter.js';
+// export { A2AAuditLogger } from './a2a-audit-logger.js';
 
 // Original Type exports
 export type {

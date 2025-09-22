@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { ToolCapability } from '../../types/mcp-config';
-import { Logger } from '../../utils/logger';
+import { ToolCapability } from '../../types/mcp-config.js';
+import { Logger } from '../../utils/logger.js';
 
 // Define the base directory for tool categories
 const TOOL_CATEGORIES_BASE_DIR = path.join(process.cwd(), 'src', 'tools', 'categories');

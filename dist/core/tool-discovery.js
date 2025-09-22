@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 // Define the base directory for tool categories
 const TOOL_CATEGORIES_BASE_DIR = path.join(process.cwd(), 'src', 'tools', 'categories');
 /**

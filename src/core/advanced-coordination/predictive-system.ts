@@ -1,5 +1,5 @@
-import { Logger } from '../../utils/logger';
-import { NeuralCoordinationModels } from '../neural/coordination-models';
+import { Logger } from '../../utils/logger.js';
+import { NeuralCoordinationModels } from '../neural/coordination-models.js';
 
 /**
  * @interface PredictiveSystemConfig

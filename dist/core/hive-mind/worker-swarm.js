@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class WorkerAgent
  * @description Implements a specialized worker agent within the Hive-Mind swarm.

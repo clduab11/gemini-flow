@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class RealTimeMonitoring
  * @description Provides live event stream visualization, real-time performance dashboards, and automated alerting.

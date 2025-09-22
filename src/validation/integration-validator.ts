@@ -1,14 +1,14 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 
 // Import core components from previous sprints (conceptual for validation)
-// import { QueenAgent } from '../core/hive-mind/queen-agent';
-// import { ByzantineConsensus } from '../core/hive-mind/consensus';
-// import { CoordinationEngine } from '../core/coordination-engine';
-// import { HookRegistry } from '../core/hooks/hook-registry';
-// import { WasmNeuralEngine } from '../core/neural/wasm-engine';
-// import { PredictiveCoordinationSystem } from '../core/advanced-coordination/predictive-system';
-// import { SystemController } from '../core/integration/system-controller';
-// import { EnterpriseSecurity } from '../core/production/security';
+// import { QueenAgent } from '../core/hive-mind/queen-agent.js';
+// import { ByzantineConsensus } from '../core/hive-mind/consensus.js';
+// import { CoordinationEngine } from '../core/coordination-engine.js';
+// import { HookRegistry } from '../core/hooks/hook-registry.js';
+// import { WasmNeuralEngine } from '../core/neural/wasm-engine.js';
+// import { PredictiveCoordinationSystem } from '../core/advanced-coordination/predictive-system.js';
+// import { SystemController } from '../core/integration/system-controller.js';
+// import { EnterpriseSecurity } from '../core/production/security.js';
 
 /**
  * @interface IntegrationValidatorConfig

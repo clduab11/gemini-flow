@@ -5,10 +5,10 @@
  * strategies to prevent technical debt accumulation.
  */
 
-import { Logger } from '../../utils/logger';
-import { PerformanceMonitor } from '../performance-monitor';
-import { DGMEvolutionaryOrchestrator, CleanupTarget } from './evolutionary-orchestrator';
-import { DGMPatternArchive } from './pattern-archive';
+import { Logger } from '../../utils/logger.js';
+import { PerformanceMonitor } from '../performance-monitor.js';
+import { DGMEvolutionaryOrchestrator, CleanupTarget } from './evolutionary-orchestrator.js';
+import { DGMPatternArchive } from './pattern-archive.js';
 import { EventEmitter } from 'events';
 
 export interface MonitoringConfig {

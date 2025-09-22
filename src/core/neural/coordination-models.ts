@@ -1,5 +1,5 @@
-import { Logger } from '../../utils/logger';
-import { WasmNeuralEngine } from './wasm-engine';
+import { Logger } from '../../utils/logger.js';
+import { WasmNeuralEngine } from './wasm-engine.js';
 
 /**
  * @interface CoordinationModelConfig

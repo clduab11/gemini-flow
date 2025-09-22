@@ -1,4 +1,4 @@
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/logger.js';
 /**
  * @class InfrastructureManager
  * @description Manages Google Cloud infrastructure provisioning, deployment, and security using Infrastructure as Code principles.

@@ -1,7 +1,7 @@
-import { Logger } from '../utils/logger';
-import { SystemOptimizer } from '../core/optimization/system-optimizer';
-import { GcpOptimizer } from '../core/optimization/gcp-optimizer';
-import { NeuralOptimizer } from '../core/optimization/neural-optimizer';
+import { Logger } from '../utils/logger.js';
+import { SystemOptimizer } from '../core/optimization/system-optimizer.js';
+import { GcpOptimizer } from '../core/optimization/gcp-optimizer.js';
+import { NeuralOptimizer } from '../core/optimization/neural-optimizer.js';
 
 /**
  * @interface PerformanceOptimizationConfig

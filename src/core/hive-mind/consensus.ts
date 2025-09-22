@@ -1,5 +1,5 @@
-import { Logger } from '../../utils/logger';
-import { SQLiteMemoryCore } from '../sqlite-memory-core';
+import { Logger } from '../../utils/logger.js';
+import { SQLiteMemoryCore } from '../sqlite-memory-core.js';
 
 /**
  * @interface ConsensusProposal

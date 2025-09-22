@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class CrossComponentCommunication
  * @description Provides standardized communication protocols, event routing, and data synchronization between all Gemini-Flow system components.

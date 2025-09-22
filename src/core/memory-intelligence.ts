@@ -1,4 +1,4 @@
-import { SQLiteMemoryCore, Agent, Memory, Knowledge, Context, Relationship, Event, Preference, Cache, Conversation, Tool, Workflow, Performance } from './sqlite-memory-core';
+import { SQLiteMemoryCore, Agent, Memory, Knowledge, Context, Relationship, Event, Preference, Cache, Conversation, Tool, Workflow, Performance } from './sqlite-memory-core.js';
 
 /**
  * @class MemoryIntelligence

@@ -4,7 +4,7 @@
  * Continuously monitors system health and triggers preventive evolutionary
  * strategies to prevent technical debt accumulation.
  */
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 import { EventEmitter } from 'events';
 /**
  * Autonomous monitoring system for preventing technical debt

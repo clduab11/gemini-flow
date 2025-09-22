@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class HookRegistry
  * @description Manages the registration, execution, and lifecycle of event-driven hooks.

@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class CoordinationEngine
  * @description Provides advanced swarm coordination capabilities, including intelligent task distribution and robust communication protocols.

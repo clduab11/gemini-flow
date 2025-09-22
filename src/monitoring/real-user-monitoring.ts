@@ -4,7 +4,7 @@
  */
 
 import { EventEmitter } from "events";
-import { Logger } from "../utils/logger";
+import { Logger } from "../utils/logger.js";
 
 interface RUMConfig {
   enabled: boolean;

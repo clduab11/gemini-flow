@@ -16,7 +16,7 @@ export {
   type BufferHealth,
   type UserInteraction,
   type PerformanceMetrics,
-} from "./predictive-streaming-manager";
+} from "./predictive-streaming-manager.js";
 
 export {
   GPUClusterCoordinator,
@@ -30,7 +30,7 @@ export {
   type RenderingTask,
   type ClusterMetrics,
   type ResourcePrediction,
-} from "./gpu-cluster-coordinator";
+} from "./gpu-cluster-coordinator.js";
 
 export {
   MemoryPoolManager,
@@ -43,7 +43,7 @@ export {
   type AllocationRequest,
   type GCMetrics,
   type MemoryMetrics,
-} from "./memory-pool-manager";
+} from "./memory-pool-manager.js";
 
 export {
   QueuePrioritizationSystem,
@@ -56,7 +56,7 @@ export {
   type QueueMetrics,
   type FairnessPolicy,
   type ProcessingResult,
-} from "./queue-prioritization-system";
+} from "./queue-prioritization-system.js";
 
 export {
   CostOptimizationManager,
@@ -69,7 +69,7 @@ export {
   type CostBudget,
   type OptimizationRecommendation,
   type CostForecast,
-} from "./cost-optimization-manager";
+} from "./cost-optimization-manager.js";
 
 export {
   EdgeCacheOptimizer,
@@ -83,7 +83,7 @@ export {
   type CachePolicy,
   type WarmingStrategy,
   type CDNMetrics,
-} from "./edge-cache-optimizer";
+} from "./edge-cache-optimizer.js";
 
 export {
   MonitoringDashboard,
@@ -97,7 +97,7 @@ export {
   type Alert,
   type AlertChannel,
   type MonitoringConfig,
-} from "./monitoring-dashboard";
+} from "./monitoring-dashboard.js";
 
 // Testing Framework Components
 export {
@@ -115,14 +115,14 @@ export {
   type TestResult,
   type StepResult,
   type TestMetrics,
-} from "../testing/comprehensive-test-framework";
+} from "../testing/comprehensive-test-framework.js";
 
 export {
   PerformanceProfiler,
   MemoryProfiler,
   LoadTestRunner,
   PERFORMANCE_BASELINES,
-} from "../testing/jest-performance-suite.test";
+} from "../testing/jest-performance-suite.test.js";
 
 /**
  * Performance Optimization Manager - Orchestrates all performance components

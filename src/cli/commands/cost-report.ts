@@ -330,7 +330,7 @@ export class CostReportCommand extends Command {
 
       byCategory: {
         "Model Usage": Object.values(costData.modelCosts).reduce(
-          (sum: number, model: any) => sum + model.cost,
+          (sum: number, model: any) => sum + (model?.cost || 0),
           0,
         ),
         Infrastructure: costData.operationalCosts.infrastructure,

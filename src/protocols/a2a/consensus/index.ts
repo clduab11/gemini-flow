@@ -32,7 +32,7 @@ export {
   ConsensusProposal,
   ConsensusState,
   default as ByzantineConsensusDefault,
-} from "./byzantine-consensus";
+} from "./byzantine-consensus.js";
 
 export {
   RaftConsensus,
@@ -41,7 +41,7 @@ export {
   RaftMessage,
   RaftState,
   default as RaftConsensusDefault,
-} from "./raft-consensus";
+} from "./raft-consensus.js";
 
 export {
   VotingMechanisms,
@@ -51,7 +51,7 @@ export {
   Voter,
   VotingType,
   default as VotingMechanismsDefault,
-} from "./voting-mechanisms";
+} from "./voting-mechanisms.js";
 
 export {
   MaliciousDetection,
@@ -61,7 +61,7 @@ export {
   DetectionContext,
   SecurityAlert,
   default as MaliciousDetectionDefault,
-} from "./malicious-detection";
+} from "./malicious-detection.js";
 
 export {
   StateMachineReplication,
@@ -71,7 +71,7 @@ export {
   StateMachineConfig,
   ConflictResolution,
   default as StateMachineReplicationDefault,
-} from "./state-machine-replication";
+} from "./state-machine-replication.js";
 
 export {
   ViewChangeLeaderElection,
@@ -83,7 +83,7 @@ export {
   ElectionConfiguration,
   ViewState,
   default as ViewChangeLeaderElectionDefault,
-} from "./view-change-leader-election";
+} from "./view-change-leader-election.js";
 
 export {
   PerformanceOptimizer,
@@ -95,7 +95,7 @@ export {
   AdaptiveThreshold,
   OptimizedResult,
   default as PerformanceOptimizerDefault,
-} from "./performance-optimizer";
+} from "./performance-optimizer.js";
 
 // Security integration
 export {
@@ -104,7 +104,7 @@ export {
   SecureConsensusSession,
   SecuredConsensusProposal,
   default as ConsensusSecurityIntegrationDefault,
-} from "./consensus-security-integration";
+} from "./consensus-security-integration.js";
 
 // Utility types and constants
 export const QUORUM_CALCULATIONS = {

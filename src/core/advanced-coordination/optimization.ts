@@ -1,6 +1,6 @@
-import { Logger } from '../../utils/logger';
-import { NeuralCoordinationModels } from '../neural/coordination-models';
-import { GcpOperationsSuiteIntegration } from '../../core/performance/gcp-operations-suite-integration';
+import { Logger } from '../../utils/logger.js';
+import { NeuralCoordinationModels } from '../neural/coordination-models.js';
+import { GcpOperationsSuiteIntegration } from '../../core/performance/gcp-operations-suite-integration.js';
 
 /**
  * @interface CoordinationOptimizationConfig

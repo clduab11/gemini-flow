@@ -4,7 +4,7 @@
  * Provides fitness evaluation system for code quality benchmarking
  * and evolutionary strategy assessment.
  */
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * DGM Fitness Function System for Code Quality Assessment
  */

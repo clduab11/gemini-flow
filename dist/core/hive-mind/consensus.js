@@ -1,4 +1,4 @@
-import { Logger } from '../../utils/logger';
+import { Logger } from '../../utils/logger.js';
 /**
  * @class ByzantineConsensus
  * @description Implements a fault-tolerant decision-making mechanism with Byzantine fault tolerance.
