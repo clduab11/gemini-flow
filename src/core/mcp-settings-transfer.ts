@@ -44,7 +44,7 @@ export class MCPSettingsTransfer {
     const rooCodeSettings = await this.readRooCodeSettings();
     const currentGeminiSettings = await this.settingsManager.readSettings();
 
-    let mergedSettings: MCPSettings = { ...currentGeminiSettings };
+    const mergedSettings: MCPSettings = { ...currentGeminiSettings };
 
     for (const serverName in rooCodeSettings.mcpServers) {
       const rooServerConfig = rooCodeSettings.mcpServers[serverName];

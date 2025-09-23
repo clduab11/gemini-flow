@@ -350,7 +350,7 @@ export class GoogleCloudStorage extends BaseIntegration {
 
       // Preprocess file if needed
       let processedFile = file;
-      let fileSize = typeof file === "string" ? 0 : file.length;
+      const fileSize = typeof file === "string" ? 0 : file.length;
 
       // Apply compression
       if (options.compression && this.config.compression) {

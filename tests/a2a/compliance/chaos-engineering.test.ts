@@ -585,9 +585,9 @@ class ChaosEngineeringTestSuite extends A2AComplianceTestSuite {
   private async monitorSystemBehavior(duration: number): Promise<SystemBehaviorMetrics> {
     const startTime = performance.now();
     let systemCrash = false;
-    let dataLoss = false;
-    let dataIntegrity = true;
-    let serviceContinuity = true;
+    const dataLoss = false;
+    const dataIntegrity = true;
+    const serviceContinuity = true;
     let failureDetectionTime = 0;
     let adaptationObserved = false;
     

@@ -1,0 +1,107 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  # Attach these labels to any time series or alerts when communicating with external systems
+  external_labels:
+    monitor: 'gemini-flow-monitor'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "alerts.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['node-exporter:9100']
+    # Add labels for better organization
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+
+  - job_name: 'cadvisor'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['cadvisor:8080']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+
+  # Application metrics - Node.js application
+  - job_name: 'gemini-flow-app'
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:3001']  # Application port
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+      - target_label: application
+        replacement: 'gemini-flow'
+
+  # Grafana metrics
+  - job_name: 'grafana'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['grafana:3000']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+
+  # Loki metrics (if available)
+  - job_name: 'loki'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['loki:3100']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+
+  # Jaeger metrics (if available)
+  - job_name: 'jaeger'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['jaeger:14269']
+    metrics_path: '/metrics'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'
+
+  # Docker daemon metrics (if needed)
+  - job_name: 'docker'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}'

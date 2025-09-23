@@ -5,7 +5,8 @@
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2022,
-    "sourceType": "module"
+    "sourceType": "module",
+    "project": "./tsconfig.eslint.json"
   },
   "plugins": ["@typescript-eslint"],
   "root": true,
@@ -24,24 +25,28 @@
   "ignorePatterns": [
     "dist/**",
     "node_modules/**",
-    "*.js",
-    "*.mjs",
     "jest.config.cjs",
     "coverage/**"
   ],
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.test.js", "tests/**/*"],
+      "files": ["**/*.test.ts", "**/*.test.js", "tests/**/*.ts", "tests/**/*.js"],
       "rules": {
         "no-console": "off",
         "@typescript-eslint/no-unused-vars": "off"
       }
     },
     {
-      "files": ["*.js", "*.mjs"],
-      "parser": "espree",
-      "rules": {
-        "@typescript-eslint/no-unused-vars": "off"
+      "files": [
+        "src/integrations/mariner/**/*.ts",
+        "src/monitoring/real-user-monitoring.ts",
+        "src/streaming/**/*.ts",
+        "src/types/streaming.ts",
+        "tests/e2e/production-validation-protocols.ts",
+        "tests/unit/adapters/jules-workflow-adapter.test.ts"
+      ],
+      "env": {
+        "browser": true
       }
     }
   ]

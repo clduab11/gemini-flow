@@ -31,7 +31,8 @@
     "src/streaming/**/*",
     "src/adapters/**/*",
     "src/agentspace/integrations/**/*",
-    "src/agentspace/core/AgentSpaceManager.ts"
+    "src/agentspace/core/AgentSpaceManager.ts",
+    "src/agentspace/core/**/*.ts"
   ],
   "exclude": [
     "node_modules",

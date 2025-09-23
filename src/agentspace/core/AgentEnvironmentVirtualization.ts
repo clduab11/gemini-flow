@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 /**
  * Agent Environment Virtualization System
  *
@@ -14,13 +16,7 @@ import {
   AgentWorkspace,
   WorkspaceResources,
   ResourceLimits,
-  WorkspaceState,
   WorkspaceConfiguration,
-  AgentSpaceEvent,
-  ResourceUtilization,
-  PerformanceMetrics,
-  NetworkPolicy,
-  SecurityPolicy,
 } from "../types/AgentSpaceTypes.js";
 
 export interface VirtualizationConfig {
@@ -174,7 +170,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       timestamp: new Date(),
       data: { workspaceId, workspace },
       severity: "info",
-    } as AgentSpaceEvent);
+    });
 
     return workspace;
   }
@@ -218,7 +214,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
         timestamp: new Date(),
         data: { workspaceId, agentId: workspace.agentId },
         severity: "info",
-      } as AgentSpaceEvent);
+      });
     } catch (error) {
       workspace.state.status = "error";
       workspace.state.health = "critical";
@@ -295,7 +291,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       timestamp: new Date(),
       data: { workspaceId, oldLimits, newLimits },
       severity: "info",
-    } as AgentSpaceEvent);
+    });
   }
 
   /**
@@ -389,7 +385,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
       timestamp: new Date(),
       data: { workspaceId, reason, action: "isolated" },
       severity: "critical",
-    } as AgentSpaceEvent);
+    });
   }
 
   /**
@@ -544,7 +540,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
     const utilization = workspace.state.resourceUtilization;
     const threshold = 0.85; // 85% threshold
 
-    let violations: string[] = [];
+    const violations: string[] = [];
 
     if (utilization.memory > threshold) violations.push("memory");
     if (utilization.cpu > threshold) violations.push("cpu");
@@ -566,7 +562,7 @@ export class AgentEnvironmentVirtualization extends EventEmitter {
         timestamp: new Date(),
         data: { workspaceId: workspace.id, violations, utilization },
         severity: "warning",
-      } as AgentSpaceEvent);
+      });
 
       // Auto-scale if enabled
       if (violations.includes("memory") || violations.includes("cpu")) {

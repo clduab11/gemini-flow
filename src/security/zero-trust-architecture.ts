@@ -957,7 +957,7 @@ export class ZeroTrustArchitecture extends EventEmitter {
       this.metrics.riskAssessments++;
 
       const riskFactors: RiskFactor[] = [];
-      let baseRiskScore = 0;
+      const baseRiskScore = 0;
 
       switch (subjectType) {
         case "user":

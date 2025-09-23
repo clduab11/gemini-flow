@@ -78,7 +78,7 @@
     },
     "Filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/chrisdukes/Desktop"],
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspaces"],
       "disabled": false,
       "autoApprove": [
         "list_allowed_directories",

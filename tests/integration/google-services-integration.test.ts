@@ -73,8 +73,8 @@ describe('Google Services Integration Test Harness', () => {
   let protocolManager: A2AProtocolManager;
 
   // Test session state
-  let activeSessions: Map<string, TestSession> = new Map();
-  let testResults: Map<string, WorkflowTestResult> = new Map();
+  const activeSessions: Map<string, TestSession> = new Map();
+  const testResults: Map<string, WorkflowTestResult> = new Map();
 
   beforeAll(async () => {
     // Initialize test infrastructure
