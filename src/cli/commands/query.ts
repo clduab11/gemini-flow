@@ -13,7 +13,7 @@ import {
   RoutingContext,
 } from "../../core/model-orchestrator.js";
 import { Logger } from "../../utils/logger.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { asUserTier } from "../../types/index.js";
 
 interface QueryOptions {

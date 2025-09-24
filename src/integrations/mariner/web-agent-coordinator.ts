@@ -5,7 +5,7 @@
  * and adaptive browser automation patterns
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { PerformanceMonitor } from "../../core/performance-monitor.js";
 

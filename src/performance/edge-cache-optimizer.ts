@@ -3,7 +3,7 @@
  * Implements predictive pre-loading and intelligent cache invalidation
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface CacheNode {
   id: string;

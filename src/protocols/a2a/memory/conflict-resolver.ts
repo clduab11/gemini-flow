@@ -11,7 +11,7 @@
  * - Conflict Prevention through Locking
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../../utils/logger.js";
 import { VectorClock } from "./vector-clocks.js";
 

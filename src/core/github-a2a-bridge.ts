@@ -8,7 +8,7 @@ import { A2ASecurityManager } from "./a2a-security-manager.js";
 import { A2AZeroTrust } from "./a2a-zero-trust.js";
 import { ModelOrchestrator } from "./model-orchestrator.js";
 import { SwarmManager } from "./swarm-manager.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface GitHubA2AConfig {
   github: {

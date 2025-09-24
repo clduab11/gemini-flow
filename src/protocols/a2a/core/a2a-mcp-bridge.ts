@@ -5,7 +5,7 @@
  * Provides bidirectional translation with parameter transformation and response mapping.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import {
   A2AMessage,
   A2AResponse,

@@ -6,7 +6,7 @@
  * Provides seamless integration and context passing between CLI systems.
  */
 import { spawn } from "child_process";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 import { GeminiCLIDetector, isOfficialGeminiCLIAvailable } from "./gemini-cli-detector.js";
 /**

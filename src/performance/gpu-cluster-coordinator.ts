@@ -3,7 +3,7 @@
  * Handles GPU resource allocation, load balancing, and fault tolerance
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface GPUNode {
   id: string;

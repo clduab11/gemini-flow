@@ -7,7 +7,7 @@
 
 import { Logger } from "../utils/logger.js";
 import { CacheManager } from "./cache-manager.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import {
   safeImport,
   getFeatureCapabilities,

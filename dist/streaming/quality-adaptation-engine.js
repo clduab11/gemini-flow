@@ -8,7 +8,7 @@
  * - Machine learning predictions
  * - Multi-stream coordination
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 export class QualityAdaptationEngine extends EventEmitter {
     constructor() {

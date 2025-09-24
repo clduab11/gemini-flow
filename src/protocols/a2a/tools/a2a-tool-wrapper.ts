@@ -6,7 +6,7 @@
  * manages security contexts, and provides performance optimization hooks.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../../utils/logger.js";
 import { CacheManager } from "../../../core/cache-manager.js";
 import { PerformanceMonitor } from "../../../monitoring/performance-monitor.js";

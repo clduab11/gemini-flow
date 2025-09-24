@@ -5,7 +5,7 @@
  * scientific method validation, and knowledge graph construction
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 import { SecurityOptimizationManager } from "../core/security-optimization-manager.js";
 import crypto from "crypto";

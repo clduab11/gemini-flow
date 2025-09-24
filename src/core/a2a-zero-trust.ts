@@ -12,7 +12,7 @@
  * - Policy engine with dynamic rule evaluation
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import crypto from "crypto";
 import { Logger } from "../utils/logger.js";
 import { CacheManager } from "./cache-manager.js";

@@ -4,7 +4,7 @@
  * Single interface for all Google AI models with <75ms routing optimization
  * Handles model selection, fallback strategies, and performance optimization
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 import { GeminiAdapter } from "./gemini-adapter.js";
 import { DeepMindAdapter } from "./deepmind-adapter.js";

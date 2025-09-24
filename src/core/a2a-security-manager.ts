@@ -11,7 +11,7 @@
  * - Zero-trust architecture with continuous verification
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import crypto from "crypto";
 import { Logger } from "../utils/logger.js";
 import { AuthenticationManager } from "./auth-manager.js";

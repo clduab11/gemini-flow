@@ -3,7 +3,7 @@
  * Implements memory pools, defragmentation, and adaptive allocation strategies
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface MemoryBlock {
   id: string;

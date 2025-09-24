@@ -5,7 +5,7 @@
  * authentication manager, error handler, orchestrator, and configuration management.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import {
   ServiceResponse,

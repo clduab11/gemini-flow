@@ -5,7 +5,7 @@
  * Supports advanced image generation with style transfer and artistic controls
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { PerformanceMonitor } from "../../core/performance-monitor.js";
 import {

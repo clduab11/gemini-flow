@@ -5,7 +5,7 @@
  * advanced buffering, compression, and fault tolerance.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { UnifiedAPI } from "../../adapters/unified-api.js";
 import {

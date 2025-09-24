@@ -6,7 +6,7 @@
  * Performance target: Sub-75ms routing decisions with 95% accuracy
  */
 import { Logger } from "../utils/logger.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 export class ModelRouter extends EventEmitter {
     constructor() {
         super();

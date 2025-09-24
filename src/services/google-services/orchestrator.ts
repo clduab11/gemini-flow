@@ -6,7 +6,7 @@
  * load balancing, and cross-service workflows.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { ServiceResponse, ServiceError } from "./interfaces.js";
 import { GoogleAIAuthManager } from "./auth-manager.js";

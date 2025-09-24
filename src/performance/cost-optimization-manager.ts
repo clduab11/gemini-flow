@@ -3,7 +3,7 @@
  * Implements intelligent cost optimization with usage pattern analysis
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface ResourceCost {
   id: string;

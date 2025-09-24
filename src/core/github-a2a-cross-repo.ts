@@ -10,7 +10,7 @@ import {
 } from "./github-a2a-bridge.js";
 import { A2ASecurityManager } from "./a2a-security-manager.js";
 import { A2AZeroTrust } from "./a2a-zero-trust.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface Repository {
   id: string;

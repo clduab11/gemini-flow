@@ -5,7 +5,7 @@
  * AI-powered audio enhancement, and comprehensive signal processing.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import {
   AudioConfig,

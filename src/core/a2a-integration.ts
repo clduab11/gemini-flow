@@ -10,7 +10,7 @@
  * - Configuration management and policy synchronization
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 import { AuthenticationManager, UserProfile } from "./auth-manager.js";
 import { SecurityOptimizationManager } from "./security-optimization-manager.js";

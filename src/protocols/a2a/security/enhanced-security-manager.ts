@@ -15,7 +15,7 @@
  * - Comprehensive attack simulation and testing
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import crypto from "crypto";
 import { Logger } from "../../../utils/logger.js";
 import { AuthenticationManager } from "../../../core/auth-manager.js";

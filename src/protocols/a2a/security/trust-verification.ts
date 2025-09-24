@@ -15,7 +15,7 @@
  * - Cross-domain trust transitivity and reputation bridging
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import crypto from "crypto";
 import { Logger } from "../../../utils/logger.js";
 import { A2AIdentity } from "../../../core/a2a-security-manager.js";

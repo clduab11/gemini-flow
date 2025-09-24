@@ -5,7 +5,7 @@
  * performance monitoring, and intelligent task orchestration.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import {
   BrowserOrchestrationConfig,

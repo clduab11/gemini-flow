@@ -4,7 +4,7 @@
  * in the Byzantine consensus network
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Agent, ConsensusMessage } from "./byzantine-consensus.js";
 import { Vote, VotingProposal } from "./voting-mechanisms.js";
 

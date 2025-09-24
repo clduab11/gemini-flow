@@ -14,7 +14,7 @@
  * - Distributed consensus for quarantine and recovery decisions
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import crypto from "crypto";
 import { Logger } from "../../../utils/logger.js";
 import { A2AIdentity, A2AMessage } from "../../../core/a2a-security-manager.js";

@@ -5,7 +5,7 @@
  * credential storage, token caching, and provides a unified interface for all auth operations
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { OAuth2Provider } from "./oauth2-provider.js";
 import { VertexAIProvider } from "./vertex-ai-provider.js";

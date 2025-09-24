@@ -8,7 +8,7 @@
 
 import { Logger } from "../utils/logger.js";
 import { ModelConfig, RoutingContext } from "./model-orchestrator.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface RoutingRule {
   id: string;

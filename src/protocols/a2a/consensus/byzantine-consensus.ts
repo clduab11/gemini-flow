@@ -4,7 +4,7 @@
  * Handles up to 33% malicious agents while maintaining correctness
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { createHash } from "crypto";
 
 export interface Agent {

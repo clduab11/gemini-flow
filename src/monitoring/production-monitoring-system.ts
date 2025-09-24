@@ -3,7 +3,7 @@
  * Orchestrates all monitoring components for comprehensive observability
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 import {
   SyntheticMonitor,

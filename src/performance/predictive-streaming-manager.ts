@@ -3,7 +3,7 @@
  * Implements ML-based content prediction and multi-tier buffering strategies
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface StreamingMetrics {
   bandwidth: number;

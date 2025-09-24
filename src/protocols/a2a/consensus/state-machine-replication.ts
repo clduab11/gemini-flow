@@ -4,7 +4,7 @@
  * Implements deterministic state transitions with rollback capability
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { createHash } from "crypto";
 
 export interface StateOperation {

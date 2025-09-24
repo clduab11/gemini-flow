@@ -4,7 +4,7 @@
  * Common interfaces and types used across Project Mariner and Veo3 integrations
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 // === CORE INTERFACES ===
 

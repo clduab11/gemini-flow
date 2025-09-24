@@ -1,5 +1,5 @@
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { AgentDefinition } from "./agent-definitions.js";
 import { BaseModelAdapter, ModelRequest } from "../adapters/base-model-adapter.js";
 import { Logger } from "../utils/logger.js";

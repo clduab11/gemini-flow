@@ -5,7 +5,7 @@
  * Provides agent registration, capability-based discovery, filtering, and metrics tracking.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import {
   AgentCard,
   AgentId,

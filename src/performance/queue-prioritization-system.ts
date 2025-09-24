@@ -3,7 +3,7 @@
  * Implements advanced queue management with priority balancing and fairness controls
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface QueueItem<T = any> {
   id: string;

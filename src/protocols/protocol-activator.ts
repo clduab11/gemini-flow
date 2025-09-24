@@ -7,7 +7,7 @@
 
 import { Logger } from "../utils/logger.js";
 import { featureFlags } from "../core/feature-flags.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { RoutingStrategy } from "../types/a2a.js";
 
 export type TopologyType = "hierarchical" | "mesh" | "ring" | "star";

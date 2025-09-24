@@ -8,7 +8,7 @@ import {
   ComprehensiveBridgeConfig,
   OperationRequest,
 } from "./github-a2a-comprehensive-bridge.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface IntegrationConfig {
   bridge: ComprehensiveBridgeConfig;

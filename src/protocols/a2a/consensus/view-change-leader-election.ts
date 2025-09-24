@@ -4,7 +4,7 @@
  * for Byzantine fault-tolerant consensus
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { createHash } from "crypto";
 import { Agent, ConsensusMessage, ConsensusState } from "./byzantine-consensus.js";
 

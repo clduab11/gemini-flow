@@ -4,7 +4,7 @@
  * Provides secure, authenticated consensus operations with comprehensive monitoring
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import {
   ByzantineConsensus,
   Agent,

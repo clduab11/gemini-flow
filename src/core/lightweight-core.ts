@@ -8,7 +8,7 @@
 import { Logger } from "../utils/logger.js";
 import { featureFlags, FeatureFlags } from "./feature-flags.js";
 import { SimpleAuth } from "./simple-auth.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface CoreConfig {
   mode: "minimal" | "enhanced" | "enterprise";

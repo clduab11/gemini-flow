@@ -9,7 +9,7 @@
  * - SLA monitoring and alerting
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import {
   PerformanceMetrics,

@@ -5,7 +5,7 @@
  * the complete Google Services ecosystem integration.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 // ==================== Base Interfaces ====================
 

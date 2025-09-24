@@ -6,7 +6,7 @@
 import { GitHubA2ABridge, A2AAgent } from "./github-a2a-bridge.js";
 import { GitHubA2ACrossRepo } from "./github-a2a-cross-repo.js";
 import { A2AIntegration } from "./a2a-integration.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface CICDPipeline {
   id: string;

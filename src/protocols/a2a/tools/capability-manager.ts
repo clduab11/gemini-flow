@@ -6,7 +6,7 @@
  * Handles capability matching, dependency resolution, and security policy enforcement.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../../utils/logger.js";
 import { CacheManager } from "../../../core/cache-manager.js";
 import {

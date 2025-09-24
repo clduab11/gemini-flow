@@ -5,7 +5,7 @@
  * Provides comprehensive message handling, routing, security, and error management.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import {
   A2AMessage,
   A2AResponse,
