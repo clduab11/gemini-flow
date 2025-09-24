@@ -586,7 +586,7 @@ export class ChirpAdapter extends EventEmitter {
    * Calculate audio quality based on request parameters
    */
   private calculateAudioQuality(request: AudioGenerationRequest): AudioQuality {
-    let quality: AudioQuality = {
+    const quality: AudioQuality = {
       snr: 20, // Signal-to-noise ratio
       thd: 0.1, // Total harmonic distortion
       bitrate: 64000,

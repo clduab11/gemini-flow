@@ -569,7 +569,7 @@ export class AudioEffectsEngine extends EventEmitter {
     audio: GeneratedAudio,
     effects: AudioEffect[],
   ): Promise<GeneratedAudio> {
-    let updatedQuality = { ...audio.quality };
+    const updatedQuality = { ...audio.quality };
 
     for (const effect of effects) {
       switch (effect.type) {

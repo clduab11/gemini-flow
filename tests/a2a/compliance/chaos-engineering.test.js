@@ -13,7 +13,7 @@ const CHAOS_CONFIG = {
     RECOVERY_SUCCESS_THRESHOLD: 0.95 // 95% recovery success
 };
 // Failure scenarios
-var FailureType;
+let FailureType;
 (function (FailureType) {
     FailureType["AGENT_CRASH"] = "agent_crash";
     FailureType["NETWORK_PARTITION"] = "network_partition";
@@ -461,9 +461,9 @@ class ChaosEngineeringTestSuite extends A2AComplianceTestSuite {
     async monitorSystemBehavior(duration) {
         const startTime = performance.now();
         let systemCrash = false;
-        let dataLoss = false;
-        let dataIntegrity = true;
-        let serviceContinuity = true;
+        const dataLoss = false;
+        const dataIntegrity = true;
+        const serviceContinuity = true;
         let failureDetectionTime = 0;
         let adaptationObserved = false;
         const endTime = startTime + duration;
