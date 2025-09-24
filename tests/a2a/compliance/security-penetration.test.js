@@ -15,7 +15,7 @@ const SECURITY_CONFIG = {
     MAX_CONCURRENT_SESSIONS: 1000 // 1000 concurrent sessions
 };
 // Attack types
-var AttackType;
+let AttackType;
 (function (AttackType) {
     AttackType["BRUTE_FORCE_AUTH"] = "brute_force_auth";
     AttackType["INJECTION_ATTACK"] = "injection_attack";
@@ -29,7 +29,7 @@ var AttackType;
     AttackType["BUFFER_OVERFLOW"] = "buffer_overflow";
 })(AttackType || (AttackType = {}));
 // Vulnerability categories
-var VulnerabilityType;
+let VulnerabilityType;
 (function (VulnerabilityType) {
     VulnerabilityType["AUTHENTICATION"] = "authentication";
     VulnerabilityType["AUTHORIZATION"] = "authorization";

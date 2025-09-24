@@ -1345,7 +1345,7 @@ export class A2AMultimediaProtocol extends EventEmitter {
       message.routing.hops = route.hops;
 
       // Route through the path
-      let currentMessage = message;
+      const currentMessage = message;
       for (let i = 0; i < route.path.length - 1; i++) {
         const nextHop = route.path[i + 1];
 

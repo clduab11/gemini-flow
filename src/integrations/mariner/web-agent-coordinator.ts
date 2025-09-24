@@ -758,7 +758,7 @@ export class WebAgentCoordinator
   ): Promise<NavigationResult> {
     const startTime = performance.now();
     const errors: string[] = [];
-    let checkpointsPassed = 0;
+    const checkpointsPassed = 0;
 
     try {
       // Adaptive navigation that changes strategy based on conditions

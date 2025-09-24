@@ -147,7 +147,7 @@ class ProtocolTestRunner {
    */
   parseTestResults(output) {
     const lines = output.split('\\n');
-    let currentSuite = null;
+    const currentSuite = null;
     
     lines.forEach(line => {
       // Parse test suite results

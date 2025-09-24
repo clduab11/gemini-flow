@@ -1,33 +1,18 @@
 /**
  * Extended unit tests for quantum-classical-hybrid service.
- * Testing library/framework: Vitest (preferred). If this repo uses Jest, switch import source to "@jest/globals"
- * and replace vi.* with jest.* where appropriate.
+ * Testing library/framework: Jest
  */
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, jest } from "@jest/globals";
 
-// Attempt to require the service using common relative paths; adjust as needed.
-let hybridService: any;
-try {
-  // Typical monorepo/service path
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  hybridService = require("../../../../src/services/quantum-classical-hybrid");
-} catch {
-  try {
-    // Typical repo path
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    hybridService = require("../../../src/services/quantum-classical-hybrid");
-  } catch {
-    hybridService = null;
-  }
-}
+import * as hybridService from "@/services/quantum-classical-hybrid";
 
 describe("quantum-classical-hybrid service", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    jest.useRealTimers();
   });
 
   it("exports expected public API", () => {
@@ -55,7 +40,7 @@ describe("quantum-classical-hybrid service", () => {
     if (result) {
       if ("counts" in result) expect(typeof result.counts).toBe("object");
       if ("optimizedParams" in result) {
-        // Vitest type guard convenience; maintain compatibility with Jest:
+        // Jest type guard convenience; maintain compatibility with Jest:
         (expect as any)(typeof result.optimizedParams).toBe("object");
       }
     }
@@ -76,11 +61,11 @@ describe("quantum-classical-hybrid service", () => {
 
   it("optimize handles timeouts and cancellation", async () => {
     if (!(hybridService?.optimize)) return;
-    vi.useFakeTimers();
+    jest.useFakeTimers();
     const abort = new AbortController();
     const p = hybridService.optimize({ start: [0.1, 0.2] }, { timeoutMs: 100, signal: abort.signal });
     setTimeout(() => abort.abort(), 50);
-    vi.advanceTimersByTime(60);
+    jest.advanceTimersByTime(60);
     await expect(p).rejects.toBeTruthy();
   });
 

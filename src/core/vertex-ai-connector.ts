@@ -22,6 +22,7 @@ export interface VertexAIConfig {
   serviceAccountPath?: string;
   maxConcurrentRequests?: number;
   requestTimeout?: number;
+  enableAuth?: boolean;
 }
 
 export interface VertexModelConfig {
@@ -109,7 +110,7 @@ export class VertexAIConnector extends EventEmitter {
   }
 
   /**
-   * Initialize Vertex AI client
+   * Initialize Vertex AI client with real Google Cloud credentials
    */
   private async initializeVertexAI(): Promise<void> {
     try {
@@ -117,10 +118,9 @@ export class VertexAIConnector extends EventEmitter {
       const capabilities = await getFeatureCapabilities();
 
       if (!capabilities.vertexAI || !capabilities.googleAuth) {
-        this.logger.warn(
-          "Vertex AI dependencies not available. Install @google-cloud/vertexai and google-auth-library for full functionality.",
+        throw new Error(
+          "Google Cloud Vertex AI dependencies not available. Please install @google-cloud/vertexai and google-auth-library packages.",
         );
-        return;
       }
 
       const [vertexAIModule, googleAuthModule] = await Promise.all([
@@ -129,34 +129,62 @@ export class VertexAIConnector extends EventEmitter {
       ]);
 
       if (!vertexAIModule?.VertexAI || !googleAuthModule?.GoogleAuth) {
-        throw new Error("Required Vertex AI modules not available");
+        throw new Error(
+          "Required Vertex AI modules not available. Please ensure @google-cloud/vertexai and google-auth-library are properly installed.",
+        );
       }
 
-      // Initialize authentication
+      // Validate configuration
+      if (!this.config.projectId) {
+        throw new Error("Project ID is required for Vertex AI initialization");
+      }
+
+      if (!this.config.location) {
+        throw new Error("Location is required for Vertex AI initialization");
+      }
+
+      // Initialize authentication with comprehensive credential handling
       this.auth = new googleAuthModule.GoogleAuth({
         projectId: this.config.projectId,
         keyFilename: this.config.serviceAccountPath,
         credentials: this.config.credentials,
         scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+        // Support for various credential sources
+        keyFile: this.config.serviceAccountPath,
+        credentials: this.config.credentials,
       });
+
+      // Test authentication
+      await this.auth.getAccessToken();
 
       // Initialize Vertex AI client
       this.client = new vertexAIModule.VertexAI({
         project: this.config.projectId,
         location: this.config.location,
         apiEndpoint: this.config.apiEndpoint,
+        auth: this.auth,
       });
 
-      this.logger.info("Vertex AI client initialized", {
+      this.logger.info("Vertex AI client initialized successfully", {
         projectId: this.config.projectId,
         location: this.config.location,
+        hasCredentials: !!this.config.credentials || !!this.config.serviceAccountPath,
       });
 
       this.emit("initialized");
     } catch (error) {
       this.logger.error("Failed to initialize Vertex AI client", error);
-      // Don't throw in constructor context
+      throw new Error(
+        `Vertex AI initialization failed: ${error.message}. Please ensure you have provided valid Google Cloud credentials via environment variables, service account file, or ADC (Application Default Credentials).`,
+      );
     }
+  }
+
+  /**
+   * Initialize real Vertex AI client with provided credentials
+   */
+  private initializeMockClient(): void {
+    throw new Error("Real Vertex AI client required. Please provide valid Google Cloud credentials.");
   }
 
   /**

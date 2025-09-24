@@ -44,8 +44,8 @@ describe('Google Services Integration Test Harness', () => {
     let resourceCoordinator;
     let protocolManager;
     // Test session state
-    let activeSessions = new Map();
-    let testResults = new Map();
+    const activeSessions = new Map();
+    const testResults = new Map();
     beforeAll(async () => {
         // Initialize test infrastructure
         testEnvironment = new TestEnvironmentManager({

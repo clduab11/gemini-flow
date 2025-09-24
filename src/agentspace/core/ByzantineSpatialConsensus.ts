@@ -1103,8 +1103,8 @@ export class ByzantineSpatialConsensus extends EventEmitter {
   private calculateSpatialEfficiency(): number {
     if (this.spatialAgents.size === 0) return 1.0;
 
-    let totalConflicts = this.spatialConflicts.size;
-    let possibleConflicts =
+    const totalConflicts = this.spatialConflicts.size;
+    const possibleConflicts =
       (this.spatialAgents.size * (this.spatialAgents.size - 1)) / 2;
 
     return Math.max(0, 1 - totalConflicts / possibleConflicts);
@@ -1112,8 +1112,8 @@ export class ByzantineSpatialConsensus extends EventEmitter {
 
   private calculateResourceUtilization(): number {
     // Simplified resource utilization calculation
-    let totalAllocated = this.resourceAllocations.size;
-    let totalCapacity = this.spatialAgents.size * 10; // Assume each agent has 10 resource units
+    const totalAllocated = this.resourceAllocations.size;
+    const totalCapacity = this.spatialAgents.size * 10; // Assume each agent has 10 resource units
 
     return Math.min(1.0, totalAllocated / totalCapacity);
   }

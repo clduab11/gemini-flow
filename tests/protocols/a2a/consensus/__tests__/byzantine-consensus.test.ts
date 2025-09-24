@@ -277,7 +277,7 @@ describe("ByzantineConsensus", () => {
 
         // Simulate prepare phase quorum collection
         const requiredPrepareResponses = 2; // 2f for 4 nodes
-        let prepareResponses = 0;
+        const prepareResponses = 0;
 
         // Mock the internal prepare collection mechanism
         const collectPrepareResponses =

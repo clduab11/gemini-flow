@@ -1004,7 +1004,7 @@ describe('AgentCardSystem', () => {
       await agentCardSystem.registerAgent(shortLivedAgent, 1); // 1 second TTL
       
       // Immediate check - should exist
-      let agentCard = await agentCardSystem.getAgentCard('short-lived-001');
+      const agentCard = await agentCardSystem.getAgentCard('short-lived-001');
       expect(agentCard).not.toBeNull();
 
       // After expiration (simulated) - should be removed

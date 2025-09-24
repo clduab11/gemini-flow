@@ -162,7 +162,7 @@ class ImmediateNPMAuth {
       }
 
       // Get password from environment or prompt
-      let password = process.env.NPM_PASSWORD;
+      const password = process.env.NPM_PASSWORD;
       
       if (!password) {
         // For security demonstration, we'll show the secure method

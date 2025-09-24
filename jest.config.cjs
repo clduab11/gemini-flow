@@ -9,9 +9,9 @@ module.exports = {
   },
   transformIgnorePatterns: [],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '^@tests/(.*)$': '<rootDir>/tests/$1',
-    '^(\.{1,2}/.*)\.js$': '$1'
+    '^@/(.*)': '<rootDir>/src/$1',
+    '^@tests/(.*)': '<rootDir>/tests/$1',
+    '^(\\.{1,2}/.*)\\.js$': '$1'
   },
   testMatch: [
     '**/tests/**/*.test.ts'

@@ -189,7 +189,7 @@ describe("QualityAdaptationEngine", () => {
     );
 
     // Step 1: upgrade to 480p
-    let d1 = engine.decide({
+    const d1 = engine.decide({
       available,
       current: available[0],
       bufferSec: 20,
@@ -200,7 +200,7 @@ describe("QualityAdaptationEngine", () => {
 
     // Advance less than hysteresis duration and try to downgrade with slightly lower throughput
     advance(5000); // 5s < 10s hysteresis
-    let d2 = engine.decide({
+    const d2 = engine.decide({
       available,
       current: available[1],
       bufferSec: 20,
