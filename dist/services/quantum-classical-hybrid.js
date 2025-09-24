@@ -747,7 +747,7 @@ class QuantumSimulator {
         const qubits = Math.log2(hamiltonian.length);
         let bestEnergy = Infinity;
         let bestState = null;
-        let parameters = Array(qubits * 2)
+        const parameters = Array(qubits * 2)
             .fill(0)
             .map(() => Math.random() * 2 * Math.PI);
         for (let iter = 0; iter < iterations; iter++) {
