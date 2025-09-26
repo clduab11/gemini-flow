@@ -60,10 +60,9 @@ export class HiveMindCommand extends Command {
       .option("-n, --nodes <number>", "Number of nodes", parseInt, 5)
       .option("-q, --queen", "Include a queen coordinator", true)
       .option("--worker-types <types>", "Comma-separated worker types")
-      .option(
-        "--gemini",
-        "Integrate with Gemini AI for enhanced collective intelligence",
-      )
+      .option("--gemini", "Enable Gemini CLI integration for enhanced Google AI orchestration")
+      .option("--topology <type>", "Network topology", "mesh")
+      .option("--agents <number>", "Number of agents to spawn", parseInt, 10)
       .action(async (objective, options) => this.spawnHive(objective, options));
 
     this.command("status [hiveId]")
@@ -164,13 +163,16 @@ export class HiveMindCommand extends Command {
         ? options.workerTypes.split(",").map((t: string) => t.trim())
         : ["researcher", "analyst", "coder", "coordinator"];
 
-      // Check for global Gemini integration or local --gemini flag
+      // Check for global Gemini CLI mode or local --gemini flag
       const isGeminiEnabled =
-        options.gemini || process.env.GEMINI_FLOW_CONTEXT_LOADED === "true";
+        options.gemini || 
+        process.env.GEMINI_CLI_MODE === "true" ||
+        process.env.GEMINI_FLOW_CONTEXT_LOADED === "true";
 
       // Initialize Gemini integration if enabled globally or locally
       if (isGeminiEnabled) {
-        spinner.text = "Initializing Gemini AI integration...";
+        spinner.text = "🚀 Initializing Gemini AI integration...";
+        console.log(chalk.blue("\n   Gemini CLI mode detected - enhancing with Google AI services"));
         await this.initializeGeminiAdapter();
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
