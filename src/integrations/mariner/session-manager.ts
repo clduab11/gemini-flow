@@ -5,7 +5,7 @@
  * with cross-session sharing, backup/restore, and intelligent state merging
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { safeImport } from "../../utils/feature-detection.js";
 

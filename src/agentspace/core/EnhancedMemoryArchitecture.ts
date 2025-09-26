@@ -9,7 +9,7 @@
  * - Memory analytics and optimization
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import {
   DistributedMemoryManager,

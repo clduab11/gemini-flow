@@ -7,7 +7,7 @@
 
 import { Logger } from "../utils/logger.js";
 import { featureFlags } from "../core/feature-flags.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";

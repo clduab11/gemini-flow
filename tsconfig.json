@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "allowJs": true,
     "lib": ["ES2022", "DOM"],
     "outDir": "./dist",
@@ -19,36 +19,20 @@
     "emitDecoratorMetadata": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],
-      "@/tests/*": ["tests/*"]
+      "@/*": ["src/*"]
     },
-    "types": ["node", "jest"],
+    "types": ["node"],
     "isolatedModules": true,
     "useUnknownInCatchVariables": false
   },
   "include": [
-    "src/types/**/*",
-    "src/streaming/**/*",
-    "src/adapters/**/*",
-    "src/agentspace/integrations/**/*",
-    "src/agentspace/core/AgentSpaceManager.ts",
-    "src/agentspace/core/**/*.ts"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "coverage",
-    "src/agentspace/integrations/**",
-    "src/streaming/enhanced-streaming-api.ts",
-    "src/streaming/webrtc-architecture.ts",
-    "src/streaming/codec-manager.ts",
-    "src/streaming/edge-cache-cdn.ts",
-    "src/cli/**",
-    "src/services/quantum-**",
-    "src/benchmarks/**",
-    "src/examples/**",
-    "src/core/a2a-**",
-    "src/services/google-services/**"
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ],
   "ts-node": {
     "esm": true

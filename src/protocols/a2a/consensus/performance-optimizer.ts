@@ -4,7 +4,7 @@
  * batching, pipelining, speculation, and adaptive algorithms
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { ConsensusMessage, ConsensusProposal } from "./byzantine-consensus.js";
 
 export interface OptimizationConfig {

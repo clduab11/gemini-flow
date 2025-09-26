@@ -5,7 +5,7 @@
  * real-time streaming, and A2A coordination for parallel rendering
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { PerformanceMonitor } from "../../core/performance-monitor.js";
 import { safeImport } from "../../utils/feature-detection.js";

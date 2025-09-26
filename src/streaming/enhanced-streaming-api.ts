@@ -10,7 +10,7 @@
  * - Machine learning-based adaptation
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 import { WebRTCArchitecture } from "./webrtc-architecture.js";
 import { CodecManager } from "./codec-manager.js";

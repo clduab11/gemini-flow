@@ -11,7 +11,7 @@ import { PerformanceMonitor } from "./performance-monitor.js";
 import { AuthenticationManager } from "./auth-manager.js";
 import { ModelRouter } from "./model-router.js";
 import { CacheManager } from "./cache-manager.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { safeImport } from "../utils/feature-detection.js";
 
 export interface ModelConfig {

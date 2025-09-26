@@ -3,7 +3,7 @@
  * Implements various voting algorithms including weighted, quadratic, and liquid democracy
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { createHash } from "crypto";
 
 export interface Vote {

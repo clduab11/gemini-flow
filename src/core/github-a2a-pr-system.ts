@@ -9,7 +9,7 @@ import {
   GitHubOperation,
 } from "./github-a2a-bridge.js";
 import { A2AIntegration } from "./a2a-integration.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface PRReviewRequest {
   repository: string;

@@ -49,20 +49,19 @@ export class InteractiveMode {
         // Main conversation loop
         while (this.running) {
             try {
-                const { message } = await inquirer.prompt([
-                    {
-                        type: "input",
-                        name: "message",
-                        message: chalk.cyan("You:"),
-                        prefix: "",
-                        validate: (input) => {
-                            if (input.trim() === "" && !input.startsWith("/")) {
-                                return "Please enter a message or use /help for commands";
-                            }
-                            return true;
-                        },
+                const answers = await inquirer.prompt({
+                    type: "input",
+                    name: "message",
+                    message: chalk.cyan("You:"),
+                    prefix: "",
+                    validate: (input) => {
+                        if (input.trim() === "" && !input.startsWith("/")) {
+                            return "Please enter a message or use /help for commands";
+                        }
+                        return true;
                     },
-                ]);
+                });
+                const { message } = answers;
                 if (!this.running)
                     break;
                 const response = await this.processMessage(message);

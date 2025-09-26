@@ -5,7 +5,7 @@
  * advanced buffering, compression, and fault tolerance.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { UnifiedAPI } from "../../adapters/unified-api.js";
 import {
@@ -710,9 +710,28 @@ class CompressionEngine {
   async compress(data: any, compressionConfig: any): Promise<any> {
     if (!compressionConfig?.enabled) return data;
 
-    // Compression implementation would go here
-    // For now, return data as-is
-    return data;
+    // Implement actual compression using standard algorithms
+    // This could use gzip, brotli, or custom compression based on data type
+    const compressionType = this.getOptimalCompressionType(data);
+    
+    try {
+      switch (compressionType) {
+        case 'gzip':
+          // Use Node.js built-in gzip compression
+          const zlib = await import('zlib');
+          return zlib.gzipSync(Buffer.from(JSON.stringify(data)));
+        case 'brotli':
+          // Use brotli compression for better ratios
+          const zlibBr = await import('zlib');
+          return zlibBr.brotliCompressSync(Buffer.from(JSON.stringify(data)));
+        default:
+          // Return JSON string as Buffer for consistency
+          return Buffer.from(JSON.stringify(data));
+      }
+    } catch (error) {
+      this.logger.warn('Compression failed, returning uncompressed data', { error });
+      return Buffer.from(JSON.stringify(data));
+    }
   }
 
   getCompressionInfo(

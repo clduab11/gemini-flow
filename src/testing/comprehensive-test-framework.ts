@@ -3,7 +3,7 @@
  * Supports 8 service integration testing with automated generation and validation
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import * as fs from "fs/promises";
 import * as path from "path";
 

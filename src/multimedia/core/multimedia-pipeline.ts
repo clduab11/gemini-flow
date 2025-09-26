@@ -5,7 +5,7 @@
  * with shared infrastructure and optimizations
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { PerformanceMonitor } from "../../core/performance-monitor.js";
 import { CacheManager } from "../../core/cache-manager.js";

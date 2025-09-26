@@ -12,7 +12,7 @@
  * - Automatic quarantine and recovery mechanisms
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import crypto from "crypto";
 import { Logger } from "../../../utils/logger.js";
 import {

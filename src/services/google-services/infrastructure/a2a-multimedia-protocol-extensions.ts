@@ -3,7 +3,7 @@
  * Supporting classes and implementations for the main protocol
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../../utils/logger.js";
 import {
   A2AMultimediaSession,

@@ -8,7 +8,7 @@
  * - Clock synchronization across agents
  * - Quality-aware buffer management
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 export class BufferSyncManager extends EventEmitter {
     constructor(syncConfig) {

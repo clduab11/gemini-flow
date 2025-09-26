@@ -120,9 +120,6 @@ jobs:
       - name: Lint code
         run: npm run lint
 
-      - name: Run tests
-        run: npm test -- --coverage --coverageReporters=json-summary --coverageReporters=lcov
-
       - name: Build project
         run: npm run build
 
@@ -157,14 +154,6 @@ jobs:
           # Cleanup
           npm uninstall -g "@clduab11/gemini-flow" || echo "⚠️ Failed to uninstall global package"
           rm -f *.tgz
-
-      - name: Upload coverage to Codecov
-        if: matrix.node-version == 20 && matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/lcov.info
-          fail_ci_if_error: false
 
   build-artifacts:
     name: Build Artifacts

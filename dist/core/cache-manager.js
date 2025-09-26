@@ -5,7 +5,7 @@
  * Supports both memory and persistent caching with SQLite optimization
  */
 import { Logger } from "../utils/logger.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { createSQLiteDatabase, detectSQLiteImplementations, } from "../memory/sqlite-adapter.js";
 export class CacheManager extends EventEmitter {
     constructor(config = {}) {

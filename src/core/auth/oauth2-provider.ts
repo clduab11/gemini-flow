@@ -6,7 +6,7 @@
  */
 
 import crypto from "crypto";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import {
   OAuth2Config,

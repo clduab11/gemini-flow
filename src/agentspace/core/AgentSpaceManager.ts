@@ -5,7 +5,7 @@
  * while remaining lightweight. Real implementations can extend this.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface AgentSpaceManagerConfig {
   agentSpaceId: string;

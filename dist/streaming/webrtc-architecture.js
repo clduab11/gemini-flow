@@ -8,7 +8,7 @@
  * - Multi-agent coordination
  * - Performance optimization
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 export class WebRTCArchitecture extends EventEmitter {
     constructor(config) {

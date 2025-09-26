@@ -3,7 +3,7 @@
  * Ensures 99.9% uptime SLA compliance with comprehensive monitoring and reporting
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 import { CustomMetricsCollector } from "./custom-metrics-dashboard.js";
 import { SyntheticMonitor } from "./synthetic-monitoring.js";

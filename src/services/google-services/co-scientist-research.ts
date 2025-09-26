@@ -5,7 +5,7 @@
  * experimental design, data analysis, and scientific validation.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import {
   ResearchHypothesis,

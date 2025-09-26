@@ -5,7 +5,7 @@
  * enabling secure scientific collaboration with enterprise-grade protection
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 
 // Basic interfaces for type safety

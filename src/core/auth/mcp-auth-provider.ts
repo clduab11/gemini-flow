@@ -5,7 +5,7 @@
  * capabilities as MCP tools and handles authentication requests from MCP clients
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { UnifiedAuthManager } from "./unified-auth-manager.js";
 import {

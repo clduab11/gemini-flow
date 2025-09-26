@@ -5,7 +5,7 @@
  * real-time rendering, and comprehensive media processing capabilities.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import {
   VideoGenerationRequest,

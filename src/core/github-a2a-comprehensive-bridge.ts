@@ -26,7 +26,7 @@ import {
 import { GitHubA2AActions, GitHubAction } from "./github-a2a-actions.js";
 import { A2AIntegration } from "./a2a-integration.js";
 import { A2ASecurityManager } from "./a2a-security-manager.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface ComprehensiveBridgeConfig {
   github: GitHubA2AConfig["github"];

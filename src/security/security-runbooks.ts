@@ -13,7 +13,7 @@
  */
 
 import { Logger } from "../utils/logger.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import crypto from "crypto";
 
 export interface RunbookStep {

@@ -9,7 +9,7 @@
  * - --analyze-self: Meta-analysis with security boundaries
  * - --meta-optimization: Recursive optimization with safety limits
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 import crypto from "crypto";
 export class SecurityOptimizationManager extends EventEmitter {

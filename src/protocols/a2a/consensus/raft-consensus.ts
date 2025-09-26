@@ -10,7 +10,7 @@
  * Raft requires a majority quorum: Math.floor(n/2) + 1
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { createHash } from "crypto";
 
 export interface RaftNode {

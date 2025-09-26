@@ -5,7 +5,7 @@
  * enabling real-time multi-modal streaming within the 3D agent workspace
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../utils/logger.js";
 import { EnhancedStreamingAPI } from "../../streaming/enhanced-streaming-api.js";
 import { AgentSpaceManager } from "../core/AgentSpaceManager.js";

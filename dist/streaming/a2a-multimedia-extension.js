@@ -8,7 +8,7 @@
  * - Cross-agent synchronization
  * - Fault-tolerant streaming
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 export class A2AMultimediaExtension extends EventEmitter {
     constructor(config) {

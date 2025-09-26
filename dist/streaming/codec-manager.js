@@ -8,7 +8,7 @@
  * - Hardware acceleration detection
  * - Adaptive bitrate encoding
  */
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 export class CodecManager extends EventEmitter {
     constructor() {

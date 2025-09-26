@@ -12,7 +12,7 @@ import {
   BrowserContext,
 } from "playwright";
 import { performance } from "perf_hooks";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { promises as fs } from "fs";
 import path from "path";
 import { Logger } from "../utils/logger.js";

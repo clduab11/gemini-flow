@@ -4,7 +4,7 @@
  * Comprehensive type definitions for OAuth2, Vertex AI, and unified authentication system
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export interface OAuth2Config {
   clientId: string;

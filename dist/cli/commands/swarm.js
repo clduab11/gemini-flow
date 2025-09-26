@@ -337,7 +337,13 @@ export class SwarmCommand extends Command {
                 default: baseOptions.queen,
             });
         }
-        return await inquirer.prompt(questions);
+        const answers = {};
+        // Prompt each question individually for v12 compatibility
+        for (const question of questions) {
+            const result = await inquirer.prompt(question);
+            Object.assign(answers, result);
+        }
+        return answers;
     }
     buildSwarmConfig(options) {
         return {

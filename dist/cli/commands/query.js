@@ -9,7 +9,7 @@ import chalk from "chalk";
 import ora from "ora";
 import { ModelOrchestrator, } from "../../core/model-orchestrator.js";
 import { Logger } from "../../utils/logger.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { asUserTier } from "../../types/index.js";
 class QueryMiniSwarm extends EventEmitter {
     constructor(orchestrator) {

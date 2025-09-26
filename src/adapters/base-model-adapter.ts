@@ -5,7 +5,7 @@
  * Provides streaming, error handling, and capability detection
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 
 export interface ModelCapabilities {

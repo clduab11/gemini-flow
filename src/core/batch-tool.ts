@@ -5,7 +5,7 @@
  * Enables <100ms agent spawn time through intelligent batching
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Worker } from "worker_threads";
 import { Logger } from "../utils/logger.js";
 import { ResourcePool } from "./resource-pool.js";

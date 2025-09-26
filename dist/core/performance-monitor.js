@@ -5,7 +5,7 @@
  * Provides real-time monitoring and optimization recommendations
  */
 import { Logger } from "../utils/logger.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 export class PerformanceMonitor extends EventEmitter {
     constructor() {
         super();

@@ -10,7 +10,7 @@
  * 3. sql.js (WASM cross-platform)
  */
 import { Logger } from "../utils/logger.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import path from "path";
 import fs from "fs/promises";
 import { createSQLiteDatabase, detectSQLiteImplementations, } from "./sqlite-adapter.js";

@@ -3,7 +3,7 @@
  * Comprehensive real user performance and experience monitoring
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../utils/logger.js";
 
 interface RUMConfig {

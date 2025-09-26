@@ -6,7 +6,7 @@
  * cost optimization, and shortest path routing.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import {
   A2AMessage,
   AgentCard,

@@ -6,7 +6,7 @@
  * sharing, and synchronized multimedia experiences.
  */
 
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Logger } from "../../../utils/logger.js";
 import * as zlib from "zlib";
 import {
