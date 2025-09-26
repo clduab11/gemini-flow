@@ -7,7 +7,7 @@
  * - Enhanced Memory Architecture with Mem0 integration
  * - Byzantine Consensus for spatial coordination
  * - AgentSpaceManager with advanced resource allocation
- * - MCP Bridge for claude-flow tool integration
+ * - MCP Bridge for gemini-flow tool integration
  * - Streaming API integration for immersive experiences
  * - Security framework integration for secure collaboration
  */
@@ -99,7 +99,7 @@ export const AGENTSPACE_EXAMPLES = {
     securityLevel: "standard" as const,
     mcpIntegration: {
       memoryProvider: "mem0",
-      toolRegistry: "claude-flow",
+      toolRegistry: "gemini-flow",
       authProvider: "oauth2",
       eventBus: "redis",
     },
@@ -116,7 +116,7 @@ export const AGENTSPACE_EXAMPLES = {
     securityLevel: "standard" as const,
     mcpIntegration: {
       memoryProvider: "distributed-cache",
-      toolRegistry: "claude-flow-cluster",
+      toolRegistry: "gemini-flow-cluster",
       authProvider: "enterprise-sso",
       eventBus: "kafka",
     },

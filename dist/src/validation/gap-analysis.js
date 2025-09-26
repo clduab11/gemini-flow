@@ -12,14 +12,14 @@ export class GapAnalyzer {
         this.logger.info('Gap Analyzer initialized.');
     }
     /**
-     * Compares gemini-flow capabilities against claude-flow feature set.
+     * Compares gemini-flow capabilities against gemini-flow feature set.
      * @returns {Promise<any>} Analysis results including missing features.
      */
     async analyzeFeatureParity() {
-        this.logger.info('Analyzing feature parity with claude-flow (conceptual)...');
+        this.logger.info('Analyzing feature parity with gemini-flow (conceptual)...');
         // This would involve:
         // - Programmatically checking for the presence of tools, modules, and functionalities.
-        // - Comparing against a predefined list of claude-flow features.
+        // - Comparing against a predefined list of gemini-flow features.
         await new Promise(resolve => setTimeout(resolve, 500));
         const missingFeatures = ['advanced_reporting', 'custom_agent_types']; // Simulated
         const analysis = { totalFeatures: this.config.claudeFlowFeatureSet.length, missingFeatures };

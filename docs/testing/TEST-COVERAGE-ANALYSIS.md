@@ -283,7 +283,7 @@ test('should prevent SQL injection in prepared statements', async () => {
 
 ### Agent Coordination Protocol ✅
 ```bash
-✅ Pre-task: npx claude-flow@alpha hooks pre-task --description "analyze test setup and coverage"
+✅ Pre-task: npx gemini-flow@alpha hooks pre-task --description "analyze test setup and coverage"
 ✅ Progress: Multiple post-edit hooks executed for memory coordination
 ✅ Notifications: Key decisions and findings stored in swarm memory
 ✅ Final: Task completion notification and performance analysis

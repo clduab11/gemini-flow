@@ -1,7 +1,7 @@
 /**
  * MCP Integration Bridge for AgentSpace
  *
- * Seamlessly integrates AgentSpace with claude-flow MCP tools,
+ * Seamlessly integrates AgentSpace with gemini-flow MCP tools,
  * enabling distributed swarm coordination, memory management,
  * and workflow orchestration across the spatial computing environment
  */
@@ -404,7 +404,7 @@ export class MCPBridge extends EventEmitter {
     initializeMCPMappings() {
         // Map MCP tools to AgentSpace functions
         this.mcpToolMappings.set("swarm_init", {
-            toolName: "mcp__claude-flow__swarm_init",
+            toolName: "mcp__gemini-flow__swarm_init",
             agentSpaceFunction: "createCollaborativeWorkspace",
             parameters: {
                 topology: "string",
@@ -414,14 +414,14 @@ export class MCPBridge extends EventEmitter {
             securityLevel: "standard",
         });
         this.mcpToolMappings.set("agent_spawn", {
-            toolName: "mcp__claude-flow__agent_spawn",
+            toolName: "mcp__gemini-flow__agent_spawn",
             agentSpaceFunction: "deployAgent",
             parameters: { type: "string", capabilities: "array" },
             securityLevel: "standard",
             spatialRequirements: { requiresWorkspace: true, minDistance: 5 },
         });
         this.mcpToolMappings.set("task_orchestrate", {
-            toolName: "mcp__claude-flow__task_orchestrate",
+            toolName: "mcp__gemini-flow__task_orchestrate",
             agentSpaceFunction: "coordinateTask",
             parameters: { task: "string", priority: "string", strategy: "string" },
             securityLevel: "high",
@@ -431,7 +431,7 @@ export class MCPBridge extends EventEmitter {
             },
         });
         this.mcpToolMappings.set("memory_usage", {
-            toolName: "mcp__claude-flow__memory_usage",
+            toolName: "mcp__gemini-flow__memory_usage",
             agentSpaceFunction: "enhancedMemoryOperation",
             parameters: { action: "string", key: "string", value: "any" },
             securityLevel: "high",

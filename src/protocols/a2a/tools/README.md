@@ -46,7 +46,7 @@ The foundation class that wraps MCP tools with A2A capabilities:
 ```typescript
 // Basic usage
 const wrapper = new GenericMCPToolWrapper(
-  "mcp__claude-flow__swarm_init",
+  "mcp__gemini-flow__swarm_init",
   capability,
   transformationEngine,
 );
@@ -104,7 +104,7 @@ const engine = new ToolTransformationEngine();
 
 // Transform MCP to A2A
 const a2aResult = await engine.transformMCPToA2A(
-  "mcp__claude-flow__swarm_init",
+  "mcp__gemini-flow__swarm_init",
   mcpParameters,
   a2aContext,
 );
@@ -167,7 +167,7 @@ const tools = await registry.searchTools({
 
 // Get tool registration
 const registration = registry.getToolRegistration(
-  "mcp__claude-flow__swarm_init",
+  "mcp__gemini-flow__swarm_init",
 );
 ```
 
@@ -243,7 +243,7 @@ const system = await A2AToolSystemFactory.createSystem({
 
 // Execute a tool
 const invocation = {
-  toolId: "mcp__claude-flow__swarm_init",
+  toolId: "mcp__gemini-flow__swarm_init",
   capabilityName: "swarm.init",
   parameters: {
     topology: "hierarchical",
@@ -317,7 +317,7 @@ console.log(`Average Latency: ${metrics.cache.averageRetrievalTime}ms`);
 
 // Tool-specific metrics
 const toolMetrics = system.toolRegistry
-  .getToolRegistration("mcp__claude-flow__swarm_init")
+  .getToolRegistration("mcp__gemini-flow__swarm_init")
   ?.wrapper.getMetrics();
 console.log(`Tool Success Rate: ${toolMetrics?.successRate * 100}%`);
 ```

@@ -209,7 +209,7 @@ async function demonstrateOperations(manager: GitHubA2AIntegrationManager) {
       repository: 'clduab11/gemini-flow',
       data: {
         source_repo: 'clduab11/gemini-flow',
-        target_repos: ['clduab11/claude-flow', 'clduab11/ruv-swarm'],
+        target_repos: ['clduab11/gemini-flow'],
         sync_type: 'dependencies',
         include_patterns: ['package.json', 'src/shared/**'],
         exclude_patterns: ['node_modules/**', '*.test.ts'],

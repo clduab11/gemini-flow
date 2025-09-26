@@ -25,7 +25,7 @@ This directory contains comprehensive API documentation for Gemini Flow v1.0.4, 
 - **[Gemini CLI Commands](./gemini-cli-commands.md)** - `gemini-flow gemini` subcommand reference
 
 ### Legacy References
-- **[Command Parity Mapping](./COMMAND-PARITY-MAPPING.md)** - Migration from claude-flow to gemini-flow
+- **[Command Parity Mapping](./COMMAND-PARITY-MAPPING.md)** - Migration from gemini-flow to gemini-flow
 - **[Feature Parity Summary](./FEATURE-PARITY-SUMMARY.md)** - Feature compatibility overview
 
 ## 🎯 Quick Start API Examples
@@ -261,7 +261,7 @@ export GEMINI_MODEL=gemini-1.5-flash
 3. **Monitoring**: [OpenAPI - Monitoring Endpoints](./openapi.yaml)
 
 ### For Migration
-1. **From claude-flow**: [Command Parity Mapping](./COMMAND-PARITY-MAPPING.md)
+1. **From gemini-flow**: [Command Parity Mapping](./COMMAND-PARITY-MAPPING.md)
 2. **Feature Comparison**: [Feature Parity Summary](./FEATURE-PARITY-SUMMARY.md)
 3. **Integration Service**: [GeminiIntegrationService](./gemini-integration-service.md)
 

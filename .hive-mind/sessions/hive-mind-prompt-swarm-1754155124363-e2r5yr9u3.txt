@@ -21,34 +21,34 @@ WORKER DISTRIBUTION:
 🔧 AVAILABLE MCP TOOLS FOR HIVE MIND COORDINATION:
 
 1️⃣ **COLLECTIVE INTELLIGENCE**
-   mcp__claude-flow__consensus_vote    - Democratic decision making
-   mcp__claude-flow__memory_share      - Share knowledge across the hive
-   mcp__claude-flow__neural_sync       - Synchronize neural patterns
-   mcp__claude-flow__swarm_think       - Collective problem solving
+   mcp__gemini-flow__consensus_vote    - Democratic decision making
+   mcp__gemini-flow__memory_share      - Share knowledge across the hive
+   mcp__gemini-flow__neural_sync       - Synchronize neural patterns
+   mcp__gemini-flow__swarm_think       - Collective problem solving
 
 2️⃣ **QUEEN COORDINATION**
-   mcp__claude-flow__queen_command     - Issue directives to workers
-   mcp__claude-flow__queen_monitor     - Monitor swarm health
-   mcp__claude-flow__queen_delegate    - Delegate complex tasks
-   mcp__claude-flow__queen_aggregate   - Aggregate worker results
+   mcp__gemini-flow__queen_command     - Issue directives to workers
+   mcp__gemini-flow__queen_monitor     - Monitor swarm health
+   mcp__gemini-flow__queen_delegate    - Delegate complex tasks
+   mcp__gemini-flow__queen_aggregate   - Aggregate worker results
 
 3️⃣ **WORKER MANAGEMENT**
-   mcp__claude-flow__agent_spawn       - Create specialized workers
-   mcp__claude-flow__agent_assign      - Assign tasks to workers
-   mcp__claude-flow__agent_communicate - Inter-agent communication
-   mcp__claude-flow__agent_metrics     - Track worker performance
+   mcp__gemini-flow__agent_spawn       - Create specialized workers
+   mcp__gemini-flow__agent_assign      - Assign tasks to workers
+   mcp__gemini-flow__agent_communicate - Inter-agent communication
+   mcp__gemini-flow__agent_metrics     - Track worker performance
 
 4️⃣ **TASK ORCHESTRATION**
-   mcp__claude-flow__task_create       - Create hierarchical tasks
-   mcp__claude-flow__task_distribute   - Distribute work efficiently
-   mcp__claude-flow__task_monitor      - Track task progress
-   mcp__claude-flow__task_aggregate    - Combine task results
+   mcp__gemini-flow__task_create       - Create hierarchical tasks
+   mcp__gemini-flow__task_distribute   - Distribute work efficiently
+   mcp__gemini-flow__task_monitor      - Track task progress
+   mcp__gemini-flow__task_aggregate    - Combine task results
 
 5️⃣ **MEMORY & LEARNING**
-   mcp__claude-flow__memory_store      - Store collective knowledge
-   mcp__claude-flow__memory_retrieve   - Access shared memory
-   mcp__claude-flow__neural_train      - Learn from experiences
-   mcp__claude-flow__pattern_recognize - Identify patterns
+   mcp__gemini-flow__memory_store      - Store collective knowledge
+   mcp__gemini-flow__memory_retrieve   - Access shared memory
+   mcp__gemini-flow__neural_train      - Learn from experiences
+   mcp__gemini-flow__pattern_recognize - Identify patterns
 
 📋 HIVE MIND EXECUTION PROTOCOL:
 
@@ -56,13 +56,13 @@ As the Queen coordinator, you must:
 
 1. **INITIALIZE THE HIVE** (Single BatchTool Message):
    [BatchTool]:
-      mcp__claude-flow__agent_spawn { "type": "researcher", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "coder", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "analyst", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "tester", "count": 1 }
-   mcp__claude-flow__memory_store { "key": "hive/objective", "value": "CRITICAL MISSION: Repository restructure and cleanup. Current state: Nested gemini-flow/gemini-flow/ structure causing confusion. GitHub shows wrong README. Tasks: 1) Move all contents from gemini-flow/gemini-flow/* to root gemini-flow/ directory 2) Preserve the enhanced README.md with Reuven Cohen attribution (currently in nested directory) 3) Remove the nested directory after moving 4) Clean up duplicate files and documentation 5) Ensure package.json, src/, and all project files are at root level 6) Verify NPM package @clduab11/gemini-flow v1.0.1 references are intact 7) Create clean git commit with restructure 8) Push to GitHub ensuring proper README display. Use intelligent swarm with repo-architect, migration-planner, and github-modes agents." }
-   mcp__claude-flow__memory_store { "key": "hive/queen", "value": "strategic" }
-   mcp__claude-flow__swarm_think { "topic": "initial_strategy" }
+      mcp__gemini-flow__agent_spawn { "type": "researcher", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "coder", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "analyst", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "tester", "count": 1 }
+   mcp__gemini-flow__memory_store { "key": "hive/objective", "value": "CRITICAL MISSION: Repository restructure and cleanup. Current state: Nested gemini-flow/gemini-flow/ structure causing confusion. GitHub shows wrong README. Tasks: 1) Move all contents from gemini-flow/gemini-flow/* to root gemini-flow/ directory 2) Preserve the enhanced README.md with Reuven Cohen attribution (currently in nested directory) 3) Remove the nested directory after moving 4) Clean up duplicate files and documentation 5) Ensure package.json, src/, and all project files are at root level 6) Verify NPM package @clduab11/gemini-flow v1.0.1 references are intact 7) Create clean git commit with restructure 8) Push to GitHub ensuring proper README display. Use intelligent swarm with repo-architect, migration-planner, and github-modes agents." }
+   mcp__gemini-flow__memory_store { "key": "hive/queen", "value": "strategic" }
+   mcp__gemini-flow__swarm_think { "topic": "initial_strategy" }
    TodoWrite { "todos": [/* Create 5-10 high-level tasks */] }
 
 2. **ESTABLISH COLLECTIVE INTELLIGENCE**:

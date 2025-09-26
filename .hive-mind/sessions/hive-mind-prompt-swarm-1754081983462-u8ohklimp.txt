@@ -21,34 +21,34 @@ WORKER DISTRIBUTION:
 🔧 AVAILABLE MCP TOOLS FOR HIVE MIND COORDINATION:
 
 1️⃣ **COLLECTIVE INTELLIGENCE**
-   mcp__claude-flow__consensus_vote    - Democratic decision making
-   mcp__claude-flow__memory_share      - Share knowledge across the hive
-   mcp__claude-flow__neural_sync       - Synchronize neural patterns
-   mcp__claude-flow__swarm_think       - Collective problem solving
+   mcp__gemini-flow__consensus_vote    - Democratic decision making
+   mcp__gemini-flow__memory_share      - Share knowledge across the hive
+   mcp__gemini-flow__neural_sync       - Synchronize neural patterns
+   mcp__gemini-flow__swarm_think       - Collective problem solving
 
 2️⃣ **QUEEN COORDINATION**
-   mcp__claude-flow__queen_command     - Issue directives to workers
-   mcp__claude-flow__queen_monitor     - Monitor swarm health
-   mcp__claude-flow__queen_delegate    - Delegate complex tasks
-   mcp__claude-flow__queen_aggregate   - Aggregate worker results
+   mcp__gemini-flow__queen_command     - Issue directives to workers
+   mcp__gemini-flow__queen_monitor     - Monitor swarm health
+   mcp__gemini-flow__queen_delegate    - Delegate complex tasks
+   mcp__gemini-flow__queen_aggregate   - Aggregate worker results
 
 3️⃣ **WORKER MANAGEMENT**
-   mcp__claude-flow__agent_spawn       - Create specialized workers
-   mcp__claude-flow__agent_assign      - Assign tasks to workers
-   mcp__claude-flow__agent_communicate - Inter-agent communication
-   mcp__claude-flow__agent_metrics     - Track worker performance
+   mcp__gemini-flow__agent_spawn       - Create specialized workers
+   mcp__gemini-flow__agent_assign      - Assign tasks to workers
+   mcp__gemini-flow__agent_communicate - Inter-agent communication
+   mcp__gemini-flow__agent_metrics     - Track worker performance
 
 4️⃣ **TASK ORCHESTRATION**
-   mcp__claude-flow__task_create       - Create hierarchical tasks
-   mcp__claude-flow__task_distribute   - Distribute work efficiently
-   mcp__claude-flow__task_monitor      - Track task progress
-   mcp__claude-flow__task_aggregate    - Combine task results
+   mcp__gemini-flow__task_create       - Create hierarchical tasks
+   mcp__gemini-flow__task_distribute   - Distribute work efficiently
+   mcp__gemini-flow__task_monitor      - Track task progress
+   mcp__gemini-flow__task_aggregate    - Combine task results
 
 5️⃣ **MEMORY & LEARNING**
-   mcp__claude-flow__memory_store      - Store collective knowledge
-   mcp__claude-flow__memory_retrieve   - Access shared memory
-   mcp__claude-flow__neural_train      - Learn from experiences
-   mcp__claude-flow__pattern_recognize - Identify patterns
+   mcp__gemini-flow__memory_store      - Store collective knowledge
+   mcp__gemini-flow__memory_retrieve   - Access shared memory
+   mcp__gemini-flow__neural_train      - Learn from experiences
+   mcp__gemini-flow__pattern_recognize - Identify patterns
 
 📋 HIVE MIND EXECUTION PROTOCOL:
 
@@ -56,13 +56,13 @@ As the Queen coordinator, you must:
 
 1. **INITIALIZE THE HIVE** (Single BatchTool Message):
    [BatchTool]:
-      mcp__claude-flow__agent_spawn { "type": "researcher", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "coder", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "analyst", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "tester", "count": 1 }
-   mcp__claude-flow__memory_store { "key": "hive/objective", "value": "CRITICAL MISSION: Transform this Gemini-Flow build into production-ready GitHub package. PHASE 1: Repackage package.json with proper bin configuration pointing to dist/cli/index.js, setup npm workspaces for monorepo architecture, configure publishConfig for future npm releases. PHASE 2: Deep clean - archive all .hive-mind, .swarm, .roo artifacts to tools/migration/legacy, convert .claude configs to .gemini equivalents, create comprehensive .gitignore, remove all generated cruft while preserving core architecture. PHASE 3: Security audit - scan ENTIRE codebase for API keys, tokens, .env files, hardcoded credentials, AWS secrets, Google Cloud keys, or ANY sensitive data using pattern matching and entropy detection. Generate security-audit.log with findings. PHASE 4: Git orchestration - initialize fresh git repo, create semantic commit history, setup branch protection rules as docs, then push to NEW repository github.com/clduab11/gemini-flow. Configure GitHub Actions workflows for CI/CD. Set repository description as 'AI orchestration platform for Gemini CLI - Adapted from Claude-Flow'. Add topics: ai, orchestration, gemini, cli, typescript. Make it PUBLIC and add MIT license. DO NOT transfer existing git history - start fresh." }
-   mcp__claude-flow__memory_store { "key": "hive/queen", "value": "strategic" }
-   mcp__claude-flow__swarm_think { "topic": "initial_strategy" }
+      mcp__gemini-flow__agent_spawn { "type": "researcher", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "coder", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "analyst", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "tester", "count": 1 }
+   mcp__gemini-flow__memory_store { "key": "hive/objective", "value": "CRITICAL MISSION: Transform this Gemini-Flow build into production-ready GitHub package. PHASE 1: Repackage package.json with proper bin configuration pointing to dist/cli/index.js, setup npm workspaces for monorepo architecture, configure publishConfig for future npm releases. PHASE 2: Deep clean - archive all .hive-mind, .swarm, .roo artifacts to tools/migration/legacy, convert .claude configs to .gemini equivalents, create comprehensive .gitignore, remove all generated cruft while preserving core architecture. PHASE 3: Security audit - scan ENTIRE codebase for API keys, tokens, .env files, hardcoded credentials, AWS secrets, Google Cloud keys, or ANY sensitive data using pattern matching and entropy detection. Generate security-audit.log with findings. PHASE 4: Git orchestration - initialize fresh git repo, create semantic commit history, setup branch protection rules as docs, then push to NEW repository github.com/clduab11/gemini-flow. Configure GitHub Actions workflows for CI/CD. Set repository description as 'AI orchestration platform for Gemini CLI - Adapted from Claude-Flow'. Add topics: ai, orchestration, gemini, cli, typescript. Make it PUBLIC and add MIT license. DO NOT transfer existing git history - start fresh." }
+   mcp__gemini-flow__memory_store { "key": "hive/queen", "value": "strategic" }
+   mcp__gemini-flow__swarm_think { "topic": "initial_strategy" }
    TodoWrite { "todos": [/* Create 5-10 high-level tasks */] }
 
 2. **ESTABLISH COLLECTIVE INTELLIGENCE**:

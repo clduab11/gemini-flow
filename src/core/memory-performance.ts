@@ -4,7 +4,7 @@ import { Logger } from '../../utils/logger.js';
 
 /**
  * @class MemoryPerformanceOptimizer
- * @description Achieves claude-flow parity performance for the memory system through optimization techniques.
+ * @description Achieves gemini-flow parity performance for the memory system through optimization techniques.
  */
 export class MemoryPerformanceOptimizer {
   private dbCore: SQLiteMemoryCore;

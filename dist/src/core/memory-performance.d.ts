@@ -2,7 +2,7 @@ import { SQLiteMemoryCore } from './sqlite-memory-core';
 import { MemoryIntelligence } from './memory-intelligence';
 /**
  * @class MemoryPerformanceOptimizer
- * @description Achieves claude-flow parity performance for the memory system through optimization techniques.
+ * @description Achieves gemini-flow parity performance for the memory system through optimization techniques.
  */
 export declare class MemoryPerformanceOptimizer {
     private dbCore;

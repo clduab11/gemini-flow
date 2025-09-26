@@ -454,23 +454,13 @@ export class GeminiAdapter extends BaseModelAdapter {
   /**
    * Calculate cost based on token usage (Google AI pricing model)
    */
-  private calculateCost(tokenCount: number): number {
-    if (!tokenCount || tokenCount <= 0) {
+  protected calculateCost(usage: { totalTokens: number }, costPerToken: number): number {
+    if (!usage?.totalTokens || usage.totalTokens <= 0) {
       return 0;
     }
 
-    // Google AI pricing: approximately $0.00025 per 1000 input tokens, $0.00125 per 1000 output tokens
-    // This is a simplified calculation - actual pricing may vary by model
-    const inputCostPerToken = 0.00000025; // $0.00025 per 1000 tokens
-    const outputCostPerToken = 0.00000125; // $0.00125 per 1000 tokens
-
-    // Assume roughly 50% input, 50% output tokens for estimation
-    const estimatedInputTokens = Math.floor(tokenCount * 0.5);
-    const estimatedOutputTokens = Math.floor(tokenCount * 0.5);
-
-    const inputCost = (estimatedInputTokens / 1000) * 0.00025;
-    const outputCost = (estimatedOutputTokens / 1000) * 0.00125;
-
-    return Math.round((inputCost + outputCost) * 1000000) / 1000000; // Round to 6 decimal places
+    // Use provided cost per token or fall back to Google AI pricing
+    const effectiveCostPerToken = costPerToken || 0.00000075; // Average between input/output costs
+    return usage.totalTokens * effectiveCostPerToken;
   }
 }

@@ -72,7 +72,19 @@ function setupProgram(): void {
     .option("--config <file>", "Use custom config file")
     .option("--profile <name>", "Use named configuration profile")
     .option("--protocols <list>", "Protocols to use (a2a,mcp)")
-    .option("--gemini", "Use Gemini AI integration (loads GEMINI.md context)")
+    .option("--gemini", "Enable Gemini CLI integration mode (prioritizes Gemini models and Google services)")
+    .hook("preAction", (thisCommand, actionCommand) => {
+      // Global --gemini flag handling
+      if (thisCommand.opts().gemini) {
+        process.env.GEMINI_CLI_MODE = "true";
+        process.env.PREFERRED_AI_PROVIDER = "gemini";
+        process.env.GOOGLE_SERVICES_PRIORITY = "high";
+        console.log(chalk.blue("🚀 Gemini CLI integration mode enabled"));
+        console.log(chalk.gray("   • Prioritizing Gemini models"));
+        console.log(chalk.gray("   • Google services integration active"));
+        console.log(chalk.gray("   • Loading GEMINI.md context if available"));
+      }
+    })
     .option("--json", "JSON output format");
 }
 

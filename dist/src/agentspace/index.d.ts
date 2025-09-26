@@ -7,7 +7,7 @@
  * - Enhanced Memory Architecture with Mem0 integration
  * - Byzantine Consensus for spatial coordination
  * - AgentSpaceManager with advanced resource allocation
- * - MCP Bridge for claude-flow tool integration
+ * - MCP Bridge for gemini-flow tool integration
  * - Streaming API integration for immersive experiences
  * - Security framework integration for secure collaboration
  */

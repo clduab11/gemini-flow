@@ -21,34 +21,34 @@ WORKER DISTRIBUTION:
 🔧 AVAILABLE MCP TOOLS FOR HIVE MIND COORDINATION:
 
 1️⃣ **COLLECTIVE INTELLIGENCE**
-   mcp__claude-flow__consensus_vote    - Democratic decision making
-   mcp__claude-flow__memory_share      - Share knowledge across the hive
-   mcp__claude-flow__neural_sync       - Synchronize neural patterns
-   mcp__claude-flow__swarm_think       - Collective problem solving
+   mcp__gemini-flow__consensus_vote    - Democratic decision making
+   mcp__gemini-flow__memory_share      - Share knowledge across the hive
+   mcp__gemini-flow__neural_sync       - Synchronize neural patterns
+   mcp__gemini-flow__swarm_think       - Collective problem solving
 
 2️⃣ **QUEEN COORDINATION**
-   mcp__claude-flow__queen_command     - Issue directives to workers
-   mcp__claude-flow__queen_monitor     - Monitor swarm health
-   mcp__claude-flow__queen_delegate    - Delegate complex tasks
-   mcp__claude-flow__queen_aggregate   - Aggregate worker results
+   mcp__gemini-flow__queen_command     - Issue directives to workers
+   mcp__gemini-flow__queen_monitor     - Monitor swarm health
+   mcp__gemini-flow__queen_delegate    - Delegate complex tasks
+   mcp__gemini-flow__queen_aggregate   - Aggregate worker results
 
 3️⃣ **WORKER MANAGEMENT**
-   mcp__claude-flow__agent_spawn       - Create specialized workers
-   mcp__claude-flow__agent_assign      - Assign tasks to workers
-   mcp__claude-flow__agent_communicate - Inter-agent communication
-   mcp__claude-flow__agent_metrics     - Track worker performance
+   mcp__gemini-flow__agent_spawn       - Create specialized workers
+   mcp__gemini-flow__agent_assign      - Assign tasks to workers
+   mcp__gemini-flow__agent_communicate - Inter-agent communication
+   mcp__gemini-flow__agent_metrics     - Track worker performance
 
 4️⃣ **TASK ORCHESTRATION**
-   mcp__claude-flow__task_create       - Create hierarchical tasks
-   mcp__claude-flow__task_distribute   - Distribute work efficiently
-   mcp__claude-flow__task_monitor      - Track task progress
-   mcp__claude-flow__task_aggregate    - Combine task results
+   mcp__gemini-flow__task_create       - Create hierarchical tasks
+   mcp__gemini-flow__task_distribute   - Distribute work efficiently
+   mcp__gemini-flow__task_monitor      - Track task progress
+   mcp__gemini-flow__task_aggregate    - Combine task results
 
 5️⃣ **MEMORY & LEARNING**
-   mcp__claude-flow__memory_store      - Store collective knowledge
-   mcp__claude-flow__memory_retrieve   - Access shared memory
-   mcp__claude-flow__neural_train      - Learn from experiences
-   mcp__claude-flow__pattern_recognize - Identify patterns
+   mcp__gemini-flow__memory_store      - Store collective knowledge
+   mcp__gemini-flow__memory_retrieve   - Access shared memory
+   mcp__gemini-flow__neural_train      - Learn from experiences
+   mcp__gemini-flow__pattern_recognize - Identify patterns
 
 📋 HIVE MIND EXECUTION PROTOCOL:
 
@@ -56,13 +56,13 @@ As the Queen coordinator, you must:
 
 1. **INITIALIZE THE HIVE** (Single BatchTool Message):
    [BatchTool]:
-      mcp__claude-flow__agent_spawn { "type": "researcher", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "coder", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "analyst", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "tester", "count": 1 }
-   mcp__claude-flow__memory_store { "key": "hive/objective", "value": "MISSION: Transform the validated multi-model orchestration architecture into production-ready gemini-flow CLI package. Build complete command-line interface mirroring claude-flow's capabilities but powered by Google's AI ecosystem. Target: npm-publishable package with full command parity - 'npx gemini-flow@latest' should work identically to claude-flow but orchestrate Gemini Pro/Ultra, DeepMind 2.5, and Jules.google workflows. Leverage the <75ms routing engine, 12x SQLite performance, and 4-tier Google authentication system already architected. Critical requirements: 1) Complete CLI implementation with all claude-flow commands (hive-mind spawn, swarm, agent spawn, sparc, etc.) 2) Model adapter layer for Gemini/Vertex AI integration 3) GitHub-centric Jules workflow automation 4) Production-ready npm package structure 5) Comprehensive testing for feature parity. Build on existing gemini-flow repo at github.com/clduab11/gemini-flow." }
-   mcp__claude-flow__memory_store { "key": "hive/queen", "value": "strategic" }
-   mcp__claude-flow__swarm_think { "topic": "initial_strategy" }
+      mcp__gemini-flow__agent_spawn { "type": "researcher", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "coder", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "analyst", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "tester", "count": 1 }
+   mcp__gemini-flow__memory_store { "key": "hive/objective", "value": "MISSION: Transform the validated multi-model orchestration architecture into production-ready gemini-flow CLI package. Build complete command-line interface mirroring claude-flow's capabilities but powered by Google's AI ecosystem. Target: npm-publishable package with full command parity - 'npx gemini-flow@latest' should work identically to claude-flow but orchestrate Gemini Pro/Ultra, DeepMind 2.5, and Jules.google workflows. Leverage the <75ms routing engine, 12x SQLite performance, and 4-tier Google authentication system already architected. Critical requirements: 1) Complete CLI implementation with all claude-flow commands (hive-mind spawn, swarm, agent spawn, sparc, etc.) 2) Model adapter layer for Gemini/Vertex AI integration 3) GitHub-centric Jules workflow automation 4) Production-ready npm package structure 5) Comprehensive testing for feature parity. Build on existing gemini-flow repo at github.com/clduab11/gemini-flow." }
+   mcp__gemini-flow__memory_store { "key": "hive/queen", "value": "strategic" }
+   mcp__gemini-flow__swarm_think { "topic": "initial_strategy" }
    TodoWrite { "todos": [/* Create 5-10 high-level tasks */] }
 
 2. **ESTABLISH COLLECTIVE INTELLIGENCE**:

@@ -26,7 +26,7 @@ export declare class GapAnalyzer implements GapAnalysisOperations {
     private logger;
     constructor(config: GapAnalysisConfig);
     /**
-     * Compares gemini-flow capabilities against claude-flow feature set.
+     * Compares gemini-flow capabilities against gemini-flow feature set.
      * @returns {Promise<any>} Analysis results including missing features.
      */
     analyzeFeatureParity(): Promise<any>;

@@ -78,7 +78,7 @@ CMD ["node", "dist/index.js"]
 LABEL org.opencontainers.image.title="Gemini Flow" \
       org.opencontainers.image.description="AI agent swarm coordination platform" \
       org.opencontainers.image.version="1.3.2" \
-      org.opencontainers.image.authors="Claude Code <claude@anthropic.com>" \
+      org.opencontainers.image.authors="Gemini Flow Contributors" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.source="https://github.com/clduab11/gemini-flow" \
       org.opencontainers.image.documentation="https://github.com/clduab11/gemini-flow#readme"

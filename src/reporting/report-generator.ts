@@ -78,7 +78,7 @@ export class ReportGenerator implements ReportGeneratorOperations {
     await fs.mkdir(this.config.outputDir, { recursive: true });
 
     const healthReportPath = path.join(this.config.outputDir, 'system-health.md');
-    const featureParityReportPath = path.join(this.config.outputDir, 'claude-flow-parity.md');
+    const featureParityReportPath = path.join(this.config.outputDir, 'gemini-flow-parity.md');
     const productionReadinessReportPath = path.join(this.config.outputDir, 'production-readiness.md');
 
     const healthReportContent = await this.generateSystemHealthReport();
@@ -105,7 +105,7 @@ export class ReportGenerator implements ReportGeneratorOperations {
   }
 
   /**
-   * Generates a Feature Parity Report with claude-flow.
+   * Generates a Feature Parity Report with gemini-flow.
    * @returns {Promise<string>} The content of the feature parity report.
    */
   public async generateFeatureParityReport(): Promise<string> {

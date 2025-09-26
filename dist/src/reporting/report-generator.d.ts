@@ -34,7 +34,7 @@ export declare class ReportGenerator implements ReportGeneratorOperations {
      */
     generateSystemHealthReport(): Promise<string>;
     /**
-     * Generates a Feature Parity Report with claude-flow.
+     * Generates a Feature Parity Report with gemini-flow.
      * @returns {Promise<string>} The content of the feature parity report.
      */
     generateFeatureParityReport(): Promise<string>;

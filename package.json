@@ -82,16 +82,16 @@
         "websockets",
         "streaming"
     ],
-    "author": "Claude Code <claude@anthropic.com>",
+    "author": "Gemini Flow Contributors",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/claude-ai/gemini-flow.git"
+        "url": "git+https://github.com/clduab11/gemini-flow.git"
     },
     "bugs": {
-        "url": "https://github.com/claude-ai/gemini-flow/issues"
+        "url": "https://github.com/clduab11/gemini-flow/issues"
     },
-    "homepage": "https://github.com/claude-ai/gemini-flow#readme",
+    "homepage": "https://github.com/clduab11/gemini-flow#readme",
     "dependencies": {
         "@google-cloud/aiplatform": "^5.5.0",
         "@google/generative-ai": "^0.24.1",
@@ -210,6 +210,6 @@
     ],
     "funding": {
         "type": "github",
-        "url": "https://github.com/sponsors/claude-ai"
+        "url": "https://github.com/sponsors/clduab11"
     }
 }

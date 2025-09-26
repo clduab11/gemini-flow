@@ -442,7 +442,7 @@ export class MCPGeminiBridgeImpl implements MCPGeminiBridge {
     // Discovery logic for available MCP tools
     const tools: MCPTool[] = [];
     
-    // Check for claude-flow tools
+    // Check for gemini-flow tools
     if (process.env.CLAUDE_FLOW_AVAILABLE) {
       tools.push(...await this.discoverClaudeFlowTools());
     }

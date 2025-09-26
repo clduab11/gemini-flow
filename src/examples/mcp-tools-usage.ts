@@ -25,14 +25,14 @@ export class MCPToolsExamples {
    */
   async initializeSwarm(): Promise<void> {
     // Type-safe swarm initialization
-    const swarmParams: MCPToolParameters<"mcp__claude-flow__swarm_init"> = {
+    const swarmParams: MCPToolParameters<"mcp__gemini-flow__swarm_init"> = {
       topology: "hierarchical",
       maxAgents: 8,
       strategy: "balanced",
     };
 
     const result = await this.adapter.callMCPTool(
-      "mcp__claude-flow__swarm_init",
+      "mcp__gemini-flow__swarm_init",
       swarmParams,
     );
 
@@ -48,18 +48,18 @@ export class MCPToolsExamples {
    */
   async spawnAgents(): Promise<void> {
     const agentTypes: Array<
-      MCPToolParameters<"mcp__claude-flow__agent_spawn">["type"]
+      MCPToolParameters<"mcp__gemini-flow__agent_spawn">["type"]
     > = ["coordinator", "researcher", "coder", "analyst", "tester"];
 
     for (const agentType of agentTypes) {
-      const agentParams: MCPToolParameters<"mcp__claude-flow__agent_spawn"> = {
+      const agentParams: MCPToolParameters<"mcp__gemini-flow__agent_spawn"> = {
         type: agentType,
         name: `${agentType}-agent`,
         capabilities: [`${agentType}-skills`, "collaboration"],
       };
 
       const result = await this.adapter.callMCPTool(
-        "mcp__claude-flow__agent_spawn",
+        "mcp__gemini-flow__agent_spawn",
         agentParams,
       );
 
@@ -75,7 +75,7 @@ export class MCPToolsExamples {
    * Example: Orchestrate complex tasks
    */
   async orchestrateTask(): Promise<void> {
-    const taskParams: MCPToolParameters<"mcp__claude-flow__task_orchestrate"> =
+    const taskParams: MCPToolParameters<"mcp__gemini-flow__task_orchestrate"> =
       {
         task: "Build a comprehensive REST API with authentication and testing",
         strategy: "parallel",
@@ -84,7 +84,7 @@ export class MCPToolsExamples {
       };
 
     const result = await this.adapter.callMCPTool(
-      "mcp__claude-flow__task_orchestrate",
+      "mcp__gemini-flow__task_orchestrate",
       taskParams,
     );
 
@@ -92,12 +92,12 @@ export class MCPToolsExamples {
       console.log("Task orchestration started:", result.data);
 
       // Check task status
-      const statusParams: MCPToolParameters<"mcp__claude-flow__task_status"> = {
+      const statusParams: MCPToolParameters<"mcp__gemini-flow__task_status"> = {
         taskId: result.data.taskId,
       };
 
       const statusResult = await this.adapter.callMCPTool(
-        "mcp__claude-flow__task_status",
+        "mcp__gemini-flow__task_status",
         statusParams,
       );
       console.log("Task status:", statusResult.data);
@@ -109,7 +109,7 @@ export class MCPToolsExamples {
    */
   async manageMemory(): Promise<void> {
     // Store data in memory
-    const storeParams: MCPToolParameters<"mcp__claude-flow__memory_usage"> = {
+    const storeParams: MCPToolParameters<"mcp__gemini-flow__memory_usage"> = {
       action: "store",
       key: "project-config",
       value: JSON.stringify({
@@ -122,12 +122,12 @@ export class MCPToolsExamples {
     };
 
     await this.adapter.callMCPTool(
-      "mcp__claude-flow__memory_usage",
+      "mcp__gemini-flow__memory_usage",
       storeParams,
     );
 
     // Retrieve data from memory
-    const retrieveParams: MCPToolParameters<"mcp__claude-flow__memory_usage"> =
+    const retrieveParams: MCPToolParameters<"mcp__gemini-flow__memory_usage"> =
       {
         action: "retrieve",
         key: "project-config",
@@ -135,7 +135,7 @@ export class MCPToolsExamples {
       };
 
     const result = await this.adapter.callMCPTool(
-      "mcp__claude-flow__memory_usage",
+      "mcp__gemini-flow__memory_usage",
       retrieveParams,
     );
 
@@ -149,7 +149,7 @@ export class MCPToolsExamples {
    * Example: Neural pattern training
    */
   async trainNeuralPatterns(): Promise<void> {
-    const trainingParams: MCPToolParameters<"mcp__claude-flow__neural_train"> =
+    const trainingParams: MCPToolParameters<"mcp__gemini-flow__neural_train"> =
       {
         pattern_type: "coordination",
         training_data: "Historical swarm coordination patterns and outcomes",
@@ -157,7 +157,7 @@ export class MCPToolsExamples {
       };
 
     const result = await this.adapter.callMCPTool(
-      "mcp__claude-flow__neural_train",
+      "mcp__gemini-flow__neural_train",
       trainingParams,
     );
 
@@ -166,7 +166,7 @@ export class MCPToolsExamples {
 
       // Check neural status
       const statusResult = await this.adapter.callMCPTool(
-        "mcp__claude-flow__neural_status",
+        "mcp__gemini-flow__neural_status",
         {},
       );
       console.log("Neural network status:", statusResult.data);
@@ -177,14 +177,14 @@ export class MCPToolsExamples {
    * Example: GitHub integration
    */
   async manageGitHubRepository(): Promise<void> {
-    const repoParams: MCPToolParameters<"mcp__claude-flow__github_repo_analyze"> =
+    const repoParams: MCPToolParameters<"mcp__gemini-flow__github_repo_analyze"> =
       {
         repo: "gemini-flow/gemini-flow",
         analysis_type: "code_quality",
       };
 
     const analysisResult = await this.adapter.callMCPTool(
-      "mcp__claude-flow__github_repo_analyze",
+      "mcp__gemini-flow__github_repo_analyze",
       repoParams,
     );
 
@@ -192,7 +192,7 @@ export class MCPToolsExamples {
       console.log("Repository analysis:", analysisResult.data);
 
       // Manage pull requests
-      const prParams: MCPToolParameters<"mcp__claude-flow__github_pr_manage"> =
+      const prParams: MCPToolParameters<"mcp__gemini-flow__github_pr_manage"> =
         {
           repo: "gemini-flow/gemini-flow",
           action: "review",
@@ -200,7 +200,7 @@ export class MCPToolsExamples {
         };
 
       const prResult = await this.adapter.callMCPTool(
-        "mcp__claude-flow__github_pr_manage",
+        "mcp__gemini-flow__github_pr_manage",
         prParams,
       );
       console.log("PR management result:", prResult.data);
@@ -263,13 +263,13 @@ export class MCPToolsExamples {
    */
   async monitorPerformance(): Promise<void> {
     // Run benchmarks
-    const benchmarkParams: MCPToolParameters<"mcp__claude-flow__benchmark_run"> =
+    const benchmarkParams: MCPToolParameters<"mcp__gemini-flow__benchmark_run"> =
       {
         suite: "comprehensive",
       };
 
     const benchmarkResult = await this.adapter.callMCPTool(
-      "mcp__claude-flow__benchmark_run",
+      "mcp__gemini-flow__benchmark_run",
       benchmarkParams,
     );
 
@@ -277,27 +277,27 @@ export class MCPToolsExamples {
       console.log("Benchmark results:", benchmarkResult.data);
 
       // Analyze bottlenecks
-      const bottleneckParams: MCPToolParameters<"mcp__claude-flow__bottleneck_analyze"> =
+      const bottleneckParams: MCPToolParameters<"mcp__gemini-flow__bottleneck_analyze"> =
         {
           component: "swarm-coordination",
           metrics: ["latency", "throughput", "error-rate"],
         };
 
       const bottleneckResult = await this.adapter.callMCPTool(
-        "mcp__claude-flow__bottleneck_analyze",
+        "mcp__gemini-flow__bottleneck_analyze",
         bottleneckParams,
       );
       console.log("Bottleneck analysis:", bottleneckResult.data);
 
       // Generate performance report
-      const reportParams: MCPToolParameters<"mcp__claude-flow__performance_report"> =
+      const reportParams: MCPToolParameters<"mcp__gemini-flow__performance_report"> =
         {
           format: "detailed",
           timeframe: "24h",
         };
 
       const reportResult = await this.adapter.callMCPTool(
-        "mcp__claude-flow__performance_report",
+        "mcp__gemini-flow__performance_report",
         reportParams,
       );
       console.log("Performance report:", reportResult.data);
@@ -309,7 +309,7 @@ export class MCPToolsExamples {
    */
   async automateWorkflow(): Promise<void> {
     // Create a custom workflow
-    const workflowParams: MCPToolParameters<"mcp__claude-flow__workflow_create"> =
+    const workflowParams: MCPToolParameters<"mcp__gemini-flow__workflow_create"> =
       {
         name: "Full-Stack Development Workflow",
         steps: [
@@ -342,7 +342,7 @@ export class MCPToolsExamples {
       };
 
     const workflowResult = await this.adapter.callMCPTool(
-      "mcp__claude-flow__workflow_create",
+      "mcp__gemini-flow__workflow_create",
       workflowParams,
     );
 
@@ -350,7 +350,7 @@ export class MCPToolsExamples {
       console.log("Workflow created:", workflowResult.data);
 
       // Execute the workflow
-      const executeParams: MCPToolParameters<"mcp__claude-flow__workflow_execute"> =
+      const executeParams: MCPToolParameters<"mcp__gemini-flow__workflow_execute"> =
         {
           workflowId: workflowResult.data.workflowId,
           params: {
@@ -360,7 +360,7 @@ export class MCPToolsExamples {
         };
 
       const executeResult = await this.adapter.callMCPTool(
-        "mcp__claude-flow__workflow_execute",
+        "mcp__gemini-flow__workflow_execute",
         executeParams,
       );
       console.log("Workflow execution started:", executeResult.data);

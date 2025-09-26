@@ -1,8 +1,33 @@
-# 🧠 GEMINI.md - Gemini Code Assist MCP Integration Hub
+# 🧠 GEMINI.md - Gemini CLI Integration & MCP Hub
 
-> **Version**: 3.0.0 | **Status**: Production Ready | **Updated**: September 13, 2025
+> **Version**: 3.1.0 | **Status**: Production Ready | **Updated**: January 2025
 > 
-> **Purpose**: Optimized documentation for Gemini Code Assist VS Code extension with advanced MCP integration capabilities
+> **Purpose**: Optimized for Gemini CLI integration and Google AI services orchestration
+
+## 🚀 NEW: Gemini CLI Integration Mode
+
+**Use `--gemini` flag for enhanced Google AI integration in all commands**
+
+### Quick Examples
+```bash
+# Enable Gemini CLI mode globally
+gemini-flow --gemini hive-mind spawn "Build AI application"
+
+# Gemini-powered agent coordination  
+gemini-flow agent spawn researcher --gemini
+
+# Google AI context loading
+gemini-flow --gemini task create "Deploy to GCP"
+```
+
+### Features Enabled with --gemini
+- ✅ **Google AI Priority**: Gemini models take precedence
+- ✅ **Vertex AI Integration**: Enterprise model deployment
+- ✅ **Google Workspace**: Native Docs/Sheets integration
+- ✅ **Context Loading**: Automatic GEMINI.md context loading
+- ✅ **GCP Services**: Seamless authentication & resources
+
+---
 
 ## 🚨 CRITICAL: Gemini Code Assist Context Optimization
 

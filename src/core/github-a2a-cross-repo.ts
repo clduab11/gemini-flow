@@ -152,9 +152,9 @@ export class GitHubA2ACrossRepo extends EventEmitter {
         security_level: "internal" as const,
       },
       {
-        id: "claude-flow",
-        name: "claude-flow",
-        full_name: "clduab11/claude-flow",
+        id: "gemini-flow",
+        name: "gemini-flow",
+        full_name: "clduab11/gemini-flow",
         owner: "clduab11",
         default_branch: "main",
         visibility: "public" as const,
