@@ -151,70 +151,70 @@ export interface PipelineStage {
 // MCP Tool Names (All 104 A2A-Enabled Tools)
 export type MCPToolName = 
   // Core Infrastructure (16 tools)
-  | 'mcp__claude-flow__swarm_init' | 'mcp__claude-flow__swarm_status' 
-  | 'mcp__claude-flow__swarm_monitor' | 'mcp__claude-flow__swarm_scale'
-  | 'mcp__claude-flow__swarm_destroy' | 'mcp__ruv-swarm__swarm_init'
+  | 'mcp__gemini-flow__swarm_init' | 'mcp__gemini-flow__swarm_status' 
+  | 'mcp__gemini-flow__swarm_monitor' | 'mcp__gemini-flow__swarm_scale'
+  | 'mcp__gemini-flow__swarm_destroy' | 'mcp__ruv-swarm__swarm_init'
   | 'mcp__ruv-swarm__swarm_status' | 'mcp__ruv-swarm__swarm_monitor'
-  | 'mcp__claude-flow__agent_spawn' | 'mcp__claude-flow__agent_list'
-  | 'mcp__claude-flow__agent_metrics' | 'mcp__ruv-swarm__agent_spawn'
+  | 'mcp__gemini-flow__agent_spawn' | 'mcp__gemini-flow__agent_list'
+  | 'mcp__gemini-flow__agent_metrics' | 'mcp__ruv-swarm__agent_spawn'
   | 'mcp__ruv-swarm__agent_list' | 'mcp__ruv-swarm__agent_metrics'
-  | 'mcp__claude-flow__topology_optimize' | 'mcp__claude-flow__coordination_sync'
+  | 'mcp__gemini-flow__topology_optimize' | 'mcp__gemini-flow__coordination_sync'
   // Task Orchestration (12 tools)
-  | 'mcp__claude-flow__task_orchestrate' | 'mcp__claude-flow__task_status'
-  | 'mcp__claude-flow__task_results' | 'mcp__ruv-swarm__task_orchestrate'
+  | 'mcp__gemini-flow__task_orchestrate' | 'mcp__gemini-flow__task_status'
+  | 'mcp__gemini-flow__task_results' | 'mcp__ruv-swarm__task_orchestrate'
   | 'mcp__ruv-swarm__task_status' | 'mcp__ruv-swarm__task_results'
-  | 'mcp__claude-flow__parallel_execute' | 'mcp__claude-flow__batch_process'
-  | 'mcp__claude-flow__load_balance' | 'mcp__claude-flow__workflow_create'
-  | 'mcp__claude-flow__workflow_execute' | 'mcp__claude-flow__workflow_export'
+  | 'mcp__gemini-flow__parallel_execute' | 'mcp__gemini-flow__batch_process'
+  | 'mcp__gemini-flow__load_balance' | 'mcp__gemini-flow__workflow_create'
+  | 'mcp__gemini-flow__workflow_execute' | 'mcp__gemini-flow__workflow_export'
   // Memory & State Management (14 tools)
-  | 'mcp__claude-flow__memory_usage' | 'mcp__claude-flow__memory_search'
-  | 'mcp__claude-flow__memory_persist' | 'mcp__claude-flow__memory_namespace'
-  | 'mcp__claude-flow__memory_backup' | 'mcp__claude-flow__memory_restore'
-  | 'mcp__claude-flow__memory_compress' | 'mcp__claude-flow__memory_sync'
-  | 'mcp__claude-flow__memory_analytics' | 'mcp__ruv-swarm__memory_usage'
-  | 'mcp__claude-flow__state_snapshot' | 'mcp__claude-flow__context_restore'
-  | 'mcp__claude-flow__cache_manage' | 'mcp__claude-flow__config_manage'
+  | 'mcp__gemini-flow__memory_usage' | 'mcp__gemini-flow__memory_search'
+  | 'mcp__gemini-flow__memory_persist' | 'mcp__gemini-flow__memory_namespace'
+  | 'mcp__gemini-flow__memory_backup' | 'mcp__gemini-flow__memory_restore'
+  | 'mcp__gemini-flow__memory_compress' | 'mcp__gemini-flow__memory_sync'
+  | 'mcp__gemini-flow__memory_analytics' | 'mcp__ruv-swarm__memory_usage'
+  | 'mcp__gemini-flow__state_snapshot' | 'mcp__gemini-flow__context_restore'
+  | 'mcp__gemini-flow__cache_manage' | 'mcp__gemini-flow__config_manage'
   // Neural & AI Operations (16 tools)
-  | 'mcp__claude-flow__neural_status' | 'mcp__claude-flow__neural_train'
-  | 'mcp__claude-flow__neural_patterns' | 'mcp__claude-flow__neural_predict'
-  | 'mcp__claude-flow__neural_compress' | 'mcp__claude-flow__neural_explain'
+  | 'mcp__gemini-flow__neural_status' | 'mcp__gemini-flow__neural_train'
+  | 'mcp__gemini-flow__neural_patterns' | 'mcp__gemini-flow__neural_predict'
+  | 'mcp__gemini-flow__neural_compress' | 'mcp__gemini-flow__neural_explain'
   | 'mcp__ruv-swarm__neural_status' | 'mcp__ruv-swarm__neural_train'
-  | 'mcp__ruv-swarm__neural_patterns' | 'mcp__claude-flow__model_load'
-  | 'mcp__claude-flow__model_save' | 'mcp__claude-flow__inference_run'
-  | 'mcp__claude-flow__pattern_recognize' | 'mcp__claude-flow__cognitive_analyze'
-  | 'mcp__claude-flow__learning_adapt' | 'mcp__claude-flow__ensemble_create'
-  | 'mcp__claude-flow__transfer_learn'
+  | 'mcp__ruv-swarm__neural_patterns' | 'mcp__gemini-flow__model_load'
+  | 'mcp__gemini-flow__model_save' | 'mcp__gemini-flow__inference_run'
+  | 'mcp__gemini-flow__pattern_recognize' | 'mcp__gemini-flow__cognitive_analyze'
+  | 'mcp__gemini-flow__learning_adapt' | 'mcp__gemini-flow__ensemble_create'
+  | 'mcp__gemini-flow__transfer_learn'
   // DAA Systems (15 tools)
-  | 'mcp__claude-flow__daa_agent_create' | 'mcp__claude-flow__daa_capability_match'
-  | 'mcp__claude-flow__daa_resource_alloc' | 'mcp__claude-flow__daa_lifecycle_manage'
-  | 'mcp__claude-flow__daa_communication' | 'mcp__claude-flow__daa_consensus'
-  | 'mcp__claude-flow__daa_fault_tolerance' | 'mcp__claude-flow__daa_optimization'
+  | 'mcp__gemini-flow__daa_agent_create' | 'mcp__gemini-flow__daa_capability_match'
+  | 'mcp__gemini-flow__daa_resource_alloc' | 'mcp__gemini-flow__daa_lifecycle_manage'
+  | 'mcp__gemini-flow__daa_communication' | 'mcp__gemini-flow__daa_consensus'
+  | 'mcp__gemini-flow__daa_fault_tolerance' | 'mcp__gemini-flow__daa_optimization'
   | 'mcp__ruv-swarm__daa_init' | 'mcp__ruv-swarm__daa_agent_create'
   | 'mcp__ruv-swarm__daa_agent_adapt' | 'mcp__ruv-swarm__daa_workflow_create'
   | 'mcp__ruv-swarm__daa_workflow_execute' | 'mcp__ruv-swarm__daa_knowledge_share'
   | 'mcp__ruv-swarm__daa_learning_status' | 'mcp__ruv-swarm__daa_cognitive_pattern'
   | 'mcp__ruv-swarm__daa_meta_learning' | 'mcp__ruv-swarm__daa_performance_metrics'
   // Performance & Analytics (12 tools)
-  | 'mcp__claude-flow__performance_report' | 'mcp__claude-flow__bottleneck_analyze'
-  | 'mcp__claude-flow__token_usage' | 'mcp__claude-flow__benchmark_run'
-  | 'mcp__claude-flow__metrics_collect' | 'mcp__claude-flow__trend_analysis'
-  | 'mcp__ruv-swarm__benchmark_run' | 'mcp__claude-flow__cost_analysis'
-  | 'mcp__claude-flow__quality_assess' | 'mcp__claude-flow__error_analysis'
-  | 'mcp__claude-flow__usage_stats' | 'mcp__claude-flow__health_check'
+  | 'mcp__gemini-flow__performance_report' | 'mcp__gemini-flow__bottleneck_analyze'
+  | 'mcp__gemini-flow__token_usage' | 'mcp__gemini-flow__benchmark_run'
+  | 'mcp__gemini-flow__metrics_collect' | 'mcp__gemini-flow__trend_analysis'
+  | 'mcp__ruv-swarm__benchmark_run' | 'mcp__gemini-flow__cost_analysis'
+  | 'mcp__gemini-flow__quality_assess' | 'mcp__gemini-flow__error_analysis'
+  | 'mcp__gemini-flow__usage_stats' | 'mcp__gemini-flow__health_check'
   // GitHub Integration (8 tools)
-  | 'mcp__claude-flow__github_repo_analyze' | 'mcp__claude-flow__github_metrics'
-  | 'mcp__claude-flow__github_pr_manage' | 'mcp__claude-flow__github_code_review'
-  | 'mcp__claude-flow__github_issue_track' | 'mcp__claude-flow__github_release_coord'
-  | 'mcp__claude-flow__github_workflow_auto' | 'mcp__claude-flow__github_sync_coord'
+  | 'mcp__gemini-flow__github_repo_analyze' | 'mcp__gemini-flow__github_metrics'
+  | 'mcp__gemini-flow__github_pr_manage' | 'mcp__gemini-flow__github_code_review'
+  | 'mcp__gemini-flow__github_issue_track' | 'mcp__gemini-flow__github_release_coord'
+  | 'mcp__gemini-flow__github_workflow_auto' | 'mcp__gemini-flow__github_sync_coord'
   // Workflow & Automation (6 tools)
-  | 'mcp__claude-flow__automation_setup' | 'mcp__claude-flow__pipeline_create'
-  | 'mcp__claude-flow__scheduler_manage' | 'mcp__claude-flow__trigger_setup'
-  | 'mcp__claude-flow__workflow_template' | 'mcp__claude-flow__sparc_mode'
+  | 'mcp__gemini-flow__automation_setup' | 'mcp__gemini-flow__pipeline_create'
+  | 'mcp__gemini-flow__scheduler_manage' | 'mcp__gemini-flow__trigger_setup'
+  | 'mcp__gemini-flow__workflow_template' | 'mcp__gemini-flow__sparc_mode'
   // System Infrastructure (11 tools)
-  | 'mcp__claude-flow__terminal_execute' | 'mcp__claude-flow__features_detect'
-  | 'mcp__claude-flow__security_scan' | 'mcp__claude-flow__backup_create'
-  | 'mcp__claude-flow__restore_system' | 'mcp__claude-flow__log_analysis'
-  | 'mcp__claude-flow__diagnostic_run' | 'mcp__claude-flow__wasm_optimize'
+  | 'mcp__gemini-flow__terminal_execute' | 'mcp__gemini-flow__features_detect'
+  | 'mcp__gemini-flow__security_scan' | 'mcp__gemini-flow__backup_create'
+  | 'mcp__gemini-flow__restore_system' | 'mcp__gemini-flow__log_analysis'
+  | 'mcp__gemini-flow__diagnostic_run' | 'mcp__gemini-flow__wasm_optimize'
   | 'mcp__ruv-swarm__features_detect';
 
 // Message Types
@@ -537,7 +537,7 @@ export class A2AClient extends EventEmitter {
 
   // Swarm Management
   async initializeSwarm(config: {
-    provider: 'claude-flow' | 'ruv-swarm';
+    provider: 'gemini-flow' | 'ruv-swarm';
     topology: 'hierarchical' | 'mesh' | 'ring' | 'star';
     maxAgents: number;
     strategy: 'parallel' | 'sequential' | 'adaptive' | 'balanced';
@@ -548,8 +548,8 @@ export class A2AClient extends EventEmitter {
         type: 'group',
         role: 'coordinator'
       },
-      toolName: config.provider === 'claude-flow' 
-        ? 'mcp__claude-flow__swarm_init' 
+      toolName: config.provider === 'gemini-flow' 
+        ? 'mcp__gemini-flow__swarm_init' 
         : 'mcp__ruv-swarm__swarm_init',
       parameters: config,
       coordination: {
@@ -577,7 +577,7 @@ export class A2AClient extends EventEmitter {
         maxAgents: 1,
         selectionStrategy: 'load-balanced'
       },
-      toolName: 'mcp__claude-flow__agent_spawn',
+      toolName: 'mcp__gemini-flow__agent_spawn',
       parameters: config,
       coordination: {
         mode: 'consensus',
@@ -614,7 +614,7 @@ export class A2AClient extends EventEmitter {
         role: 'task-orchestrator',
         maxAgents: config.maxAgents || 3
       },
-      toolName: 'mcp__claude-flow__task_orchestrate',
+      toolName: 'mcp__gemini-flow__task_orchestrate',
       parameters: config,
       coordination,
       priority: config.priority || 'medium'
@@ -639,7 +639,7 @@ export class A2AClient extends EventEmitter {
         role: 'memory-manager',
         maxAgents: config.replication?.factor || 3
       },
-      toolName: 'mcp__claude-flow__memory_usage',
+      toolName: 'mcp__gemini-flow__memory_usage',
       parameters: {
         action: 'store',
         ...config
@@ -669,7 +669,7 @@ export class A2AClient extends EventEmitter {
         role: 'memory-manager',
         maxAgents: config.consistency === 'strong' ? 3 : 1
       },
-      toolName: 'mcp__claude-flow__memory_usage',
+      toolName: 'mcp__gemini-flow__memory_usage',
       parameters: {
         action: 'retrieve',
         ...config
@@ -716,7 +716,7 @@ export class A2AClient extends EventEmitter {
         agentIds: config.participants.map(p => p.agentId),
         coordinationMode: 'parallel'
       },
-      toolName: 'mcp__claude-flow__neural_train',
+      toolName: 'mcp__gemini-flow__neural_train',
       parameters: config,
       coordination: {
         mode: 'pipeline',
@@ -727,7 +727,7 @@ export class A2AClient extends EventEmitter {
               type: 'single',
               agentId: config.participants.find(p => p.role === 'coordinator')?.agentId || config.participants[0].agentId
             },
-            toolName: 'mcp__claude-flow__neural_train'
+            toolName: 'mcp__gemini-flow__neural_train'
           },
           {
             name: 'distributed-training',
@@ -736,7 +736,7 @@ export class A2AClient extends EventEmitter {
               agentIds: config.participants.filter(p => p.role === 'worker').map(p => p.agentId),
               coordinationMode: 'parallel'
             },
-            toolName: 'mcp__claude-flow__neural_train'
+            toolName: 'mcp__gemini-flow__neural_train'
           }
         ],
         failureStrategy: 'retry'
@@ -799,7 +799,7 @@ export class A2AClient extends EventEmitter {
         capabilities: ['github', config.analysisType],
         maxAgents: config.coordination?.maxAnalyzers || 3
       },
-      toolName: 'mcp__claude-flow__github_repo_analyze',
+      toolName: 'mcp__gemini-flow__github_repo_analyze',
       parameters: config,
       coordination: {
         mode: 'broadcast',
@@ -821,7 +821,7 @@ export class A2AClient extends EventEmitter {
         role: 'performance-monitor',
         maxAgents: 1
       },
-      toolName: 'mcp__claude-flow__performance_report',
+      toolName: 'mcp__gemini-flow__performance_report',
       parameters: config,
       coordination: {
         mode: 'direct'
@@ -839,7 +839,7 @@ export class A2AClient extends EventEmitter {
         type: 'group',
         role: 'coordinator'
       },
-      toolName: 'mcp__claude-flow__swarm_status',
+      toolName: 'mcp__gemini-flow__swarm_status',
       parameters: { swarmId },
       coordination: {
         mode: 'broadcast',
@@ -854,7 +854,7 @@ export class A2AClient extends EventEmitter {
         type: 'broadcast',
         filter
       },
-      toolName: 'mcp__claude-flow__agent_list',
+      toolName: 'mcp__gemini-flow__agent_list',
       parameters: { filter },
       coordination: {
         mode: 'broadcast',

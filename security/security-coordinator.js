@@ -197,9 +197,9 @@ class SecurityCoordinator {
    */
   async storeSecurityConsensus(username) {
     try {
-      // Use claude-flow hooks to store consensus
+      // Use gemini-flow hooks to store consensus
       const hookCommand = spawn('npx', [
-        'claude-flow@alpha', 'hooks', 'notify',
+        'gemini-flow@alpha', 'hooks', 'notify',
         '--message', `Security consensus achieved: NPM authenticated as ${username}`,
         '--telemetry', 'true'
       ], { stdio: 'inherit' });

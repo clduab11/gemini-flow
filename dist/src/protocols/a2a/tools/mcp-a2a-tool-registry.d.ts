@@ -11,7 +11,7 @@ import { CapabilityManager } from "./capability-manager.js";
 import { ToolTransformationEngine, TransformationRule } from "./tool-transformation-engine.js";
 export interface MCPToolRegistration {
     toolName: MCPToolName;
-    mcpProvider: "ruv-swarm" | "claude-flow";
+    mcpProvider: "ruv-swarm" | "gemini-flow";
     category: string;
     description: string;
     parameters: any;
@@ -76,7 +76,7 @@ export declare class MCPToolRegistry {
     /**
      * List all registered tools
      */
-    listTools(category?: string, provider?: "ruv-swarm" | "claude-flow"): MCPToolRegistration[];
+    listTools(category?: string, provider?: "ruv-swarm" | "gemini-flow"): MCPToolRegistration[];
     /**
      * Get tools by category
      */

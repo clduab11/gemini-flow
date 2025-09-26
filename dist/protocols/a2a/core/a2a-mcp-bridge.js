@@ -319,7 +319,7 @@ export class A2AMCPBridge extends EventEmitter {
     registerDefaultMappings() {
         // Claude Flow mappings
         this.registerMapping({
-            mcpMethod: "mcp__claude-flow__neural_status",
+            mcpMethod: "mcp__gemini-flow__neural_status",
             a2aMethod: "neural.status",
             parameterMapping: [{ mcpParam: "modelId", a2aParam: "modelId" }],
             responseMapping: [
@@ -328,7 +328,7 @@ export class A2AMCPBridge extends EventEmitter {
             ],
         });
         this.registerMapping({
-            mcpMethod: "mcp__claude-flow__task_orchestrate",
+            mcpMethod: "mcp__gemini-flow__task_orchestrate",
             a2aMethod: "task.orchestrate",
             parameterMapping: [
                 { mcpParam: "task", a2aParam: "taskDescription" },

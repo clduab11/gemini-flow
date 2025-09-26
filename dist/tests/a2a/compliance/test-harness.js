@@ -506,7 +506,7 @@ export class A2ATestDataBuilder {
                 type: 'single',
                 agentId: 'test-agent-target'
             },
-            toolName: 'mcp__claude-flow__agent_spawn',
+            toolName: 'mcp__gemini-flow__agent_spawn',
             parameters: { test: true },
             execution: {
                 timeout: 5000,
@@ -538,7 +538,7 @@ export class A2ATestDataBuilder {
     /**
      * Create test agent
      */
-    static createAgent(id = `agent-${Date.now()}`, role = 'tester', capabilities = ['test'], tools = ['mcp__claude-flow__agent_spawn']) {
+    static createAgent(id = `agent-${Date.now()}`, role = 'tester', capabilities = ['test'], tools = ['mcp__gemini-flow__agent_spawn']) {
         return new MockAgent(id, role, capabilities, tools);
     }
     /**
@@ -547,7 +547,7 @@ export class A2ATestDataBuilder {
     static createMessageBus(agentCount = 3) {
         const bus = new MockA2AMessageBus();
         for (let i = 0; i < agentCount; i++) {
-            const agent = this.createAgent(`test-agent-${i}`, i === 0 ? 'coordinator' : 'worker', ['test', 'spawn', 'execute'], ['mcp__claude-flow__agent_spawn', 'mcp__claude-flow__task_orchestrate']);
+            const agent = this.createAgent(`test-agent-${i}`, i === 0 ? 'coordinator' : 'worker', ['test', 'spawn', 'execute'], ['mcp__gemini-flow__agent_spawn', 'mcp__gemini-flow__task_orchestrate']);
             bus.registerAgent(agent);
         }
         return bus;

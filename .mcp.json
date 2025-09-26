@@ -1,9 +1,9 @@
 {
   "mcpServers": {
-    "claude-flow": {
+    "gemini-flow": {
       "command": "npx",
       "args": [
-        "claude-flow@latest",
+        "gemini-flow@latest",
         "mcp",
         "start"
       ],

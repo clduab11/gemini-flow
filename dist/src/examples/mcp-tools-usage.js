@@ -18,7 +18,7 @@ export class MCPToolsExamples {
             maxAgents: 8,
             strategy: "balanced",
         };
-        const result = await this.adapter.callMCPTool("mcp__claude-flow__swarm_init", swarmParams);
+        const result = await this.adapter.callMCPTool("mcp__gemini-flow__swarm_init", swarmParams);
         if (result.success) {
             console.log("Swarm initialized successfully:", result.data);
         }
@@ -37,7 +37,7 @@ export class MCPToolsExamples {
                 name: `${agentType}-agent`,
                 capabilities: [`${agentType}-skills`, "collaboration"],
             };
-            const result = await this.adapter.callMCPTool("mcp__claude-flow__agent_spawn", agentParams);
+            const result = await this.adapter.callMCPTool("mcp__gemini-flow__agent_spawn", agentParams);
             if (result.success) {
                 console.log(`${agentType} agent spawned:`, result.data);
             }
@@ -56,14 +56,14 @@ export class MCPToolsExamples {
             priority: "high",
             dependencies: ["database-setup", "environment-config"],
         };
-        const result = await this.adapter.callMCPTool("mcp__claude-flow__task_orchestrate", taskParams);
+        const result = await this.adapter.callMCPTool("mcp__gemini-flow__task_orchestrate", taskParams);
         if (result.success) {
             console.log("Task orchestration started:", result.data);
             // Check task status
             const statusParams = {
                 taskId: result.data.taskId,
             };
-            const statusResult = await this.adapter.callMCPTool("mcp__claude-flow__task_status", statusParams);
+            const statusResult = await this.adapter.callMCPTool("mcp__gemini-flow__task_status", statusParams);
             console.log("Task status:", statusResult.data);
         }
     }
@@ -83,14 +83,14 @@ export class MCPToolsExamples {
             namespace: "project",
             ttl: 3600, // 1 hour
         };
-        await this.adapter.callMCPTool("mcp__claude-flow__memory_usage", storeParams);
+        await this.adapter.callMCPTool("mcp__gemini-flow__memory_usage", storeParams);
         // Retrieve data from memory
         const retrieveParams = {
             action: "retrieve",
             key: "project-config",
             namespace: "project",
         };
-        const result = await this.adapter.callMCPTool("mcp__claude-flow__memory_usage", retrieveParams);
+        const result = await this.adapter.callMCPTool("mcp__gemini-flow__memory_usage", retrieveParams);
         if (result.success && result.data) {
             const projectConfig = JSON.parse(result.data.value);
             console.log("Retrieved project config:", projectConfig);
@@ -105,11 +105,11 @@ export class MCPToolsExamples {
             training_data: "Historical swarm coordination patterns and outcomes",
             epochs: 50,
         };
-        const result = await this.adapter.callMCPTool("mcp__claude-flow__neural_train", trainingParams);
+        const result = await this.adapter.callMCPTool("mcp__gemini-flow__neural_train", trainingParams);
         if (result.success) {
             console.log("Neural training completed:", result.data);
             // Check neural status
-            const statusResult = await this.adapter.callMCPTool("mcp__claude-flow__neural_status", {});
+            const statusResult = await this.adapter.callMCPTool("mcp__gemini-flow__neural_status", {});
             console.log("Neural network status:", statusResult.data);
         }
     }
@@ -121,7 +121,7 @@ export class MCPToolsExamples {
             repo: "gemini-flow/gemini-flow",
             analysis_type: "code_quality",
         };
-        const analysisResult = await this.adapter.callMCPTool("mcp__claude-flow__github_repo_analyze", repoParams);
+        const analysisResult = await this.adapter.callMCPTool("mcp__gemini-flow__github_repo_analyze", repoParams);
         if (analysisResult.success) {
             console.log("Repository analysis:", analysisResult.data);
             // Manage pull requests
@@ -130,7 +130,7 @@ export class MCPToolsExamples {
                 action: "review",
                 pr_number: 123,
             };
-            const prResult = await this.adapter.callMCPTool("mcp__claude-flow__github_pr_manage", prParams);
+            const prResult = await this.adapter.callMCPTool("mcp__gemini-flow__github_pr_manage", prParams);
             console.log("PR management result:", prResult.data);
         }
     }
@@ -177,7 +177,7 @@ export class MCPToolsExamples {
         const benchmarkParams = {
             suite: "comprehensive",
         };
-        const benchmarkResult = await this.adapter.callMCPTool("mcp__claude-flow__benchmark_run", benchmarkParams);
+        const benchmarkResult = await this.adapter.callMCPTool("mcp__gemini-flow__benchmark_run", benchmarkParams);
         if (benchmarkResult.success) {
             console.log("Benchmark results:", benchmarkResult.data);
             // Analyze bottlenecks
@@ -185,14 +185,14 @@ export class MCPToolsExamples {
                 component: "swarm-coordination",
                 metrics: ["latency", "throughput", "error-rate"],
             };
-            const bottleneckResult = await this.adapter.callMCPTool("mcp__claude-flow__bottleneck_analyze", bottleneckParams);
+            const bottleneckResult = await this.adapter.callMCPTool("mcp__gemini-flow__bottleneck_analyze", bottleneckParams);
             console.log("Bottleneck analysis:", bottleneckResult.data);
             // Generate performance report
             const reportParams = {
                 format: "detailed",
                 timeframe: "24h",
             };
-            const reportResult = await this.adapter.callMCPTool("mcp__claude-flow__performance_report", reportParams);
+            const reportResult = await this.adapter.callMCPTool("mcp__gemini-flow__performance_report", reportParams);
             console.log("Performance report:", reportResult.data);
         }
     }
@@ -231,7 +231,7 @@ export class MCPToolsExamples {
                 { event: "schedule", cron: "0 9 * * 1" }, // Every Monday at 9 AM
             ],
         };
-        const workflowResult = await this.adapter.callMCPTool("mcp__claude-flow__workflow_create", workflowParams);
+        const workflowResult = await this.adapter.callMCPTool("mcp__gemini-flow__workflow_create", workflowParams);
         if (workflowResult.success) {
             console.log("Workflow created:", workflowResult.data);
             // Execute the workflow
@@ -242,7 +242,7 @@ export class MCPToolsExamples {
                     environment: "production",
                 },
             };
-            const executeResult = await this.adapter.callMCPTool("mcp__claude-flow__workflow_execute", executeParams);
+            const executeResult = await this.adapter.callMCPTool("mcp__gemini-flow__workflow_execute", executeParams);
             console.log("Workflow execution started:", executeResult.data);
         }
     }
