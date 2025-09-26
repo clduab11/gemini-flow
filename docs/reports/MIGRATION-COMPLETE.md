@@ -31,9 +31,9 @@
 
 ### ✅ Step 4: Cruft Removal - COMPLETED
 **Successfully removed:**
-- `claude-flow` executable files
-- `claude-flow.bat` and `claude-flow.ps1` scripts
-- `claude-flow.config.json` configuration
+- `gemini-flow` executable files
+- `gemini-flow.bat` and `gemini-flow.ps1` scripts
+- `gemini-flow.config.json` configuration
 - Legacy session files and memory databases
 - Temporary build artifacts
 
@@ -76,7 +76,7 @@ tools/migration/legacy/ (archived artifacts)
 ```
 
 ### Files Removed
-- `claude-flow*` executables and scripts
+- `gemini-flow*` executables and scripts
 - Legacy memory databases (*.db, *.db-shm, *.db-wal)
 - Temporary session files
 - Obsolete configuration files

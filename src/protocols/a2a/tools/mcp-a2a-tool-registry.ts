@@ -27,7 +27,7 @@ import {
 
 export interface MCPToolRegistration {
   toolName: MCPToolName;
-  mcpProvider: "ruv-swarm" | "claude-flow";
+  mcpProvider: "ruv-swarm" | "gemini-flow";
   category: string;
   description: string;
   parameters: any;
@@ -209,7 +209,7 @@ export class MCPToolRegistry {
    */
   listTools(
     category?: string,
-    provider?: "ruv-swarm" | "claude-flow",
+    provider?: "ruv-swarm" | "gemini-flow",
   ): MCPToolRegistration[] {
     const tools = Array.from(this.registrations.values());
 
@@ -705,31 +705,31 @@ export class MCPToolRegistry {
     }> = [
       // Swarm Management
       {
-        name: "mcp__claude-flow__swarm_init",
+        name: "mcp__gemini-flow__swarm_init",
         category: "swarm-management",
         description: "Initialize swarm with configuration",
         tags: ["swarm", "init", "config"],
       },
       {
-        name: "mcp__claude-flow__swarm_status",
+        name: "mcp__gemini-flow__swarm_status",
         category: "swarm-management",
         description: "Check swarm health and performance",
         tags: ["swarm", "status", "health"],
       },
       {
-        name: "mcp__claude-flow__swarm_monitor",
+        name: "mcp__gemini-flow__swarm_monitor",
         category: "swarm-management",
         description: "Real-time swarm monitoring",
         tags: ["swarm", "monitor", "realtime"],
       },
       {
-        name: "mcp__claude-flow__swarm_scale",
+        name: "mcp__gemini-flow__swarm_scale",
         category: "swarm-management",
         description: "Auto-scale agent count",
         tags: ["swarm", "scale", "auto"],
       },
       {
-        name: "mcp__claude-flow__swarm_destroy",
+        name: "mcp__gemini-flow__swarm_destroy",
         category: "swarm-management",
         description: "Gracefully shutdown swarm",
         tags: ["swarm", "destroy", "shutdown"],
@@ -737,19 +737,19 @@ export class MCPToolRegistry {
 
       // Agent Management
       {
-        name: "mcp__claude-flow__agent_spawn",
+        name: "mcp__gemini-flow__agent_spawn",
         category: "agent-lifecycle",
         description: "Create specialized AI agents",
         tags: ["agent", "spawn", "specialized"],
       },
       {
-        name: "mcp__claude-flow__agent_list",
+        name: "mcp__gemini-flow__agent_list",
         category: "agent-lifecycle",
         description: "List active agents & capabilities",
         tags: ["agent", "list", "capabilities"],
       },
       {
-        name: "mcp__claude-flow__agent_metrics",
+        name: "mcp__gemini-flow__agent_metrics",
         category: "performance-monitoring",
         description: "Agent performance metrics",
         tags: ["agent", "metrics", "performance"],
@@ -757,19 +757,19 @@ export class MCPToolRegistry {
 
       // Task Orchestration
       {
-        name: "mcp__claude-flow__task_orchestrate",
+        name: "mcp__gemini-flow__task_orchestrate",
         category: "task-orchestration",
         description: "Orchestrate complex workflows",
         tags: ["task", "orchestrate", "complex"],
       },
       {
-        name: "mcp__claude-flow__task_status",
+        name: "mcp__gemini-flow__task_status",
         category: "task-orchestration",
         description: "Check task execution status",
         tags: ["task", "status", "execution"],
       },
       {
-        name: "mcp__claude-flow__task_results",
+        name: "mcp__gemini-flow__task_results",
         category: "task-orchestration",
         description: "Get task completion results",
         tags: ["task", "results", "completion"],
@@ -777,37 +777,37 @@ export class MCPToolRegistry {
 
       // Neural & AI
       {
-        name: "mcp__claude-flow__neural_status",
+        name: "mcp__gemini-flow__neural_status",
         category: "neural-ai",
         description: "Check neural network status",
         tags: ["neural", "status", "network"],
       },
       {
-        name: "mcp__claude-flow__neural_train",
+        name: "mcp__gemini-flow__neural_train",
         category: "neural-ai",
         description: "Train neural patterns with WASM",
         tags: ["neural", "train", "wasm"],
       },
       {
-        name: "mcp__claude-flow__neural_patterns",
+        name: "mcp__gemini-flow__neural_patterns",
         category: "neural-ai",
         description: "Analyze cognitive patterns",
         tags: ["neural", "patterns", "analyze"],
       },
       {
-        name: "mcp__claude-flow__neural_predict",
+        name: "mcp__gemini-flow__neural_predict",
         category: "neural-ai",
         description: "Make AI predictions",
         tags: ["neural", "predict", "ai"],
       },
       {
-        name: "mcp__claude-flow__neural_compress",
+        name: "mcp__gemini-flow__neural_compress",
         category: "neural-ai",
         description: "Compress neural models",
         tags: ["neural", "compress", "optimize"],
       },
       {
-        name: "mcp__claude-flow__neural_explain",
+        name: "mcp__gemini-flow__neural_explain",
         category: "neural-ai",
         description: "AI explainability",
         tags: ["neural", "explain", "transparency"],
@@ -815,55 +815,55 @@ export class MCPToolRegistry {
 
       // Memory Management
       {
-        name: "mcp__claude-flow__memory_usage",
+        name: "mcp__gemini-flow__memory_usage",
         category: "memory-management",
         description: "Store/retrieve persistent memory",
         tags: ["memory", "store", "persistent"],
       },
       {
-        name: "mcp__claude-flow__memory_search",
+        name: "mcp__gemini-flow__memory_search",
         category: "memory-management",
         description: "Search memory with patterns",
         tags: ["memory", "search", "patterns"],
       },
       {
-        name: "mcp__claude-flow__memory_persist",
+        name: "mcp__gemini-flow__memory_persist",
         category: "memory-management",
         description: "Cross-session persistence",
         tags: ["memory", "persist", "session"],
       },
       {
-        name: "mcp__claude-flow__memory_namespace",
+        name: "mcp__gemini-flow__memory_namespace",
         category: "memory-management",
         description: "Namespace management",
         tags: ["memory", "namespace", "organize"],
       },
       {
-        name: "mcp__claude-flow__memory_backup",
+        name: "mcp__gemini-flow__memory_backup",
         category: "memory-management",
         description: "Backup memory stores",
         tags: ["memory", "backup", "recovery"],
       },
       {
-        name: "mcp__claude-flow__memory_restore",
+        name: "mcp__gemini-flow__memory_restore",
         category: "memory-management",
         description: "Restore from backups",
         tags: ["memory", "restore", "recovery"],
       },
       {
-        name: "mcp__claude-flow__memory_compress",
+        name: "mcp__gemini-flow__memory_compress",
         category: "memory-management",
         description: "Compress memory data",
         tags: ["memory", "compress", "optimize"],
       },
       {
-        name: "mcp__claude-flow__memory_sync",
+        name: "mcp__gemini-flow__memory_sync",
         category: "memory-management",
         description: "Sync across instances",
         tags: ["memory", "sync", "distribute"],
       },
       {
-        name: "mcp__claude-flow__memory_analytics",
+        name: "mcp__gemini-flow__memory_analytics",
         category: "memory-management",
         description: "Analyze memory usage",
         tags: ["memory", "analytics", "insights"],
@@ -871,67 +871,67 @@ export class MCPToolRegistry {
 
       // Performance & Analytics
       {
-        name: "mcp__claude-flow__performance_report",
+        name: "mcp__gemini-flow__performance_report",
         category: "performance-monitoring",
         description: "Generate performance reports",
         tags: ["performance", "report", "analytics"],
       },
       {
-        name: "mcp__claude-flow__bottleneck_analyze",
+        name: "mcp__gemini-flow__bottleneck_analyze",
         category: "performance-monitoring",
         description: "Identify bottlenecks",
         tags: ["performance", "bottleneck", "analyze"],
       },
       {
-        name: "mcp__claude-flow__token_usage",
+        name: "mcp__gemini-flow__token_usage",
         category: "performance-monitoring",
         description: "Analyze token consumption",
         tags: ["performance", "token", "usage"],
       },
       {
-        name: "mcp__claude-flow__benchmark_run",
+        name: "mcp__gemini-flow__benchmark_run",
         category: "performance-monitoring",
         description: "Performance benchmarks",
         tags: ["performance", "benchmark", "test"],
       },
       {
-        name: "mcp__claude-flow__metrics_collect",
+        name: "mcp__gemini-flow__metrics_collect",
         category: "performance-monitoring",
         description: "Collect system metrics",
         tags: ["performance", "metrics", "collect"],
       },
       {
-        name: "mcp__claude-flow__trend_analysis",
+        name: "mcp__gemini-flow__trend_analysis",
         category: "performance-monitoring",
         description: "Analyze performance trends",
         tags: ["performance", "trend", "analysis"],
       },
       {
-        name: "mcp__claude-flow__cost_analysis",
+        name: "mcp__gemini-flow__cost_analysis",
         category: "performance-monitoring",
         description: "Cost and resource analysis",
         tags: ["performance", "cost", "resource"],
       },
       {
-        name: "mcp__claude-flow__quality_assess",
+        name: "mcp__gemini-flow__quality_assess",
         category: "performance-monitoring",
         description: "Quality assessment",
         tags: ["performance", "quality", "assess"],
       },
       {
-        name: "mcp__claude-flow__error_analysis",
+        name: "mcp__gemini-flow__error_analysis",
         category: "performance-monitoring",
         description: "Error pattern analysis",
         tags: ["performance", "error", "pattern"],
       },
       {
-        name: "mcp__claude-flow__usage_stats",
+        name: "mcp__gemini-flow__usage_stats",
         category: "performance-monitoring",
         description: "Usage statistics",
         tags: ["performance", "usage", "stats"],
       },
       {
-        name: "mcp__claude-flow__health_check",
+        name: "mcp__gemini-flow__health_check",
         category: "performance-monitoring",
         description: "System health monitoring",
         tags: ["performance", "health", "monitor"],
@@ -939,49 +939,49 @@ export class MCPToolRegistry {
 
       // GitHub Integration
       {
-        name: "mcp__claude-flow__github_repo_analyze",
+        name: "mcp__gemini-flow__github_repo_analyze",
         category: "github-integration",
         description: "Repository analysis",
         tags: ["github", "repo", "analyze"],
       },
       {
-        name: "mcp__claude-flow__github_pr_manage",
+        name: "mcp__gemini-flow__github_pr_manage",
         category: "github-integration",
         description: "Pull request management",
         tags: ["github", "pr", "manage"],
       },
       {
-        name: "mcp__claude-flow__github_issue_track",
+        name: "mcp__gemini-flow__github_issue_track",
         category: "github-integration",
         description: "Issue tracking & triage",
         tags: ["github", "issue", "track"],
       },
       {
-        name: "mcp__claude-flow__github_release_coord",
+        name: "mcp__gemini-flow__github_release_coord",
         category: "github-integration",
         description: "Release coordination",
         tags: ["github", "release", "coordinate"],
       },
       {
-        name: "mcp__claude-flow__github_workflow_auto",
+        name: "mcp__gemini-flow__github_workflow_auto",
         category: "github-integration",
         description: "Workflow automation",
         tags: ["github", "workflow", "auto"],
       },
       {
-        name: "mcp__claude-flow__github_code_review",
+        name: "mcp__gemini-flow__github_code_review",
         category: "github-integration",
         description: "Automated code review",
         tags: ["github", "code", "review"],
       },
       {
-        name: "mcp__claude-flow__github_sync_coord",
+        name: "mcp__gemini-flow__github_sync_coord",
         category: "github-integration",
         description: "Multi-repo sync",
         tags: ["github", "sync", "multi-repo"],
       },
       {
-        name: "mcp__claude-flow__github_metrics",
+        name: "mcp__gemini-flow__github_metrics",
         category: "github-integration",
         description: "Repository metrics",
         tags: ["github", "metrics", "stats"],
@@ -989,61 +989,61 @@ export class MCPToolRegistry {
 
       // Workflow & Automation
       {
-        name: "mcp__claude-flow__workflow_create",
+        name: "mcp__gemini-flow__workflow_create",
         category: "workflow-automation",
         description: "Create custom workflows",
         tags: ["workflow", "create", "custom"],
       },
       {
-        name: "mcp__claude-flow__workflow_execute",
+        name: "mcp__gemini-flow__workflow_execute",
         category: "workflow-automation",
         description: "Execute predefined workflows",
         tags: ["workflow", "execute", "predefined"],
       },
       {
-        name: "mcp__claude-flow__workflow_export",
+        name: "mcp__gemini-flow__workflow_export",
         category: "workflow-automation",
         description: "Export workflow definitions",
         tags: ["workflow", "export", "definition"],
       },
       {
-        name: "mcp__claude-flow__workflow_template",
+        name: "mcp__gemini-flow__workflow_template",
         category: "workflow-automation",
         description: "Manage workflow templates",
         tags: ["workflow", "template", "manage"],
       },
       {
-        name: "mcp__claude-flow__automation_setup",
+        name: "mcp__gemini-flow__automation_setup",
         category: "workflow-automation",
         description: "Setup automation rules",
         tags: ["workflow", "automation", "rules"],
       },
       {
-        name: "mcp__claude-flow__pipeline_create",
+        name: "mcp__gemini-flow__pipeline_create",
         category: "workflow-automation",
         description: "Create CI/CD pipelines",
         tags: ["workflow", "pipeline", "cicd"],
       },
       {
-        name: "mcp__claude-flow__scheduler_manage",
+        name: "mcp__gemini-flow__scheduler_manage",
         category: "workflow-automation",
         description: "Manage task scheduling",
         tags: ["workflow", "scheduler", "task"],
       },
       {
-        name: "mcp__claude-flow__trigger_setup",
+        name: "mcp__gemini-flow__trigger_setup",
         category: "workflow-automation",
         description: "Setup event triggers",
         tags: ["workflow", "trigger", "event"],
       },
       {
-        name: "mcp__claude-flow__batch_process",
+        name: "mcp__gemini-flow__batch_process",
         category: "workflow-automation",
         description: "Batch processing",
         tags: ["workflow", "batch", "process"],
       },
       {
-        name: "mcp__claude-flow__parallel_execute",
+        name: "mcp__gemini-flow__parallel_execute",
         category: "workflow-automation",
         description: "Execute tasks in parallel",
         tags: ["workflow", "parallel", "execute"],
@@ -1051,7 +1051,7 @@ export class MCPToolRegistry {
 
       // SPARC Development
       {
-        name: "mcp__claude-flow__sparc_mode",
+        name: "mcp__gemini-flow__sparc_mode",
         category: "workflow-automation",
         description: "Run SPARC development modes",
         tags: ["sparc", "development", "mode"],
@@ -1059,49 +1059,49 @@ export class MCPToolRegistry {
 
       // DAA Tools
       {
-        name: "mcp__claude-flow__daa_agent_create",
+        name: "mcp__gemini-flow__daa_agent_create",
         category: "daa-autonomous",
         description: "Create dynamic agents",
         tags: ["daa", "agent", "dynamic"],
       },
       {
-        name: "mcp__claude-flow__daa_capability_match",
+        name: "mcp__gemini-flow__daa_capability_match",
         category: "daa-autonomous",
         description: "Match capabilities to tasks",
         tags: ["daa", "capability", "match"],
       },
       {
-        name: "mcp__claude-flow__daa_resource_alloc",
+        name: "mcp__gemini-flow__daa_resource_alloc",
         category: "daa-autonomous",
         description: "Resource allocation",
         tags: ["daa", "resource", "allocate"],
       },
       {
-        name: "mcp__claude-flow__daa_lifecycle_manage",
+        name: "mcp__gemini-flow__daa_lifecycle_manage",
         category: "daa-autonomous",
         description: "Agent lifecycle management",
         tags: ["daa", "lifecycle", "manage"],
       },
       {
-        name: "mcp__claude-flow__daa_communication",
+        name: "mcp__gemini-flow__daa_communication",
         category: "daa-autonomous",
         description: "Inter-agent communication",
         tags: ["daa", "communication", "inter-agent"],
       },
       {
-        name: "mcp__claude-flow__daa_consensus",
+        name: "mcp__gemini-flow__daa_consensus",
         category: "daa-autonomous",
         description: "Consensus mechanisms",
         tags: ["daa", "consensus", "agreement"],
       },
       {
-        name: "mcp__claude-flow__daa_fault_tolerance",
+        name: "mcp__gemini-flow__daa_fault_tolerance",
         category: "daa-autonomous",
         description: "Fault tolerance & recovery",
         tags: ["daa", "fault", "tolerance"],
       },
       {
-        name: "mcp__claude-flow__daa_optimization",
+        name: "mcp__gemini-flow__daa_optimization",
         category: "daa-autonomous",
         description: "Performance optimization",
         tags: ["daa", "optimization", "performance"],
@@ -1109,49 +1109,49 @@ export class MCPToolRegistry {
 
       // Model & AI Operations
       {
-        name: "mcp__claude-flow__model_load",
+        name: "mcp__gemini-flow__model_load",
         category: "neural-ai",
         description: "Load pre-trained models",
         tags: ["model", "load", "pretrained"],
       },
       {
-        name: "mcp__claude-flow__model_save",
+        name: "mcp__gemini-flow__model_save",
         category: "neural-ai",
         description: "Save trained models",
         tags: ["model", "save", "persist"],
       },
       {
-        name: "mcp__claude-flow__inference_run",
+        name: "mcp__gemini-flow__inference_run",
         category: "neural-ai",
         description: "Run neural inference",
         tags: ["model", "inference", "predict"],
       },
       {
-        name: "mcp__claude-flow__pattern_recognize",
+        name: "mcp__gemini-flow__pattern_recognize",
         category: "neural-ai",
         description: "Pattern recognition",
         tags: ["model", "pattern", "recognize"],
       },
       {
-        name: "mcp__claude-flow__cognitive_analyze",
+        name: "mcp__gemini-flow__cognitive_analyze",
         category: "neural-ai",
         description: "Cognitive behavior analysis",
         tags: ["model", "cognitive", "analyze"],
       },
       {
-        name: "mcp__claude-flow__learning_adapt",
+        name: "mcp__gemini-flow__learning_adapt",
         category: "neural-ai",
         description: "Adaptive learning",
         tags: ["model", "learning", "adapt"],
       },
       {
-        name: "mcp__claude-flow__ensemble_create",
+        name: "mcp__gemini-flow__ensemble_create",
         category: "neural-ai",
         description: "Create model ensembles",
         tags: ["model", "ensemble", "combine"],
       },
       {
-        name: "mcp__claude-flow__transfer_learn",
+        name: "mcp__gemini-flow__transfer_learn",
         category: "neural-ai",
         description: "Transfer learning",
         tags: ["model", "transfer", "learn"],
@@ -1159,91 +1159,91 @@ export class MCPToolRegistry {
 
       // System & Infrastructure
       {
-        name: "mcp__claude-flow__topology_optimize",
+        name: "mcp__gemini-flow__topology_optimize",
         category: "swarm-management",
         description: "Auto-optimize topology",
         tags: ["swarm", "topology", "optimize"],
       },
       {
-        name: "mcp__claude-flow__load_balance",
+        name: "mcp__gemini-flow__load_balance",
         category: "swarm-management",
         description: "Distribute tasks efficiently",
         tags: ["swarm", "load", "balance"],
       },
       {
-        name: "mcp__claude-flow__coordination_sync",
+        name: "mcp__gemini-flow__coordination_sync",
         category: "swarm-management",
         description: "Sync agent coordination",
         tags: ["swarm", "coordination", "sync"],
       },
       {
-        name: "mcp__claude-flow__wasm_optimize",
+        name: "mcp__gemini-flow__wasm_optimize",
         category: "system-utilities",
         description: "WASM SIMD optimization",
         tags: ["system", "wasm", "optimize"],
       },
       {
-        name: "mcp__claude-flow__cache_manage",
+        name: "mcp__gemini-flow__cache_manage",
         category: "system-utilities",
         description: "Manage coordination cache",
         tags: ["system", "cache", "manage"],
       },
       {
-        name: "mcp__claude-flow__state_snapshot",
+        name: "mcp__gemini-flow__state_snapshot",
         category: "system-utilities",
         description: "Create state snapshots",
         tags: ["system", "state", "snapshot"],
       },
       {
-        name: "mcp__claude-flow__context_restore",
+        name: "mcp__gemini-flow__context_restore",
         category: "system-utilities",
         description: "Restore execution context",
         tags: ["system", "context", "restore"],
       },
       {
-        name: "mcp__claude-flow__terminal_execute",
+        name: "mcp__gemini-flow__terminal_execute",
         category: "system-utilities",
         description: "Execute terminal commands",
         tags: ["system", "terminal", "execute"],
       },
       {
-        name: "mcp__claude-flow__config_manage",
+        name: "mcp__gemini-flow__config_manage",
         category: "system-utilities",
         description: "Configuration management",
         tags: ["system", "config", "manage"],
       },
       {
-        name: "mcp__claude-flow__features_detect",
+        name: "mcp__gemini-flow__features_detect",
         category: "system-utilities",
         description: "Feature detection",
         tags: ["system", "features", "detect"],
       },
       {
-        name: "mcp__claude-flow__security_scan",
+        name: "mcp__gemini-flow__security_scan",
         category: "system-utilities",
         description: "Security scanning",
         tags: ["system", "security", "scan"],
       },
       {
-        name: "mcp__claude-flow__backup_create",
+        name: "mcp__gemini-flow__backup_create",
         category: "system-utilities",
         description: "Create system backups",
         tags: ["system", "backup", "create"],
       },
       {
-        name: "mcp__claude-flow__restore_system",
+        name: "mcp__gemini-flow__restore_system",
         category: "system-utilities",
         description: "System restoration",
         tags: ["system", "restore", "recovery"],
       },
       {
-        name: "mcp__claude-flow__log_analysis",
+        name: "mcp__gemini-flow__log_analysis",
         category: "system-utilities",
         description: "Log analysis & insights",
         tags: ["system", "log", "analyze"],
       },
       {
-        name: "mcp__claude-flow__diagnostic_run",
+        name: "mcp__gemini-flow__diagnostic_run",
         category: "system-utilities",
         description: "System diagnostics",
         tags: ["system", "diagnostic", "health"],
@@ -1253,7 +1253,7 @@ export class MCPToolRegistry {
     for (const tool of claudeFlowTools) {
       await this.registerTool(
         tool.name,
-        "claude-flow",
+        "gemini-flow",
         tool.category,
         tool.description,
         tool.tags,
@@ -1263,7 +1263,7 @@ export class MCPToolRegistry {
 
   private async registerTool(
     toolName: MCPToolName,
-    provider: "ruv-swarm" | "claude-flow",
+    provider: "ruv-swarm" | "gemini-flow",
     category: string,
     description: string,
     tags: string[],

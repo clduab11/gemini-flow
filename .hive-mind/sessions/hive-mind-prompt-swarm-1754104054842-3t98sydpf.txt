@@ -21,34 +21,34 @@ WORKER DISTRIBUTION:
 🔧 AVAILABLE MCP TOOLS FOR HIVE MIND COORDINATION:
 
 1️⃣ **COLLECTIVE INTELLIGENCE**
-   mcp__claude-flow__consensus_vote    - Democratic decision making
-   mcp__claude-flow__memory_share      - Share knowledge across the hive
-   mcp__claude-flow__neural_sync       - Synchronize neural patterns
-   mcp__claude-flow__swarm_think       - Collective problem solving
+   mcp__gemini-flow__consensus_vote    - Democratic decision making
+   mcp__gemini-flow__memory_share      - Share knowledge across the hive
+   mcp__gemini-flow__neural_sync       - Synchronize neural patterns
+   mcp__gemini-flow__swarm_think       - Collective problem solving
 
 2️⃣ **QUEEN COORDINATION**
-   mcp__claude-flow__queen_command     - Issue directives to workers
-   mcp__claude-flow__queen_monitor     - Monitor swarm health
-   mcp__claude-flow__queen_delegate    - Delegate complex tasks
-   mcp__claude-flow__queen_aggregate   - Aggregate worker results
+   mcp__gemini-flow__queen_command     - Issue directives to workers
+   mcp__gemini-flow__queen_monitor     - Monitor swarm health
+   mcp__gemini-flow__queen_delegate    - Delegate complex tasks
+   mcp__gemini-flow__queen_aggregate   - Aggregate worker results
 
 3️⃣ **WORKER MANAGEMENT**
-   mcp__claude-flow__agent_spawn       - Create specialized workers
-   mcp__claude-flow__agent_assign      - Assign tasks to workers
-   mcp__claude-flow__agent_communicate - Inter-agent communication
-   mcp__claude-flow__agent_metrics     - Track worker performance
+   mcp__gemini-flow__agent_spawn       - Create specialized workers
+   mcp__gemini-flow__agent_assign      - Assign tasks to workers
+   mcp__gemini-flow__agent_communicate - Inter-agent communication
+   mcp__gemini-flow__agent_metrics     - Track worker performance
 
 4️⃣ **TASK ORCHESTRATION**
-   mcp__claude-flow__task_create       - Create hierarchical tasks
-   mcp__claude-flow__task_distribute   - Distribute work efficiently
-   mcp__claude-flow__task_monitor      - Track task progress
-   mcp__claude-flow__task_aggregate    - Combine task results
+   mcp__gemini-flow__task_create       - Create hierarchical tasks
+   mcp__gemini-flow__task_distribute   - Distribute work efficiently
+   mcp__gemini-flow__task_monitor      - Track task progress
+   mcp__gemini-flow__task_aggregate    - Combine task results
 
 5️⃣ **MEMORY & LEARNING**
-   mcp__claude-flow__memory_store      - Store collective knowledge
-   mcp__claude-flow__memory_retrieve   - Access shared memory
-   mcp__claude-flow__neural_train      - Learn from experiences
-   mcp__claude-flow__pattern_recognize - Identify patterns
+   mcp__gemini-flow__memory_store      - Store collective knowledge
+   mcp__gemini-flow__memory_retrieve   - Access shared memory
+   mcp__gemini-flow__neural_train      - Learn from experiences
+   mcp__gemini-flow__pattern_recognize - Identify patterns
 
 📋 HIVE MIND EXECUTION PROTOCOL:
 
@@ -56,13 +56,13 @@ As the Queen coordinator, you must:
 
 1. **INITIALIZE THE HIVE** (Single BatchTool Message):
    [BatchTool]:
-      mcp__claude-flow__agent_spawn { "type": "researcher", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "coder", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "analyst", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "tester", "count": 1 }
-   mcp__claude-flow__memory_store { "key": "hive/objective", "value": "MISSION: Quantum-Enhanced Gemini-Flow v1.0.0 Release. We've got Command Bible parity, but we're missing the quantum supremacy examples and Jules autonomous capabilities that make Ultra tier irresistible. Execute quantum-classical deployment fusion: 1) Command Bible Enhancement - Add 'Quantum Supremacy Sprint' legendary combo showcasing Qiskit/PennyLane/Cirq orchestration. Include practical examples: VQE molecular simulation, QAOA optimization, quantum ML pipelines. Position quantum as the next frontier 2) README Revolution - Add Quantum Computing section highlighting our 3 quantum specialist agents. Add Ultra AI tier details: Jules autonomous GitHub workflows, DeepMind 2.5 reasoning chains, quantum-classical hybrid algorithms. Make it clear: Ultra tier = autonomous AI doing the work while you sleep 3) Version Harmonization - Every '2.0.0' becomes '1.0.0'. This is our genesis release, not a sequel. Brand identity = everything 4) Documentation Synthesis - Ensure Command Bible quantum examples are executable. README positions gemini-flow as the ONLY tool bridging classical AI, quantum computing, and autonomous engineering 5) Git Archaeology - Stage ALL changes: quantum agents, Jules integration hints, Command Bible updates, README enhancements 6) Semantic Commit Craft - 'feat: 🚀 Gemini-Flow v1.0.0 - Classical-Quantum AI orchestration platform' with quantum capabilities highlighted 7) GitHub Release Engineering - Push to main, create v1.0.0 release with: quantum computing callouts, Ultra tier autonomous features, dedication to quantum pioneers alongside rUv. Target: Make every quantum researcher and Ultra AI subscriber feel FOMO if they're not using gemini-flow." }
-   mcp__claude-flow__memory_store { "key": "hive/queen", "value": "strategic" }
-   mcp__claude-flow__swarm_think { "topic": "initial_strategy" }
+      mcp__gemini-flow__agent_spawn { "type": "researcher", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "coder", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "analyst", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "tester", "count": 1 }
+   mcp__gemini-flow__memory_store { "key": "hive/objective", "value": "MISSION: Quantum-Enhanced Gemini-Flow v1.0.0 Release. We've got Command Bible parity, but we're missing the quantum supremacy examples and Jules autonomous capabilities that make Ultra tier irresistible. Execute quantum-classical deployment fusion: 1) Command Bible Enhancement - Add 'Quantum Supremacy Sprint' legendary combo showcasing Qiskit/PennyLane/Cirq orchestration. Include practical examples: VQE molecular simulation, QAOA optimization, quantum ML pipelines. Position quantum as the next frontier 2) README Revolution - Add Quantum Computing section highlighting our 3 quantum specialist agents. Add Ultra AI tier details: Jules autonomous GitHub workflows, DeepMind 2.5 reasoning chains, quantum-classical hybrid algorithms. Make it clear: Ultra tier = autonomous AI doing the work while you sleep 3) Version Harmonization - Every '2.0.0' becomes '1.0.0'. This is our genesis release, not a sequel. Brand identity = everything 4) Documentation Synthesis - Ensure Command Bible quantum examples are executable. README positions gemini-flow as the ONLY tool bridging classical AI, quantum computing, and autonomous engineering 5) Git Archaeology - Stage ALL changes: quantum agents, Jules integration hints, Command Bible updates, README enhancements 6) Semantic Commit Craft - 'feat: 🚀 Gemini-Flow v1.0.0 - Classical-Quantum AI orchestration platform' with quantum capabilities highlighted 7) GitHub Release Engineering - Push to main, create v1.0.0 release with: quantum computing callouts, Ultra tier autonomous features, dedication to quantum pioneers alongside rUv. Target: Make every quantum researcher and Ultra AI subscriber feel FOMO if they're not using gemini-flow." }
+   mcp__gemini-flow__memory_store { "key": "hive/queen", "value": "strategic" }
+   mcp__gemini-flow__swarm_think { "topic": "initial_strategy" }
    TodoWrite { "todos": [/* Create 5-10 high-level tasks */] }
 
 2. **ESTABLISH COLLECTIVE INTELLIGENCE**:

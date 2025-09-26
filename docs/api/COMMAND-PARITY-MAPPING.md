@@ -2,100 +2,100 @@
 
 ## Executive Summary
 
-This document provides a comprehensive mapping between `claude-flow` CLI commands and the required `gemini-flow` equivalents for complete feature parity. All commands have been analyzed and mapped with their signatures, options, and functionality requirements.
+This document provides a comprehensive mapping between `gemini-flow` CLI commands and the required `gemini-flow` equivalents for complete feature parity. All commands have been analyzed and mapped with their signatures, options, and functionality requirements.
 
 ## 🎯 Command Categories Overview
 
 ### 1. Core System Commands
 | Claude-Flow | Gemini-Flow | Status | Priority |
 |-------------|-------------|---------|----------|
-| `claude-flow init` | `gemini-flow init` | ✅ Implemented | High |
-| `claude-flow start` | `gemini-flow start` | ✅ Implemented | High |
-| `claude-flow status` | `gemini-flow status` | ✅ Implemented | High |
-| `claude-flow health` | `gemini-flow health` | ✅ Implemented | High |
-| `claude-flow benchmark` | `gemini-flow benchmark` | ✅ Implemented | High |
+| `gemini-flow init` | `gemini-flow init` | ✅ Implemented | High |
+| `gemini-flow start` | `gemini-flow start` | ✅ Implemented | High |
+| `gemini-flow status` | `gemini-flow status` | ✅ Implemented | High |
+| `gemini-flow health` | `gemini-flow health` | ✅ Implemented | High |
+| `gemini-flow benchmark` | `gemini-flow benchmark` | ✅ Implemented | High |
 
 ### 2. Hive-Mind Commands (NEW!)
 | Claude-Flow | Gemini-Flow | Status | Priority |
 |-------------|-------------|---------|----------|
-| `claude-flow hive-mind init` | `gemini-flow hive-mind init` | ⚠️ Needs Implementation | Critical |
-| `claude-flow hive-mind spawn <task>` | `gemini-flow hive-mind spawn <task>` | ⚠️ Needs Implementation | Critical |
-| `claude-flow hive-mind status` | `gemini-flow hive-mind status` | ⚠️ Needs Implementation | Critical |
-| `claude-flow hive-mind wizard` | `gemini-flow hive-mind wizard` | ⚠️ Needs Implementation | High |
-| `claude-flow hive-mind sessions` | `gemini-flow hive-mind sessions` | ⚠️ Needs Implementation | Medium |
-| `claude-flow hive-mind resume` | `gemini-flow hive-mind resume` | ⚠️ Needs Implementation | Medium |
-| `claude-flow hive-mind stop` | `gemini-flow hive-mind stop` | ⚠️ Needs Implementation | Medium |
-| `claude-flow hive-mind consensus` | `gemini-flow hive-mind consensus` | ⚠️ Needs Implementation | Medium |
-| `claude-flow hive-mind memory` | `gemini-flow hive-mind memory` | ⚠️ Needs Implementation | Medium |
-| `claude-flow hive-mind metrics` | `gemini-flow hive-mind metrics` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow hive-mind init` | `gemini-flow hive-mind init` | ⚠️ Needs Implementation | Critical |
+| `gemini-flow hive-mind spawn <task>` | `gemini-flow hive-mind spawn <task>` | ⚠️ Needs Implementation | Critical |
+| `gemini-flow hive-mind status` | `gemini-flow hive-mind status` | ⚠️ Needs Implementation | Critical |
+| `gemini-flow hive-mind wizard` | `gemini-flow hive-mind wizard` | ⚠️ Needs Implementation | High |
+| `gemini-flow hive-mind sessions` | `gemini-flow hive-mind sessions` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow hive-mind resume` | `gemini-flow hive-mind resume` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow hive-mind stop` | `gemini-flow hive-mind stop` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow hive-mind consensus` | `gemini-flow hive-mind consensus` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow hive-mind memory` | `gemini-flow hive-mind memory` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow hive-mind metrics` | `gemini-flow hive-mind metrics` | ⚠️ Needs Implementation | Medium |
 
 ### 3. Swarm Commands
 | Claude-Flow | Gemini-Flow | Status | Priority |
 |-------------|-------------|---------|----------|
-| `claude-flow swarm <objective>` | `gemini-flow swarm <objective>` | ✅ Implemented | High |
-| `claude-flow swarm init` | `gemini-flow swarm init` | ✅ Implemented | High |
-| `claude-flow swarm status` | `gemini-flow swarm status` | ✅ Implemented | High |
-| `claude-flow swarm monitor` | `gemini-flow swarm monitor` | ✅ Implemented | High |
-| `claude-flow swarm scale` | `gemini-flow swarm scale` | ✅ Implemented | Medium |
-| `claude-flow swarm destroy` | `gemini-flow swarm destroy` | ✅ Implemented | Medium |
+| `gemini-flow swarm <objective>` | `gemini-flow swarm <objective>` | ✅ Implemented | High |
+| `gemini-flow swarm init` | `gemini-flow swarm init` | ✅ Implemented | High |
+| `gemini-flow swarm status` | `gemini-flow swarm status` | ✅ Implemented | High |
+| `gemini-flow swarm monitor` | `gemini-flow swarm monitor` | ✅ Implemented | High |
+| `gemini-flow swarm scale` | `gemini-flow swarm scale` | ✅ Implemented | Medium |
+| `gemini-flow swarm destroy` | `gemini-flow swarm destroy` | ✅ Implemented | Medium |
 
 ### 4. Agent Commands
 | Claude-Flow | Gemini-Flow | Status | Priority |
 |-------------|-------------|---------|----------|
-| `claude-flow agent spawn` | `gemini-flow agent spawn` | ⚠️ Needs Enhancement | High |
-| `claude-flow agent list` | `gemini-flow agent list` | ⚠️ Needs Enhancement | High |
-| `claude-flow agent info` | `gemini-flow agent info` | ⚠️ Needs Implementation | Medium |
-| `claude-flow agent terminate` | `gemini-flow agent terminate` | ⚠️ Needs Implementation | Medium |
-| `claude-flow agent hierarchy` | `gemini-flow agent hierarchy` | ⚠️ Needs Implementation | Low |
-| `claude-flow agent ecosystem` | `gemini-flow agent ecosystem` | ⚠️ Needs Implementation | Low |
+| `gemini-flow agent spawn` | `gemini-flow agent spawn` | ⚠️ Needs Enhancement | High |
+| `gemini-flow agent list` | `gemini-flow agent list` | ⚠️ Needs Enhancement | High |
+| `gemini-flow agent info` | `gemini-flow agent info` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow agent terminate` | `gemini-flow agent terminate` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow agent hierarchy` | `gemini-flow agent hierarchy` | ⚠️ Needs Implementation | Low |
+| `gemini-flow agent ecosystem` | `gemini-flow agent ecosystem` | ⚠️ Needs Implementation | Low |
 
 ### 5. SPARC Commands
 | Claude-Flow | Gemini-Flow | Status | Priority |
 |-------------|-------------|---------|----------|
-| `claude-flow sparc modes` | `gemini-flow sparc modes` | ✅ Implemented | High |
-| `claude-flow sparc spec` | `gemini-flow sparc spec` | ⚠️ Needs Implementation | High |
-| `claude-flow sparc architect` | `gemini-flow sparc architect` | ⚠️ Needs Implementation | High |
-| `claude-flow sparc tdd` | `gemini-flow sparc tdd` | ⚠️ Needs Implementation | High |
-| `claude-flow sparc integration` | `gemini-flow sparc integration` | ⚠️ Needs Implementation | High |
-| `claude-flow sparc refactor` | `gemini-flow sparc refactor` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow sparc modes` | `gemini-flow sparc modes` | ✅ Implemented | High |
+| `gemini-flow sparc spec` | `gemini-flow sparc spec` | ⚠️ Needs Implementation | High |
+| `gemini-flow sparc architect` | `gemini-flow sparc architect` | ⚠️ Needs Implementation | High |
+| `gemini-flow sparc tdd` | `gemini-flow sparc tdd` | ⚠️ Needs Implementation | High |
+| `gemini-flow sparc integration` | `gemini-flow sparc integration` | ⚠️ Needs Implementation | High |
+| `gemini-flow sparc refactor` | `gemini-flow sparc refactor` | ⚠️ Needs Implementation | Medium |
 
 ### 6. Memory Commands
 | Claude-Flow | Gemini-Flow | Status | Priority |
 |-------------|-------------|---------|----------|
-| `claude-flow memory store` | `gemini-flow memory store` | ⚠️ Needs Implementation | High |
-| `claude-flow memory query` | `gemini-flow memory query` | ⚠️ Needs Implementation | High |
-| `claude-flow memory list` | `gemini-flow memory list` | ⚠️ Needs Implementation | Medium |
-| `claude-flow memory export` | `gemini-flow memory export` | ⚠️ Needs Implementation | Medium |
-| `claude-flow memory import` | `gemini-flow memory import` | ⚠️ Needs Implementation | Medium |
-| `claude-flow memory clear` | `gemini-flow memory clear` | ⚠️ Needs Implementation | Low |
+| `gemini-flow memory store` | `gemini-flow memory store` | ⚠️ Needs Implementation | High |
+| `gemini-flow memory query` | `gemini-flow memory query` | ⚠️ Needs Implementation | High |
+| `gemini-flow memory list` | `gemini-flow memory list` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow memory export` | `gemini-flow memory export` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow memory import` | `gemini-flow memory import` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow memory clear` | `gemini-flow memory clear` | ⚠️ Needs Implementation | Low |
 
 ### 7. GitHub Commands
 | Claude-Flow | Gemini-Flow | Status | Priority |
 |-------------|-------------|---------|----------|
-| `claude-flow github init` | `gemini-flow github init` | ⚠️ Needs Implementation | Medium |
-| `claude-flow github gh-coordinator` | `gemini-flow github gh-coordinator` | ⚠️ Needs Implementation | Medium |
-| `claude-flow github pr-manager` | `gemini-flow github pr-manager` | ⚠️ Needs Implementation | Medium |
-| `claude-flow github issue-tracker` | `gemini-flow github issue-tracker` | ⚠️ Needs Implementation | Low |
-| `claude-flow github release-manager` | `gemini-flow github release-manager` | ⚠️ Needs Implementation | Low |
-| `claude-flow github repo-architect` | `gemini-flow github repo-architect` | ⚠️ Needs Implementation | Low |
-| `claude-flow github sync-coordinator` | `gemini-flow github sync-coordinator` | ⚠️ Needs Implementation | Low |
+| `gemini-flow github init` | `gemini-flow github init` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow github gh-coordinator` | `gemini-flow github gh-coordinator` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow github pr-manager` | `gemini-flow github pr-manager` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow github issue-tracker` | `gemini-flow github issue-tracker` | ⚠️ Needs Implementation | Low |
+| `gemini-flow github release-manager` | `gemini-flow github release-manager` | ⚠️ Needs Implementation | Low |
+| `gemini-flow github repo-architect` | `gemini-flow github repo-architect` | ⚠️ Needs Implementation | Low |
+| `gemini-flow github sync-coordinator` | `gemini-flow github sync-coordinator` | ⚠️ Needs Implementation | Low |
 
 ### 8. Hooks Commands
 | Claude-Flow | Gemini-Flow | Status | Priority |
 |-------------|-------------|---------|----------|
-| `claude-flow hooks pre-task` | `gemini-flow hooks pre-task` | ⚠️ Needs Implementation | High |
-| `claude-flow hooks post-task` | `gemini-flow hooks post-task` | ⚠️ Needs Implementation | High |
-| `claude-flow hooks pre-edit` | `gemini-flow hooks pre-edit` | ⚠️ Needs Implementation | Medium |
-| `claude-flow hooks post-edit` | `gemini-flow hooks post-edit` | ⚠️ Needs Implementation | Medium |
-| `claude-flow hooks session-end` | `gemini-flow hooks session-end` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow hooks pre-task` | `gemini-flow hooks pre-task` | ⚠️ Needs Implementation | High |
+| `gemini-flow hooks post-task` | `gemini-flow hooks post-task` | ⚠️ Needs Implementation | High |
+| `gemini-flow hooks pre-edit` | `gemini-flow hooks pre-edit` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow hooks post-edit` | `gemini-flow hooks post-edit` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow hooks session-end` | `gemini-flow hooks session-end` | ⚠️ Needs Implementation | Medium |
 
 ### 9. Task Commands
 | Claude-Flow | Gemini-Flow | Status | Priority |
 |-------------|-------------|---------|----------|
-| `claude-flow task create` | `gemini-flow task create` | ⚠️ Needs Implementation | High |
-| `claude-flow task list` | `gemini-flow task list` | ⚠️ Needs Implementation | High |
-| `claude-flow task workflow` | `gemini-flow task workflow` | ⚠️ Needs Implementation | Medium |
-| `claude-flow task coordination` | `gemini-flow task coordination` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow task create` | `gemini-flow task create` | ⚠️ Needs Implementation | High |
+| `gemini-flow task list` | `gemini-flow task list` | ⚠️ Needs Implementation | High |
+| `gemini-flow task workflow` | `gemini-flow task workflow` | ⚠️ Needs Implementation | Medium |
+| `gemini-flow task coordination` | `gemini-flow task coordination` | ⚠️ Needs Implementation | Medium |
 
 ## 📊 Detailed Command Specifications
 
@@ -293,4 +293,4 @@ src/commands/hive-mind.ts      // Hive-mind coordination
 4. **Week 3**: Agent management and task coordination
 5. **Week 4**: GitHub integration and advanced features
 
-This mapping provides a complete roadmap for achieving full command parity between claude-flow and gemini-flow systems.
+This mapping provides a complete roadmap for achieving full command parity between gemini-flow and gemini-flow systems.

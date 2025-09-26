@@ -45,9 +45,9 @@ chore: bump version to 1.0.5
   * Bug fixes and project cleanup
   * README.md corrections
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
+🤖 Generated with [Gemini Flow](https://github.com/clduab11/gemini-flow)
 
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: Gemini Flow Contributors <noreply@clduab11.com>
 ```
 
 ### Best Practices
@@ -91,13 +91,13 @@ npm run build
 
 ## 🤖 AI-Assisted Development
 
-When using AI tools (like Claude Code or GitHub Copilot) for contributions:
+When using AI tools (like Gemini AI or GitHub Copilot) for contributions:
 
 1. **Review Generated Code**: Always review AI-generated code for correctness
 2. **Test Thoroughly**: AI code needs the same testing standards
 3. **Credit AI Assistance**: Add co-authorship in commits when appropriate:
    ```
-   Co-Authored-By: Claude <noreply@anthropic.com>
+   Co-Authored-By: Gemini Flow Contributors <noreply@clduab11.com>
    ```
 
 ## 📚 Documentation
@@ -111,10 +111,10 @@ When using AI tools (like Claude Code or GitHub Copilot) for contributions:
 
 ### Automated Pull Request Handling
 
-Both **Claude** and **GitHub Copilot** can automatically handle pull requests and bug reports:
+Both **Gemini AI** and **GitHub Copilot** can automatically handle pull requests and bug reports:
 
-#### Claude Integration
-- **PR Reviews**: Claude can perform comprehensive code reviews with context-aware analysis
+#### Gemini AI Integration
+- **PR Reviews**: Gemini AI can perform comprehensive code reviews with context-aware analysis
 - **Bug Triage**: Automatically categorize and prioritize bug reports
 - **Fix Suggestions**: Generate patches and fixes for reported issues
 - **Documentation Updates**: Automatically update docs when code changes
@@ -130,10 +130,10 @@ Both **Claude** and **GitHub Copilot** can automatically handle pull requests an
 
 To enable AI-assisted PR and issue handling:
 
-1. **For Claude**:
-   - Add `@claude-ai` as a collaborator to your fork
-   - Use `claude:` prefix in commit messages for AI review
-   - Tag issues with `claude-review` for automated analysis
+1. **For Gemini AI**:
+   - Add `@clduab11` as a collaborator to your fork
+   - Use `gemini:` prefix in commit messages for AI review
+   - Tag issues with `gemini-review` for automated analysis
 
 2. **For Copilot**:
    - Enable GitHub Copilot in repository settings

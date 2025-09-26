@@ -101,21 +101,21 @@ docs/
 
 ### Pre-Task Phase ✅
 ```bash
-npx claude-flow@alpha hooks pre-task --description "Complete doc migration"
+npx gemini-flow@alpha hooks pre-task --description "Complete doc migration"
 # ✅ Context loaded, task coordination initialized
 ```
 
 ### During Migration ✅
 ```bash
-npx claude-flow@alpha hooks notify --message "[doc-move]"
+npx gemini-flow@alpha hooks notify --message "[doc-move]"
 # ✅ All major moves logged and coordinated
-npx claude-flow@alpha hooks post-edit --memory-key "migration/docs"
+npx gemini-flow@alpha hooks post-edit --memory-key "migration/docs"
 # ✅ Progress tracked in swarm memory
 ```
 
 ### Post-Task Completion ✅
 ```bash
-npx claude-flow@alpha hooks post-task --task-id "doc-migration" --analyze-performance true
+npx gemini-flow@alpha hooks post-task --task-id "doc-migration" --analyze-performance true
 # ✅ Migration analysis and performance metrics stored
 ```
 

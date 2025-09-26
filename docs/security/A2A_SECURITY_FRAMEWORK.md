@@ -234,7 +234,7 @@ interface A2ARole {
 }
 
 interface Permission {
-  resource: string;      // e.g., "mcp__claude-flow__agent_spawn"
+  resource: string;      // e.g., "mcp__gemini-flow__agent_spawn"
   actions: string[];     // e.g., ["execute", "monitor"]
   conditions?: string;   // e.g., "time > 09:00 AND time < 17:00"
 }

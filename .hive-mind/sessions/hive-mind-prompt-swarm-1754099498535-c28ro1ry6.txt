@@ -21,34 +21,34 @@ WORKER DISTRIBUTION:
 🔧 AVAILABLE MCP TOOLS FOR HIVE MIND COORDINATION:
 
 1️⃣ **COLLECTIVE INTELLIGENCE**
-   mcp__claude-flow__consensus_vote    - Democratic decision making
-   mcp__claude-flow__memory_share      - Share knowledge across the hive
-   mcp__claude-flow__neural_sync       - Synchronize neural patterns
-   mcp__claude-flow__swarm_think       - Collective problem solving
+   mcp__gemini-flow__consensus_vote    - Democratic decision making
+   mcp__gemini-flow__memory_share      - Share knowledge across the hive
+   mcp__gemini-flow__neural_sync       - Synchronize neural patterns
+   mcp__gemini-flow__swarm_think       - Collective problem solving
 
 2️⃣ **QUEEN COORDINATION**
-   mcp__claude-flow__queen_command     - Issue directives to workers
-   mcp__claude-flow__queen_monitor     - Monitor swarm health
-   mcp__claude-flow__queen_delegate    - Delegate complex tasks
-   mcp__claude-flow__queen_aggregate   - Aggregate worker results
+   mcp__gemini-flow__queen_command     - Issue directives to workers
+   mcp__gemini-flow__queen_monitor     - Monitor swarm health
+   mcp__gemini-flow__queen_delegate    - Delegate complex tasks
+   mcp__gemini-flow__queen_aggregate   - Aggregate worker results
 
 3️⃣ **WORKER MANAGEMENT**
-   mcp__claude-flow__agent_spawn       - Create specialized workers
-   mcp__claude-flow__agent_assign      - Assign tasks to workers
-   mcp__claude-flow__agent_communicate - Inter-agent communication
-   mcp__claude-flow__agent_metrics     - Track worker performance
+   mcp__gemini-flow__agent_spawn       - Create specialized workers
+   mcp__gemini-flow__agent_assign      - Assign tasks to workers
+   mcp__gemini-flow__agent_communicate - Inter-agent communication
+   mcp__gemini-flow__agent_metrics     - Track worker performance
 
 4️⃣ **TASK ORCHESTRATION**
-   mcp__claude-flow__task_create       - Create hierarchical tasks
-   mcp__claude-flow__task_distribute   - Distribute work efficiently
-   mcp__claude-flow__task_monitor      - Track task progress
-   mcp__claude-flow__task_aggregate    - Combine task results
+   mcp__gemini-flow__task_create       - Create hierarchical tasks
+   mcp__gemini-flow__task_distribute   - Distribute work efficiently
+   mcp__gemini-flow__task_monitor      - Track task progress
+   mcp__gemini-flow__task_aggregate    - Combine task results
 
 5️⃣ **MEMORY & LEARNING**
-   mcp__claude-flow__memory_store      - Store collective knowledge
-   mcp__claude-flow__memory_retrieve   - Access shared memory
-   mcp__claude-flow__neural_train      - Learn from experiences
-   mcp__claude-flow__pattern_recognize - Identify patterns
+   mcp__gemini-flow__memory_store      - Store collective knowledge
+   mcp__gemini-flow__memory_retrieve   - Access shared memory
+   mcp__gemini-flow__neural_train      - Learn from experiences
+   mcp__gemini-flow__pattern_recognize - Identify patterns
 
 📋 HIVE MIND EXECUTION PROTOCOL:
 
@@ -56,13 +56,13 @@ As the Queen coordinator, you must:
 
 1. **INITIALIZE THE HIVE** (Single BatchTool Message):
    [BatchTool]:
-      mcp__claude-flow__agent_spawn { "type": "researcher", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "coder", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "analyst", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "tester", "count": 1 }
-   mcp__claude-flow__memory_store { "key": "hive/objective", "value": "MISSION: Final production deployment with architectural cleanup. Current state: Tests passing, TypeScript mostly tamed, nested directory structure needs love. Execute final sprint: 1) Directory Cleanup - Move all .md files to /docs except README.md, create /docs/architecture, /docs/guides, /docs/api subdirs 2) README Engineering - Create world-class README.md that sells the vision: install instructions, killer examples, performance benchmarks (28.3x gainsarchitecture overview, quick start guide 3) TypeScript Final Pass - Zero tolerance on remaining errors, use type assertions where needed but document why 4) Git Housekeeping - Create comprehensive .gitignore, clean build artifacts, remove node_modules 5) GitHub Push - Initialize git, create initial commit with semantic message, push to github.com/clduab11/gemini-flow main branch. Target: Repository that makes developers stop scrolling and hit that star button." }
-   mcp__claude-flow__memory_store { "key": "hive/queen", "value": "strategic" }
-   mcp__claude-flow__swarm_think { "topic": "initial_strategy" }
+      mcp__gemini-flow__agent_spawn { "type": "researcher", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "coder", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "analyst", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "tester", "count": 1 }
+   mcp__gemini-flow__memory_store { "key": "hive/objective", "value": "MISSION: Final production deployment with architectural cleanup. Current state: Tests passing, TypeScript mostly tamed, nested directory structure needs love. Execute final sprint: 1) Directory Cleanup - Move all .md files to /docs except README.md, create /docs/architecture, /docs/guides, /docs/api subdirs 2) README Engineering - Create world-class README.md that sells the vision: install instructions, killer examples, performance benchmarks (28.3x gainsarchitecture overview, quick start guide 3) TypeScript Final Pass - Zero tolerance on remaining errors, use type assertions where needed but document why 4) Git Housekeeping - Create comprehensive .gitignore, clean build artifacts, remove node_modules 5) GitHub Push - Initialize git, create initial commit with semantic message, push to github.com/clduab11/gemini-flow main branch. Target: Repository that makes developers stop scrolling and hit that star button." }
+   mcp__gemini-flow__memory_store { "key": "hive/queen", "value": "strategic" }
+   mcp__gemini-flow__swarm_think { "topic": "initial_strategy" }
    TodoWrite { "todos": [/* Create 5-10 high-level tasks */] }
 
 2. **ESTABLISH COLLECTIVE INTELLIGENCE**:

@@ -1210,7 +1210,7 @@ Gemini-Flow extends the base coordination with:
 - Documentation: https://github.com/your-org/gemini-flow
 - Issues: https://github.com/your-org/gemini-flow/issues
 - Examples: https://github.com/your-org/gemini-flow/tree/main/examples
-- Original Claude-Flow: https://github.com/ruvnet/claude-flow
+- Original Claude-Flow: https://github.com/ruvnet/gemini-flow
 
 ---
 

@@ -150,18 +150,18 @@ const pipelineCoordination: PipelineCoordination = {
     {
       name: 'design',
       agentTarget: { type: 'group', role: 'system-architect' },
-      toolName: 'mcp__claude-flow__sparc_mode',
+      toolName: 'mcp__gemini-flow__sparc_mode',
       parameters: { mode: 'architect' }
     },
     {
       name: 'implement', 
       agentTarget: { type: 'multiple', agentIds: ['coder-001', 'coder-002'] },
-      toolName: 'mcp__claude-flow__parallel_execute'
+      toolName: 'mcp__gemini-flow__parallel_execute'
     },
     {
       name: 'test',
       agentTarget: { type: 'group', role: 'tester' },
-      toolName: 'mcp__claude-flow__sparc_mode',
+      toolName: 'mcp__gemini-flow__sparc_mode',
       parameters: { mode: 'tdd' }
     }
   ],
@@ -211,7 +211,7 @@ class DistributedTaskOrchestrator {
           parameters: stage.parameters
         }))
       },
-      toolName: 'mcp__claude-flow__task_orchestrate',
+      toolName: 'mcp__gemini-flow__task_orchestrate',
       coordination: {
         mode: 'pipeline',
         failureStrategy: 'retry',
@@ -248,7 +248,7 @@ class CollaborativeIntelligence {
     // Request different perspectives from specialized agents
     const perspectiveRequests = perspectiveTypes.map(type => ({
       target: { type: 'group', role: type, maxAgents: 1 },
-      toolName: 'mcp__claude-flow__cognitive_analyze',
+      toolName: 'mcp__gemini-flow__cognitive_analyze',
       parameters: { 
         problem, 
         perspective: type,
@@ -311,7 +311,7 @@ class DistributedStateManager {
           capabilities: [`state-manager-${namespace}`] 
         }
       },
-      toolName: 'mcp__claude-flow__memory_sync',
+      toolName: 'mcp__gemini-flow__memory_sync',
       parameters: {
         namespace,
         updates,
@@ -360,7 +360,7 @@ class DistributedStateManager {
         capabilities: [`state-manager-${namespace}`],
         maxAgents: consistency === 'strong' ? 3 : 1
       },
-      toolName: 'mcp__claude-flow__memory_usage',
+      toolName: 'mcp__gemini-flow__memory_usage',
       parameters: {
         action: 'retrieve',
         namespace,
@@ -399,7 +399,7 @@ class ResourceCoordinator {
         type: 'broadcast',
         filter: { role: 'resource-manager' }
       },
-      toolName: 'mcp__claude-flow__daa_resource_alloc',
+      toolName: 'mcp__gemini-flow__daa_resource_alloc',
       parameters: {
         action: 'query-availability',
         requests: resourceRequests
@@ -985,7 +985,7 @@ describe('A2A Message Bus', () => {
       const targetAgent = 'test-agent-001';
       const message: A2AMessage = {
         target: { type: 'single', agentId: targetAgent },
-        toolName: 'mcp__claude-flow__agent_spawn',
+        toolName: 'mcp__gemini-flow__agent_spawn',
         parameters: { type: 'coder' },
         coordination: { mode: 'direct', timeout: 5000 }
       };
@@ -1009,7 +1009,7 @@ describe('A2A Message Bus', () => {
       // Arrange
       const message: A2AMessage = {
         target: { type: 'single', agentId: 'non-existent-agent' },
-        toolName: 'mcp__claude-flow__agent_spawn',
+        toolName: 'mcp__gemini-flow__agent_spawn',
         coordination: { mode: 'direct' }
       };
       
@@ -1082,7 +1082,7 @@ describe('A2A Integration Tests', () => {
     // Arrange
     const taskMessage: A2AMessage = {
       target: { type: 'group', role: 'coordinator' },
-      toolName: 'mcp__claude-flow__task_orchestrate',
+      toolName: 'mcp__gemini-flow__task_orchestrate',
       parameters: {
         task: 'Implement user authentication',
         strategy: 'pipeline'
@@ -1093,17 +1093,17 @@ describe('A2A Integration Tests', () => {
           {
             name: 'design',
             agentTarget: { type: 'group', role: 'coordinator' },
-            toolName: 'mcp__claude-flow__sparc_mode'
+            toolName: 'mcp__gemini-flow__sparc_mode'
           },
           {
             name: 'implement',
             agentTarget: { type: 'group', role: 'coder', maxAgents: 2 },
-            toolName: 'mcp__claude-flow__parallel_execute'
+            toolName: 'mcp__gemini-flow__parallel_execute'
           },
           {
             name: 'test',
             agentTarget: { type: 'group', role: 'tester' },
-            toolName: 'mcp__claude-flow__sparc_mode'
+            toolName: 'mcp__gemini-flow__sparc_mode'
           }
         ]
       }
@@ -1128,7 +1128,7 @@ describe('A2A Integration Tests', () => {
     
     const taskMessage: A2AMessage = {
       target: { type: 'group', role: 'coder', maxAgents: 3 },
-      toolName: 'mcp__claude-flow__parallel_execute',
+      toolName: 'mcp__gemini-flow__parallel_execute',
       coordination: {
         mode: 'broadcast',
         aggregation: 'majority',
@@ -1413,7 +1413,7 @@ class HierarchicalCoordinator {
         type: 'single',
         agentId: department.coordinatorId
       },
-      toolName: 'mcp__claude-flow__task_orchestrate',
+      toolName: 'mcp__gemini-flow__task_orchestrate',
       parameters: {
         task: department.tasks,
         teams: department.teams,

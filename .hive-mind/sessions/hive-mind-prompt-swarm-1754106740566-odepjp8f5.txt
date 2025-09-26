@@ -21,34 +21,34 @@ WORKER DISTRIBUTION:
 🔧 AVAILABLE MCP TOOLS FOR HIVE MIND COORDINATION:
 
 1️⃣ **COLLECTIVE INTELLIGENCE**
-   mcp__claude-flow__consensus_vote    - Democratic decision making
-   mcp__claude-flow__memory_share      - Share knowledge across the hive
-   mcp__claude-flow__neural_sync       - Synchronize neural patterns
-   mcp__claude-flow__swarm_think       - Collective problem solving
+   mcp__gemini-flow__consensus_vote    - Democratic decision making
+   mcp__gemini-flow__memory_share      - Share knowledge across the hive
+   mcp__gemini-flow__neural_sync       - Synchronize neural patterns
+   mcp__gemini-flow__swarm_think       - Collective problem solving
 
 2️⃣ **QUEEN COORDINATION**
-   mcp__claude-flow__queen_command     - Issue directives to workers
-   mcp__claude-flow__queen_monitor     - Monitor swarm health
-   mcp__claude-flow__queen_delegate    - Delegate complex tasks
-   mcp__claude-flow__queen_aggregate   - Aggregate worker results
+   mcp__gemini-flow__queen_command     - Issue directives to workers
+   mcp__gemini-flow__queen_monitor     - Monitor swarm health
+   mcp__gemini-flow__queen_delegate    - Delegate complex tasks
+   mcp__gemini-flow__queen_aggregate   - Aggregate worker results
 
 3️⃣ **WORKER MANAGEMENT**
-   mcp__claude-flow__agent_spawn       - Create specialized workers
-   mcp__claude-flow__agent_assign      - Assign tasks to workers
-   mcp__claude-flow__agent_communicate - Inter-agent communication
-   mcp__claude-flow__agent_metrics     - Track worker performance
+   mcp__gemini-flow__agent_spawn       - Create specialized workers
+   mcp__gemini-flow__agent_assign      - Assign tasks to workers
+   mcp__gemini-flow__agent_communicate - Inter-agent communication
+   mcp__gemini-flow__agent_metrics     - Track worker performance
 
 4️⃣ **TASK ORCHESTRATION**
-   mcp__claude-flow__task_create       - Create hierarchical tasks
-   mcp__claude-flow__task_distribute   - Distribute work efficiently
-   mcp__claude-flow__task_monitor      - Track task progress
-   mcp__claude-flow__task_aggregate    - Combine task results
+   mcp__gemini-flow__task_create       - Create hierarchical tasks
+   mcp__gemini-flow__task_distribute   - Distribute work efficiently
+   mcp__gemini-flow__task_monitor      - Track task progress
+   mcp__gemini-flow__task_aggregate    - Combine task results
 
 5️⃣ **MEMORY & LEARNING**
-   mcp__claude-flow__memory_store      - Store collective knowledge
-   mcp__claude-flow__memory_retrieve   - Access shared memory
-   mcp__claude-flow__neural_train      - Learn from experiences
-   mcp__claude-flow__pattern_recognize - Identify patterns
+   mcp__gemini-flow__memory_store      - Store collective knowledge
+   mcp__gemini-flow__memory_retrieve   - Access shared memory
+   mcp__gemini-flow__neural_train      - Learn from experiences
+   mcp__gemini-flow__pattern_recognize - Identify patterns
 
 📋 HIVE MIND EXECUTION PROTOCOL:
 
@@ -56,13 +56,13 @@ As the Queen coordinator, you must:
 
 1. **INITIALIZE THE HIVE** (Single BatchTool Message):
    [BatchTool]:
-      mcp__claude-flow__agent_spawn { "type": "researcher", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "coder", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "analyst", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "tester", "count": 1 }
-   mcp__claude-flow__memory_store { "key": "hive/objective", "value": "MISSION: Emergency build repair—84 TypeScript errors and broken CLI are blocking our quantum revolution. This is DEFCON 1 for gemini-flow. Execute triage protocol: 1) TypeScript Surgery - Attack those 84 compilation errors with extreme prejudice. Common patterns: missing types for MCP tools, async/await mismatches, implicit any disasters, module resolution hell. Use type assertions where needed but document why. Target: 0 errors, 0 warnings 2) CLI Binary Resurrection - The bin/gemini-flow is dead. Fix: shebang line (#node), file permissions (chmod +x), proper transpilation setup, correct paths to dist/cli/index.js. Test with 'npm link' locally 3) Module System Therapy - ESM vs CommonJS is having a civil war. Pick a side: either full ESM with proper package.json type:module or CommonJS with require(). Fix all import/export mismatches. Update tsconfig.json module settings 4) Test Framework Reconciliation - Tests are confused about module systems. Align jest/vitest config with chosen module system. Mock the MCP tools properly. Just make one test pass, then pattern match 5) Build Pipeline Validation - Run full build sequence: npm run clean && npm run build && npm test && npm pack. Each step must succeed before moving forward 6) NPM Publication Sprint - Once build is green, immediately publish. No ceremony, just npm publish --access public. We've waited long enough. This isn't development, it's emergency surgery. Every error dies today." }
-   mcp__claude-flow__memory_store { "key": "hive/queen", "value": "strategic" }
-   mcp__claude-flow__swarm_think { "topic": "initial_strategy" }
+      mcp__gemini-flow__agent_spawn { "type": "researcher", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "coder", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "analyst", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "tester", "count": 1 }
+   mcp__gemini-flow__memory_store { "key": "hive/objective", "value": "MISSION: Emergency build repair—84 TypeScript errors and broken CLI are blocking our quantum revolution. This is DEFCON 1 for gemini-flow. Execute triage protocol: 1) TypeScript Surgery - Attack those 84 compilation errors with extreme prejudice. Common patterns: missing types for MCP tools, async/await mismatches, implicit any disasters, module resolution hell. Use type assertions where needed but document why. Target: 0 errors, 0 warnings 2) CLI Binary Resurrection - The bin/gemini-flow is dead. Fix: shebang line (#node), file permissions (chmod +x), proper transpilation setup, correct paths to dist/cli/index.js. Test with 'npm link' locally 3) Module System Therapy - ESM vs CommonJS is having a civil war. Pick a side: either full ESM with proper package.json type:module or CommonJS with require(). Fix all import/export mismatches. Update tsconfig.json module settings 4) Test Framework Reconciliation - Tests are confused about module systems. Align jest/vitest config with chosen module system. Mock the MCP tools properly. Just make one test pass, then pattern match 5) Build Pipeline Validation - Run full build sequence: npm run clean && npm run build && npm test && npm pack. Each step must succeed before moving forward 6) NPM Publication Sprint - Once build is green, immediately publish. No ceremony, just npm publish --access public. We've waited long enough. This isn't development, it's emergency surgery. Every error dies today." }
+   mcp__gemini-flow__memory_store { "key": "hive/queen", "value": "strategic" }
+   mcp__gemini-flow__swarm_think { "topic": "initial_strategy" }
    TodoWrite { "todos": [/* Create 5-10 high-level tasks */] }
 
 2. **ESTABLISH COLLECTIVE INTELLIGENCE**:

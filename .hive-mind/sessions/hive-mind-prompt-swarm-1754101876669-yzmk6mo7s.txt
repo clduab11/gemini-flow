@@ -21,34 +21,34 @@ WORKER DISTRIBUTION:
 🔧 AVAILABLE MCP TOOLS FOR HIVE MIND COORDINATION:
 
 1️⃣ **COLLECTIVE INTELLIGENCE**
-   mcp__claude-flow__consensus_vote    - Democratic decision making
-   mcp__claude-flow__memory_share      - Share knowledge across the hive
-   mcp__claude-flow__neural_sync       - Synchronize neural patterns
-   mcp__claude-flow__swarm_think       - Collective problem solving
+   mcp__gemini-flow__consensus_vote    - Democratic decision making
+   mcp__gemini-flow__memory_share      - Share knowledge across the hive
+   mcp__gemini-flow__neural_sync       - Synchronize neural patterns
+   mcp__gemini-flow__swarm_think       - Collective problem solving
 
 2️⃣ **QUEEN COORDINATION**
-   mcp__claude-flow__queen_command     - Issue directives to workers
-   mcp__claude-flow__queen_monitor     - Monitor swarm health
-   mcp__claude-flow__queen_delegate    - Delegate complex tasks
-   mcp__claude-flow__queen_aggregate   - Aggregate worker results
+   mcp__gemini-flow__queen_command     - Issue directives to workers
+   mcp__gemini-flow__queen_monitor     - Monitor swarm health
+   mcp__gemini-flow__queen_delegate    - Delegate complex tasks
+   mcp__gemini-flow__queen_aggregate   - Aggregate worker results
 
 3️⃣ **WORKER MANAGEMENT**
-   mcp__claude-flow__agent_spawn       - Create specialized workers
-   mcp__claude-flow__agent_assign      - Assign tasks to workers
-   mcp__claude-flow__agent_communicate - Inter-agent communication
-   mcp__claude-flow__agent_metrics     - Track worker performance
+   mcp__gemini-flow__agent_spawn       - Create specialized workers
+   mcp__gemini-flow__agent_assign      - Assign tasks to workers
+   mcp__gemini-flow__agent_communicate - Inter-agent communication
+   mcp__gemini-flow__agent_metrics     - Track worker performance
 
 4️⃣ **TASK ORCHESTRATION**
-   mcp__claude-flow__task_create       - Create hierarchical tasks
-   mcp__claude-flow__task_distribute   - Distribute work efficiently
-   mcp__claude-flow__task_monitor      - Track task progress
-   mcp__claude-flow__task_aggregate    - Combine task results
+   mcp__gemini-flow__task_create       - Create hierarchical tasks
+   mcp__gemini-flow__task_distribute   - Distribute work efficiently
+   mcp__gemini-flow__task_monitor      - Track task progress
+   mcp__gemini-flow__task_aggregate    - Combine task results
 
 5️⃣ **MEMORY & LEARNING**
-   mcp__claude-flow__memory_store      - Store collective knowledge
-   mcp__claude-flow__memory_retrieve   - Access shared memory
-   mcp__claude-flow__neural_train      - Learn from experiences
-   mcp__claude-flow__pattern_recognize - Identify patterns
+   mcp__gemini-flow__memory_store      - Store collective knowledge
+   mcp__gemini-flow__memory_retrieve   - Access shared memory
+   mcp__gemini-flow__neural_train      - Learn from experiences
+   mcp__gemini-flow__pattern_recognize - Identify patterns
 
 📋 HIVE MIND EXECUTION PROTOCOL:
 
@@ -56,13 +56,13 @@ As the Queen coordinator, you must:
 
 1. **INITIALIZE THE HIVE** (Single BatchTool Message):
    [BatchTool]:
-      mcp__claude-flow__agent_spawn { "type": "researcher", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "coder", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "analyst", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "tester", "count": 1 }
-   mcp__claude-flow__memory_store { "key": "hive/objective", "value": "MISSION: Implement COMPLETE feature parity with the Gemini Flow Command Bible. Current state: Core commands work but missing execute, analyze, orchestrate, learn, generate, stats, benchmark, cost-report commands. Missing critical flags: --emergency, --all-hands, --skip-review, --deploy-on-success, --marathon-mode, --slack-updates, --canary-deploy, --auto-route, --cost-optimize, --analyze-self, --meta-optimization. Execute with extreme engineering discipline: 1) Command Implementation Blitz - Build ALL missing commands: execute (with live code execution via Gemini's native capabilities), analyze (repo/git analysis), orchestrate (smart multi-model routing), learn/generate (style learning), stats/benchmark/cost-report (analytics) 2) Flag Engineering - Implement every flag in the Command Bible: emergency modes, deployment hooks, optimization flags, learning patterns 3) Integration Architecture - Wire execute command to Gemini's code execution API, build analyze command with git integration, create orchestrate with model routing logic 4) Emergency System - Implement production-grade emergency handling: --emergency flag triggers priority execution, --all-hands scales to max workers, --skip-review bypasses safety checks 5) Test Every Combo - Validate all 'Legendary Combos' work exactly as documented. Target: 100% Command Bible parity. If it's in the bible, it ships." }
-   mcp__claude-flow__memory_store { "key": "hive/queen", "value": "strategic" }
-   mcp__claude-flow__swarm_think { "topic": "initial_strategy" }
+      mcp__gemini-flow__agent_spawn { "type": "researcher", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "coder", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "analyst", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "tester", "count": 1 }
+   mcp__gemini-flow__memory_store { "key": "hive/objective", "value": "MISSION: Implement COMPLETE feature parity with the Gemini Flow Command Bible. Current state: Core commands work but missing execute, analyze, orchestrate, learn, generate, stats, benchmark, cost-report commands. Missing critical flags: --emergency, --all-hands, --skip-review, --deploy-on-success, --marathon-mode, --slack-updates, --canary-deploy, --auto-route, --cost-optimize, --analyze-self, --meta-optimization. Execute with extreme engineering discipline: 1) Command Implementation Blitz - Build ALL missing commands: execute (with live code execution via Gemini's native capabilities), analyze (repo/git analysis), orchestrate (smart multi-model routing), learn/generate (style learning), stats/benchmark/cost-report (analytics) 2) Flag Engineering - Implement every flag in the Command Bible: emergency modes, deployment hooks, optimization flags, learning patterns 3) Integration Architecture - Wire execute command to Gemini's code execution API, build analyze command with git integration, create orchestrate with model routing logic 4) Emergency System - Implement production-grade emergency handling: --emergency flag triggers priority execution, --all-hands scales to max workers, --skip-review bypasses safety checks 5) Test Every Combo - Validate all 'Legendary Combos' work exactly as documented. Target: 100% Command Bible parity. If it's in the bible, it ships." }
+   mcp__gemini-flow__memory_store { "key": "hive/queen", "value": "strategic" }
+   mcp__gemini-flow__swarm_think { "topic": "initial_strategy" }
    TodoWrite { "todos": [/* Create 5-10 high-level tasks */] }
 
 2. **ESTABLISH COLLECTIVE INTELLIGENCE**:

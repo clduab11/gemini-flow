@@ -62,6 +62,7 @@ export interface ModelRequest {
     stopSequences?: string[];
     presencePenalty?: number;
     frequencyPenalty?: number;
+    numberOfCompletions?: number;
   };
   systemMessage?: string;
   tools?: any[];
@@ -70,6 +71,9 @@ export interface ModelRequest {
     audio?: string[];
     video?: string[];
   };
+  // Add missing properties for compatibility
+  images?: string[];
+  documents?: string[];
   metadata?: Record<string, any>;
 }
 

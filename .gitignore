@@ -12,7 +12,7 @@
 *.sqlite3
 
 # Swarm and coordination files
-.claude-flow/
+.gemini-flow/
 .swarm/
 .hive-mind/
 .benchmarks/

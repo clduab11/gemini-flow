@@ -5,7 +5,7 @@ import { Logger } from '../utils/logger.js';
  * @description Configuration for Gap Analysis and Remediation.
  */
 export interface GapAnalysisConfig {
-  claudeFlowFeatureSet: string[]; // List of features in claude-flow for comparison
+  claudeFlowFeatureSet: string[]; // List of features in gemini-flow for comparison
   performanceTargets: { [metric: string]: number };
   // Add configuration for remediation strategies, reporting, etc.
 }
@@ -35,14 +35,14 @@ export class GapAnalyzer implements GapAnalysisOperations {
   }
 
   /**
-   * Compares gemini-flow capabilities against claude-flow feature set.
+   * Compares gemini-flow capabilities against gemini-flow feature set.
    * @returns {Promise<any>} Analysis results including missing features.
    */
   public async analyzeFeatureParity(): Promise<any> {
-    this.logger.info('Analyzing feature parity with claude-flow (conceptual)...');
+    this.logger.info('Analyzing feature parity with gemini-flow (conceptual)...');
     // This would involve:
     // - Programmatically checking for the presence of tools, modules, and functionalities.
-    // - Comparing against a predefined list of claude-flow features.
+    // - Comparing against a predefined list of gemini-flow features.
     await new Promise(resolve => setTimeout(resolve, 500));
     const missingFeatures = ['advanced_reporting', 'custom_agent_types']; // Simulated
     const analysis = { totalFeatures: this.config.claudeFlowFeatureSet.length, missingFeatures };

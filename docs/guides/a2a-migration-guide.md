@@ -193,31 +193,31 @@ class CompatibilityChecker {
   async checkA2ACompatibility(toolName: string): Promise<CompatibilityResult> {
     const compatibilityMatrix = {
       // Core Infrastructure - Full A2A Support
-      'mcp__claude-flow__swarm_init': { 
+      'mcp__gemini-flow__swarm_init': { 
         compatible: true, 
         coordinationModes: ['broadcast', 'consensus'],
         migrationComplexity: 'low'
       },
-      'mcp__claude-flow__agent_spawn': { 
+      'mcp__gemini-flow__agent_spawn': { 
         compatible: true, 
         coordinationModes: ['direct', 'consensus'],
         migrationComplexity: 'low'
       },
       
       // Task Orchestration - Full A2A Support
-      'mcp__claude-flow__task_orchestrate': { 
+      'mcp__gemini-flow__task_orchestrate': { 
         compatible: true, 
         coordinationModes: ['pipeline', 'broadcast', 'consensus'],
         migrationComplexity: 'medium'
       },
-      'mcp__claude-flow__parallel_execute': { 
+      'mcp__gemini-flow__parallel_execute': { 
         compatible: true, 
         coordinationModes: ['broadcast', 'pipeline'],
         migrationComplexity: 'low'
       },
       
       // Memory & State - Requires State Synchronization
-      'mcp__claude-flow__memory_usage': { 
+      'mcp__gemini-flow__memory_usage': { 
         compatible: true, 
         coordinationModes: ['consensus', 'broadcast'],
         migrationComplexity: 'high',
@@ -225,7 +225,7 @@ class CompatibilityChecker {
       },
       
       // Neural & AI - Complex Coordination
-      'mcp__claude-flow__neural_train': { 
+      'mcp__gemini-flow__neural_train': { 
         compatible: true, 
         coordinationModes: ['parameter-server', 'consensus'],
         migrationComplexity: 'high',
@@ -372,7 +372,7 @@ class A2ASwarmManager {
         type: 'broadcast',
         filter: { role: 'swarm-coordinator' }
       },
-      toolName: 'mcp__claude-flow__swarm_init',
+      toolName: 'mcp__gemini-flow__swarm_init',
       parameters: {
         topology: config.topology,
         maxAgents: config.maxAgents,
@@ -407,7 +407,7 @@ class A2ASwarmManager {
   ): Promise<void> {
     const spawnTasks = config.agents.map(agentConfig => ({
       target: { type: 'group', role: 'agent-spawner', maxAgents: 1 },
-      toolName: 'mcp__claude-flow__agent_spawn',
+      toolName: 'mcp__gemini-flow__agent_spawn',
       parameters: agentConfig,
       coordination: {
         mode: 'consensus',
@@ -448,7 +448,7 @@ class A2ATaskOrchestrator {
   async executeTask(task: Task): Promise<TaskResult> {
     const orchestrationMessage: A2AMessage = {
       target: this.determineTargetStrategy(task),
-      toolName: 'mcp__claude-flow__task_orchestrate',
+      toolName: 'mcp__gemini-flow__task_orchestrate',
       parameters: {
         task: task.description,
         strategy: this.determineExecutionStrategy(task),
@@ -530,7 +530,7 @@ class A2AMemoryManager {
         role: 'memory-manager',
         maxAgents: options.replicationFactor || 3
       },
-      toolName: 'mcp__claude-flow__memory_usage',
+      toolName: 'mcp__gemini-flow__memory_usage',
       parameters: {
         action: 'store',
         key,
@@ -571,7 +571,7 @@ class A2AMemoryManager {
         role: 'memory-manager',
         maxAgents: options.consistency === 'strong' ? 3 : 1
       },
-      toolName: 'mcp__claude-flow__memory_usage',
+      toolName: 'mcp__gemini-flow__memory_usage',
       parameters: {
         action: 'retrieve',
         key,
@@ -636,7 +636,7 @@ class A2ANeuralTrainer {
         agentIds: config.workerAgents,
         coordinationMode: 'parallel'
       },
-      toolName: 'mcp__claude-flow__neural_train',
+      toolName: 'mcp__gemini-flow__neural_train',
       parameters: {
         modelType: config.modelType,
         architecture: config.architecture,
@@ -654,17 +654,17 @@ class A2ANeuralTrainer {
           {
             name: 'initialization',
             agentTarget: { type: 'single', agentId: config.parameterServer },
-            toolName: 'mcp__claude-flow__neural_train'
+            toolName: 'mcp__gemini-flow__neural_train'
           },
           {
             name: 'distributed-training',
             agentTarget: { type: 'multiple', agentIds: config.workerAgents },
-            toolName: 'mcp__claude-flow__neural_train'
+            toolName: 'mcp__gemini-flow__neural_train'
           },
           {
             name: 'model-aggregation',
             agentTarget: { type: 'single', agentId: config.parameterServer },
-            toolName: 'mcp__claude-flow__neural_train'
+            toolName: 'mcp__gemini-flow__neural_train'
           }
         ]
       },
@@ -699,7 +699,7 @@ class A2ANeuralTrainer {
     while (!completed) {
       const statusMessage: A2AMessage = {
         target: { type: 'single', agentId: 'training-coordinator' },
-        toolName: 'mcp__claude-flow__neural_status',
+        toolName: 'mcp__gemini-flow__neural_status',
         parameters: { trainingId },
         coordination: { mode: 'direct' }
       };
@@ -831,7 +831,7 @@ class A2AWorkflow {
         type: 'single',
         agentId: 'workflow-coordinator'
       },
-      toolName: 'mcp__claude-flow__workflow_create',
+      toolName: 'mcp__gemini-flow__workflow_create',
       parameters: {
         name: workflowConfig.name,
         steps: workflowConfig.steps.map(step => ({
@@ -878,7 +878,7 @@ class A2AWorkflow {
         type: 'single',
         agentId: 'workflow-coordinator'
       },
-      toolName: 'mcp__claude-flow__workflow_execute',
+      toolName: 'mcp__gemini-flow__workflow_execute',
       parameters: {
         workflowId: response.result.workflowId,
         executionContext: {

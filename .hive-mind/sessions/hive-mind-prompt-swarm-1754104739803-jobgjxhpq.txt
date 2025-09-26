@@ -21,34 +21,34 @@ WORKER DISTRIBUTION:
 🔧 AVAILABLE MCP TOOLS FOR HIVE MIND COORDINATION:
 
 1️⃣ **COLLECTIVE INTELLIGENCE**
-   mcp__claude-flow__consensus_vote    - Democratic decision making
-   mcp__claude-flow__memory_share      - Share knowledge across the hive
-   mcp__claude-flow__neural_sync       - Synchronize neural patterns
-   mcp__claude-flow__swarm_think       - Collective problem solving
+   mcp__gemini-flow__consensus_vote    - Democratic decision making
+   mcp__gemini-flow__memory_share      - Share knowledge across the hive
+   mcp__gemini-flow__neural_sync       - Synchronize neural patterns
+   mcp__gemini-flow__swarm_think       - Collective problem solving
 
 2️⃣ **QUEEN COORDINATION**
-   mcp__claude-flow__queen_command     - Issue directives to workers
-   mcp__claude-flow__queen_monitor     - Monitor swarm health
-   mcp__claude-flow__queen_delegate    - Delegate complex tasks
-   mcp__claude-flow__queen_aggregate   - Aggregate worker results
+   mcp__gemini-flow__queen_command     - Issue directives to workers
+   mcp__gemini-flow__queen_monitor     - Monitor swarm health
+   mcp__gemini-flow__queen_delegate    - Delegate complex tasks
+   mcp__gemini-flow__queen_aggregate   - Aggregate worker results
 
 3️⃣ **WORKER MANAGEMENT**
-   mcp__claude-flow__agent_spawn       - Create specialized workers
-   mcp__claude-flow__agent_assign      - Assign tasks to workers
-   mcp__claude-flow__agent_communicate - Inter-agent communication
-   mcp__claude-flow__agent_metrics     - Track worker performance
+   mcp__gemini-flow__agent_spawn       - Create specialized workers
+   mcp__gemini-flow__agent_assign      - Assign tasks to workers
+   mcp__gemini-flow__agent_communicate - Inter-agent communication
+   mcp__gemini-flow__agent_metrics     - Track worker performance
 
 4️⃣ **TASK ORCHESTRATION**
-   mcp__claude-flow__task_create       - Create hierarchical tasks
-   mcp__claude-flow__task_distribute   - Distribute work efficiently
-   mcp__claude-flow__task_monitor      - Track task progress
-   mcp__claude-flow__task_aggregate    - Combine task results
+   mcp__gemini-flow__task_create       - Create hierarchical tasks
+   mcp__gemini-flow__task_distribute   - Distribute work efficiently
+   mcp__gemini-flow__task_monitor      - Track task progress
+   mcp__gemini-flow__task_aggregate    - Combine task results
 
 5️⃣ **MEMORY & LEARNING**
-   mcp__claude-flow__memory_store      - Store collective knowledge
-   mcp__claude-flow__memory_retrieve   - Access shared memory
-   mcp__claude-flow__neural_train      - Learn from experiences
-   mcp__claude-flow__pattern_recognize - Identify patterns
+   mcp__gemini-flow__memory_store      - Store collective knowledge
+   mcp__gemini-flow__memory_retrieve   - Access shared memory
+   mcp__gemini-flow__neural_train      - Learn from experiences
+   mcp__gemini-flow__pattern_recognize - Identify patterns
 
 📋 HIVE MIND EXECUTION PROTOCOL:
 
@@ -56,13 +56,13 @@ As the Queen coordinator, you must:
 
 1. **INITIALIZE THE HIVE** (Single BatchTool Message):
    [BatchTool]:
-      mcp__claude-flow__agent_spawn { "type": "researcher", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "coder", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "analyst", "count": 1 }
-   mcp__claude-flow__agent_spawn { "type": "tester", "count": 1 }
-   mcp__claude-flow__memory_store { "key": "hive/objective", "value": "MISSION: QUANTUM LAUNCH SEQUENCE - Push Gemini-Flow v1.0.0 to production. Everything's staged. The quantum commits are ready. Time to show the world what happens when you refuse to accept single-paradigm limitations. Execute with surgical precision: 1) Git Reality Check - Verify ALL changes are staged (quantum examples, README enhancements, version harmonization). Run 'git status' and ensure we're not leaving any quantum particles behind 2) Force Push Protocol - Push to github.com/clduab11/gemini-flow main branch with conviction. Use --force-with-lease if needed. This isn't a suggestion, it's a paradigm shift 3) GitHub Release Engineering - Create v1.0.0 release using gh CLI or web interface. Title: '🚀 Gemini-Flow v1.0.0 - Where Classical AI Meets Quantum Computing'. Include the quantum FOMO messaging, Ultra tier features, dedications to rUv and quantum pioneers 4) NPM Publication Prep - Ensure package.json has proper npm metadata: keywords include 'quantum-computing', 'qiskit', 'pennylane', 'multi-paradigm'. Run 'npm pack' to verify package integrity 5) Repository Verification - Confirm github.com/clduab11/gemini-flow shows: updated README with quantum section, Command Bible with Quantum Supremacy Sprint, all code changes live on main branch 6) Victory Documentation - Update release notes with actual quantum example outputs, performance benchmarks, and a teaser for what's coming next. Target: Repository that makes competitors question their entire technical strategy." }
-   mcp__claude-flow__memory_store { "key": "hive/queen", "value": "strategic" }
-   mcp__claude-flow__swarm_think { "topic": "initial_strategy" }
+      mcp__gemini-flow__agent_spawn { "type": "researcher", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "coder", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "analyst", "count": 1 }
+   mcp__gemini-flow__agent_spawn { "type": "tester", "count": 1 }
+   mcp__gemini-flow__memory_store { "key": "hive/objective", "value": "MISSION: QUANTUM LAUNCH SEQUENCE - Push Gemini-Flow v1.0.0 to production. Everything's staged. The quantum commits are ready. Time to show the world what happens when you refuse to accept single-paradigm limitations. Execute with surgical precision: 1) Git Reality Check - Verify ALL changes are staged (quantum examples, README enhancements, version harmonization). Run 'git status' and ensure we're not leaving any quantum particles behind 2) Force Push Protocol - Push to github.com/clduab11/gemini-flow main branch with conviction. Use --force-with-lease if needed. This isn't a suggestion, it's a paradigm shift 3) GitHub Release Engineering - Create v1.0.0 release using gh CLI or web interface. Title: '🚀 Gemini-Flow v1.0.0 - Where Classical AI Meets Quantum Computing'. Include the quantum FOMO messaging, Ultra tier features, dedications to rUv and quantum pioneers 4) NPM Publication Prep - Ensure package.json has proper npm metadata: keywords include 'quantum-computing', 'qiskit', 'pennylane', 'multi-paradigm'. Run 'npm pack' to verify package integrity 5) Repository Verification - Confirm github.com/clduab11/gemini-flow shows: updated README with quantum section, Command Bible with Quantum Supremacy Sprint, all code changes live on main branch 6) Victory Documentation - Update release notes with actual quantum example outputs, performance benchmarks, and a teaser for what's coming next. Target: Repository that makes competitors question their entire technical strategy." }
+   mcp__gemini-flow__memory_store { "key": "hive/queen", "value": "strategic" }
+   mcp__gemini-flow__swarm_think { "topic": "initial_strategy" }
    TodoWrite { "todos": [/* Create 5-10 high-level tasks */] }
 
 2. **ESTABLISH COLLECTIVE INTELLIGENCE**:

@@ -293,11 +293,11 @@ export class MCPToGeminiAdapter {
     // This would typically be populated from the actual MCP server capabilities
     // For now, return a subset of commonly used tools
     return [
-      "mcp__claude-flow__swarm_init",
-      "mcp__claude-flow__agent_spawn",
-      "mcp__claude-flow__task_orchestrate",
-      "mcp__claude-flow__memory_usage",
-      "mcp__claude-flow__neural_status",
+      "mcp__gemini-flow__swarm_init",
+      "mcp__gemini-flow__agent_spawn",
+      "mcp__gemini-flow__task_orchestrate",
+      "mcp__gemini-flow__memory_usage",
+      "mcp__gemini-flow__neural_status",
       "mcp__ruv-swarm__swarm_init",
       "mcp__ruv-swarm__agent_spawn",
       "mcp__ruv-swarm__task_orchestrate",
