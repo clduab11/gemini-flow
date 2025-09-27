@@ -13,7 +13,7 @@ export class DGMCommand extends Command {
     constructor() {
         super('dgm');
         this.description('Darwin Gödel Machine - Evolutionary cleanup and self-improving system')
-            .alias('dgm');
+            .alias('darwin');
         this.logger = new Logger('DGMCommand');
         this.setupCommands();
     }
