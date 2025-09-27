@@ -13,10 +13,13 @@ import {
   ParameterMapping,
   ResponseMapping,
   TransformFunction,
+  PaymentMandate,
+  A2PConfig,
 } from "../../../types/a2a.js";
 import { MCPRequest, MCPResponse, MCPTool } from "../../../types/mcp.js";
 import { Logger } from "../../../utils/logger.js";
 import { TopologyType } from "../../protocol-activator.js";
+import { A2PPaymentProcessor } from "../a2p/payment-processor.js";
 
 /**
  * Bridge metrics
@@ -31,6 +34,10 @@ export interface BridgeMetrics {
   mappingsCount: number;
   transformationCacheHits: number;
   errorsByType: { [errorType: string]: number };
+  // A2P Payment metrics
+  totalPayments: number;
+  paymentSuccessRate: number;
+  avgPaymentLatency: number;
 }
 
 /**
@@ -52,6 +59,7 @@ export class A2AMCPBridge extends EventEmitter {
   private transformationCache: Map<string, CacheEntry> = new Map();
   private isInitialized: boolean = false;
   private topology?: TopologyType;
+  private paymentProcessor?: A2PPaymentProcessor;
 
   // Metrics tracking
   private metrics: {
@@ -64,6 +72,11 @@ export class A2AMCPBridge extends EventEmitter {
     cacheHits: number;
     errorsByType: Map<string, number>;
     startTime: number;
+    // A2P Payment metrics
+    totalPayments: number;
+    paymentSuccesses: number;
+    paymentFailures: number;
+    paymentLatencies: number[];
   } = {
     totalTranslations: 0,
     mcpToA2ATranslations: 0,
@@ -74,6 +87,10 @@ export class A2AMCPBridge extends EventEmitter {
     cacheHits: 0,
     errorsByType: new Map(),
     startTime: Date.now(),
+    totalPayments: 0,
+    paymentSuccesses: 0,
+    paymentFailures: 0,
+    paymentLatencies: [],
   };
 
   // Configuration
@@ -81,10 +98,16 @@ export class A2AMCPBridge extends EventEmitter {
   private cacheTTL: number = 300000; // 5 minutes
   private maxCacheSize: number = 1000;
 
-  constructor(options?: { topology: TopologyType }) {
+  constructor(options?: { topology: TopologyType; a2pConfig?: A2PConfig }) {
     super();
     this.logger = new Logger("A2AMCPBridge");
     this.topology = options?.topology;
+
+    // Initialize A2P payment processor if config provided
+    if (options?.a2pConfig) {
+      this.paymentProcessor = new A2PPaymentProcessor(options.a2pConfig);
+      this.logger.info("A2P Payment Processor enabled");
+    }
 
     // Set up periodic cache cleanup
     setInterval(() => this.cleanupCache(), 60000); // Every minute
@@ -945,5 +968,117 @@ export class A2AMCPBridge extends EventEmitter {
       errorType,
       message: error.message,
     });
+  }
+
+  /**
+   * Process payment using A2P payment processor
+   */
+  async processPayment(mandate: PaymentMandate): Promise<{
+    transactionId: string;
+    status: string;
+    latency: number;
+    consensusProof: string;
+  }> {
+    if (!this.paymentProcessor) {
+      throw new Error("A2P Payment Processor not initialized");
+    }
+
+    const startTime = performance.now();
+
+    try {
+      this.metrics.totalPayments++;
+
+      const result = await this.paymentProcessor.processPayment(mandate);
+
+      const latency = performance.now() - startTime;
+      this.metrics.paymentSuccesses++;
+      this.metrics.paymentLatencies.push(latency);
+
+      // Keep only last 1000 entries
+      if (this.metrics.paymentLatencies.length > 1000) {
+        this.metrics.paymentLatencies.splice(0, 100);
+      }
+
+      this.logger.info("Payment processed successfully", {
+        transactionId: result.transactionId,
+        amount: result.amount,
+        latency: result.latency,
+      });
+
+      return {
+        transactionId: result.transactionId,
+        status: result.status,
+        latency: result.latency,
+        consensusProof: result.consensusProof,
+      };
+    } catch (error) {
+      this.metrics.paymentFailures++;
+      this.logger.error("Payment processing failed", {
+        mandateId: mandate.id,
+        error: (error as Error).message,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Check if payment processing is enabled
+   */
+  isPaymentEnabled(): boolean {
+    return !!this.paymentProcessor;
+  }
+
+  /**
+   * Get comprehensive bridge metrics including payment metrics
+   */
+  getBridgeMetrics(): BridgeMetrics {
+    const uptime = Date.now() - this.metrics.startTime;
+    const avgTranslationTime =
+      this.metrics.translationTimes.length > 0
+        ? this.metrics.translationTimes.reduce((sum, time) => sum + time, 0) /
+          this.metrics.translationTimes.length
+        : 0;
+
+    const avgPaymentLatency =
+      this.metrics.paymentLatencies.length > 0
+        ? this.metrics.paymentLatencies.reduce((sum, time) => sum + time, 0) /
+          this.metrics.paymentLatencies.length
+        : 0;
+
+    const successRate =
+      this.metrics.totalTranslations > 0
+        ? this.metrics.translationSuccesses / this.metrics.totalTranslations
+        : 0;
+
+    const paymentSuccessRate =
+      this.metrics.totalPayments > 0
+        ? this.metrics.paymentSuccesses / this.metrics.totalPayments
+        : 0;
+
+    const errorRate =
+      this.metrics.totalTranslations > 0
+        ? this.metrics.translationFailures / this.metrics.totalTranslations
+        : 0;
+
+    const errorsByType: { [errorType: string]: number } = {};
+    this.metrics.errorsByType.forEach((count, type) => {
+      errorsByType[type] = count;
+    });
+
+    return {
+      totalTranslations: this.metrics.totalTranslations,
+      mcpToA2ATranslations: this.metrics.mcpToA2ATranslations,
+      a2aToMCPTranslations: this.metrics.a2aToMCPTranslations,
+      avgTranslationTime,
+      successRate,
+      errorRate,
+      mappingsCount: this.mappings.size,
+      transformationCacheHits: this.metrics.cacheHits,
+      errorsByType,
+      // A2P Payment metrics
+      totalPayments: this.metrics.totalPayments,
+      paymentSuccessRate,
+      avgPaymentLatency,
+    };
   }
 }

@@ -442,6 +442,59 @@ export interface CapabilityParameter {
   description?: string;
 }
 
+// A2P Payment Processing Types
+export interface PaymentMandate {
+  id: string;
+  amount: number;
+  currency: string;
+  sender: AgentId;
+  receiver: AgentId;
+  purpose: string;
+  maxFee?: number;
+  timeout?: number; // milliseconds
+  escrow?: boolean;
+  metadata?: Record<string, any>;
+}
+
+export interface PaymentRoute {
+  id: string;
+  hops: PaymentHop[];
+  totalFee: number;
+  estimatedLatency: number;
+  reliability: number;
+  quantumOptimized: boolean;
+}
+
+export interface PaymentHop {
+  processor: string;
+  fee: number;
+  latency: number;
+  reliability: number;
+}
+
+export interface PaymentTransaction {
+  id: string;
+  mandate: PaymentMandate;
+  route: PaymentRoute;
+  status: PaymentStatus;
+  createdAt: number;
+  completedAt?: number;
+  escrowId?: string;
+  consensusProof?: string;
+}
+
+export type PaymentStatus = "pending" | "processing" | "completed" | "failed" | "disputed";
+
+export interface A2PConfig {
+  quantum: {
+    pennylane: string;
+    qiskit: string;
+  };
+  database: string;
+  validators: number;
+  faultTolerance: number;
+}
+
 // Protocol Manager Configuration
 export interface A2AProtocolConfig {
   // Agent identification
@@ -471,4 +524,8 @@ export interface A2AProtocolConfig {
   messageTimeout: number;
   maxConcurrentMessages: number;
   retryPolicy: RetryPolicy;
+
+  // A2P Payment configuration
+  paymentEnabled?: boolean;
+  a2pConfig?: A2PConfig;
 }
