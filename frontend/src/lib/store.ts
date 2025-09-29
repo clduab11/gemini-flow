@@ -53,6 +53,16 @@ interface FlowState {
   setSelectedNodes: (nodeIds: string[]) => void;
   setSelectedEdges: (edgeIds: string[]) => void;
   
+  // Execution state
+  isExecuting: boolean;
+  executionResult: string | null;
+  executionError: string | null;
+  executionMetadata: any | null;
+  
+  // Execution actions
+  executeFlow: () => Promise<void>;
+  clearExecutionResult: () => void;
+  
   // Utility actions
   clearFlow: () => void;
   resetFlow: () => void;
@@ -84,6 +94,9 @@ const initialEdges: Edge[] = [
   { id: 'e2-3', source: '2', target: '3' },
 ];
 
+// API Configuration
+const API_BASE_URL = 'http://localhost:3001/api';
+
 // Create the Zustand store
 export const useFlowStore = create<FlowState>((set, get) => ({
   // Initial state
@@ -91,6 +104,12 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   edges: initialEdges,
   selectedNodes: [],
   selectedEdges: [],
+  
+  // Execution state
+  isExecuting: false,
+  executionResult: null,
+  executionError: null,
+  executionMetadata: null,
 
   // Node actions
   setNodes: (nodes) => set({ nodes }),
@@ -154,6 +173,66 @@ export const useFlowStore = create<FlowState>((set, get) => ({
   setSelectedNodes: (nodeIds) => set({ selectedNodes: nodeIds }),
   setSelectedEdges: (edgeIds) => set({ selectedEdges: edgeIds }),
 
+  // Execution actions
+  executeFlow: async () => {
+    const { nodes, edges } = get();
+    
+    // Set loading state
+    set({ 
+      isExecuting: true, 
+      executionResult: null, 
+      executionError: null,
+      executionMetadata: null 
+    });
+
+    try {
+      console.log('🚀 Executing flow with', nodes.length, 'nodes and', edges.length, 'edges');
+      
+      const response = await fetch(`${API_BASE_URL}/gemini/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nodes, edges }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to execute flow');
+      }
+
+      console.log('✅ Flow execution successful');
+      
+      // Set success state
+      set({
+        isExecuting: false,
+        executionResult: data.result,
+        executionError: null,
+        executionMetadata: data.metadata,
+      });
+      
+    } catch (error: any) {
+      console.error('❌ Flow execution failed:', error);
+      
+      // Set error state
+      set({
+        isExecuting: false,
+        executionResult: null,
+        executionError: error.message || 'An unknown error occurred',
+        executionMetadata: null,
+      });
+    }
+  },
+
+  clearExecutionResult: () => {
+    set({
+      executionResult: null,
+      executionError: null,
+      executionMetadata: null,
+    });
+  },
+
   // Utility actions
   clearFlow: () => {
     set({
@@ -161,6 +240,10 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       edges: [],
       selectedNodes: [],
       selectedEdges: [],
+      // Also clear execution state when clearing flow
+      executionResult: null,
+      executionError: null,
+      executionMetadata: null,
     });
   },
 
@@ -170,6 +253,10 @@ export const useFlowStore = create<FlowState>((set, get) => ({
       edges: initialEdges,
       selectedNodes: [],
       selectedEdges: [],
+      // Also clear execution state when resetting flow
+      executionResult: null,
+      executionError: null,
+      executionMetadata: null,
     });
   },
 }));
@@ -195,6 +282,14 @@ export const useDeleteEdge = () => useFlowStore((state) => state.deleteEdge);
 
 export const useSetSelectedNodes = () => useFlowStore((state) => state.setSelectedNodes);
 export const useSetSelectedEdges = () => useFlowStore((state) => state.setSelectedEdges);
+
+// Execution hooks
+export const useIsExecuting = () => useFlowStore((state) => state.isExecuting);
+export const useExecutionResult = () => useFlowStore((state) => state.executionResult);
+export const useExecutionError = () => useFlowStore((state) => state.executionError);
+export const useExecutionMetadata = () => useFlowStore((state) => state.executionMetadata);
+export const useExecuteFlow = () => useFlowStore((state) => state.executeFlow);
+export const useClearExecutionResult = () => useFlowStore((state) => state.clearExecutionResult);
 
 export const useClearFlow = () => useFlowStore((state) => state.clearFlow);
 export const useResetFlow = () => useFlowStore((state) => state.resetFlow);
