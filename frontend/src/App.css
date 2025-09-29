@@ -1,0 +1,64 @@
+/**
+ * Gemini Flow Application Styles
+ * Optimized for React Flow canvas and Zustand integration
+ */
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Global resets for full-screen canvas */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Ensure React Flow takes full space */
+.react-flow__wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+/* Custom styling for React Flow elements */
+.react-flow__node {
+  font-size: 14px;
+}
+
+.react-flow__edge {
+  stroke-width: 2px;
+}
+
+/* Panel styling */
+.react-flow__panel {
+  margin: 10px;
+}
+
+/* Performance optimizations */
+.react-flow__renderer {
+  will-change: transform;
+}
+
+/* Custom node styling */
+.react-flow__node-input {
+  background: #e0f2fe;
+  border: 2px solid #0288d1;
+}
+
+.react-flow__node-output {
+  background: #fce4ec;
+  border: 2px solid #e91e63;
+}
+
+.react-flow__node-default {
+  background: #f5f5f5;
+  border: 2px solid #757575;
+}
