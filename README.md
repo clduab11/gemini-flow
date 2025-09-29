@@ -1,5 +1,7 @@
 # 🌌 Gemini-Flow: Production-Ready AI Orchestration Platform
 
+<img width="2048" height="2048" alt="VeniceAI_AhmZBVE_@2x" src="https://github.com/user-attachments/assets/c28950cf-95d3-48b7-b462-b31299b282e0" />
+
 <div align="center">
 
 [![Version](https://img.shields.io/npm/v/@clduab11/gemini-flow.svg)](https://www.npmjs.com/package/@clduab11/gemini-flow)
