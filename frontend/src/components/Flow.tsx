@@ -32,7 +32,14 @@ import {
   useOnConnect,
   useAddNode,
   useClearFlow,
-  useResetFlow
+  useResetFlow,
+  // Execution hooks
+  useIsExecuting,
+  useExecutionResult,
+  useExecutionError,
+  useExecutionMetadata,
+  useExecuteFlow,
+  useClearExecutionResult
 } from '../lib/store';
 
 // Custom node types (can be extended)
@@ -60,6 +67,14 @@ const Flow: React.FC = () => {
   const addNode = useAddNode();
   const clearFlow = useClearFlow();
   const resetFlow = useResetFlow();
+  
+  // Execution hooks
+  const isExecuting = useIsExecuting();
+  const executionResult = useExecutionResult();
+  const executionError = useExecutionError();
+  const executionMetadata = useExecutionMetadata();
+  const executeFlow = useExecuteFlow();
+  const clearExecutionResult = useClearExecutionResult();
 
   // Handle adding new nodes
   const handleAddNode = useCallback(() => {
@@ -87,6 +102,15 @@ const Flow: React.FC = () => {
   const handleConnect = useCallback((connection: any) => {
     onConnect(connection);
   }, [onConnect]);
+
+  // Handle flow execution
+  const handleExecuteFlow = useCallback(async () => {
+    await executeFlow();
+  }, [executeFlow]);
+
+  const handleClearResult = useCallback(() => {
+    clearExecutionResult();
+  }, [clearExecutionResult]);
 
   return (
     <div style={{ width: '100%', height: '100vh' }}>
@@ -176,6 +200,43 @@ const Flow: React.FC = () => {
             >
               Reset Flow
             </button>
+            
+            {/* Run Flow Button */}
+            <button 
+              onClick={handleExecuteFlow}
+              disabled={isExecuting || nodes.length === 0}
+              style={{
+                padding: '8px 16px',
+                border: isExecuting ? '1px solid #ccc' : '1px solid #10b981',
+                borderRadius: '4px',
+                background: isExecuting ? '#f3f4f6' : '#10b981',
+                color: isExecuting ? '#6b7280' : 'white',
+                cursor: isExecuting || nodes.length === 0 ? 'not-allowed' : 'pointer',
+                fontWeight: 'bold',
+                fontSize: '14px'
+              }}
+            >
+              {isExecuting ? '🔄 Running...' : '🚀 Run Flow'}
+            </button>
+            
+            {/* Clear Result Button */}
+            {(executionResult || executionError) && (
+              <button 
+                onClick={handleClearResult}
+                style={{
+                  padding: '4px 8px',
+                  border: '1px solid #f59e0b',
+                  borderRadius: '4px',
+                  background: '#fef3c7',
+                  color: '#92400e',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Clear Result
+              </button>
+            )}
+            
             <div style={{ 
               fontSize: '12px', 
               color: '#666',
@@ -195,7 +256,118 @@ const Flow: React.FC = () => {
             </div>
           </div>
         </Panel>
+        
+        {/* Execution Result Panel */}
+        {(executionResult || executionError || isExecuting) && (
+          <Panel position="bottom-right">
+            <div style={{ 
+              width: '400px',
+              maxHeight: '300px',
+              background: 'white',
+              padding: '16px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              border: '1px solid #e5e7eb'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '12px'
+              }}>
+                <h3 style={{ 
+                  margin: 0, 
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: '#1f2937'
+                }}>
+                  🤖 Gemini Response
+                </h3>
+                <button
+                  onClick={handleClearResult}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    color: '#6b7280'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              
+              {isExecuting && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px',
+                  background: '#f3f4f6',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  color: '#374151'
+                }}>
+                  <div style={{ animation: 'spin 1s linear infinite' }}>🔄</div>
+                  Processing your flow...
+                </div>
+              )}
+              
+              {executionError && (
+                <div style={{
+                  padding: '12px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  color: '#dc2626'
+                }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>❌ Error:</div>
+                  {executionError}
+                </div>
+              )}
+              
+              {executionResult && (
+                <div style={{
+                  padding: '12px',
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  color: '#166534',
+                  maxHeight: '200px',
+                  overflowY: 'auto'
+                }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>✅ Result:</div>
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{executionResult}</div>
+                  
+                  {executionMetadata && (
+                    <div style={{
+                      marginTop: '12px',
+                      paddingTop: '8px',
+                      borderTop: '1px solid #bbf7d0',
+                      fontSize: '12px',
+                      color: '#059669'
+                    }}>
+                      <div>Nodes processed: {executionMetadata.nodesProcessed}</div>
+                      <div>Edges processed: {executionMetadata.edgesProcessed}</div>
+                      <div>Generated at: {new Date(executionMetadata.timestamp).toLocaleTimeString()}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </Panel>
+        )}
       </ReactFlow>
+      
+      {/* Add keyframe animation for spinner */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
