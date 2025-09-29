@@ -41,3 +41,96 @@ body {
     --background-end-rgb: 0, 0, 0;
   }
 }
+
+/* Enhanced UI animations and effects */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Custom scrollbar for flow list */
+.flow-list-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.flow-list-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.flow-list-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.flow-list-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Button hover effects */
+.enhanced-button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.enhanced-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.enhanced-button:active {
+  transform: translateY(0);
+}
+
+/* Panel animations */
+.panel-container {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Toast notification styles */
+.toast-success {
+  animation: slideIn 0.3s ease-out;
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.toast-error {
+  animation: slideIn 0.3s ease-out;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Node type colors */
+.node-input {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+}
+
+.node-output {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+}
+
+.node-process {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+}
+
+.node-default {
+  background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+}
