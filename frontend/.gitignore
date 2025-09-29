@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 /src/generated/prisma
+# Next.js build output
+.next/
+out/
