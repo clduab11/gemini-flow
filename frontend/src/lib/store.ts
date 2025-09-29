@@ -85,7 +85,7 @@ const initialEdges: Edge[] = [
 ];
 
 // Create the Zustand store
-export const useFlowStore = create<FlowState>((set, get) => ({
+const useFlowStore = create<FlowState>((set, get) => ({
   // Initial state
   nodes: initialNodes,
   edges: initialEdges,
@@ -198,3 +198,6 @@ export const useSetSelectedEdges = () => useFlowStore((state) => state.setSelect
 
 export const useClearFlow = () => useFlowStore((state) => state.clearFlow);
 export const useResetFlow = () => useFlowStore((state) => state.resetFlow);
+
+// Export the store itself for direct access when needed
+export { useFlowStore };
