@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/clduab11-gemini-flow-badge.png)](https://mseep.ai/app/clduab11-gemini-flow)
+
 # 🌌 Gemini-Flow: Production-Ready AI Orchestration Platform
 
 <img width="2048" height="2048" alt="VeniceAI_AhmZBVE_@2x" src="https://github.com/user-attachments/assets/c28950cf-95d3-48b7-b462-b31299b282e0" />
