@@ -34,6 +34,9 @@ export type {
   MonitoringConfig,
 } from "./sparc-connector.js";
 
+// === JULES TOOLS INTEGRATION ===
+export * from "./jules/index.js";
+
 // === INTEGRATION FACTORY ===
 export class IntegrationFactory {
   static createMarinerIntegration(config: any) {
