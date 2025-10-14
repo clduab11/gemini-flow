@@ -29,6 +29,7 @@ import {
   GeminiCommand,
   DGMCommand,
   JulesCommand,
+  ExtensionsCommand,
 } from "./commands/index.js";
 
 // ES module equivalent of __dirname
@@ -110,6 +111,7 @@ function setupCommands(): void {
   program.addCommand(new GeminiCommand());
   program.addCommand(new DGMCommand());
   program.addCommand(new JulesCommand());
+  program.addCommand(new ExtensionsCommand());
 
   // QueryCommand has a special constructor, let's skip it for now
   // program.addCommand(new QueryCommand());

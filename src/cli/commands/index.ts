@@ -19,3 +19,4 @@ export { WorkspaceCommand } from "./workspace.js";
 export { GeminiCommand } from "./gemini.js";
 export { DGMCommand } from "./dgm.js";
 export { JulesCommand } from "./jules.js";
+export { ExtensionsCommand } from "./extensions.js";
