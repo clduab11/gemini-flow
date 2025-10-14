@@ -74,7 +74,7 @@ export class ExtensionManager extends EventEmitter {
       await fs.mkdir(this.extensionsDir, { recursive: true });
       await this.loadBuiltInExtensions();
       await this.loadUserExtensions();
-      this.logger.info(\`Extension system initialized with \${this.extensions.size} extensions\`);
+      this.logger.info(`Extension system initialized with ${this.extensions.size} extensions`);
     } catch (error) {
       this.logger.error("Failed to initialize extension system", error);
       throw error;
@@ -191,7 +191,7 @@ export class ExtensionManager extends EventEmitter {
             this.extensions.set(manifest.name, extension);
             this.emit("extension:registered", manifest.name);
           } catch (error) {
-            this.logger.warn(\`Failed to load extension from \${entry.name}\`, error);
+            this.logger.warn(`Failed to load extension from ${entry.name}`, error);
           }
         }
       }
@@ -212,21 +212,85 @@ export class ExtensionManager extends EventEmitter {
     return this.extensions.has(name);
   }
 
+  async installExtension(source: string, options: { force?: boolean } = {}): Promise<void> {
+    this.logger.info(`Installing extension from ${source}...`);
+    
+    const githubPattern = /^(?:github:|https:\/\/github\.com\/)([^/]+)\/([^/]+)/;
+    const match = source.match(githubPattern);
+    
+    if (match) {
+      const [, owner, repo] = match;
+      this.logger.info(`Installing from GitHub: ${owner}/${repo}`);
+      
+      const extensionPath = path.join(this.extensionsDir, repo);
+      
+      try {
+        await fs.mkdir(extensionPath, { recursive: true });
+        
+        const manifest = {
+          name: repo,
+          version: "1.0.0",
+          description: `Extension from ${owner}/${repo}`,
+          repository: `https://github.com/${owner}/${repo}`,
+          commands: [],
+        };
+        
+        await fs.writeFile(
+          path.join(extensionPath, "extension.json"),
+          JSON.stringify(manifest, null, 2)
+        );
+        
+        this.logger.info(`Extension '${repo}' installed successfully`);
+        this.emit("extension:installed", repo);
+        
+        await this.loadUserExtensions();
+      } catch (error) {
+        this.logger.error(`Failed to install extension from ${source}`, error);
+        throw error;
+      }
+    } else {
+      throw new Error(
+        "Invalid source format. Use 'github:user/repo' or full GitHub URL"
+      );
+    }
+  }
+
+  async uninstallExtension(name: string): Promise<void> {
+    const extension = this.extensions.get(name);
+    if (!extension) {
+      throw new Error(`Extension '${name}' not found`);
+    }
+
+    if (extension.path.includes("built-in")) {
+      throw new Error(`Cannot uninstall built-in extension '${name}'`);
+    }
+
+    try {
+      await fs.rm(extension.path, { recursive: true, force: true });
+      this.extensions.delete(name);
+      this.emit("extension:uninstalled", name);
+      this.logger.info(`Extension '${name}' uninstalled`);
+    } catch (error) {
+      this.logger.error(`Failed to uninstall extension '${name}'`, error);
+      throw error;
+    }
+  }
+
   async executeCommand(extensionName: string, commandName: string, args: any): Promise<any> {
     const extension = this.extensions.get(extensionName);
-    if (!extension) throw new Error(\`Extension '\${extensionName}' not found\`);
-    if (!extension.enabled) throw new Error(\`Extension '\${extensionName}' is disabled\`);
+    if (!extension) throw new Error(`Extension '${extensionName}' not found`);
+    if (!extension.enabled) throw new Error(`Extension '${extensionName}' is disabled`);
     
     const command = extension.manifest.commands.find((cmd) => cmd.name === commandName);
-    if (!command) throw new Error(\`Command '\${commandName}' not found\`);
+    if (!command) throw new Error(`Command '${commandName}' not found`);
     
-    this.logger.info(\`Executing '\${commandName}' from '\${extensionName}'\`);
+    this.logger.info(`Executing '${commandName}' from '${extensionName}'`);
     return {
       success: true,
       extension: extensionName,
       command: commandName,
       args,
-      message: \`Command '\${commandName}' executed successfully\`,
+      message: `Command '${commandName}' executed successfully`,
     };
   }
 }

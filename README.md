@@ -34,12 +34,18 @@ gemini-flow init --protocols a2a,mcp --topology hierarchical
 
 # Deploy intelligent agent swarms that scale with your business
 gemini-flow agents spawn --count 50 --specialization "enterprise-ready"
+
+# NEW: October 2025 Extension Framework
+gemini-flow extensions list                      # View all extensions
+gemini-flow extensions security:analyze          # Scan for vulnerabilities
+gemini-flow extensions deploy --project my-app   # Deploy to Cloud Run
 ```
 
 **🚀 Modern Protocol Support**: Native A2A and MCP integration for seamless inter-agent communication and model coordination  
 **⚡ Enterprise Performance**: 396,610 ops/sec with <75ms routing latency  
 **🛡️ Production Ready**: Byzantine fault tolerance and automatic failover  
-**🔧 Google AI Native**: Complete integration with all 8 Google AI services
+**🔧 Google AI Native**: Complete integration with all 8 Google AI services  
+**🔌 Extension Framework**: October 2025 update brings third-party integrations (Figma, Stripe, Security, Cloud Run)
 
 ## 🌟 Complete Google AI Services Ecosystem Integration
 
@@ -472,6 +478,132 @@ This isn't just software—it's the beginning of intelligent, coordinated AI sys
 - 📧 **Enterprise Support**: enterprise@parallax-ai.app
 - 📚 **Documentation**: [Production Deployment Guide](https://github.com/clduab11/gemini-flow/wiki/production)
 - 🛟 **24/7 Support**: Available for enterprise customers
+
+## 🔌 Extension Framework (October 2025)
+
+### Revolutionary Third-Party Integrations
+
+The **October 2025 Gemini CLI update** introduces a powerful extension framework that brings third-party tools directly into your command-line workflow, eliminating context-switching and centralizing critical development tasks.
+
+### Built-in Extensions
+
+#### 🔒 Security Extension
+Automated vulnerability scanning and security analysis integrated into your workflow.
+
+```bash
+# Comprehensive security analysis
+gemini-flow extensions security:analyze
+
+# Advanced options
+gemini-flow extensions security:analyze \
+  --path ./src \
+  --output json \
+  --severity critical
+```
+
+**Features:**
+- Detects hardcoded secrets and credentials
+- Identifies SQL injection vulnerabilities
+- Scans for XSS and CSRF issues
+- Analyzes dependency vulnerabilities
+- Generates security reports (text/json/html)
+
+#### ☁️ Cloud Run Extension
+Streamlined deployment to Google Cloud's serverless platform.
+
+```bash
+# Deploy to Cloud Run
+gemini-flow extensions deploy \
+  --project my-gcp-project \
+  --region us-central1 \
+  --service my-app
+```
+
+**Features:**
+- Automated container builds
+- Google Container Registry integration
+- Traffic splitting and versioning
+- Environment variable management
+- Automatic HTTPS provisioning
+
+#### 🎨 Figma Extension
+Bridge the gap between design and development.
+
+```bash
+# Pull design frames
+gemini-flow extensions figma:pull --file FILE_ID
+
+# Generate code from designs
+gemini-flow extensions figma:generate \
+  --file FILE_ID \
+  --framework react
+```
+
+**Features:**
+- Pull design frames as images/SVG
+- Generate React/Vue/Angular components
+- Extract design tokens
+- Maintain design-code sync
+
+#### 💳 Stripe Extension
+Simplified payment integration and debugging.
+
+```bash
+# Query payment information
+gemini-flow extensions stripe:query --payment PAYMENT_ID
+
+# Debug payment flows
+gemini-flow extensions stripe:debug --session SESSION_ID
+```
+
+**Features:**
+- Payment intent querying
+- Customer data retrieval
+- Webhook event inspection
+- Payment flow debugging
+
+### Custom Extensions
+
+Install extensions from GitHub:
+
+```bash
+# Install custom extension
+gemini-flow extensions install github:username/extension-name
+
+# List all extensions
+gemini-flow extensions list
+
+# Get extension info
+gemini-flow extensions info extension-name
+```
+
+### Open Extension Ecosystem
+
+Build your own extensions with a simple manifest:
+
+```json
+{
+  "name": "my-extension",
+  "version": "1.0.0",
+  "description": "My custom extension",
+  "commands": [
+    {
+      "name": "hello",
+      "description": "Say hello",
+      "handler": "handlers/hello.js"
+    }
+  ],
+  "permissions": ["fs:read", "network:request"]
+}
+```
+
+**Extension Categories:**
+- Development Tools (linters, formatters, test runners)
+- Cloud Services (AWS, Azure, GCP)
+- Design Tools (Figma, Sketch, Adobe XD)
+- Payment Processors (Stripe, PayPal, Square)
+- Monitoring (Datadog, New Relic, Dynatrace)
+- Communication (Slack, Teams, Discord)
 
 ## 🚀 What's Next?
 

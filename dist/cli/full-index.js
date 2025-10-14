@@ -12,7 +12,7 @@ import { fileURLToPath } from "url";
 import { Logger } from "../utils/logger.js";
 import { ConfigManager } from "./config/config-manager.js";
 // Import all command modules
-import { InitCommand, SwarmCommand, AgentCommand, TaskCommand, SparcCommand, HiveMindCommand, MemoryCommand, HooksCommand, SecurityFlagsCommand, ConfigCommand, WorkspaceCommand, GeminiCommand, DGMCommand, JulesCommand, } from "./commands/index.js";
+import { InitCommand, SwarmCommand, AgentCommand, TaskCommand, SparcCommand, HiveMindCommand, MemoryCommand, HooksCommand, SecurityFlagsCommand, ConfigCommand, WorkspaceCommand, GeminiCommand, DGMCommand, JulesCommand, ExtensionsCommand, } from "./commands/index.js";
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -83,6 +83,7 @@ function setupCommands() {
     program.addCommand(new GeminiCommand());
     program.addCommand(new DGMCommand());
     program.addCommand(new JulesCommand());
+    program.addCommand(new ExtensionsCommand());
     // QueryCommand has a special constructor, let's skip it for now
     // program.addCommand(new QueryCommand());
     // Additional aliases for commonly used commands
