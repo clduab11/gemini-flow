@@ -30,6 +30,7 @@ import {
   DGMCommand,
   JulesCommand,
   ExtensionsCommand,
+  GemExtensionsCommand,
 } from "./commands/index.js";
 
 // ES module equivalent of __dirname
@@ -112,6 +113,7 @@ function setupCommands(): void {
   program.addCommand(new DGMCommand());
   program.addCommand(new JulesCommand());
   program.addCommand(new ExtensionsCommand());
+  program.addCommand(new GemExtensionsCommand());
 
   // QueryCommand has a special constructor, let's skip it for now
   // program.addCommand(new QueryCommand());
