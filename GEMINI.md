@@ -1,40 +1,114 @@
 # 🧠 GEMINI.md - Gemini CLI Integration & MCP Hub
 
-> **Version**: 3.2.0 | **Status**: Production Ready | **Updated**: October 2025
+> **Version**: 3.3.0 | **Status**: Production Ready | **Updated**: October 2025
 > 
-> **Purpose**: Optimized for Gemini CLI integration and Google AI services orchestration with October 2025 Extension Framework
+> **Purpose**: Optimized for Gemini CLI integration as an official Extension (October 8, 2025) with MCP server orchestration
 
-## 🚀 NEW: Gemini CLI Extension Framework (October 2025)
+## 🚀 NEW: Gemini CLI Extension Framework (October 8, 2025)
 
-**The October 2025 update brings a powerful extension framework for third-party integrations**
+**Official Gemini CLI Extensions support for gemini-flow - Package your AI orchestration platform as an installable Gemini CLI extension**
 
-### Extension System Quick Start
+### What is Gemini CLI Extensions?
+
+The October 8, 2025 update introduced the **Gemini CLI Extensions framework**, allowing developers to:
+- Package MCP servers, custom commands, and context into installable extensions
+- Use `gemini-extension.json` manifest for configuration
+- Install extensions via `gemini extensions install` commands
+- Enable/disable extensions dynamically
+- Share extensions via GitHub or local directories
+
+### gemini-flow as a Gemini Extension
+
+gemini-flow is now available as an official Gemini CLI extension, packaging:
+- **9 MCP Servers**: Redis, Git Tools, Puppeteer, Sequential Thinking, Filesystem, GitHub, Mem0, Supabase, Omnisearch
+- **7 Custom Commands**: hive-mind, swarm, agent, memory, task, sparc, workspace
+- **Auto-loading Context**: GEMINI.md and project documentation
+- **Advanced Features**: Agent coordination, swarm intelligence, SPARC modes
+
+### Installation
+
 ```bash
-# List available extensions
-gemini-flow extensions list
+# Install from GitHub
+gemini extensions install github:clduab11/gemini-flow
 
-# Get extension info
-gemini-flow extensions info security
+# Install from local clone
+cd /path/to/gemini-flow
+gemini extensions install .
 
-# Security analysis (built-in extension)
-gemini-flow extensions security:analyze --path . --severity high
-
-# Deploy to Cloud Run (built-in extension)
-gemini-flow extensions deploy --project my-project --region us-central1
-
-# Install custom extension from GitHub
-gemini-flow extensions install github:user/my-extension
+# Enable the extension
+gemini extensions enable gemini-flow
 ```
 
-### Built-in Extensions (October 2025)
-- ✅ **Security Extension**: Automated vulnerability scanning with `/security:analyze`
-- ✅ **Cloud Run Extension**: Serverless deployment with `/deploy` command
-- ✅ **Figma Extension**: Design-to-code with frame pulling and code generation
-- ✅ **Stripe Extension**: Payment API integration and debugging tools
+### Using gemini-flow Commands
+
+Once enabled, use gemini-flow commands directly in Gemini CLI:
+
+```bash
+# Hive mind operations
+gemini hive-mind spawn "Build AI application"
+gemini hive-mind status
+
+# Agent swarms
+gemini swarm init --nodes 10
+gemini swarm spawn --objective "Research task"
+
+# Individual agents
+gemini agent spawn researcher --count 3
+gemini agent list
+
+# Memory operations
+gemini memory store "key" "value" --namespace project
+gemini memory query "pattern"
+
+# Task management
+gemini task create "Feature X" --priority high
+```
+
+### MCP Servers Auto-Configured
+
+The extension automatically sets up all 9 MCP servers:
+1. **Redis** - Key-value storage (396,610 ops/sec)
+2. **Git Tools** - Git operations via Python
+3. **Puppeteer** - Browser automation
+4. **Sequential Thinking** - Planning and reasoning
+5. **Filesystem** - File operations
+6. **GitHub** - GitHub API integration
+7. **Mem0 Memory** - Persistent memory
+8. **Supabase** - Database operations
+9. **Omnisearch** - Multi-source research
+
+### Extension Management
+
+```bash
+# List installed extensions
+gemini extensions list
+
+# Enable/disable
+gemini extensions enable gemini-flow
+gemini extensions disable gemini-flow
+
+# Update extension
+gemini extensions update gemini-flow
+
+# Uninstall
+gemini extensions uninstall gemini-flow
+```
+
+### Built-in Extension Manager
+
+gemini-flow also includes its own extension management commands:
+
+```bash
+# Using gem-extensions command
+gemini-flow gem-extensions install github:user/extension
+gemini-flow gem-extensions list
+gemini-flow gem-extensions enable extension-name
+gemini-flow gem-extensions info extension-name
+```
 
 ### Gemini CLI Integration Mode
 
-**Use `--gemini` flag for enhanced Google AI integration in all commands**
+**Use `--gemini` flag for enhanced Google AI integration in gemini-flow commands**
 
 ### Quick Examples
 ```bash
@@ -54,7 +128,7 @@ gemini-flow --gemini task create "Deploy to GCP"
 - ✅ **Google Workspace**: Native Docs/Sheets integration
 - ✅ **Context Loading**: Automatic GEMINI.md context loading
 - ✅ **GCP Services**: Seamless authentication & resources
-- ✅ **Extension Framework**: October 2025 third-party integrations
+- ✅ **Extension Framework**: Official Gemini CLI Extensions (October 8, 2025)
 
 ---
 
@@ -66,7 +140,7 @@ This documentation is specifically engineered for **Gemini Code Assist** using G
 
 ## 📋 Quick Navigation
 
-1. [**Extension Framework (October 2025)**](#extension-framework-october-2025) - Third-party integrations
+1. [**Gemini CLI Extensions**](#-new-gemini-cli-extension-framework-october-8-2025) - Official extension framework
 2. [**MCP Integration Hub**](#mcp-integration-hub) - Deploy and manage 9 MCP servers
 3. [**5-Branch ToT Methodology**](#5-branch-tot-methodology) - Advanced reasoning framework
 4. [**Gemini Code Assist Features (2025)**](#gemini-code-assist-features-2025) - Latest capabilities
@@ -76,216 +150,17 @@ This documentation is specifically engineered for **Gemini Code Assist** using G
 
 ---
 
-## 🔌 Extension Framework (October 2025)
+## 🔌 Gemini CLI Extensions
 
-### Overview
+> **Note**: This section has been moved to the top of this document. See [Gemini CLI Extension Framework](#-new-gemini-cli-extension-framework-october-8-2025) for the official October 8, 2025 extensions implementation.
 
-The October 2025 Gemini CLI update introduces a comprehensive extension framework that allows developers to integrate third-party tools directly into their command-line workflows. This eliminates context-switching and centralizes critical development tasks.
-
-### Core Extensions
-
-#### 1. Security Extension 🔒
-Automated security analysis and vulnerability scanning integrated into your workflow.
+gemini-flow is now available as an official Gemini CLI extension. Install it with:
 
 ```bash
-# Comprehensive security analysis
-gemini-flow extensions security:analyze
-
-# With options
-gemini-flow extensions security:analyze \
-  --path ./src \
-  --output json \
-  --severity critical
-
-# Features:
-# - Detects hardcoded secrets and credentials
-# - Identifies SQL injection vulnerabilities
-# - Scans for XSS and CSRF issues
-# - Analyzes dependency vulnerabilities
-# - Generates security reports (text/json/html)
+gemini extensions install github:clduab11/gemini-flow
 ```
 
-**Use Cases:**
-- Pre-commit security validation
-- CI/CD pipeline integration
-- Regular security audits
-- Compliance scanning
-
-#### 2. Cloud Run Extension ☁️
-Streamlined deployment to Google Cloud's serverless platform.
-
-```bash
-# Deploy to Cloud Run
-gemini-flow extensions deploy \
-  --project my-gcp-project \
-  --region us-central1 \
-  --service my-app \
-  --image gcr.io/my-project/my-app:latest
-
-# Features:
-# - Automated container builds
-# - Google Container Registry integration
-# - Traffic splitting and versioning
-# - Environment variable management
-# - Automatic HTTPS provisioning
-```
-
-**Use Cases:**
-- Rapid prototyping and deployment
-- Microservices deployment
-- Staging environment setup
-- Production releases
-
-#### 3. Figma Extension 🎨
-Bridge the gap between design and development.
-
-```bash
-# Pull design frames from Figma
-gemini-flow extensions figma:pull \
-  --file dL8k9j3h4l5m \
-  --frames frame1,frame2 \
-  --output ./designs
-
-# Generate code from Figma designs
-gemini-flow extensions figma:generate \
-  --file dL8k9j3h4l5m \
-  --framework react
-
-# Features:
-# - Pull design frames as images/SVG
-# - Generate React/Vue/Angular components
-# - Extract design tokens (colors, spacing, typography)
-# - Maintain design-code sync
-# - Component library generation
-```
-
-**Use Cases:**
-- Design handoff automation
-- Component library creation
-# - Design system implementation
-- Rapid prototyping
-
-#### 4. Stripe Extension 💳
-Simplified payment integration and debugging.
-
-```bash
-# Query payment information
-gemini-flow extensions stripe:query \
-  --payment pi_1234567890 \
-  --limit 10
-
-# Debug payment flows
-gemini-flow extensions stripe:debug \
-  --session cs_test_1234567890
-
-# Features:
-# - Payment intent querying
-# - Customer data retrieval
-# - Webhook event inspection
-# - Payment flow debugging
-# - Transaction history analysis
-```
-
-**Use Cases:**
-- Payment integration testing
-- Customer support debugging
-- Payment flow optimization
-- Webhook troubleshooting
-
-### Custom Extensions
-
-#### Installing Extensions from GitHub
-
-```bash
-# Install from GitHub repository
-gemini-flow extensions install github:username/extension-name
-
-# Install with specific branch
-gemini-flow extensions install github:username/extension-name#branch
-
-# Force reinstall
-gemini-flow extensions install github:username/extension-name --force
-```
-
-#### Creating Custom Extensions
-
-Create an `extension.json` manifest:
-
-```json
-{
-  "name": "my-extension",
-  "version": "1.0.0",
-  "description": "My custom Gemini CLI extension",
-  "author": "Your Name",
-  "repository": "https://github.com/username/my-extension",
-  "commands": [
-    {
-      "name": "hello",
-      "description": "Say hello",
-      "handler": "handlers/hello.js",
-      "options": [
-        {
-          "flag": "--name <name>",
-          "description": "Name to greet",
-          "default": "World"
-        }
-      ]
-    }
-  ],
-  "permissions": ["fs:read", "network:request"]
-}
-```
-
-#### Extension Management
-
-```bash
-# List all extensions
-gemini-flow extensions list
-
-# Show extension details
-gemini-flow extensions info security
-
-# Enable/disable extensions
-gemini-flow extensions enable security
-gemini-flow extensions disable security
-
-# Uninstall extension
-gemini-flow extensions uninstall my-extension
-```
-
-### Extension Ecosystem
-
-The extension framework promotes an **open ecosystem** where developers can:
-- Build custom integrations
-- Share extensions via GitHub
-- Extend functionality without core modifications
-- Integrate with any third-party API or service
-
-**Popular Extension Categories:**
-- **Development Tools**: Linters, formatters, test runners
-- **Cloud Services**: AWS, Azure, GCP integrations
-- **Design Tools**: Figma, Sketch, Adobe XD
-- **Payment Processors**: Stripe, PayPal, Square
-- **Monitoring**: Datadog, New Relic, Dynatrace
-- **Communication**: Slack, Teams, Discord webhooks
-
-### Security & Permissions
-
-Extensions operate with a **permission-based security model**:
-
-```json
-{
-  "permissions": [
-    "fs:read",      // Read file system
-    "fs:write",     // Write to file system
-    "network:request", // Make HTTP requests
-    "gcp:deploy",   // Deploy to GCP
-    "stripe:read"   // Read Stripe data
-  ]
-}
-```
-
-Users are notified of permissions when installing extensions and can audit permission usage.
+---
 
 ---
 

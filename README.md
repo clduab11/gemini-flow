@@ -35,17 +35,17 @@ gemini-flow init --protocols a2a,mcp --topology hierarchical
 # Deploy intelligent agent swarms that scale with your business
 gemini-flow agents spawn --count 50 --specialization "enterprise-ready"
 
-# NEW: October 2025 Extension Framework
-gemini-flow extensions list                      # View all extensions
-gemini-flow extensions security:analyze          # Scan for vulnerabilities
-gemini-flow extensions deploy --project my-app   # Deploy to Cloud Run
+# NEW: Official Gemini CLI Extension (October 8, 2025)
+gemini extensions install github:clduab11/gemini-flow  # Install as Gemini extension
+gemini extensions enable gemini-flow                   # Enable the extension
+gemini hive-mind spawn "Build AI application"         # Use commands in Gemini CLI
 ```
 
 **🚀 Modern Protocol Support**: Native A2A and MCP integration for seamless inter-agent communication and model coordination  
 **⚡ Enterprise Performance**: 396,610 ops/sec with <75ms routing latency  
 **🛡️ Production Ready**: Byzantine fault tolerance and automatic failover  
 **🔧 Google AI Native**: Complete integration with all 8 Google AI services  
-**🔌 Extension Framework**: October 2025 update brings third-party integrations (Figma, Stripe, Security, Cloud Run)
+**🔌 Gemini CLI Extension**: Official October 8, 2025 extension framework support
 
 ## 🌟 Complete Google AI Services Ecosystem Integration
 
@@ -479,131 +479,119 @@ This isn't just software—it's the beginning of intelligent, coordinated AI sys
 - 📚 **Documentation**: [Production Deployment Guide](https://github.com/clduab11/gemini-flow/wiki/production)
 - 🛟 **24/7 Support**: Available for enterprise customers
 
-## 🔌 Extension Framework (October 2025)
+## 🔌 Gemini CLI Extension (October 8, 2025)
 
-### Revolutionary Third-Party Integrations
+### Official Gemini CLI Extensions Support
 
-The **October 2025 Gemini CLI update** introduces a powerful extension framework that brings third-party tools directly into your command-line workflow, eliminating context-switching and centralizing critical development tasks.
+gemini-flow is now available as an **official Gemini CLI extension**, providing seamless integration with the Gemini CLI Extensions framework introduced on October 8, 2025.
 
-### Built-in Extensions
-
-#### 🔒 Security Extension
-Automated vulnerability scanning and security analysis integrated into your workflow.
+### Installation
 
 ```bash
-# Comprehensive security analysis
-gemini-flow extensions security:analyze
+# Install from GitHub
+gemini extensions install github:clduab11/gemini-flow
 
-# Advanced options
-gemini-flow extensions security:analyze \
-  --path ./src \
-  --output json \
-  --severity critical
+# Install from local clone
+cd /path/to/gemini-flow
+gemini extensions install .
+
+# Enable the extension
+gemini extensions enable gemini-flow
 ```
 
-**Features:**
-- Detects hardcoded secrets and credentials
-- Identifies SQL injection vulnerabilities
-- Scans for XSS and CSRF issues
-- Analyzes dependency vulnerabilities
-- Generates security reports (text/json/html)
+### What's Included
 
-#### ☁️ Cloud Run Extension
-Streamlined deployment to Google Cloud's serverless platform.
+The extension packages gemini-flow's complete AI orchestration platform:
+
+- **9 MCP Servers**: Redis, Git Tools, Puppeteer, Sequential Thinking, Filesystem, GitHub, Mem0 Memory, Supabase, Omnisearch
+- **7 Custom Commands**: hive-mind, swarm, agent, memory, task, sparc, workspace
+- **Auto-loading Context**: GEMINI.md and project documentation
+- **Advanced Features**: Agent coordination, swarm intelligence, SPARC modes
+
+### Using Commands in Gemini CLI
+
+Once enabled, use gemini-flow commands directly in Gemini CLI:
 
 ```bash
-# Deploy to Cloud Run
-gemini-flow extensions deploy \
-  --project my-gcp-project \
-  --region us-central1 \
-  --service my-app
+# Hive mind operations
+gemini hive-mind spawn "Build AI application"
+gemini hive-mind status
+
+# Agent swarms
+gemini swarm init --nodes 10
+gemini swarm spawn --objective "Research task"
+
+# Individual agents
+gemini agent spawn researcher --count 3
+gemini agent list
+
+# Memory management
+gemini memory store "key" "value" --namespace project
+gemini memory query "pattern"
+
+# Task coordination
+gemini task create "Feature X" --priority high
+gemini task assign TASK_ID --agent AGENT_ID
 ```
 
-**Features:**
-- Automated container builds
-- Google Container Registry integration
-- Traffic splitting and versioning
-- Environment variable management
-- Automatic HTTPS provisioning
-
-#### 🎨 Figma Extension
-Bridge the gap between design and development.
+### Extension Management
 
 ```bash
-# Pull design frames
-gemini-flow extensions figma:pull --file FILE_ID
+# List installed extensions
+gemini extensions list
 
-# Generate code from designs
-gemini-flow extensions figma:generate \
-  --file FILE_ID \
-  --framework react
-```
+# Enable/disable extension
+gemini extensions enable gemini-flow
+gemini extensions disable gemini-flow
 
-**Features:**
-- Pull design frames as images/SVG
-- Generate React/Vue/Angular components
-- Extract design tokens
-- Maintain design-code sync
-
-#### 💳 Stripe Extension
-Simplified payment integration and debugging.
-
-```bash
-# Query payment information
-gemini-flow extensions stripe:query --payment PAYMENT_ID
-
-# Debug payment flows
-gemini-flow extensions stripe:debug --session SESSION_ID
-```
-
-**Features:**
-- Payment intent querying
-- Customer data retrieval
-- Webhook event inspection
-- Payment flow debugging
-
-### Custom Extensions
-
-Install extensions from GitHub:
-
-```bash
-# Install custom extension
-gemini-flow extensions install github:username/extension-name
-
-# List all extensions
-gemini-flow extensions list
+# Update extension
+gemini extensions update gemini-flow
 
 # Get extension info
-gemini-flow extensions info extension-name
+gemini extensions info gemini-flow
+
+# Uninstall extension
+gemini extensions uninstall gemini-flow
 ```
 
-### Open Extension Ecosystem
+### Built-in Extension Manager
 
-Build your own extensions with a simple manifest:
+gemini-flow also includes its own extension management commands:
+
+```bash
+# Using gem-extensions command
+gemini-flow gem-extensions install github:user/extension
+gemini-flow gem-extensions list
+gemini-flow gem-extensions enable extension-name
+gemini-flow gem-extensions info extension-name
+```
+
+### Extension Manifest
+
+The extension is defined in `gemini-extension.json` at the repository root:
 
 ```json
 {
-  "name": "my-extension",
-  "version": "1.0.0",
-  "description": "My custom extension",
-  "commands": [
-    {
-      "name": "hello",
-      "description": "Say hello",
-      "handler": "handlers/hello.js"
-    }
-  ],
-  "permissions": ["fs:read", "network:request"]
+  "name": "gemini-flow",
+  "version": "1.3.3",
+  "description": "AI orchestration platform with 9 MCP servers",
+  "entryPoint": "extensions/gemini-cli/extension-loader.js",
+  "mcpServers": { ... },
+  "customCommands": { ... },
+  "contextFiles": ["GEMINI.md", "gemini-flow.md"]
 }
 ```
 
-**Extension Categories:**
-- Development Tools (linters, formatters, test runners)
-- Cloud Services (AWS, Azure, GCP)
-- Design Tools (Figma, Sketch, Adobe XD)
-- Payment Processors (Stripe, PayPal, Square)
-- Monitoring (Datadog, New Relic, Dynatrace)
-- Communication (Slack, Teams, Discord)
+### Features
+
+✅ **Official Gemini CLI Integration** - Works with official Gemini CLI  
+✅ **9 Pre-configured MCP Servers** - Ready to use out of the box  
+✅ **7 Custom Commands** - Full gemini-flow functionality  
+✅ **Auto-loading Context** - Automatic GEMINI.md integration  
+✅ **Lifecycle Hooks** - Proper onInstall, onEnable, onDisable, onUpdate, onUninstall handling  
+✅ **GitHub Installation** - Easy one-command installation  
+
+For more details, see [extensions/gemini-cli/README.md](extensions/gemini-cli/README.md) and [GEMINI.md](GEMINI.md).
 
 ## 🚀 What's Next?
 
