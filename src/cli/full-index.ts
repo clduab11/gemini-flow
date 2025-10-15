@@ -29,7 +29,6 @@ import {
   GeminiCommand,
   DGMCommand,
   JulesCommand,
-  ExtensionsCommand,
   GemExtensionsCommand,
 } from "./commands/index.js";
 
@@ -112,7 +111,6 @@ function setupCommands(): void {
   program.addCommand(new GeminiCommand());
   program.addCommand(new DGMCommand());
   program.addCommand(new JulesCommand());
-  program.addCommand(new ExtensionsCommand());
   program.addCommand(new GemExtensionsCommand());
 
   // QueryCommand has a special constructor, let's skip it for now
