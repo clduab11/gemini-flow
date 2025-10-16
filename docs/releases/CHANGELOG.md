@@ -5,6 +5,99 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2025-10-14
+
+### 🚀 Major Features - Gemini CLI Parity (October 2025)
+
+#### Extension Framework
+- **NEW Extension System**: Comprehensive extension framework for third-party integrations
+- **Built-in Extensions**: Security, Cloud Run, Figma, and Stripe extensions
+- **GitHub Integration**: Install custom extensions directly from GitHub repositories
+- **Permission System**: Granular permission-based security model for extensions
+- **Open Ecosystem**: Developer-friendly extension development and sharing
+
+#### Security Extension 🔒
+- **Automated Scanning**: Comprehensive security vulnerability analysis
+- **Multiple Formats**: JSON, text, and HTML report output
+- **Detection Capabilities**: 
+  - Hardcoded secrets and credentials
+  - SQL injection vulnerabilities
+  - XSS and CSRF issues
+  - Dependency vulnerabilities
+- **Command**: `gemini-flow extensions security:analyze`
+
+#### Cloud Run Extension ☁️
+- **Serverless Deployment**: One-command deployment to Google Cloud Run
+- **Container Management**: Automated build and push to Google Container Registry
+- **Traffic Management**: Traffic splitting and version management
+- **Environment Config**: Streamlined environment variable management
+- **Command**: `gemini-flow extensions deploy`
+
+#### Figma Extension 🎨
+- **Design Integration**: Pull design frames directly from Figma
+- **Code Generation**: Generate React/Vue/Angular components from designs
+- **Design Tokens**: Extract colors, spacing, and typography tokens
+- **Design Sync**: Maintain synchronization between design and code
+- **Commands**: `figma:pull`, `figma:generate`
+
+#### Stripe Extension 💳
+- **Payment Integration**: Query payment information and customer data
+- **Debugging Tools**: Debug payment flows and checkout sessions
+- **Webhook Inspection**: Inspect and troubleshoot webhook events
+- **Transaction Analysis**: Analyze payment history and patterns
+- **Commands**: `stripe:query`, `stripe:debug`
+
+### 📦 Extension Management Commands
+```bash
+gemini-flow extensions list                          # List all extensions
+gemini-flow extensions info <name>                   # Show extension details
+gemini-flow extensions install github:user/repo      # Install from GitHub
+gemini-flow extensions uninstall <name>              # Remove extension
+gemini-flow extensions security:analyze              # Run security scan
+gemini-flow extensions deploy --project <id>         # Deploy to Cloud Run
+```
+
+### 📖 Documentation
+- **GEMINI.md v3.2.0**: Added 210+ lines of extension documentation
+- **README.md**: New "Extension Framework (October 2025)" section
+- **Extension Development Guide**: Complete guide for building custom extensions
+- **Permission Model**: Comprehensive permission system documentation
+
+### 🏗️ Architecture Improvements
+- **ExtensionManager**: Singleton pattern with event-driven architecture
+- **Manifest System**: JSON-based extension manifests for metadata
+- **Handler System**: Extensible command handler architecture
+- **Event Emitters**: Extension lifecycle event management
+
+### 🔧 Technical Details
+- **New Files**: 
+  - `src/cli/extensions/extension-manager.ts` (280 lines)
+  - `src/cli/commands/extensions.ts` (250 lines)
+- **Modified Files**: 
+  - `src/cli/commands/index.ts`
+  - `src/cli/full-index.ts`
+  - `GEMINI.md` (version 3.2.0)
+  - `README.md`
+- **Total Lines Added**: ~850
+- **Built-in Extensions**: 4
+- **New Commands**: 6
+
+### 🎯 October 2025 Gemini CLI Features Implemented
+Based on official Google Gemini CLI updates announced October 12, 2025:
+- ✅ Extension Framework for third-party integrations
+- ✅ Security extension with automated vulnerability scanning
+- ✅ Cloud Run extension for serverless deployment
+- ✅ Design tool integration (Figma)
+- ✅ Payment processor integration (Stripe)
+- ✅ Open ecosystem for custom extensions
+- ✅ GitHub-based extension installation
+- ✅ Permission-based security model
+
+### 🔗 References
+- [Google Cloud Blog: Gemini CLI Extensions](https://cloud.google.com/blog/products/ai-machine-learning/automate-app-deployment-and-security-analysis-with-new-gemini-cli-extensions)
+- [Gemini CLI Extensions Announcement](https://blog.google/technology/developers/gemini-cli-extensions/)
+- [Extension Development Documentation](./GEMINI.md#extension-framework-october-2025)
+
 ## [1.3.0] - 2025-01-14
 
 ### 🚀 Major Features Added

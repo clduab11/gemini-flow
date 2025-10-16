@@ -34,12 +34,18 @@ gemini-flow init --protocols a2a,mcp --topology hierarchical
 
 # Deploy intelligent agent swarms that scale with your business
 gemini-flow agents spawn --count 50 --specialization "enterprise-ready"
+
+# NEW: Official Gemini CLI Extension (October 8, 2025)
+gemini extensions install github:clduab11/gemini-flow  # Install as Gemini extension
+gemini extensions enable gemini-flow                   # Enable the extension
+gemini hive-mind spawn "Build AI application"         # Use commands in Gemini CLI
 ```
 
 **🚀 Modern Protocol Support**: Native A2A and MCP integration for seamless inter-agent communication and model coordination  
 **⚡ Enterprise Performance**: 396,610 ops/sec with <75ms routing latency  
 **🛡️ Production Ready**: Byzantine fault tolerance and automatic failover  
-**🔧 Google AI Native**: Complete integration with all 8 Google AI services
+**🔧 Google AI Native**: Complete integration with all 8 Google AI services  
+**🔌 Gemini CLI Extension**: Official October 8, 2025 extension framework support
 
 ## 🌟 Complete Google AI Services Ecosystem Integration
 
@@ -472,6 +478,120 @@ This isn't just software—it's the beginning of intelligent, coordinated AI sys
 - 📧 **Enterprise Support**: enterprise@parallax-ai.app
 - 📚 **Documentation**: [Production Deployment Guide](https://github.com/clduab11/gemini-flow/wiki/production)
 - 🛟 **24/7 Support**: Available for enterprise customers
+
+## 🔌 Gemini CLI Extension (October 8, 2025)
+
+### Official Gemini CLI Extensions Support
+
+gemini-flow is now available as an **official Gemini CLI extension**, providing seamless integration with the Gemini CLI Extensions framework introduced on October 8, 2025.
+
+### Installation
+
+```bash
+# Install from GitHub
+gemini extensions install github:clduab11/gemini-flow
+
+# Install from local clone
+cd /path/to/gemini-flow
+gemini extensions install .
+
+# Enable the extension
+gemini extensions enable gemini-flow
+```
+
+### What's Included
+
+The extension packages gemini-flow's complete AI orchestration platform:
+
+- **9 MCP Servers**: Redis, Git Tools, Puppeteer, Sequential Thinking, Filesystem, GitHub, Mem0 Memory, Supabase, Omnisearch
+- **7 Custom Commands**: hive-mind, swarm, agent, memory, task, sparc, workspace
+- **Auto-loading Context**: GEMINI.md and project documentation
+- **Advanced Features**: Agent coordination, swarm intelligence, SPARC modes
+
+### Using Commands in Gemini CLI
+
+Once enabled, use gemini-flow commands directly in Gemini CLI:
+
+```bash
+# Hive mind operations
+gemini hive-mind spawn "Build AI application"
+gemini hive-mind status
+
+# Agent swarms
+gemini swarm init --nodes 10
+gemini swarm spawn --objective "Research task"
+
+# Individual agents
+gemini agent spawn researcher --count 3
+gemini agent list
+
+# Memory management
+gemini memory store "key" "value" --namespace project
+gemini memory query "pattern"
+
+# Task coordination
+gemini task create "Feature X" --priority high
+gemini task assign TASK_ID --agent AGENT_ID
+```
+
+### Extension Management
+
+```bash
+# List installed extensions
+gemini extensions list
+
+# Enable/disable extension
+gemini extensions enable gemini-flow
+gemini extensions disable gemini-flow
+
+# Update extension
+gemini extensions update gemini-flow
+
+# Get extension info
+gemini extensions info gemini-flow
+
+# Uninstall extension
+gemini extensions uninstall gemini-flow
+```
+
+### Built-in Extension Manager
+
+gemini-flow also includes its own extension management commands:
+
+```bash
+# Using gem-extensions command
+gemini-flow gem-extensions install github:user/extension
+gemini-flow gem-extensions list
+gemini-flow gem-extensions enable extension-name
+gemini-flow gem-extensions info extension-name
+```
+
+### Extension Manifest
+
+The extension is defined in `gemini-extension.json` at the repository root:
+
+```json
+{
+  "name": "gemini-flow",
+  "version": "1.3.3",
+  "description": "AI orchestration platform with 9 MCP servers",
+  "entryPoint": "extensions/gemini-cli/extension-loader.js",
+  "mcpServers": { ... },
+  "customCommands": { ... },
+  "contextFiles": ["GEMINI.md", "gemini-flow.md"]
+}
+```
+
+### Features
+
+✅ **Official Gemini CLI Integration** - Works with official Gemini CLI  
+✅ **9 Pre-configured MCP Servers** - Ready to use out of the box  
+✅ **7 Custom Commands** - Full gemini-flow functionality  
+✅ **Auto-loading Context** - Automatic GEMINI.md integration  
+✅ **Lifecycle Hooks** - Proper onInstall, onEnable, onDisable, onUpdate, onUninstall handling  
+✅ **GitHub Installation** - Easy one-command installation  
+
+For more details, see [extensions/gemini-cli/README.md](extensions/gemini-cli/README.md) and [GEMINI.md](GEMINI.md).
 
 ## 🚀 What's Next?
 
