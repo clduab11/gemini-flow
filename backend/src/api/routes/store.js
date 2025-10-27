@@ -20,6 +20,19 @@ import {
 const router = express.Router();
 
 /**
+ * Error handler helper for 404 responses
+ */
+function handleError(error, res, next) {
+  if (error.message.includes('not found')) {
+    return res.status(404).json({
+      success: false,
+      error: error.message
+    });
+  }
+  next(error);
+}
+
+/**
  * GET /api/store
  * Get entire store state for a namespace
  */
@@ -172,7 +185,7 @@ router.delete('/:key', async (req, res, next) => {
       namespace
     });
   } catch (error) {
-    next(error);
+    handleError(error, res, next);
   }
 });
 

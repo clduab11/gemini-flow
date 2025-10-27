@@ -21,6 +21,19 @@ import {
 const router = express.Router();
 
 /**
+ * Error handler helper for 404 responses
+ */
+function handleError(error, res, next) {
+  if (error.message.includes('not found')) {
+    return res.status(404).json({
+      success: false,
+      error: error.message
+    });
+  }
+  next(error);
+}
+
+/**
  * GET /api/sessions
  * Get all sessions or filter by status/workflow
  */
@@ -108,7 +121,7 @@ router.put('/:id', async (req, res, next) => {
       message: 'Session updated successfully'
     });
   } catch (error) {
-    next(error);
+    handleError(error, res, next);
   }
 });
 
@@ -126,7 +139,7 @@ router.delete('/:id', async (req, res, next) => {
       message: 'Session deleted successfully'
     });
   } catch (error) {
-    next(error);
+    handleError(error, res, next);
   }
 });
 
@@ -147,7 +160,7 @@ router.post('/:id/extend', async (req, res, next) => {
       message: 'Session extended successfully'
     });
   } catch (error) {
-    next(error);
+    handleError(error, res, next);
   }
 });
 
@@ -167,7 +180,7 @@ router.post('/:id/terminate', async (req, res, next) => {
       message: 'Session terminated successfully'
     });
   } catch (error) {
-    next(error);
+    handleError(error, res, next);
   }
 });
 

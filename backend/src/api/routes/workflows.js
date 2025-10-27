@@ -103,6 +103,12 @@ router.put('/:id', async (req, res, next) => {
       message: 'Workflow updated successfully'
     });
   } catch (error) {
+    if (error.message.includes('not found')) {
+      return res.status(404).json({
+        success: false,
+        error: error.message
+      });
+    }
     next(error);
   }
 });
@@ -121,6 +127,12 @@ router.delete('/:id', async (req, res, next) => {
       message: 'Workflow deleted successfully'
     });
   } catch (error) {
+    if (error.message.includes('not found')) {
+      return res.status(404).json({
+        success: false,
+        error: error.message
+      });
+    }
     next(error);
   }
 });
@@ -142,6 +154,12 @@ router.post('/:id/execute', async (req, res, next) => {
       message: 'Workflow executed successfully'
     });
   } catch (error) {
+    if (error.message.includes('not found')) {
+      return res.status(404).json({
+        success: false,
+        error: error.message
+      });
+    }
     next(error);
   }
 });
