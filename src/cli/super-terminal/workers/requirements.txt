@@ -1,0 +1,15 @@
+# Quantum Computing Worker Dependencies
+# Install with: pip install -r requirements.txt
+
+# Qiskit - IBM Quantum Framework
+qiskit>=1.0.0
+qiskit-aer>=0.13.0
+
+# Pennylane - Quantum Machine Learning
+pennylane>=0.35.0
+
+# Optional: Hardware backend support
+# qiskit-ibm-runtime>=0.17.0
+
+# Numpy for numerical operations
+numpy>=1.24.0
