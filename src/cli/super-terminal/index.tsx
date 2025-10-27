@@ -27,7 +27,13 @@ const SuperTerminal: React.FC<SuperTerminalProps> = () => {
 
     try {
       const result = await commandRouter.route(command);
-      setOutput(prev => [...prev, result.output]);
+
+      // Handle streaming output (e.g., from Google AI commands)
+      if (result.streamingOutput && result.streamingOutput.length > 0) {
+        setOutput(prev => [...prev, ...result.streamingOutput, '', result.output]);
+      } else {
+        setOutput(prev => [...prev, result.output]);
+      }
 
       // Update metrics if available
       if (result.metrics) {

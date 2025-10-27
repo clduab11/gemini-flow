@@ -3,6 +3,7 @@ import { AgentSpaceManager } from '../../agentspace/core/AgentSpaceManager.js';
 import { PerformanceMonitor } from '../../monitoring/performance-monitor.js';
 import { SwarmHandler } from './handlers/swarm-handler.js';
 import { GoogleAIHandler } from './handlers/google-ai-handler.js';
+import { EventEmitter } from 'node:events';
 
 export interface CommandResult {
   output: string;
@@ -11,6 +12,7 @@ export interface CommandResult {
     tasksActive: number;
     performance?: any;
   };
+  streamingOutput?: string[];
 }
 
 export class CommandRouter {
@@ -56,8 +58,22 @@ export class CommandRouter {
         return this.swarmHandler.handle(subCommand, args);
 
       case 'google':
-      case 'ai':
-        return this.googleAIHandler.handle(subCommand, args);
+      case 'ai': {
+        // Collect streaming output from GoogleAIHandler
+        const streamingOutput: string[] = [];
+        const progressListener = (message: string) => {
+          streamingOutput.push(message);
+        };
+
+        this.googleAIHandler.on('progress', progressListener);
+        const result = await this.googleAIHandler.handle(subCommand, args);
+        this.googleAIHandler.off('progress', progressListener);
+
+        return {
+          ...result,
+          streamingOutput: streamingOutput.length > 0 ? streamingOutput : undefined,
+        };
+      }
 
       case 'status':
         return this.handleStatus();
@@ -72,13 +88,27 @@ export class CommandRouter {
   private handleHelp(): CommandResult {
     const help = `
 Available Commands:
-  help                  - Show this help message
-  status                - Show system status
-  swarm list            - List active agents
-  swarm spawn <type>    - Spawn a new agent (e.g., swarm spawn coder)
-  swarm terminate <id>  - Terminate an agent
-  google status         - Show Google AI services status
-  exit                  - Exit the terminal
+
+  System:
+    help                       - Show this help message
+    status                     - Show system status
+    exit                       - Exit the terminal
+
+  Agent Management (Swarm):
+    swarm list                 - List active agents
+    swarm spawn <type>         - Spawn a new agent
+    swarm terminate <id>       - Terminate an agent
+
+  Google AI Services:
+    google status              - Show service availability
+    google help                - Show detailed Google AI commands
+    google veo3 generate [...]  - Generate video
+    google imagen4 create [...] - Create image
+    google chirp tts [...]      - Text-to-speech
+    google lyria compose [...]  - Compose music
+    google research [...]       - Research query
+
+Type "google help" for full Google AI documentation.
 `;
     return { output: help };
   }
