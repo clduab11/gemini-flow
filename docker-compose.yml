@@ -1,0 +1,99 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        BUILD_VERSION: ${VERSION:-1.0.0}
+        BUILD_DATE: ${BUILD_DATE}
+    image: gemini-flow-backend:latest
+    container_name: gemini-flow-backend
+    restart: unless-stopped
+    
+    # Run as non-root (redundant with Dockerfile USER, but explicit)
+    user: "1001:1001"
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Read-only root filesystem (except for specific volumes)
+    read_only: false  # Set to false as Node.js needs to write temp files
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    
+    # Environment variables
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+    
+    # Volumes for persistence
+    volumes:
+      - backend-data:/app/.data
+      - backend-logs:/app/logs
+    
+    # Port mapping
+    ports:
+      - "3001:3001"
+    
+    # Health check (override from Dockerfile if needed)
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Network
+    networks:
+      - gemini-flow-network
+
+  # Optional: Redis for distributed features (commented out by default)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: gemini-flow-redis
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+  #   user: "999:999"  # Redis non-root user
+  #   security_opt:
+  #     - no-new-privileges:true
+  #   volumes:
+  #     - redis-data:/data
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - gemini-flow-network
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 3
+
+volumes:
+  backend-data:
+    driver: local
+  backend-logs:
+    driver: local
+  # redis-data:
+  #   driver: local
+
+networks:
+  gemini-flow-network:
+    driver: bridge
