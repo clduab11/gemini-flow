@@ -102,3 +102,4 @@ SWARM_COMPLETION_REPORT.md
 test-*.sh
 coordination/
 *.md.bak
+.data/

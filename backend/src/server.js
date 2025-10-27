@@ -14,6 +14,13 @@ import { dirname, join } from 'path';
 // Import API routes
 import geminiRoutes from './api/gemini/index.js';
 
+// Import rate limiting middleware
+import { 
+  rateLimit, 
+  initRateLimitStore, 
+  startRateLimitPersistence 
+} from './api/middleware/rateLimit.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -30,6 +37,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting middleware - applies to all routes
+app.use(rateLimit);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -60,9 +70,33 @@ app.use('*', (req, res) => {
   });
 });
 
+// Initialize rate limiting persistence
+async function initializeRateLimiting() {
+  if (process.env.REDIS_HOST) {
+    console.log('🔴 Initializing Redis-based rate limiting...');
+    await initRateLimitStore();
+  } else {
+    console.log('📁 Initializing file-based rate limiting...');
+    await startRateLimitPersistence();
+  }
+}
+
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Gemini Flow Backend Server running on port ${PORT}`);
-  console.log(`📋 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔧 API Base URL: http://localhost:${PORT}/api`);
-});
+async function startServer() {
+  try {
+    // Initialize rate limiting
+    await initializeRateLimiting();
+    
+    // Start listening
+    app.listen(PORT, () => {
+      console.log(`🚀 Gemini Flow Backend Server running on port ${PORT}`);
+      console.log(`📋 Health check: http://localhost:${PORT}/health`);
+      console.log(`🔧 API Base URL: http://localhost:${PORT}/api`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
