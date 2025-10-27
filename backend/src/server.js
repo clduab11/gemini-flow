@@ -14,6 +14,11 @@ import { dirname, join } from 'path';
 // Import API routes
 import geminiRoutes from './api/gemini/index.js';
 
+// Import logger and middleware
+import { logger } from './utils/logger.js';
+import { requestId } from './api/middleware/requestId.js';
+import { requestLogger } from './api/middleware/requestLogger.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -31,6 +36,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Request tracking middleware
+app.use(requestId);
+app.use(requestLogger);
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
@@ -45,7 +54,13 @@ app.use('/api/gemini', geminiRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  logger.error({
+    err,
+    path: req.path,
+    method: req.method,
+    requestId: req.id
+  }, 'Request error');
+  
   res.status(500).json({ 
     error: 'Internal server error',
     message: err.message 
@@ -62,7 +77,10 @@ app.use('*', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Gemini Flow Backend Server running on port ${PORT}`);
-  console.log(`📋 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔧 API Base URL: http://localhost:${PORT}/api`);
+  logger.info({ 
+    port: PORT, 
+    env: process.env.NODE_ENV || 'development',
+    healthCheck: `http://localhost:${PORT}/health`,
+    apiBase: `http://localhost:${PORT}/api`
+  }, 'Server started');
 });

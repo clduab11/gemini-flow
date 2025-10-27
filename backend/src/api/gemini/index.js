@@ -6,8 +6,10 @@
 
 import express from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createModuleLogger } from '../../utils/logger.js';
 
 const router = express.Router();
+const logger = createModuleLogger('gemini-api');
 
 // Initialize Gemini client (will be done per request to handle different API keys)
 const initializeGemini = () => {
@@ -116,23 +118,34 @@ router.post('/execute', async (req, res) => {
       });
     }
     
-    console.log(`🔄 Executing flow with ${nodes.length} nodes and ${edges.length} edges`);
+    logger.info({ 
+      requestId: req.id,
+      nodeCount: nodes.length, 
+      edgeCount: edges.length 
+    }, 'Executing flow');
     
     // Build prompt from graph
     const prompt = buildPromptFromGraph(nodes, edges);
-    console.log('📝 Built prompt:', prompt);
+    logger.debug({ 
+      requestId: req.id,
+      promptLength: prompt.length,
+      prompt: prompt.substring(0, 100) + '...' // Log first 100 chars
+    }, 'Built prompt from graph');
     
     // Initialize Gemini client
     const genAI = initializeGemini();
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
     
     // Generate content
-    console.log('🤖 Sending request to Gemini API...');
+    logger.debug({ requestId: req.id }, 'Sending request to Gemini API');
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
     
-    console.log('✅ Received response from Gemini API');
+    logger.info({ 
+      requestId: req.id,
+      responseLength: text.length 
+    }, 'Received response from Gemini API');
     
     // Return successful response
     res.json({ 
@@ -147,7 +160,11 @@ router.post('/execute', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ Gemini API request failed:', error);
+    logger.error({ 
+      err: error,
+      requestId: req.id,
+      path: req.path 
+    }, 'Gemini API request failed');
     
     // Handle specific error types
     if (error.message.includes('API key')) {
