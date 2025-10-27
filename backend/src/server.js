@@ -11,11 +11,22 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
+// Load environment variables FIRST
+dotenv.config();
+
 // Import API routes
 import geminiRoutes from './api/gemini/index.js';
 
-// Load environment variables
-dotenv.config();
+// Import authentication middleware
+import { validateApiKeyConfig, authenticate } from './api/middleware/auth.js';
+
+// Validate API key configuration at startup
+try {
+  validateApiKeyConfig();
+} catch (error) {
+  console.error('❌ Server startup failed:', error.message);
+  process.exit(1);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -40,8 +51,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes
-app.use('/api/gemini', geminiRoutes);
+// API routes (with authentication)
+app.use('/api/gemini', authenticate({ required: true }), geminiRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
