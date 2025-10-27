@@ -101,4 +101,4 @@ SWARM_COMPLETION_REPORT.md
 *_IMPLEMENTATION_PLAN.md
 test-*.sh
 coordination/
-*.md.bak
+*.md.bak.data/
