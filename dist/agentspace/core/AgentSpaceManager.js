@@ -1,16 +1,35 @@
-import { EventEmitter } from "events";
-import { SpatialReasoningFramework } from "./SpatialReasoningFramework.js";
+/**
+ * AgentSpace Manager (minimal operational surface)
+ *
+ * Provides the evented API and methods expected by AgentSpaceInitializer
+ * while remaining lightweight. Real implementations can extend this.
+ */
+import { EventEmitter } from "node:events";
 export class AgentSpaceManager extends EventEmitter {
-    config;
-    memoryManager;
-    spatialFramework; // Make it public
-    initialized = false;
-    agents = new Map();
-    constructor(config, memoryManager, spatialConfig) {
+    constructor(config, _baseMemoryManager) {
         super();
+        this.initialized = false;
+        this.agents = new Map();
+        this.workspaces = new Map();
+        // Minimal facades referenced by integrations
+        this.spatialFramework = {
+            registerEntity: async (entity) => {
+                const id = entity?.id || `entity_${Date.now()}`;
+                return id;
+            },
+            queryNearbyEntities: async (_pos, _radius) => {
+                return [];
+            }
+        };
+        this.memoryArchitecture = {
+            queryMemoryBySpatialProximity: async (_pos, _radius) => {
+                return [];
+            },
+            storeMemoryNode: async (_node) => {
+                return true;
+            }
+        };
         this.config = config;
-        this.memoryManager = memoryManager;
-        this.spatialFramework = new SpatialReasoningFramework(spatialConfig);
     }
     async initialize() {
         this.initialized = true;
@@ -25,45 +44,42 @@ export class AgentSpaceManager extends EventEmitter {
         this.agents.clear();
         return true;
     }
-    async deployAgent(definition, position) {
+    async spawnAgent(config) {
         if (!this.initialized) {
             throw new Error("AgentSpaceManager not initialized");
         }
         const agent = {
-            id: definition.id,
-            type: definition.type,
+            id: config.id,
+            type: config.type,
             status: "active",
-            capabilities: definition.capabilities,
-            resources: definition.resourceRequirements,
-            communication: {},
-            position: position || { x: 0, y: 0, z: 0 },
+            capabilities: config.capabilities,
+            resources: config.resources,
+            communication: config.communication,
         };
-        this.agents.set(definition.id, agent);
+        this.agents.set(config.id, agent);
         return {
-            agentId: definition.id,
+            success: true,
+            data: agent,
         };
     }
-    async createCollaborativeWorkspace(agentIds, zoneName) {
+    async terminateAgent(agentId, reason) {
+        const agent = this.agents.get(agentId);
+        if (!agent) {
+            return {
+                success: false,
+                error: { message: "Agent not found", code: "AGENT_NOT_FOUND" },
+            };
+        }
+        this.agents.delete(agentId);
         return {
-            zone: {
-                id: 'zone-1',
-                name: zoneName,
-                type: 'collaborative',
-                boundaries: { min: { x: 0, y: 0, z: 0 }, max: { x: 1, y: 1, z: 1 }, center: { x: 0.5, y: 0.5, z: 0.5 }, volume: 1 },
-                capacity: 100,
-                currentOccupancy: agentIds.length,
-                accessRules: [],
-                spatialRules: [],
-            }
+            success: true,
+            data: {
+                agentId,
+                gracefulShutdown: true,
+                tasksReassigned: 0,
+                reason,
+            },
         };
-    }
-    async getSystemHealth() {
-        return {
-            overallHealth: { overall: 0.9 },
-        };
-    }
-    async optimizeSystem() {
-        // Mock optimization
     }
     async getAgent(agentId) {
         return this.agents.get(agentId) || null;
@@ -71,49 +87,110 @@ export class AgentSpaceManager extends EventEmitter {
     async listAgents() {
         return Array.from(this.agents.values());
     }
-    async createWorkspace(name, resourceLimits, spatialProperties) {
-        if (!this.initialized) {
-            throw new Error("AgentSpaceManager not initialized");
+    async autoScale(config) {
+        // Mock auto-scaling
+        return {
+            scalingTriggered: true,
+            newAgentCount: config.maxAgents,
+            targetLoadAchieved: true,
+        };
+    }
+    async getAgentHealth(agentId) {
+        const agent = this.agents.get(agentId);
+        if (!agent) {
+            throw new Error("Agent not found");
         }
-        const agentId = `agent-for-${name}`;
-        const workspace = {
-            id: `ws-${name}`,
-            agentId,
-            name,
-            type: "isolated",
-            resources: {
-                memory: { allocated: 0, used: 0, reserved: 0, swapped: 0, compressionRatio: 1, cacheHitRate: 0 },
-                cpu: { cores: 1, usage: 0, priority: 'normal', scheduling: 'preemptive' },
-                network: { bandwidth: 0, latency: 0, packetLoss: 0, connections: 0, throughput: { inbound: 0, outbound: 0 } },
-                storage: { allocated: 0, used: 0, iops: 0, type: 'memory' },
-                tools: [],
-            },
-            resourceLimits,
-            spatialProperties,
-            accessControl: {
-                owner: agentId,
-                permissions: [],
-                inheritanceEnabled: false,
-                defaultPermission: 'deny',
-            },
-            state: {
-                status: 'active',
-                health: 'healthy',
-                resourceUtilization: { memory: 0, cpu: 0, network: 0, storage: 0, efficiency: 1 },
-                performance: { responseTime: 0, throughput: 0, errorRate: 0, successRate: 1, latency: 0, concurrency: 0 },
-                errors: [],
-            },
-            createdAt: new Date(),
-            lastAccessedAt: new Date(),
-            configuration: {
-                isolationLevel: 'container',
-                networkPolicy: { inboundRules: [], outboundRules: [], defaultAction: 'deny', rateLimiting: { requestsPerSecond: 100, burstSize: 200, windowSize: 1000 } },
-                storagePolicy: { type: 'local', encryption: true, compression: true, deduplication: true, retention: { defaultTTL: 86400, archiveThreshold: 604800, deleteThreshold: 2592000, backupEnabled: true } },
-                securityPolicy: { authentication: 'api_key', authorization: 'rbac', encryption: 'transport', auditLevel: 'basic' },
-                monitoringPolicy: { metricsEnabled: true, logsEnabled: true, tracingEnabled: false, alertingEnabled: true, retentionDays: 30 },
+        return {
+            healthScore: 0.9,
+            issues: [],
+            lastCheckTime: Date.now(),
+        };
+    }
+    async recoverAgent(agentId) {
+        return {
+            success: true,
+            recoveryMethod: "restart",
+            recoveryTime: 3000,
+        };
+    }
+    async createCheckpoint(config) {
+        return {
+            success: true,
+            data: {
+                checkpointId: `checkpoint-${Date.now()}`,
+                agentId: config.agentId,
+                timestamp: Date.now(),
             },
         };
-        this.agents.set(agentId, workspace);
-        return workspace;
+    }
+    async rollbackToCheckpoint(config) {
+        return {
+            success: true,
+            data: {
+                checkpointId: config.checkpointId,
+                stateRestored: true,
+                rollbackTime: Date.now(),
+            },
+        };
+    }
+    async getSystemHealth() {
+        return {
+            overallHealth: {
+                overall: 0.9,
+                services: {
+                    virtualization: "healthy",
+                    coordination: "healthy",
+                    memory: "healthy",
+                },
+            },
+            criticalServicesOnline: true,
+            totalAgents: this.agents.size,
+            healthyAgents: this.agents.size,
+        };
+    }
+    /**
+     * Minimal optimizer used by Initializer on performance alerts
+     */
+    async optimizeSystem() {
+        // Placeholder: emit an event for external monitors
+        this.emit("system_optimized", { timestamp: Date.now() });
+    }
+    /**
+     * Deploy an agent and emit lifecycle events
+     */
+    async deployAgent(definition, position) {
+        if (!this.initialized) {
+            await this.initialize();
+        }
+        const agentId = definition?.id || `agent_${Date.now()}`;
+        const agent = { id: agentId, definition, position, status: "active" };
+        this.agents.set(agentId, agent);
+        this.emit("agent_deployed", { agentId, position });
+        return { agentId };
+    }
+    /**
+     * Create a collaborative workspace and emit event
+     */
+    async createCollaborativeWorkspace(participants, name, _coordinationPosition) {
+        const id = `zone_${Date.now()}`;
+        this.emit("workspace_created", { id, name, participants });
+        return { zone: { id, name }, workspace: { id, name } };
+    }
+    /**
+     * Create a basic workspace (name, limits, spatial properties)
+     */
+    async createWorkspace(name, resourceLimits, spatialProps) {
+        const id = `ws_${Date.now()}`;
+        const spatialProperties = spatialProps || {
+            position: { x: 0, y: 0, z: 0 },
+            boundingBox: { min: { x: -1, y: -1, z: -1 }, max: { x: 1, y: 1, z: 1 } }
+        };
+        const ws = { id, name, resourceLimits: resourceLimits || {}, spatialProperties };
+        this.workspaces.set(id, ws);
+        this.emit('workspace_created', { id, name });
+        return { id, name, spatialProperties };
+    }
+    getWorkspace(id) {
+        return this.workspaces.get(id) || null;
     }
 }
