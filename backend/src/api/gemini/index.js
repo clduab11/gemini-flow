@@ -6,6 +6,7 @@
 
 import express from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { validateWorkflowData } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -98,8 +99,9 @@ const buildPromptFromGraph = (nodes, edges) => {
 /**
  * POST /api/gemini/execute
  * Execute a visual flow via Gemini API
+ * Includes workflow validation middleware
  */
-router.post('/execute', async (req, res) => {
+router.post('/execute', validateWorkflowData, async (req, res) => {
   try {
     const { nodes, edges } = req.body;
     
