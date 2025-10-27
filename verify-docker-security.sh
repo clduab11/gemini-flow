@@ -91,8 +91,10 @@ echo ""
 
 echo "7. Verifying Running Processes"
 echo "==============================="
-PROCESS_USER=$(docker exec $CONTAINER_NAME-test ps aux | grep node | grep -v grep | awk '{print $1}' | head -n 1)
-if [ "$PROCESS_USER" == "geminifl" ] || [ "$PROCESS_USER" == "1001" ] || [ "$PROCESS_USER" == "1" ]; then
+# Note: ps aux may truncate usernames. Check for both full and truncated versions.
+PROCESS_USER=$(docker exec $CONTAINER_NAME-test ps aux | grep '[n]ode src/server.js' | awk '{print $1}' | head -n 1)
+# Check if it's the geminiflow user (may appear as 'geminifl', '1001', or '1' in ps output)
+if [[ "$PROCESS_USER" =~ ^(geminiflow|geminifl|1001|1)$ ]]; then
     success "Node.js process running as non-root user (User: $PROCESS_USER)"
 else
     error "Process running as unexpected user: $PROCESS_USER"
@@ -152,10 +154,15 @@ echo ""
 echo "12. Checking for Common Vulnerabilities"
 echo "========================================"
 info "Checking for exposed secrets..."
-if docker exec $CONTAINER_NAME-test env | grep -i "password\|secret\|key" | grep -v "GOOGLE_API_KEY"; then
-    error "Potential secrets found in environment"
+# Exclude expected GOOGLE_API_KEY and check for other potential secrets
+UNEXPECTED_SECRETS=$(docker exec $CONTAINER_NAME-test env | grep -iE "(password|secret|private.*key|token)" | grep -v "GOOGLE_API_KEY" || true)
+if [ -n "$UNEXPECTED_SECRETS" ]; then
+    error "Potential secrets found in environment:"
+    echo "$UNEXPECTED_SECRETS"
+    docker stop $CONTAINER_NAME-test && docker rm $CONTAINER_NAME-test
+    exit 1
 else
-    success "No obvious secrets exposed"
+    success "No unexpected secrets exposed"
 fi
 echo ""
 

@@ -17,8 +17,11 @@ services:
     security_opt:
       - no-new-privileges:true
     
-    # Read-only root filesystem (except for specific volumes)
-    read_only: false  # Set to false as Node.js needs to write temp files
+    # Read-only root filesystem with tmpfs for temporary files
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.npm
     
     # Resource limits
     deploy:
