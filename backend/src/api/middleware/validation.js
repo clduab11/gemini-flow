@@ -15,7 +15,9 @@ import { LIMITS } from '../../config/limits.js';
  */
 function getObjectDepth(obj, depth = 0) {
   // Safety cutoff to prevent infinite recursion
-  if (depth > 20) return depth;
+  // Uses double the configured limit to allow for detection of violations
+  const SAFETY_CUTOFF = LIMITS.MAX_NESTED_DEPTH * 2;
+  if (depth > SAFETY_CUTOFF) return depth;
   
   // Base case: not an object or array
   if (!obj || typeof obj !== 'object') return depth;
@@ -63,12 +65,22 @@ export function validateWorkflowData(req, res, next) {
     
     // Node data complexity validation
     if (Array.isArray(workflow.nodes)) {
-      for (let i = 0; i < workflow.nodes.length; i++) {
+      // Collect up to 5 depth violations to provide better error messages
+      const depthViolations = [];
+      const MAX_DEPTH_ERRORS = 5;
+      
+      for (let i = 0; i < workflow.nodes.length && depthViolations.length < MAX_DEPTH_ERRORS; i++) {
         const node = workflow.nodes[i];
         const nodeDepth = getObjectDepth(node);
         if (nodeDepth > LIMITS.MAX_NESTED_DEPTH) {
-          errors.push(`Node at index ${i} is too deeply nested (max depth ${LIMITS.MAX_NESTED_DEPTH}, found ${nodeDepth})`);
-          break; // Only report first occurrence to avoid flooding
+          depthViolations.push(`Node at index ${i} is too deeply nested (max depth ${LIMITS.MAX_NESTED_DEPTH}, found ${nodeDepth})`);
+        }
+      }
+      
+      if (depthViolations.length > 0) {
+        errors.push(...depthViolations);
+        if (depthViolations.length === MAX_DEPTH_ERRORS) {
+          errors.push(`... and possibly more nodes with depth violations (showing first ${MAX_DEPTH_ERRORS})`);
         }
       }
     }
@@ -201,14 +213,27 @@ export function validatePayloadSize(req, res, next) {
   const contentLength = req.get('content-length');
   
   if (contentLength) {
-    const sizeInMB = parseInt(contentLength) / (1024 * 1024);
-    const maxMB = 1; // 1MB limit
+    const sizeInBytes = parseInt(contentLength);
+    // Parse the MAX_REQUEST_SIZE string (e.g., '1mb' -> 1048576 bytes)
+    const maxSizeStr = LIMITS.MAX_REQUEST_SIZE.toLowerCase();
+    let maxBytes;
     
-    if (sizeInMB > maxMB) {
+    if (maxSizeStr.endsWith('mb')) {
+      maxBytes = parseFloat(maxSizeStr) * 1024 * 1024;
+    } else if (maxSizeStr.endsWith('kb')) {
+      maxBytes = parseFloat(maxSizeStr) * 1024;
+    } else {
+      maxBytes = parseInt(maxSizeStr);
+    }
+    
+    if (sizeInBytes > maxBytes) {
+      const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2);
+      const maxInMB = (maxBytes / (1024 * 1024)).toFixed(2);
+      
       return res.status(413).json({
         error: {
           message: 'Payload too large',
-          details: [`Request size ${sizeInMB.toFixed(2)}MB exceeds limit of ${maxMB}MB`]
+          details: [`Request size ${sizeInMB}MB exceeds limit of ${maxInMB}MB`]
         }
       });
     }

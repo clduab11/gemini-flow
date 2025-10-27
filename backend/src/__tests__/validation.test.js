@@ -60,12 +60,13 @@ describe('getObjectDepth', () => {
     expect(getObjectDepth(workflow)).toBe(6);
   });
 
-  it('should cut off at depth 20 for safety', () => {
-    // Create a deeply nested object beyond 20 levels
+  it('should cut off at safety limit for deeply nested objects', () => {
+    // Create a deeply nested object beyond safety cutoff (2x the configured limit)
     let deepObj = { value: 1 };
     for (let i = 0; i < 25; i++) {
       deepObj = { nested: deepObj };
     }
+    // Should cut off at depth 21 (returns when depth > SAFETY_CUTOFF where SAFETY_CUTOFF = 20)
     expect(getObjectDepth(deepObj)).toBe(21);
   });
 });
