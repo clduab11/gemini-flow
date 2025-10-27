@@ -11,6 +11,21 @@ export interface CommandResult {
     agentCount: number;
     tasksActive: number;
     performance?: any;
+    a2aMetrics?: {
+      messagesProcessed: number;
+      avgResponseTime: number;
+      throughput: number;
+    };
+    agentHealth?: {
+      active: number;
+      idle: number;
+      error: number;
+      stale: number;
+    };
+    memoryUsage?: {
+      total: number;
+      perAgent: number;
+    };
   };
   streamingOutput?: string[];
 }
@@ -118,17 +133,48 @@ Type "google help" for full Google AI documentation.
     const agentCount = agents.length;
     const performanceMetrics = this.performanceMonitor.getAllMetrics();
 
+    // Get A2A metrics from SwarmHandler
+    const a2aManager = this.swarmHandler.getA2AManager();
+    const a2aMetrics = a2aManager?.getMetrics?.() || null;
+
+    // Calculate agent health (simulated for now)
+    const agentHealth = {
+      active: agentCount,
+      idle: 0,
+      error: 0,
+      stale: 0,
+    };
+
+    // Calculate memory usage (simulated)
+    const baseMemory = 128; // Base memory in MB
+    const perAgentMemory = 32; // MB per agent
+    const totalMemory = baseMemory + (agentCount * perAgentMemory);
+
     return {
       output: `System Status:\n  Active Agents: ${agentCount}\n  Agent Space: super-terminal-space`,
       metrics: {
         agentCount,
         tasksActive: 0,
         performance: performanceMetrics,
+        a2aMetrics: a2aMetrics ? {
+          messagesProcessed: a2aMetrics.messagesProcessed || 0,
+          avgResponseTime: a2aMetrics.avgResponseTime || 0,
+          throughput: a2aMetrics.throughput || 0,
+        } : undefined,
+        agentHealth,
+        memoryUsage: {
+          total: totalMemory,
+          perAgent: agentCount > 0 ? perAgentMemory : 0,
+        },
       },
     };
   }
 
   getPerformanceMonitor(): PerformanceMonitor {
     return this.performanceMonitor;
+  }
+
+  getSwarmHandler(): SwarmHandler {
+    return this.swarmHandler;
   }
 }

@@ -12,8 +12,17 @@ const SuperTerminal: React.FC<SuperTerminalProps> = () => {
   const [output, setOutput] = useState<string[]>(['Welcome to Gemini Flow Super Terminal', 'Type "help" for available commands']);
   const [metrics, setMetrics] = useState({ agentCount: 0, tasksActive: 0 });
   const [isRunning, setIsRunning] = useState(true);
+  const [availableAgentIds, setAvailableAgentIds] = useState<string[]>([]);
 
   const commandRouter = new CommandRouter();
+
+  // Available commands for autocomplete
+  const availableCommands = [
+    'help', 'status', 'exit',
+    'swarm', 'swarm list', 'swarm spawn', 'swarm terminate', 'swarm status', 'swarm broadcast', 'swarm topology', 'swarm help',
+    'google', 'google status', 'google help', 'google veo3', 'google imagen4', 'google chirp', 'google lyria', 'google research', 'google mariner', 'google streaming',
+    'google veo3 generate', 'google imagen4 create', 'google chirp tts', 'google lyria compose', 'google mariner automate', 'google streaming start',
+  ];
 
   const handleCommand = async (command: string) => {
     setOutput(prev => [...prev, `> ${command}`]);
@@ -39,8 +48,27 @@ const SuperTerminal: React.FC<SuperTerminalProps> = () => {
       if (result.metrics) {
         setMetrics(result.metrics);
       }
+
+      // Update available agent IDs if command was swarm-related
+      if (command.startsWith('swarm')) {
+        updateAgentIds();
+      }
     } catch (error: any) {
       setOutput(prev => [...prev, `Error: ${error.message}`]);
+    }
+  };
+
+  const updateAgentIds = async () => {
+    try {
+      const result = await commandRouter.route('swarm list');
+      // Extract agent IDs from output
+      const idMatches = result.output.match(/- ([a-z]+-\d+)/g);
+      if (idMatches) {
+        const ids = idMatches.map(match => match.substring(2)); // Remove "- " prefix
+        setAvailableAgentIds(ids);
+      }
+    } catch (error) {
+      // Silently fail
     }
   };
 
@@ -61,7 +89,11 @@ const SuperTerminal: React.FC<SuperTerminalProps> = () => {
 
       {isRunning && (
         <Box marginTop={1}>
-          <CommandInput onSubmit={handleCommand} />
+          <CommandInput
+            onSubmit={handleCommand}
+            availableCommands={availableCommands}
+            availableAgentIds={availableAgentIds}
+          />
         </Box>
       )}
     </Box>
