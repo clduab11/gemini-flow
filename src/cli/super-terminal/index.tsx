@@ -7,6 +7,7 @@ import { MetricsPanel } from './components/MetricsPanel.js';
 import { CommandInput } from './components/CommandInput.js';
 import { getLogger, LogLevel } from './utils/Logger.js';
 import { getConfig } from './utils/Config.js';
+import { TuiApp } from './tui/TuiApp.js';
 
 interface SuperTerminalProps {
   debugMode: boolean;
@@ -184,6 +185,7 @@ class ErrorBoundary extends React.Component<
 const args = process.argv.slice(2);
 const debugMode = args.includes('--debug') || process.env.SUPER_TERMINAL_DEBUG === 'true';
 const safeMode = args.includes('--safe-mode') || process.env.SUPER_TERMINAL_SAFE_MODE === 'true';
+const tuiMode = args.includes('--tui') || args.includes('-t');
 
 // Initialize logger and config
 async function initialize() {
@@ -214,15 +216,34 @@ async function initialize() {
     await logger.info('Super Terminal starting', {
       debugMode,
       safeMode,
+      tuiMode,
       args,
     });
 
     // Launch the terminal with error boundary
-    render(
-      <ErrorBoundary>
-        <SuperTerminal debugMode={debugMode} safeMode={safeMode} />
-      </ErrorBoundary>
-    );
+    if (tuiMode) {
+      // Launch TUI mode
+      const commandRouter = new CommandRouter();
+      const { waitUntilExit } = render(
+        <ErrorBoundary>
+          <TuiApp
+            commandRouter={commandRouter}
+            onExit={() => {
+              logger.info('TUI mode exited');
+              process.exit(0);
+            }}
+          />
+        </ErrorBoundary>
+      );
+      await waitUntilExit();
+    } else {
+      // Launch traditional CLI mode
+      render(
+        <ErrorBoundary>
+          <SuperTerminal debugMode={debugMode} safeMode={safeMode} />
+        </ErrorBoundary>
+      );
+    }
   } catch (error) {
     console.error('Fatal: Failed to initialize Super Terminal');
     console.error(error);
