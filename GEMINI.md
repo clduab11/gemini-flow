@@ -29,7 +29,7 @@ gemini-flow is now available as an official Gemini CLI extension, packaging:
 
 ```bash
 # Install from GitHub
-gemini extensions install github:clduab11/gemini-flow
+gemini extensions install https://github.com/clduab11/gemini-flow
 
 # Install from local clone
 cd /path/to/gemini-flow
@@ -100,7 +100,7 @@ gemini-flow also includes its own extension management commands:
 
 ```bash
 # Using gem-extensions command
-gemini-flow gem-extensions install github:user/extension
+gemini-flow gem-extensions install https://github.com/user/extension
 gemini-flow gem-extensions list
 gemini-flow gem-extensions enable extension-name
 gemini-flow gem-extensions info extension-name
@@ -157,7 +157,7 @@ This documentation is specifically engineered for **Gemini Code Assist** using G
 gemini-flow is now available as an official Gemini CLI extension. Install it with:
 
 ```bash
-gemini extensions install github:clduab11/gemini-flow
+gemini extensions install https://github.com/clduab11/gemini-flow
 ```
 
 ---
