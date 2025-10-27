@@ -45,6 +45,15 @@ initializeApiKeys();
 
 /**
  * Hash API key for secure logging
+ * 
+ * NOTE: This is NOT for password verification or authentication.
+ * This hash is used ONLY for display/logging purposes to avoid exposing
+ * the full API key in logs. Actual authentication is done by direct
+ * comparison of the raw API key values (see authenticate middleware).
+ * 
+ * SHA-256 is sufficient for this use case as we're not storing or
+ * verifying credentials - just creating a short identifier for logs.
+ * 
  * @param {string} key - API key to hash
  * @returns {string} - First 8 characters of SHA-256 hash
  */
