@@ -45,12 +45,30 @@ class WebSocketService {
    * @param {Request} req - HTTP request
    */
   handleConnection(ws, req) {
+    // Extract API key from query parameters or upgrade headers
+    const url = new URL(req.url, `ws://${req.headers.host || 'localhost'}`);
+    const apiKey = url.searchParams.get('apiKey') || req.headers['x-api-key'];
+    
+    // Validate API key
+    const DEFAULT_API_KEY = process.env.API_KEY || 'dev-api-key-change-in-production';
+    
+    if (!apiKey || apiKey !== DEFAULT_API_KEY) {
+      console.warn(`❌ Unauthorized WebSocket connection attempt from ${req.socket.remoteAddress}`);
+      ws.close(1008, 'Unauthorized'); // Policy Violation
+      return;
+    }
+
     const clientId = `client-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     console.log(`📡 Client connected: ${clientId} from ${req.socket.remoteAddress}`);
 
-    // Store client
-    this.clients.set(clientId, ws);
+    // Store client with authentication metadata
+    this.clients.set(clientId, {
+      ws,
+      authenticated: true,
+      connectedAt: Date.now(),
+      remoteAddress: req.socket.remoteAddress
+    });
     ws.clientId = clientId;
     ws.isAlive = true;
 
@@ -139,7 +157,8 @@ class WebSocketService {
     const message = JSON.stringify(event);
     let sentCount = 0;
 
-    this.clients.forEach((ws, clientId) => {
+    this.clients.forEach((client, clientId) => {
+      const ws = client.ws || client; // Support both old and new structure
       if (!excludeClients.includes(clientId) && ws.readyState === ws.OPEN) {
         ws.send(message);
         sentCount++;
@@ -214,7 +233,8 @@ class WebSocketService {
    */
   startHeartbeat() {
     this.heartbeatInterval = setInterval(() => {
-      this.clients.forEach((ws, clientId) => {
+      this.clients.forEach((client, clientId) => {
+        const ws = client.ws || client; // Support both old and new structure
         if (ws.isAlive === false) {
           console.log(`💔 Client ${clientId} heartbeat timeout, terminating`);
           ws.terminate();
@@ -267,7 +287,8 @@ class WebSocketService {
     this.stopHeartbeat();
 
     // Close all client connections
-    this.clients.forEach((ws, clientId) => {
+    this.clients.forEach((client, clientId) => {
+      const ws = client.ws || client; // Support both old and new structure
       ws.close(1000, 'Server shutting down');
     });
 
