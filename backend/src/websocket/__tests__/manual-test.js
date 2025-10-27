@@ -45,8 +45,9 @@ async function testNoApiKey() {
 
     ws.on('close', (code, reason) => {
       clearTimeout(timeout);
-      // WebSocket connection event fires after HTTP upgrade, so the connection
-      // might briefly "open" before being immediately closed by the server
+      // Note: WebSocket 'connection' event fires after HTTP upgrade completes,
+      // so authentication happens after the connection is established at the TCP level.
+      // The server immediately closes unauthorized connections with code 1008.
       if (code === 1008 && reason.toString() === 'Unauthorized') {
         resolve();
       } else {
@@ -78,8 +79,9 @@ async function testInvalidApiKey() {
 
     ws.on('close', (code, reason) => {
       clearTimeout(timeout);
-      // WebSocket connection event fires after HTTP upgrade, so the connection
-      // might briefly "open" before being immediately closed by the server
+      // Note: WebSocket 'connection' event fires after HTTP upgrade completes,
+      // so authentication happens after the connection is established at the TCP level.
+      // The server immediately closes unauthorized connections with code 1008.
       if (code === 1008 && reason.toString() === 'Unauthorized') {
         resolve();
       } else {

@@ -4,6 +4,9 @@
 .gemini-flow/temp/
 *.log
 
+# Backend runtime data
+.data/
+
 # Database files (may contain secrets)
 *.db
 *.db-wal
