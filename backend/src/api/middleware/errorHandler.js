@@ -66,7 +66,7 @@ export function errorHandler(err, req, res, next) {
   // Default to 500 Internal Server Error
   let statusCode = err.statusCode || 500;
   let errorCode = err.code || 'INTERNAL_ERROR';
-  let message = err.message || 'Internal server error';
+  const message = err.message || 'Internal server error';
 
   // Handle specific error types
   if (err.name === 'ValidationError') {

@@ -256,7 +256,7 @@ export class ASCIICharts {
     const q3Pos = scale(q3);
     const maxPos = width;
 
-    let plot = ' '.repeat(width);
+    const plot = ' '.repeat(width);
     const plotArr = plot.split('');
 
     // Draw whiskers
