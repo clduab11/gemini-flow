@@ -417,6 +417,95 @@ export default {
 }
 ```
 
+## 🔒 Security Configuration
+
+### Backend API Key Authentication
+
+The Gemini Flow backend requires API key authentication for all API endpoints. This ensures secure access to your AI orchestration platform.
+
+#### Production Requirements
+
+In production mode, the following security requirements are **strictly enforced**:
+
+1. **API_KEY is REQUIRED** - Server will refuse to start without it
+2. **Minimum 32 characters** - Keys must be at least 32 characters long
+3. **Cryptographically secure** - Use randomly generated keys
+
+#### Generating Secure API Keys
+
+**Using OpenSSL:**
+```bash
+openssl rand -hex 32
+```
+
+**Using Node.js:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+#### Environment Configuration
+
+Add to your `.env` file:
+
+```bash
+# Backend API Key (REQUIRED in production, minimum 32 characters)
+API_KEY=your-secure-random-key-minimum-32-characters-recommended-64
+
+# Optional: Multiple API keys with role-based scopes
+API_KEY_ADMIN=admin-key-with-full-access-minimum-32-chars
+API_KEY_TUI=tui-client-key-minimum-32-chars
+API_KEY_BROWSER=browser-client-key-minimum-32-chars
+API_KEY_READONLY=readonly-key-for-monitoring-minimum-32-chars
+
+# Google Gemini API Key (REQUIRED)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Server Configuration
+NODE_ENV=production
+PORT=3001
+```
+
+#### Making Authenticated Requests
+
+Include the API key in the `X-API-Key` header:
+
+```bash
+curl -X POST http://localhost:3001/api/gemini/execute \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key-here" \
+  -d '{"nodes": [...], "edges": [...]}'
+```
+
+#### Security Features
+
+- **API Key Hashing**: Keys are hashed (SHA-256) before logging - never stored in plaintext
+- **Scope-Based Access Control**: Different keys can have different permission levels
+- **Production Enforcement**: Server startup validation ensures strong keys in production
+- **Startup Validation**: Clear error messages if security requirements are not met
+
+#### Startup Validation Examples
+
+**Missing API_KEY in production:**
+```bash
+$ NODE_ENV=production npm start
+❌ FATAL: API_KEY environment variable is required in production
+```
+
+**Short API_KEY in production:**
+```bash
+$ NODE_ENV=production API_KEY=short npm start
+❌ FATAL: API_KEY must be at least 32 characters in production
+```
+
+**Valid configuration:**
+```bash
+$ NODE_ENV=production API_KEY=$(openssl rand -hex 32) npm start
+✅ API_KEY configured (hash: 791551ed)
+🚀 Server running on port 3001
+```
+
+For more details, see the [Backend Security Documentation](backend/README.md#-security).
+
 ## 🔧 Troubleshooting Production Issues
 
 ### Common Deployment Issues
