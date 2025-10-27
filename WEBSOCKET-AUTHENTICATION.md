@@ -95,17 +95,22 @@ Tests Failed: 0
 # Development
 API_KEY=dev-api-key-change-in-production
 
-# Staging
-API_KEY=staging-secure-key-$(openssl rand -hex 32)
+# Staging (generate with: openssl rand -hex 32)
+API_KEY=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
 
-# Production
-API_KEY=prod-$(openssl rand -hex 64)
+# Production (generate with: openssl rand -hex 64)
+API_KEY=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
 ```
 
 ### Monitoring Queries
+Note: Adjust log file paths according to your deployment configuration. Examples below assume logs are written to `/var/log/backend.log` or use `docker logs` for containerized deployments.
+
 ```bash
-# Count failed authentication attempts
+# Count failed authentication attempts (adjust log path as needed)
 grep "Unauthorized WebSocket connection attempt" /var/log/backend.log | wc -l
+
+# Or for Docker deployments:
+docker logs backend-container 2>&1 | grep "Unauthorized WebSocket connection attempt" | wc -l
 
 # Get unique IPs attempting unauthorized access
 grep "Unauthorized WebSocket connection attempt" /var/log/backend.log | awk '{print $NF}' | sort -u
@@ -173,6 +178,6 @@ Full documentation available in:
 ✅ **Audit logging enabled for security monitoring**
 
 ---
-**Implementation Date:** 2025-10-27
-**Related Issue:** #67 - [Security] Implement WebSocket Authentication
-**Related PR:** #66 - Refactor: adding TUI & other upgrades
+**Implementation Completed:** October 2025  
+**Related Issue:** #67 - [Security] Implement WebSocket Authentication  
+**Base PR:** #66 - Refactor: adding TUI & other upgrades (WebSocket infrastructure)
