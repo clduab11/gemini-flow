@@ -11,6 +11,10 @@
 *.sqlite
 *.sqlite3
 
+# Database backups
+.data/
+.data/backups/
+
 # Swarm and coordination files
 .gemini-flow/
 .swarm/
