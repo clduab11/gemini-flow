@@ -28,7 +28,7 @@ export function requestLogger(req, res, next) {
     requestId: req.id,
     method: req.method,
     path: req.path,
-    ip: req.ip || req.socket.remoteAddress,
+    ip: req.ip || req.socket?.remoteAddress || 'unknown',
     userAgent: req.headers['user-agent']
   }, 'Incoming request');
   

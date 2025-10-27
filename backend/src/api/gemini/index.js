@@ -129,7 +129,7 @@ router.post('/execute', async (req, res) => {
     logger.debug({ 
       requestId: req.id,
       promptLength: prompt.length,
-      prompt: prompt.substring(0, 100) + '...' // Log first 100 chars
+      prompt: prompt.length > 100 ? prompt.substring(0, 100) + '...' : prompt
     }, 'Built prompt from graph');
     
     // Initialize Gemini client
