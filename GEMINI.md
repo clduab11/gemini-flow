@@ -39,6 +39,8 @@ gemini extensions install .
 gemini extensions enable gemini-flow
 ```
 
+> **⚠️ Important**: Use the full GitHub URL (`https://github.com/clduab11/gemini-flow`). The shorthand syntax `github:username/repo` is **not supported** and will cause installation errors.
+
 ### Using gemini-flow Commands
 
 Once enabled, use gemini-flow commands directly in Gemini CLI:

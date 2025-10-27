@@ -499,6 +499,8 @@ gemini extensions install .
 gemini extensions enable gemini-flow
 ```
 
+> **Note**: Always use the full GitHub URL format (`https://github.com/username/repo`). The shorthand syntax `github:username/repo` is **not supported** by Gemini CLI and will result in "Install source not found" errors.
+
 ### What's Included
 
 The extension packages gemini-flow's complete AI orchestration platform:

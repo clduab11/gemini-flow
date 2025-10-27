@@ -20,6 +20,8 @@ This extension packages gemini-flow's comprehensive AI orchestration capabilitie
 gemini extensions install https://github.com/clduab11/gemini-flow
 ```
 
+> **Note**: Always use the full GitHub URL. The `github:username/repo` shorthand is not supported by Gemini CLI.
+
 ### From Local Directory
 
 ```bash
