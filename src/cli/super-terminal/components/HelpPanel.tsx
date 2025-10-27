@@ -32,6 +32,7 @@ export const HelpPanel: React.FC<HelpPanelProps> = ({ onClose }) => {
           <Text>• <Text bold>Ctrl+H</Text> - Toggle help panel</Text>
           <Text>• <Text bold>Ctrl+M</Text> - Toggle full metrics view</Text>
           <Text>• <Text bold>Ctrl+A</Text> - Toggle agent swarm view</Text>
+          <Text>• <Text bold>Ctrl+N</Text> - Toggle natural language mode</Text>
           <Text>• <Text bold>↑/↓</Text> - Navigate command history</Text>
           <Text>• <Text bold>Ctrl+U</Text> - Clear current line</Text>
           <Text>• <Text bold>Ctrl+A/E</Text> - Jump to line start/end</Text>
@@ -40,13 +41,16 @@ export const HelpPanel: React.FC<HelpPanelProps> = ({ onClose }) => {
 
       {/* Google AI Commands */}
       <Box marginTop={2} flexDirection="column">
-        <Text bold color="green">🤖 Google AI Services:</Text>
+        <Text bold color="green">🤖 Google AI Services (8/8):</Text>
         <Box marginLeft={2} flexDirection="column">
           <Text>• <Text color="cyan">google-ai generate-video "prompt"</Text> - Veo3 video generation</Text>
           <Text>• <Text color="cyan">google-ai generate-image "prompt"</Text> - Imagen4 image synthesis</Text>
           <Text>• <Text color="cyan">google-ai compose-audio "prompt"</Text> - Lyria audio composition</Text>
           <Text>• <Text color="cyan">google-ai speech-to-text file.mp3</Text> - Chirp transcription</Text>
           <Text>• <Text color="cyan">google-ai research "query"</Text> - Co-Scientist research</Text>
+          <Text>• <Text color="cyan">google-ai navigate "url" --action extract</Text> - Mariner web navigation</Text>
+          <Text>• <Text color="cyan">google-ai orchestrate "task" --agents 5</Text> - AgentSpace orchestration</Text>
+          <Text>• <Text color="cyan">google-ai stream "prompt"</Text> - Streaming inference</Text>
         </Box>
       </Box>
 
@@ -64,11 +68,24 @@ export const HelpPanel: React.FC<HelpPanelProps> = ({ onClose }) => {
 
       {/* Quantum Commands */}
       <Box marginTop={2} flexDirection="column">
-        <Text bold color="blue">⚛️  Quantum Computing:</Text>
+        <Text bold color="blue">⚛️  Quantum Computing (Qiskit/Pennylane):</Text>
         <Box marginLeft={2} flexDirection="column">
-          <Text>• <Text color="cyan">quantum circuit --qasm "..."</Text> - Execute quantum circuit</Text>
+          <Text>• <Text color="cyan">quantum circuit --qubits 4</Text> - Execute quantum circuit</Text>
           <Text>• <Text color="cyan">quantum simulate --qubits N</Text> - Simulate quantum system</Text>
-          <Text>• <Text color="cyan">quantum ml --model "..."</Text> - Quantum ML operations</Text>
+          <Text>• <Text color="cyan">quantum ml --model variational</Text> - Quantum ML operations</Text>
+          <Text>• <Text color="cyan">quantum optimize --algorithm qaoa</Text> - Quantum optimization (QAOA/VQE)</Text>
+        </Box>
+      </Box>
+
+      {/* Performance Commands */}
+      <Box marginTop={2} flexDirection="column">
+        <Text bold color="yellow">📊 Performance Monitoring:</Text>
+        <Box marginLeft={2} flexDirection="column">
+          <Text>• <Text color="cyan">performance metrics</Text> - Display current metrics</Text>
+          <Text>• <Text color="cyan">performance bottlenecks</Text> - Detect system bottlenecks</Text>
+          <Text>• <Text color="cyan">performance sla</Text> - Check SLA compliance</Text>
+          <Text>• <Text color="cyan">performance insights</Text> - Get AI-powered optimization insights</Text>
+          <Text>• <Text color="cyan">performance health</Text> - Comprehensive health check</Text>
         </Box>
       </Box>
 

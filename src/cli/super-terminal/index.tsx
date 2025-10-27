@@ -17,7 +17,11 @@ import { Terminal } from './components/Terminal.js';
 import { DefaultCommandRouter } from './command-router.js';
 import { createGoogleAIHandlers } from './handlers/google-ai-handler.js';
 import { createSwarmHandlers } from './handlers/swarm-handler.js';
+import { createQuantumHandlers } from './handlers/quantum-handler.js';
+import { createPerformanceHandlers } from './handlers/performance-handler.js';
 import { initializeQuantumBridge } from './quantum-bridge.js';
+import { createNLParser } from './natural-language-parser.js';
+import { getYAMLConverter } from './utils/yaml-converter.js';
 import { CommandContext } from './types.js';
 import { AgentSpaceManager } from '../../agentspace/core/AgentSpaceManager.js';
 import { GoogleAIOrchestratorService } from '../../services/google-services/orchestrator.js';
@@ -117,9 +121,31 @@ async function initializeSuperTerminal() {
     }
   }
 
+  // Initialize Natural Language Parser
+  let nlParser = null;
+  if (process.env.ENABLE_NL_PARSING !== 'false') {
+    try {
+      logger.info('Initializing Natural Language Parser with Co-Scientist...');
+      nlParser = await createNLParser(agentSpace);
+      logger.info('Natural Language Parser initialized successfully');
+    } catch (error) {
+      logger.warn(`Natural Language Parser initialization failed: ${error}`);
+      logger.warn('Natural language commands will use pattern matching only');
+    }
+  }
+
+  // Initialize YAML Converter
+  logger.info('Initializing YAML Converter...');
+  const yamlConverter = getYAMLConverter({
+    strategy: 'auto',
+    tokenThreshold: 100,
+    savingsThreshold: 20,
+  });
+  logger.info('YAML Converter initialized');
+
   // Create command router
   logger.info('Setting up command router...');
-  const router = new DefaultCommandRouter(undefined, undefined, logger);
+  const router = new DefaultCommandRouter(nlParser || undefined, undefined, logger);
 
   // Register Google AI handlers
   const googleAIHandlers = createGoogleAIHandlers(agentSpace, orchestrator);
@@ -131,9 +157,28 @@ async function initializeSuperTerminal() {
   swarmHandlers.forEach(handler => router.register(handler));
   logger.info(`Registered ${swarmHandlers.length} Swarm handlers`);
 
-  // TODO: Register Quantum handlers (if bridge initialized)
-  // TODO: Register Performance handlers
-  // TODO: Register System handlers
+  // Register Quantum handlers (if bridge initialized)
+  let quantumHandlers: any[] = [];
+  if (quantumBridge) {
+    quantumHandlers = createQuantumHandlers();
+    quantumHandlers.forEach(handler => router.register(handler));
+    logger.info(`Registered ${quantumHandlers.length} Quantum handlers`);
+  }
+
+  // Register Performance handlers
+  const performanceHandlers = createPerformanceHandlers(agentSpace, a2aProtocol);
+  performanceHandlers.forEach(handler => router.register(handler));
+  logger.info(`Registered ${performanceHandlers.length} Performance monitoring handlers`);
+
+  // Register NL parser handlers for autocomplete
+  if (nlParser) {
+    nlParser.registerCommandHandlers([
+      ...googleAIHandlers,
+      ...swarmHandlers,
+      ...quantumHandlers,
+      ...performanceHandlers,
+    ]);
+  }
 
   // Create command context
   const context: CommandContext = {
@@ -151,18 +196,26 @@ async function initializeSuperTerminal() {
 
   // Show initialization summary
   console.log('✨ Gemini-Flow Super-Terminal v1.3.3');
-  console.log('━'.repeat(60));
+  console.log('━'.repeat(70));
   console.log(`📦 Session ID: ${context.sessionId}`);
   console.log(`👤 User: ${context.userId}`);
   console.log(`📁 Workspace: ${context.workspaceId}`);
-  console.log(`🤖 Google AI Services: ${googleAIHandlers.length} handlers`);
-  console.log(`🐝 Swarm Handlers: ${swarmHandlers.length} handlers`);
-  console.log(`⚛️  Quantum Computing: ${quantumBridge ? 'Enabled' : 'Disabled'}`);
-  console.log('━'.repeat(60));
+  console.log('');
+  console.log('Registered Handlers:');
+  console.log(`  🤖 Google AI Services: ${googleAIHandlers.length} handlers (All 8 services)`);
+  console.log(`  🐝 Swarm Orchestration: ${swarmHandlers.length} handlers`);
+  console.log(`  ⚛️  Quantum Computing: ${quantumHandlers.length} handlers ${quantumBridge ? '(Enabled)' : '(Disabled)'}`);
+  console.log(`  📊 Performance Monitoring: ${performanceHandlers.length} handlers`);
+  console.log(`  💬 Natural Language: ${nlParser ? 'Enabled (Co-Scientist)' : 'Pattern Matching Only'}`);
+  console.log(`  📄 YAML Conversion: Enabled (Token-optimized)`);
+  console.log('');
+  console.log(`Total Commands Available: ${googleAIHandlers.length + swarmHandlers.length + quantumHandlers.length + performanceHandlers.length}`);
+  console.log('━'.repeat(70));
   console.log('\n💡 Type "help" for available commands');
-  console.log('🎯 Press Ctrl+H for keyboard shortcuts\n');
+  console.log('🎯 Press Ctrl+H for keyboard shortcuts');
+  console.log('🗣️  Press Ctrl+N to toggle natural language mode\n');
 
-  return { router, context, logger };
+  return { router, context, logger, nlParser, yamlConverter };
 }
 
 /**

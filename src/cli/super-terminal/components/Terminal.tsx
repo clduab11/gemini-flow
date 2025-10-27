@@ -30,6 +30,7 @@ export const Terminal: React.FC<TerminalProps> = ({ router, context }) => {
   const [currentStream, setCurrentStream] = useState<CommandStream | null>(null);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [outputHistory, setOutputHistory] = useState<Array<{ type: string; data: any }>>([]);
+  const [nlModeEnabled, setNlModeEnabled] = useState<boolean>(context.mode === 'natural' || context.mode === 'hybrid');
   const [metrics, setMetrics] = useState<any>({
     agentCount: 0,
     messageRate: 0,
@@ -54,6 +55,21 @@ export const Terminal: React.FC<TerminalProps> = ({ router, context }) => {
 
     if (key.ctrl && input === 'a') {
       setView(view === 'agents' ? 'main' : 'agents');
+    }
+
+    if (key.ctrl && input === 'n') {
+      // Toggle natural language mode
+      setNlModeEnabled(prev => {
+        const newValue = !prev;
+        setOutputHistory(prevHistory => [
+          ...prevHistory,
+          {
+            type: 'log',
+            data: `Natural language mode ${newValue ? 'enabled' : 'disabled'}`,
+          },
+        ]);
+        return newValue;
+      });
     }
   });
 
@@ -155,9 +171,14 @@ export const Terminal: React.FC<TerminalProps> = ({ router, context }) => {
               <Text bold color="cyan">
                 ✨ GEMINI-FLOW SUPER-TERMINAL v1.3.3
               </Text>
+              <Box marginLeft={2}>
+                <Text color={nlModeEnabled ? 'green' : 'gray'}>
+                  {nlModeEnabled ? '🗣️  NL' : '⌨️  Structured'}
+                </Text>
+              </Box>
               <Box flexGrow={1} />
               <Text dimColor>
-                Ctrl+H: Help | Ctrl+M: Metrics | Ctrl+A: Agents | Ctrl+C: Exit
+                Ctrl+H: Help | Ctrl+N: Toggle NL | Ctrl+M: Metrics | Ctrl+C: Exit
               </Text>
             </Box>
 
