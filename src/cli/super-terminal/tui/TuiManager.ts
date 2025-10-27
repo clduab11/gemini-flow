@@ -2,12 +2,21 @@
  * TUI Manager - Main orchestration and lifecycle management
  *
  * Manages screen navigation, state, and integration with Sprint 4 infrastructure
+ * Sprint 6: Integrated with Zustand store sync and workflow persistence
  */
 
 import { EventEmitter } from 'events';
 import { getLogger } from '../utils/Logger.js';
 import { getConfig } from '../utils/Config.js';
 import { CommandRouter } from '../command-router.js';
+import {
+  PersistenceManager,
+  StoreAdapter,
+  StateSynchronizer,
+  ExportImportService,
+  Workflow,
+  SyncState,
+} from '../sync/index.js';
 
 export type TuiScreen = 'dashboard' | 'workflow-builder' | 'execution-monitor' | 'config' | 'help';
 
@@ -18,6 +27,7 @@ export interface TuiState {
   executionLogs: string[];
   systemMetrics: SystemMetrics;
   history: HistoryEntry[];
+  syncState: SyncState;
 }
 
 export interface WorkflowState {
@@ -61,10 +71,22 @@ export class TuiManager extends EventEmitter {
   private metricsInterval?: NodeJS.Timeout;
   private logTailInterval?: NodeJS.Timeout;
 
+  // Sprint 6: Sync components
+  private persistenceManager: PersistenceManager;
+  private storeAdapter: StoreAdapter;
+  private synchronizer: StateSynchronizer;
+  private exportImportService: ExportImportService;
+
   constructor(commandRouter: CommandRouter) {
     super();
     this.commandRouter = commandRouter;
     this.startTime = Date.now();
+
+    // Initialize sync components
+    this.persistenceManager = new PersistenceManager();
+    this.storeAdapter = new StoreAdapter();
+    this.synchronizer = new StateSynchronizer(this.storeAdapter, this.persistenceManager);
+    this.exportImportService = new ExportImportService(this.persistenceManager);
 
     // Initialize state
     this.state = {
@@ -82,7 +104,13 @@ export class TuiManager extends EventEmitter {
         memoryUsage: 0,
         lastUpdate: Date.now()
       },
-      history: []
+      history: [],
+      syncState: {
+        status: 'disconnected',
+        lastSync: null,
+        pendingChanges: 0,
+        error: null,
+      }
     };
 
     this.logger.info('TuiManager initialized');
@@ -94,6 +122,28 @@ export class TuiManager extends EventEmitter {
   async initialize(): Promise<void> {
     try {
       await this.logger.info('Starting TUI Manager');
+
+      // Sprint 6: Initialize sync components
+      await this.persistenceManager.initialize();
+      await this.storeAdapter.initialize();
+      await this.synchronizer.initialize();
+      await this.exportImportService.initializeExportDirectory();
+
+      // Subscribe to sync events
+      this.synchronizer.on('sync-state-changed', (syncState: SyncState) => {
+        this.state.syncState = syncState;
+        this.emit('sync-state-changed', syncState);
+      });
+
+      this.synchronizer.on('workflow-loaded', (workflow: Workflow) => {
+        this.updateWorkflowState(workflow);
+        this.emit('workflow-loaded', workflow);
+      });
+
+      this.synchronizer.on('workflow-saved', (workflow: Workflow) => {
+        this.updateWorkflowState(workflow);
+        this.emit('workflow-saved', workflow);
+      });
 
       // Start metrics collection
       this.startMetricsCollection();
@@ -127,6 +177,11 @@ export class TuiManager extends EventEmitter {
       if (this.logTailInterval) {
         clearInterval(this.logTailInterval);
       }
+
+      // Sprint 6: Shutdown sync components
+      await this.synchronizer.shutdown();
+      await this.storeAdapter.shutdown();
+      await this.persistenceManager.shutdown();
 
       this.emit('shutdown');
       await this.logger.info('TUI Manager shut down successfully');
@@ -181,23 +236,29 @@ export class TuiManager extends EventEmitter {
    */
   async createWorkflow(name: string): Promise<WorkflowState> {
     try {
-      const workflow: WorkflowState = {
-        id: `workflow-${Date.now()}`,
-        name,
-        status: 'idle',
-        nodeCount: 0,
-        edgeCount: 0,
-        currentStep: 0,
-        totalSteps: 0,
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+      // Sprint 6: Create workflow with full metadata
+      const workflow: Workflow = {
+        metadata: {
+          id: `workflow-${Date.now()}`,
+          name,
+          version: '1.0.0',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
+        nodes: [],
+        edges: [],
       };
 
-      this.state.workflows.push(workflow);
-      this.emit('workflow-created', workflow);
+      // Save to persistence
+      await this.synchronizer.saveWorkflow(workflow);
 
-      await this.logger.info('Workflow created', { workflowId: workflow.id, name });
-      return workflow;
+      // Convert to workflow state
+      const workflowState = this.workflowToState(workflow);
+      this.state.workflows.push(workflowState);
+      this.emit('workflow-created', workflowState);
+
+      await this.logger.info('Workflow created', { workflowId: workflow.metadata.id, name });
+      return workflowState;
     } catch (error) {
       await this.logger.error('Failed to create workflow', error as Error);
       throw error;
@@ -213,6 +274,9 @@ export class TuiManager extends EventEmitter {
       if (index === -1) {
         throw new Error(`Workflow not found: ${workflowId}`);
       }
+
+      // Sprint 6: Delete from persistence
+      await this.persistenceManager.deleteWorkflow(workflowId);
 
       this.state.workflows.splice(index, 1);
       if (this.state.selectedWorkflowId === workflowId) {
@@ -234,6 +298,88 @@ export class TuiManager extends EventEmitter {
     this.state.selectedWorkflowId = workflowId;
     this.emit('workflow-selected', workflowId);
     await this.logger.debug('Workflow selected', { workflowId });
+  }
+
+  /**
+   * Load a workflow from persistence
+   */
+  async loadWorkflow(workflowId: string): Promise<Workflow> {
+    try {
+      const workflow = await this.synchronizer.loadWorkflow(workflowId);
+      this.updateWorkflowState(workflow);
+      return workflow;
+    } catch (error) {
+      await this.logger.error('Failed to load workflow', error as Error, { workflowId });
+      throw error;
+    }
+  }
+
+  /**
+   * Save workflow changes
+   */
+  async saveWorkflow(workflow: Workflow): Promise<void> {
+    try {
+      await this.synchronizer.saveWorkflow(workflow);
+      this.updateWorkflowState(workflow);
+    } catch (error) {
+      await this.logger.error('Failed to save workflow', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Export workflow to file
+   */
+  async exportWorkflow(workflowId: string, outputPath: string, format: 'json' | 'yaml' = 'json'): Promise<string> {
+    try {
+      const result = await this.exportImportService.exportWorkflow(workflowId, outputPath, { format });
+      if (!result.success) {
+        throw new Error(result.error || 'Export failed');
+      }
+      await this.logger.info('Workflow exported', { workflowId, filePath: result.filePath });
+      return result.filePath!;
+    } catch (error) {
+      await this.logger.error('Failed to export workflow', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Import workflow from file
+   */
+  async importWorkflow(inputPath: string, generateNewIds: boolean = false): Promise<Workflow> {
+    try {
+      const result = await this.exportImportService.importWorkflow(inputPath, { generateNewIds });
+      if (!result.success || !result.workflow) {
+        throw new Error(result.errors[0]?.message || 'Import failed');
+      }
+      this.updateWorkflowState(result.workflow);
+      await this.logger.info('Workflow imported', { workflowId: result.workflow.metadata.id });
+      return result.workflow;
+    } catch (error) {
+      await this.logger.error('Failed to import workflow', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sync with remote store
+   */
+  async syncWithStore(direction: 'to-store' | 'to-local' | 'bidirectional' = 'bidirectional'): Promise<void> {
+    try {
+      await this.synchronizer.performSync(direction);
+      await this.logger.info('Sync completed', { direction });
+    } catch (error) {
+      await this.logger.error('Failed to sync', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get sync state
+   */
+  getSyncState(): SyncState {
+    return this.synchronizer.getSyncState();
   }
 
   /**
@@ -375,9 +521,15 @@ export class TuiManager extends EventEmitter {
    * Refresh workflows
    */
   private async refreshWorkflows(): Promise<void> {
-    // In real implementation, this would fetch from backend
-    // For now, just emit the current state
-    this.emit('workflows-updated', this.state.workflows);
+    try {
+      // Sprint 6: Load workflows from persistence
+      const workflows = await this.persistenceManager.listWorkflows();
+      this.state.workflows = workflows.map(w => this.workflowToState(w));
+      this.emit('workflows-updated', this.state.workflows);
+    } catch (error) {
+      await this.logger.error('Failed to refresh workflows', error as Error);
+      this.emit('workflows-updated', this.state.workflows);
+    }
   }
 
   /**
@@ -447,5 +599,38 @@ export class TuiManager extends EventEmitter {
         });
       }
     }, 1000); // Advance one step per second
+  }
+
+  /**
+   * Sprint 6: Convert Workflow to WorkflowState
+   */
+  private workflowToState(workflow: Workflow): WorkflowState {
+    return {
+      id: workflow.metadata.id,
+      name: workflow.metadata.name,
+      status: 'idle',
+      nodeCount: workflow.nodes.length,
+      edgeCount: workflow.edges.length,
+      currentStep: 0,
+      totalSteps: workflow.nodes.length,
+      createdAt: workflow.metadata.createdAt,
+      updatedAt: workflow.metadata.updatedAt,
+    };
+  }
+
+  /**
+   * Sprint 6: Update workflow state from Workflow
+   */
+  private updateWorkflowState(workflow: Workflow): void {
+    const index = this.state.workflows.findIndex(w => w.id === workflow.metadata.id);
+    const workflowState = this.workflowToState(workflow);
+
+    if (index !== -1) {
+      this.state.workflows[index] = workflowState;
+    } else {
+      this.state.workflows.push(workflowState);
+    }
+
+    this.emit('workflows-updated', this.state.workflows);
   }
 }
