@@ -33,6 +33,7 @@ let persistenceInterval = null;
 let redis = null;
 let useRedis = false;
 let logger = console; // Default logger
+let shutdownHandlersRegistered = false; // Track if signal handlers are registered
 
 /**
  * Set custom logger for the rate limiter
@@ -118,19 +119,23 @@ export async function startRateLimitPersistence() {
     });
   }, PERSIST_INTERVAL_MS);
   
-  // Persist on graceful shutdown
-  const shutdownHandler = async (signal) => {
-    logger.info({ signal }, 'Received shutdown signal, persisting rate limits');
-    try {
-      await persistRateLimits();
-      logger.info('Rate limits persisted successfully before shutdown');
-    } catch (error) {
-      logger.error({ error: error.message }, 'Failed to persist rate limits on shutdown');
-    }
-  };
-  
-  process.on('SIGTERM', () => shutdownHandler('SIGTERM'));
-  process.on('SIGINT', () => shutdownHandler('SIGINT'));
+  // Register graceful shutdown handlers only once
+  if (!shutdownHandlersRegistered) {
+    const shutdownHandler = async (signal) => {
+      logger.info({ signal }, 'Received shutdown signal, persisting rate limits');
+      try {
+        await persistRateLimits();
+        logger.info('Rate limits persisted successfully before shutdown');
+      } catch (error) {
+        logger.error({ error: error.message }, 'Failed to persist rate limits on shutdown');
+      }
+    };
+    
+    process.on('SIGTERM', () => shutdownHandler('SIGTERM'));
+    process.on('SIGINT', () => shutdownHandler('SIGINT'));
+    
+    shutdownHandlersRegistered = true;
+  }
   
   logger.info('File-based rate limit persistence started');
 }

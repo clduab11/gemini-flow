@@ -297,7 +297,7 @@ async function testMultipleClientsIsolation() {
  */
 async function runTests() {
   console.log('🧪 Starting Rate Limit Persistence Tests\n');
-  console.log('=' .repeat(60));
+  console.log('='.repeat(60));
   
   try {
     await testBasicRateLimit();

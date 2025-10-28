@@ -87,11 +87,16 @@ async function startServer() {
     // Initialize rate limiting
     await initializeRateLimiting();
     
-    // Start listening
-    app.listen(PORT, () => {
-      console.log(`🚀 Gemini Flow Backend Server running on port ${PORT}`);
-      console.log(`📋 Health check: http://localhost:${PORT}/health`);
-      console.log(`🔧 API Base URL: http://localhost:${PORT}/api`);
+    // Start listening - wrap in Promise to catch errors
+    await new Promise((resolve, reject) => {
+      const server = app.listen(PORT, () => {
+        console.log(`🚀 Gemini Flow Backend Server running on port ${PORT}`);
+        console.log(`📋 Health check: http://localhost:${PORT}/health`);
+        console.log(`🔧 API Base URL: http://localhost:${PORT}/api`);
+        resolve();
+      });
+      
+      server.on('error', reject);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
