@@ -1,0 +1,192 @@
+# Prometheus Alert Rules for Gemini Flow Backend
+#
+# These rules define alerts for various conditions that require attention.
+# Configure Alertmanager to handle notifications (email, Slack, PagerDuty, etc.)
+
+groups:
+  - name: gemini_flow_http_alerts
+    interval: 30s
+    rules:
+      # Alert when error rate exceeds 5% for 5 minutes
+      - alert: HighErrorRate
+        expr: |
+          100 * rate(gemini_flow_errors_total[5m])
+          /
+          rate(gemini_flow_http_requests_total[5m])
+          > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "High error rate detected on Gemini Flow backend"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+      
+      # Alert when p95 latency exceeds 1 second
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(gemini_flow_http_request_duration_seconds_bucket[5m])
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "High HTTP request latency"
+          description: "95th percentile latency is {{ $value }}s, threshold is 1s"
+      
+      # Alert when request rate drops significantly (possible outage)
+      - alert: LowRequestRate
+        expr: |
+          rate(gemini_flow_http_requests_total[5m]) < 0.1
+        for: 10m
+        labels:
+          severity: info
+          component: backend
+        annotations:
+          summary: "Very low request rate detected"
+          description: "Request rate is {{ $value }} req/s. This may indicate low usage or an issue."
+
+  - name: gemini_flow_api_alerts
+    interval: 30s
+    rules:
+      # Alert when Gemini API response time is too slow
+      - alert: SlowGeminiAPI
+        expr: |
+          rate(gemini_flow_gemini_api_duration_seconds_sum[5m])
+          /
+          rate(gemini_flow_gemini_api_duration_seconds_count[5m])
+          > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: gemini-api
+        annotations:
+          summary: "Gemini API responding slowly"
+          description: "Average Gemini API response time is {{ $value }}s, threshold is 10s"
+      
+      # Alert when Gemini API error rate is high
+      - alert: GeminiAPIFailures
+        expr: |
+          rate(gemini_flow_gemini_api_requests_total{status="error"}[5m])
+          /
+          rate(gemini_flow_gemini_api_requests_total[5m])
+          > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: gemini-api
+        annotations:
+          summary: "High Gemini API failure rate"
+          description: "Gemini API failure rate is {{ $value | humanizePercentage }}, threshold is 10%"
+
+  - name: gemini_flow_system_alerts
+    interval: 30s
+    rules:
+      # Alert when memory usage exceeds 512MB
+      - alert: HighMemoryUsage
+        expr: |
+          gemini_flow_process_resident_memory_bytes / 1024 / 1024 > 512
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage on backend"
+          description: "Memory usage is {{ $value }}MB, threshold is 512MB"
+      
+      # Alert when heap memory approaches limit
+      - alert: HighHeapUsage
+        expr: |
+          gemini_flow_process_heap_bytes / 1024 / 1024 > 400
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High heap memory usage"
+          description: "Heap usage is {{ $value }}MB, threshold is 400MB"
+      
+      # Alert when event loop lag is high (indicates performance issues)
+      - alert: HighEventLoopLag
+        expr: |
+          rate(gemini_flow_nodejs_eventloop_lag_seconds[1m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High event loop lag detected"
+          description: "Event loop lag is {{ $value }}s, threshold is 0.1s. Application may be overloaded."
+      
+      # Alert when CPU usage is very high
+      - alert: HighCPUUsage
+        expr: |
+          rate(gemini_flow_process_cpu_seconds_total[1m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}%, threshold is 80%"
+
+  - name: gemini_flow_business_alerts
+    interval: 60s
+    rules:
+      # Alert when flows are unusually large (may indicate issues)
+      - alert: UnusuallyLargeFlows
+        expr: |
+          rate(gemini_flow_nodes_processed_sum[10m])
+          /
+          rate(gemini_flow_nodes_processed_count[10m])
+          > 100
+        for: 10m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "Unusually large flows detected"
+          description: "Average flow size is {{ $value }} nodes, which is above normal"
+      
+      # Alert when no flows are being executed (may indicate integration issue)
+      - alert: NoFlowExecutions
+        expr: |
+          rate(gemini_flow_nodes_processed_count[10m]) == 0
+        for: 15m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "No flow executions detected"
+          description: "No flows have been executed in the last 15 minutes"
+
+  - name: gemini_flow_availability_alerts
+    interval: 30s
+    rules:
+      # Alert when the service is down (no metrics being scraped)
+      - alert: ServiceDown
+        expr: up{job="gemini-flow-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Gemini Flow backend is down"
+          description: "The backend service is not responding to Prometheus scrapes"
+      
+      # Alert when HTTP 5xx errors are frequent
+      - alert: HighServerErrors
+        expr: |
+          rate(gemini_flow_http_requests_total{status_code=~"5.."}[5m])
+          /
+          rate(gemini_flow_http_requests_total[5m])
+          > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "High rate of 5xx errors"
+          description: "Server error rate is {{ $value | humanizePercentage }}, threshold is 5%"

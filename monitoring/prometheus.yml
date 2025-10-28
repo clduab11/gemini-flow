@@ -1,0 +1,50 @@
+# Prometheus Configuration for Gemini Flow Backend
+#
+# This configuration file sets up Prometheus to scrape metrics from the
+# Gemini Flow backend server.
+#
+# Usage:
+#   1. Save this file as prometheus.yml
+#   2. Run: prometheus --config.file=prometheus.yml
+#   3. Access Prometheus UI at http://localhost:9090
+
+global:
+  scrape_interval: 15s      # Scrape targets every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'gemini-flow-monitor'
+    environment: 'development'
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - 'localhost:9093'
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "alerts.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+scrape_configs:
+  # Gemini Flow Backend
+  - job_name: 'gemini-flow-backend'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    static_configs:
+      # For Docker Compose, use service name 'backend'
+      # For local development, use 'localhost:3001'
+      - targets: ['backend:3001', 'localhost:3001']
+        labels:
+          service: 'backend'
+          component: 'api-server'
+    metrics_path: '/metrics'
+    
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

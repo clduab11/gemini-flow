@@ -14,6 +14,13 @@ import { dirname, join } from 'path';
 // Import API routes
 import geminiRoutes from './api/gemini/index.js';
 
+// Import middleware
+import { metricsMiddleware } from './api/middleware/metricsMiddleware.js';
+import { errorHandler } from './api/middleware/errorHandler.js';
+
+// Import metrics registry
+import { register } from './monitoring/metrics.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -31,6 +38,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Metrics middleware (track all requests)
+app.use(metricsMiddleware);
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
@@ -40,17 +50,21 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Metrics endpoint (for Prometheus scraping)
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (error) {
+    res.status(500).end(error.message);
+  }
+});
+
 // API routes
 app.use('/api/gemini', geminiRoutes);
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ 
-    error: 'Internal server error',
-    message: err.message 
-  });
-});
+app.use(errorHandler);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -64,5 +78,6 @@ app.use('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Gemini Flow Backend Server running on port ${PORT}`);
   console.log(`📋 Health check: http://localhost:${PORT}/health`);
+  console.log(`📊 Metrics: http://localhost:${PORT}/metrics`);
   console.log(`🔧 API Base URL: http://localhost:${PORT}/api`);
 });

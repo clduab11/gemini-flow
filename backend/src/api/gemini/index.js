@@ -6,6 +6,13 @@
 
 import express from 'express';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { 
+  geminiApiDuration, 
+  geminiApiTotal, 
+  flowNodesProcessed, 
+  flowEdgesProcessed,
+  errorsTotal 
+} from '../../monitoring/metrics.js';
 
 const router = express.Router();
 
@@ -100,6 +107,9 @@ const buildPromptFromGraph = (nodes, edges) => {
  * Execute a visual flow via Gemini API
  */
 router.post('/execute', async (req, res) => {
+  const apiStart = Date.now();
+  let apiStatus = 'success';
+  
   try {
     const { nodes, edges } = req.body;
     
@@ -118,6 +128,10 @@ router.post('/execute', async (req, res) => {
     
     console.log(`🔄 Executing flow with ${nodes.length} nodes and ${edges.length} edges`);
     
+    // Record flow statistics
+    flowNodesProcessed.observe(nodes.length);
+    flowEdgesProcessed.observe(edges.length);
+    
     // Build prompt from graph
     const prompt = buildPromptFromGraph(nodes, edges);
     console.log('📝 Built prompt:', prompt);
@@ -134,6 +148,11 @@ router.post('/execute', async (req, res) => {
     
     console.log('✅ Received response from Gemini API');
     
+    // Record successful API call
+    const apiDuration = (Date.now() - apiStart) / 1000;
+    geminiApiDuration.observe({ status: 'success' }, apiDuration);
+    geminiApiTotal.inc({ status: 'success' });
+    
     // Return successful response
     res.json({ 
       success: true,
@@ -148,6 +167,18 @@ router.post('/execute', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Gemini API request failed:', error);
+    
+    // Record failed API call
+    const apiDuration = (Date.now() - apiStart) / 1000;
+    apiStatus = 'error';
+    geminiApiDuration.observe({ status: 'error' }, apiDuration);
+    geminiApiTotal.inc({ status: 'error' });
+    
+    // Track error metrics
+    errorsTotal.inc({ 
+      type: error.name || 'GeminiAPIError',
+      path: '/api/gemini/execute'
+    });
     
     // Handle specific error types
     if (error.message.includes('API key')) {
