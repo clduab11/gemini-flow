@@ -319,6 +319,21 @@ npm start
 npm run monitoring:start
 ```
 
+#### Backend Server Configuration
+
+For detailed backend environment configuration, including API keys, rate limiting, database settings, and security options, see:
+
+📄 **[Backend Configuration Guide](backend/docs/CONFIGURATION.md)**
+
+Quick backend setup:
+```bash
+cd backend
+cp .env.example .env
+# Edit .env with your configuration
+npm install
+npm start
+```
+
 ### Your First Production Agent Swarm
 ```typescript
 // production-deployment.ts
