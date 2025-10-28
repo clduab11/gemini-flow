@@ -23,6 +23,9 @@ const DB_DIR = path.join(PROJECT_ROOT, '.data');
 const BACKUP_DIR = path.join(DB_DIR, 'backups');
 const MAX_BACKUPS = parseInt(process.env.MAX_BACKUPS) || 30;
 
+// Backup name format: backup-YYYY-MM-DDTHH-mm-ss-mmmZ
+const BACKUP_NAME_PATTERN = /^backup-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z$/;
+
 /**
  * Create a timestamped backup of all database files
  * @returns {Promise<string>} Path to the created backup
@@ -93,9 +96,7 @@ export async function createBackup() {
  */
 function validateBackupName(backupName) {
   // Backup names must start with 'backup-' and contain only safe characters
-  const validPattern = /^backup-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z$/;
-  
-  if (!validPattern.test(backupName)) {
+  if (!BACKUP_NAME_PATTERN.test(backupName)) {
     throw new Error('Invalid backup name format');
   }
   

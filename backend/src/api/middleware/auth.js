@@ -23,8 +23,11 @@ export function authenticate(options = { required: true }) {
     const providedKey = req.headers['x-api-key'];
     
     if (!API_KEY) {
-      logger.warn('API_KEY not configured, authentication disabled');
-      return next();
+      logger.error('API_KEY not configured. Authentication is required but no API_KEY is set.');
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Server misconfiguration: API_KEY not set. Contact administrator.' }
+      });
     }
     
     if (!providedKey || providedKey !== API_KEY) {
