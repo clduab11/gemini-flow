@@ -16,7 +16,11 @@ echo ""
 echo "1️⃣ Checking if backend is running..."
 if curl -s -f "$HEALTH_ENDPOINT" > /dev/null; then
     echo "✅ Backend is running"
-    curl -s "$HEALTH_ENDPOINT" | jq .
+    if command -v jq &> /dev/null; then
+        curl -s "$HEALTH_ENDPOINT" | jq .
+    else
+        curl -s "$HEALTH_ENDPOINT"
+    fi
 else
     echo "❌ Backend is not running. Please start it with: cd backend && npm start"
     exit 1

@@ -108,7 +108,6 @@ const buildPromptFromGraph = (nodes, edges) => {
  */
 router.post('/execute', async (req, res) => {
   const apiStart = Date.now();
-  let apiStatus = 'success';
   
   try {
     const { nodes, edges } = req.body;
