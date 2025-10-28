@@ -87,10 +87,34 @@ export async function createBackup() {
 }
 
 /**
+ * Validate backup name to prevent path traversal attacks
+ * @param {string} backupName - Name of the backup to validate
+ * @returns {boolean} True if valid, throws error if invalid
+ */
+function validateBackupName(backupName) {
+  // Backup names must start with 'backup-' and contain only safe characters
+  const validPattern = /^backup-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z$/;
+  
+  if (!validPattern.test(backupName)) {
+    throw new Error('Invalid backup name format');
+  }
+  
+  // Ensure no path traversal characters
+  if (backupName.includes('..') || backupName.includes('/') || backupName.includes('\\')) {
+    throw new Error('Invalid backup name: path traversal not allowed');
+  }
+  
+  return true;
+}
+
+/**
  * Restore database from a backup
  * @param {string} backupName - Name of the backup to restore
  */
 export async function restoreBackup(backupName) {
+  // Validate backup name to prevent path injection
+  validateBackupName(backupName);
+  
   const backupPath = path.join(BACKUP_DIR, backupName);
   
   try {
@@ -104,7 +128,15 @@ export async function restoreBackup(backupName) {
     
     logger.info({ backupName, metadata }, 'Restoring from backup');
     
+    // Validate files are in allowed list
+    const allowedFiles = ['workflows.json', 'store-state.json', 'sessions.json'];
+    
     for (const file of metadata.files) {
+      // Ensure file is in allowed list
+      if (!allowedFiles.includes(file)) {
+        throw new Error(`Invalid file in backup: ${file}`);
+      }
+      
       const gzipPath = path.join(backupPath, `${file}.gz`);
       const destPath = path.join(DB_DIR, file);
       
