@@ -68,7 +68,7 @@ function hashApiKey(key) {
  */
 export function validateApiKeyConfig() {
   // Check if any API key is configured
-  const hasAnyKey = DEFAULT_API_KEY || API_KEYS.size > 0;
+  const hasAnyKey = API_KEYS.size > 0;
 
   // In production, API key is REQUIRED
   if (IS_PRODUCTION && !hasAnyKey) {
@@ -148,6 +148,9 @@ export function authenticate(options = {}) {
       });
     }
 
+    // Compute hash once per request to avoid redundant SHA-256 operations
+    const apiKeyHash = hashApiKey(apiKey);
+
     // Check if API key is valid (matches DEFAULT_API_KEY or is in API_KEYS map)
     let keyInfo = API_KEYS.get(apiKey);
     
@@ -158,7 +161,7 @@ export function authenticate(options = {}) {
 
     if (!keyInfo) {
       // Log failed authentication attempt (with hashed key)
-      console.warn(`⚠️  Authentication failed - invalid API key (hash: ${hashApiKey(apiKey)})`);
+      console.warn(`⚠️  Authentication failed - invalid API key (hash: ${apiKeyHash})`);
       
       return res.status(401).json({
         error: {
@@ -186,11 +189,11 @@ export function authenticate(options = {}) {
     req.auth = {
       clientId: keyInfo.name,
       scope: keyInfo.scope,
-      apiKeyHash: hashApiKey(apiKey)
+      apiKeyHash: apiKeyHash
     };
 
     // Log successful authentication (with hashed key)
-    console.log(`✅ Authentication successful - ${keyInfo.name} (${keyInfo.scope}) [hash: ${hashApiKey(apiKey)}]`);
+    console.log(`✅ Authentication successful - ${keyInfo.name} (${keyInfo.scope}) [hash: ${apiKeyHash}]`);
 
     next();
   };
