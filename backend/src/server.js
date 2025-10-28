@@ -13,6 +13,10 @@ import { dirname, join } from 'path';
 
 // Import API routes
 import geminiRoutes from './api/gemini/index.js';
+import workflowRoutes from './api/routes/workflows.js';
+import storeRoutes from './api/routes/store.js';
+import sessionRoutes from './api/routes/sessions.js';
+import { getDatabaseStats } from './db/database.js';
 
 // Load environment variables
 dotenv.config();
@@ -33,15 +37,20 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  const dbStats = getDatabaseStats();
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
-    service: 'gemini-flow-backend'
+    service: 'gemini-flow-backend',
+    database: dbStats
   });
 });
 
 // API routes
 app.use('/api/gemini', geminiRoutes);
+app.use('/api/workflows', workflowRoutes);
+app.use('/api/store', storeRoutes);
+app.use('/api/sessions', sessionRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
