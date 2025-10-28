@@ -1,0 +1,60 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Data directories (should be volume mounted)
+.data
+.data-test
+.data/*
+backups
+logs
+
+# Testing
+coverage
+*.test.js
+*.spec.js
+__tests__
+
+# Documentation (except README)
+*.md
+!README.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+.Spotlight-V100
+.Trashes
+
+# Build artifacts
+dist
+build
+*.tgz
+
+# Temporary files
+tmp
+temp
+*.tmp
+*.cache
+
+# Development
+nodemon.json
+.eslintrc*
+.prettierrc*
