@@ -36,9 +36,9 @@ gemini-flow init --protocols a2a,mcp --topology hierarchical
 gemini-flow agents spawn --count 50 --specialization "enterprise-ready"
 
 # NEW: Official Gemini CLI Extension (October 8, 2025)
-gemini extensions install https://github.com/clduab11/gemini-flow  # Install as Gemini extension
-gemini extensions enable gemini-flow                                # Enable the extension
-gemini hive-mind spawn "Build AI application"                      # Use commands in Gemini CLI
+gemini extensions install github:clduab11/gemini-flow  # Install as Gemini extension
+gemini extensions enable gemini-flow                   # Enable the extension
+gemini hive-mind spawn "Build AI application"         # Use commands in Gemini CLI
 ```
 
 **🚀 Modern Protocol Support**: Native A2A and MCP integration for seamless inter-agent communication and model coordination  
@@ -489,7 +489,7 @@ gemini-flow is now available as an **official Gemini CLI extension**, providing 
 
 ```bash
 # Install from GitHub
-gemini extensions install https://github.com/clduab11/gemini-flow
+gemini extensions install github:clduab11/gemini-flow
 
 # Install from local clone
 cd /path/to/gemini-flow
@@ -498,8 +498,6 @@ gemini extensions install .
 # Enable the extension
 gemini extensions enable gemini-flow
 ```
-
-> **Note**: Always use the full GitHub URL format (`https://github.com/username/repo`). The shorthand syntax `github:username/repo` is **not supported** by Gemini CLI and will result in "Install source not found" errors.
 
 ### What's Included
 
@@ -562,7 +560,7 @@ gemini-flow also includes its own extension management commands:
 
 ```bash
 # Using gem-extensions command
-gemini-flow gem-extensions install https://github.com/user/extension
+gemini-flow gem-extensions install github:user/extension
 gemini-flow gem-extensions list
 gemini-flow gem-extensions enable extension-name
 gemini-flow gem-extensions info extension-name

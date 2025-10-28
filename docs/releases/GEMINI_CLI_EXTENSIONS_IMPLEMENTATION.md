@@ -83,11 +83,11 @@ Successfully implemented official Gemini CLI Extensions framework support for ge
 
 ```bash
 # As official Gemini CLI extension
-gemini extensions install https://github.com/clduab11/gemini-flow
+gemini extensions install github:clduab11/gemini-flow
 gemini extensions enable gemini-flow
 
 # Using gemini-flow's built-in extension manager
-gemini-flow gem-extensions install https://github.com/user/extension
+gemini-flow gem-extensions install github:user/extension
 gemini-flow gem-extensions list
 ```
 
@@ -276,7 +276,7 @@ interface ExtensionMetadata {
 
 ```bash
 # Test installation
-gemini extensions install https://github.com/clduab11/gemini-flow
+gemini extensions install github:clduab11/gemini-flow
 
 # Test enable
 gemini extensions enable gemini-flow
