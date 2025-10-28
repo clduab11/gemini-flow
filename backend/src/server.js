@@ -13,6 +13,12 @@ import { dirname, join } from 'path';
 
 // Import API routes
 import geminiRoutes from './api/gemini/index.js';
+import adminRoutes from './api/routes/admin.js';
+
+// Import backup system
+import { startBackupScheduler, stopBackupScheduler } from './db/backupScheduler.js';
+import { createBackup } from './db/backup.js';
+import { logger } from './utils/logger.js';
 
 // Load environment variables
 dotenv.config();
@@ -42,6 +48,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/gemini', geminiRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -61,8 +68,43 @@ app.use('*', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Gemini Flow Backend Server running on port ${PORT}`);
   console.log(`📋 Health check: http://localhost:${PORT}/health`);
   console.log(`🔧 API Base URL: http://localhost:${PORT}/api`);
+  
+  // Start backup scheduler after server is running
+  startBackupScheduler();
 });
+
+// Graceful shutdown handler
+const shutdown = async (signal) => {
+  console.log(`\n🛑 ${signal} received, shutting down gracefully...`);
+  
+  // Create final backup before shutdown
+  try {
+    await createBackup();
+    logger.info('Final backup completed');
+  } catch (err) {
+    logger.error({ err: err.message }, 'Shutdown backup failed');
+  }
+  
+  // Stop backup scheduler
+  stopBackupScheduler();
+  
+  // Close server
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+  
+  // Force close after timeout
+  setTimeout(() => {
+    console.error('⚠️  Forced shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+};
+
+// Register shutdown handlers
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
