@@ -18,7 +18,11 @@ import adminRoutes from './api/routes/admin.js';
 // Import backup system
 import { startBackupScheduler, stopBackupScheduler } from './db/backupScheduler.js';
 import { createBackup } from './db/backup.js';
+
+// Import logger and middleware
 import { logger } from './utils/logger.js';
+import { requestId } from './api/middleware/requestId.js';
+import { requestLogger } from './api/middleware/requestLogger.js';
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +41,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Request tracking middleware
+app.use(requestId);
+app.use(requestLogger);
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
@@ -52,7 +60,13 @@ app.use('/api/admin', adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  logger.error({
+    err,
+    path: req.path,
+    method: req.method,
+    requestId: req.id
+  }, 'Request error');
+  
   res.status(500).json({ 
     error: 'Internal server error',
     message: err.message 
@@ -69,9 +83,12 @@ app.use('*', (req, res) => {
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Gemini Flow Backend Server running on port ${PORT}`);
-  console.log(`📋 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔧 API Base URL: http://localhost:${PORT}/api`);
+  logger.info({ 
+    port: PORT, 
+    env: process.env.NODE_ENV || 'development',
+    healthCheck: `http://localhost:${PORT}/health`,
+    apiBase: `http://localhost:${PORT}/api`
+  }, 'Server started');
   
   // Start backup scheduler after server is running
   startBackupScheduler();
@@ -79,14 +96,14 @@ const server = app.listen(PORT, () => {
 
 // Graceful shutdown handler
 const shutdown = async (signal) => {
-  console.log(`\n🛑 ${signal} received, shutting down gracefully...`);
+  logger.info({ signal }, 'Shutting down gracefully');
   
   // Create final backup before shutdown
   try {
     await createBackup();
     logger.info('Final backup completed');
   } catch (err) {
-    logger.error({ err: err.message }, 'Shutdown backup failed');
+    logger.error({ err }, 'Shutdown backup failed');
   }
   
   // Stop backup scheduler
@@ -94,13 +111,13 @@ const shutdown = async (signal) => {
   
   // Close server
   server.close(() => {
-    console.log('✅ Server closed');
+    logger.info('Server closed');
     process.exit(0);
   });
   
   // Force close after timeout
   setTimeout(() => {
-    console.error('⚠️  Forced shutdown after timeout');
+    logger.error('Forced shutdown after timeout');
     process.exit(1);
   }, 10000);
 };
