@@ -1,10 +1,18 @@
 # Scripts Directory
 
+## File Extension Guidelines
+
+This project uses `"type": "module"` in package.json, making ES modules the default. To avoid ambiguity:
+
+- **`.mjs`**: ES modules (use `import`/`export`)
+- **`.cjs`**: CommonJS modules (use `require()`/`module.exports`)
+- **`.js`**: Avoid in scripts directory (ambiguous with "type": "module")
+
 ## postinstall.cjs
 
 **Purpose**: Conditional Husky installation script
 
-**Problem Solved**: Fixes npm error 127 that occurs during global installs when husky (a devDependency) is not available.
+**Problem Solved**: Fixes npm error 127 that occurs during global installs when husky (a devDependency) is not available. Also prevents "ReferenceError: require is not defined in ES module scope" by using the `.cjs` extension for CommonJS code.
 
 **How it works**:
 - Detects production, global, or CI environments
