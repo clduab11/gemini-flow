@@ -33,11 +33,6 @@
       "args": ["-m", "mcp_server_git"],
       "description": "Git operations through MCP protocol"
     },
-    "Puppeteer": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
-      "description": "Browser automation with Puppeteer MCP server"
-    },
     "Sequential Thinking": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
