@@ -488,18 +488,21 @@ gemini-flow is now available as an **official Gemini CLI extension**, providing 
 ### Installation
 
 ```bash
-# Install from GitHub
+# Method 1: Install from GitHub (Gemini CLI Extension)
 gemini extensions install https://github.com/clduab11/gemini-flow
+gemini extensions enable gemini-flow
 
-# Install from local clone
+# Method 2: Install via npm (Global CLI)
+npm install -g @clduab11/gemini-flow
+
+# Method 3: Install from local clone
 cd /path/to/gemini-flow
 gemini extensions install .
-
-# Enable the extension
-gemini extensions enable gemini-flow
 ```
 
 > **Note**: Always use the full GitHub URL format (`https://github.com/username/repo`). The shorthand syntax `github:username/repo` is **not supported** by Gemini CLI and will result in "Install source not found" errors.
+
+> **Troubleshooting**: If you encounter installation issues, see [INSTALLATION_TROUBLESHOOTING.md](./INSTALLATION_TROUBLESHOOTING.md) for detailed solutions.
 
 ### What's Included
 
