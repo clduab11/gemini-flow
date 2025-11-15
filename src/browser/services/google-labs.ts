@@ -98,8 +98,16 @@ export class LabsFlowService extends PlaywrightServiceBase {
   private async createFlow(params: LabsFlowAction): Promise<any> {
     console.log('[Labs Flow] Creating new flow:', params.flowName);
 
-    // Click "New Flow" or "Create" button
-    await this.page!.click('button:has-text("New"), button:has-text("Create"), a:has-text("New flow")');
+    // Click "New Flow" or "Create" button - try each selector individually
+    try {
+      await this.page!.click('button:has-text("New")', { timeout: 3000 });
+    } catch {
+      try {
+        await this.page!.click('button:has-text("Create")', { timeout: 3000 });
+      } catch {
+        await this.page!.click('a:has-text("New flow")');
+      }
+    }
 
     // Wait for flow editor
     await this.waitForElement('.flow-editor, [data-flow-editor="true"]', 10000);
@@ -130,10 +138,18 @@ export class LabsFlowService extends PlaywrightServiceBase {
     console.log('[Labs Flow] Adding step:', step.action);
 
     // Click "Add step" button
-    await this.page!.click('button:has-text("Add step"), button[aria-label*="Add"]');
+    try {
+      await this.page!.click('button:has-text("Add step")', { timeout: 3000 });
+    } catch {
+      await this.page!.click('button[aria-label*="Add"]');
+    }
 
-    // Select action type
-    await this.page!.click(`text="${step.action}"`);
+    // Select action type - escape special characters in selector
+    const escapedAction = step.action.replace(/["\\]/g, '\\$&');
+    await this.page!.click(`[role="option"]:has-text("${escapedAction}")`, { timeout: 5000 }).catch(() => {
+      // Fallback to less specific selector
+      return this.page!.click(`text="${escapedAction}"`);
+    });
 
     // Configure step parameters
     // Implementation depends on Labs Flow UI structure

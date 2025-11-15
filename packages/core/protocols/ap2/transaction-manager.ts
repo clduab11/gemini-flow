@@ -8,7 +8,6 @@ import { EventEmitter } from 'events';
 import {
   PaymentTransaction,
   TransactionStatus,
-  PaymentAmount,
   PaymentAccount,
   TransactionReceipt,
   PaymentRequest,

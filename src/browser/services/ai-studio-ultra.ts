@@ -142,7 +142,19 @@ export class AIStudioUltraService extends PlaywrightServiceBase {
 
     // Enter prompt
     if (params.prompt) {
-      await this.page!.fill('textarea[placeholder*="prompt"], [contenteditable="true"]', params.prompt);
+      // Try textarea first
+      const textarea = await this.page!.$('textarea[placeholder*="prompt"]');
+      if (textarea) {
+        await this.page!.fill('textarea[placeholder*="prompt"]', params.prompt);
+      } else {
+        // For contenteditable elements, use type() or evaluate()
+        const contentEditable = await this.page!.$('[contenteditable="true"]');
+        if (contentEditable) {
+          await this.page!.evaluate((el, text) => {
+            (el as HTMLElement).textContent = text;
+          }, contentEditable, params.prompt);
+        }
+      }
     }
 
     // Configure parameters if provided

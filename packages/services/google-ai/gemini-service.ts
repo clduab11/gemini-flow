@@ -148,7 +148,7 @@ export class GeminiService {
       return result.totalTokens;
     } catch (error: any) {
       console.error('[Gemini] Token counting error:', error.message);
-      return 0;
+      throw error;
     }
   }
 

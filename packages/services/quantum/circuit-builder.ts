@@ -5,7 +5,6 @@
 
 import {
   QuantumCircuit,
-  QuantumGate,
   QuantumCircuitConfig
 } from './types.js';
 

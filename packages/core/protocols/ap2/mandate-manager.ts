@@ -267,7 +267,7 @@ export class MandateManager {
     const now = new Date();
     let cleaned = 0;
 
-    for (const [id, mandate] of this.mandates) {
+    for (const mandate of this.mandates.values()) {
       if (mandate.expiresAt && mandate.expiresAt < now && mandate.status === MandateStatus.PENDING) {
         mandate.status = MandateStatus.EXPIRED;
         cleaned++;

@@ -128,7 +128,7 @@ export class A2ACommunicator extends EventEmitter {
         this.handleMessage(data);
       }
     } catch (error: any) {
-      console.error('[A2A] Send error:', error.message);
+      console.error(`[A2A] Send error to ${endpoint}:`, error.message || error);
       throw error;
     }
   }
@@ -181,7 +181,7 @@ export class A2ACommunicator extends EventEmitter {
    */
   cleanup(): void {
     // Reject all pending requests
-    for (const [id, pending] of this.pendingRequests) {
+    for (const pending of this.pendingRequests.values()) {
       clearTimeout(pending.timeout);
       pending.reject(new Error('Communicator cleanup'));
     }
