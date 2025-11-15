@@ -13,7 +13,6 @@ export * from './server-manager.js';
 
 // Re-export main classes
 import { MCPServerManager, loadMCPServersFromConfig } from './server-manager.js';
-import { MCPServerConfig } from './types.js';
 
 export {
   MCPServerManager,

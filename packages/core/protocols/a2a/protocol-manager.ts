@@ -256,7 +256,7 @@ export class A2AProtocolManager extends EventEmitter {
       throw new Error(`Agent not found: ${agentId}`);
     }
 
-    const taskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const taskId = `task-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const taskRequest: TaskRequest = {
       taskId,
       ...task

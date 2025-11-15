@@ -40,9 +40,16 @@ export class QuantumService {
     const counts: Record<string, number> = {};
 
     if (circuit.qubits === 2) {
-      // Bell state results
-      counts['00'] = Math.floor(shots * 0.5);
-      counts['11'] = shots - counts['00'];
+      // Bell state results - simulate quantum noise with binomial distribution
+      let count00 = 0;
+      for (let i = 0; i < shots; i++) {
+        // Each shot has a 50% chance of being '00' or '11'
+        if (Math.random() < 0.5) {
+          count00++;
+        }
+      }
+      counts['00'] = count00;
+      counts['11'] = shots - count00;
     } else {
       // Random distribution for other circuits
       for (let i = 0; i < Math.pow(2, circuit.qubits); i++) {

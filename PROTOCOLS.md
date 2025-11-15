@@ -95,7 +95,7 @@ a2a.registerAgent({
   }],
   endpoints: [{
     url: 'http://localhost:3000/a2a',
-    protocol: 'https',
+    protocol: 'http',
     transport: 'json-rpc'
   }]
 });

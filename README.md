@@ -102,7 +102,8 @@ npm install -g @clduab11/gemini-flow
 gemini extensions install https://github.com/clduab11/gemini-flow
 
 # Verify installation
-gemini-flow --version  # 1.3.3
+gemini-flow --version
+# Output: 1.3.3
 ```
 
 ### Environment Setup

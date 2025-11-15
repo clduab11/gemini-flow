@@ -3,7 +3,7 @@
  * Handles agent discovery and capability advertisement
  */
 
-import { AgentCard, Capability, AgentEndpoint } from './types.js';
+import { AgentCard, Capability } from './types.js';
 
 export class AgentCardManager {
   private agentCards: Map<string, AgentCard> = new Map();
