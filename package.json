@@ -116,7 +116,6 @@
         "dotenv": "^16.3.1",
         "eventemitter3": "^5.0.1",
         "express": "^4.18.2",
-        "ffmpeg-static": "^5.2.0",
         "google-auth-library": "^10.2.1",
         "googleapis": "^118.0.0",
         "helmet": "^7.1.0",
@@ -151,7 +150,6 @@
         "@modelcontextprotocol/server-filesystem": "^2025.8.21",
         "@modelcontextprotocol/server-github": "^2025.4.8",
         "@modelcontextprotocol/server-memory": "^2025.8.4",
-        "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
         "@modelcontextprotocol/server-redis": "^2025.4.25",
         "@modelcontextprotocol/server-sequential-thinking": "^2025.7.1",
         "@rollup/plugin-commonjs": "^25.0.7",
@@ -194,7 +192,9 @@
         "typescript": "^5.2.2"
     },
     "optionalDependencies": {
+        "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
         "canvas": "^2.11.2",
+        "ffmpeg-static": "^5.2.0",
         "puppeteer": "^24.16.2",
         "sharp": "^0.33.0"
     },
