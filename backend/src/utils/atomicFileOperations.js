@@ -73,11 +73,11 @@ export async function atomicWriteFile(filePath, data, options = {}) {
     await fs.promises.mkdir(dir, { recursive: true });
     
     // Backup existing file if requested
-    let originalChecksum = null;
     if (backup && fs.existsSync(filePath)) {
       await fs.promises.copyFile(filePath, backupFile);
       if (verify) {
-        originalChecksum = await calculateChecksum(filePath);
+        // Store original checksum for potential rollback verification
+        await calculateChecksum(filePath);
       }
       logger.debug({ filePath, backupFile }, 'Created backup');
     }

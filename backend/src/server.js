@@ -16,8 +16,8 @@ import cors from 'cors';
 import compression from 'compression';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+// import { fileURLToPath } from 'url';
+// import { dirname } from 'path';
 
 // Import API routes
 import geminiRoutes from './api/gemini/index.js';
@@ -46,8 +46,8 @@ import { backupManager } from './utils/databaseBackup.js';
 // Load environment variables
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename); // Unused currently, kept for future use
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -122,7 +122,7 @@ app.get('/metrics', metricsHandler);
 app.use('/api/gemini', geminiRoutes);
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   logger.error({
     err,
     path: req.path,

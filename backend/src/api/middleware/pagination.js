@@ -139,8 +139,23 @@ export function pagination(req, res, next) {
       const start = params.offset;
       const end = start + params.limit;
       const paginatedData = array.slice(start, end);
+      const totalPages = Math.ceil(array.length / params.limit);
+      const hasNextPage = params.page < totalPages;
+      const hasPrevPage = params.page > 1;
       
-      return params.formatResponse(paginatedData, array.length);
+      return {
+        data: paginatedData,
+        pagination: {
+          page: params.page,
+          limit: params.limit,
+          total: array.length,
+          totalPages,
+          hasNextPage,
+          hasPrevPage,
+          nextPage: hasNextPage ? params.page + 1 : null,
+          prevPage: hasPrevPage ? params.page - 1 : null
+        }
+      };
     }
   };
   
