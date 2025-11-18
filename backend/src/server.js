@@ -7,6 +7,8 @@
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -18,6 +20,10 @@ import geminiRoutes from './api/gemini/index.js';
 import { logger } from './utils/logger.js';
 import { requestId } from './api/middleware/requestId.js';
 import { requestLogger } from './api/middleware/requestLogger.js';
+import { apiKeyAuth } from './api/middleware/apiKeyAuth.js';
+import { configurePayloadLimits, monitorPayloadSizes } from './api/middleware/payloadSizeLimit.js';
+import { createRateLimiters, rateLimitMiddleware } from './api/middleware/persistentRateLimit.js';
+import { metricsMiddleware, metricsEndpoint } from './api/middleware/prometheusMetrics.js';
 
 // Load environment variables
 dotenv.config();
@@ -28,29 +34,70 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'], // Vite dev server and other common ports
-  credentials: true
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: process.env.NODE_ENV === 'production',
+  crossOriginEmbedderPolicy: false
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Compression middleware
+app.use(compression());
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || [
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
+  credentials: true,
+  maxAge: 86400 // 24 hours
+}));
+
+// Payload size limits (replaces express.json and express.urlencoded)
+app.use(...configurePayloadLimits());
+app.use(monitorPayloadSizes);
 
 // Request tracking middleware
 app.use(requestId);
 app.use(requestLogger);
+app.use(metricsMiddleware);
 
-// Health check endpoint
+// Initialize rate limiters
+let rateLimiters;
+createRateLimiters().then(limiters => {
+  rateLimiters = limiters;
+  logger.info('Rate limiters initialized');
+}).catch(error => {
+  logger.error({ err: error }, 'Failed to initialize rate limiters');
+});
+
+// Public endpoints (no authentication required)
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
+  res.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
-    service: 'gemini-flow-backend'
+    service: 'gemini-flow-backend',
+    version: process.env.npm_package_version || '1.0.0',
+    uptime: process.uptime()
   });
 });
 
-// API routes
-app.use('/api/gemini', geminiRoutes);
+// Metrics endpoint for Prometheus
+app.get('/metrics', metricsEndpoint);
+
+// API routes with authentication and rate limiting
+app.use('/api/gemini',
+  // Apply API key authentication (optional in development)
+  process.env.NODE_ENV === 'production' ? apiKeyAuth : (req, res, next) => next(),
+  // Apply rate limiting
+  (req, res, next) => {
+    if (rateLimiters?.api) {
+      return rateLimitMiddleware(rateLimiters.api)(req, res, next);
+    }
+    next();
+  },
+  geminiRoutes
+);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -75,12 +122,53 @@ app.use('*', (req, res) => {
   });
 });
 
+// Initialize database backup system
+import { createBackupManager } from './utils/databaseBackup.js';
+
+if (process.env.ENABLE_BACKUPS !== 'false') {
+  createBackupManager({
+    backupDir: process.env.BACKUP_DIR || './backups',
+    databasePaths: [
+      './data/gemini-flow.db',
+      './data/rate-limits.json'
+    ]
+  }).then(backupManager => {
+    logger.info('Database backup system initialized');
+  }).catch(error => {
+    logger.error({ err: error }, 'Failed to initialize backup system');
+  });
+}
+
 // Start server
-app.listen(PORT, () => {
-  logger.info({ 
-    port: PORT, 
+const server = app.listen(PORT, () => {
+  logger.info({
+    port: PORT,
     env: process.env.NODE_ENV || 'development',
     healthCheck: `http://localhost:${PORT}/health`,
-    apiBase: `http://localhost:${PORT}/api`
+    metricsEndpoint: `http://localhost:${PORT}/metrics`,
+    apiBase: `http://localhost:${PORT}/api`,
+    security: {
+      apiKeyAuth: process.env.NODE_ENV === 'production',
+      rateLimiting: true,
+      payloadSizeLimit: true,
+      helmet: true
+    }
   }, 'Server started');
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
 });
