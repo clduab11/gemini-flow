@@ -13,6 +13,8 @@ import { dirname, join } from 'path';
 
 // Import API routes
 import geminiRoutes from './api/gemini/index.js';
+import orchestratorRoutes from './api/orchestrator/index.js';
+import cliNativeRoutes from './api/cli-native/index.js';
 
 // Import logger and middleware
 import { logger } from './utils/logger.js';
@@ -30,7 +32,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'], // Vite dev server and other common ports
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'], // Vite dev server and other common ports
   credentials: true
 }));
 app.use(express.json());
@@ -51,6 +53,8 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/gemini', geminiRoutes);
+app.use('/api/orchestrator', orchestratorRoutes);
+app.use('/api/cli-native', cliNativeRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

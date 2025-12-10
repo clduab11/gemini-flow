@@ -1,13 +1,5 @@
 /**
- * React Flow Component with Zustand Integration
- *
- * This component demonstrates the performance benefits of using Zustand
- * instead of local component state (useNodesState, useEdgesState).
- *
- * Key Benefits:
- * - No full component tree re-renders on node/edge changes
- * - Selective subscriptions to specific state slices
- * - Optimized canvas operations
+ * Flow component with drag and drop support
  */
 
 import React, { useCallback, useRef, DragEvent } from 'react';
@@ -25,9 +17,9 @@ import type { NodeTypes, EdgeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 // Import our Zustand store hooks
-import { 
-  useNodes, 
-  useEdges, 
+import {
+  useNodes,
+  useEdges,
   useOnNodesChange,
   useOnEdgesChange,
   useOnConnect,
@@ -58,7 +50,7 @@ const nodeTypes: NodeTypes = {
   ...seoIntelligenceNodeTypes
 };
 
-// Custom edge types (can be extended) 
+// Custom edge types (can be extended)
 const edgeTypes: EdgeTypes = {
   // Add custom edge types here if needed
 };
@@ -66,11 +58,11 @@ const edgeTypes: EdgeTypes = {
 // Default node styling
 const defaultViewport = { x: 0, y: 0, zoom: 1 };
 
-const Flow: React.FC = () => {
+const FlowInner: React.FC = () => {
   // Subscribe to specific state slices (performance optimized)
   const nodes = useNodes();
   const edges = useEdges();
-  
+
   // Get individual action hooks (stable references)
   const onNodesChange = useOnNodesChange();
   const onEdgesChange = useOnEdgesChange();
@@ -78,7 +70,7 @@ const Flow: React.FC = () => {
   const addNode = useAddNode();
   const clearFlow = useClearFlow();
   const resetFlow = useResetFlow();
-  
+
   // Execution hooks
   const isExecuting = useIsExecuting();
   const executionResult = useExecutionResult();
@@ -87,15 +79,61 @@ const Flow: React.FC = () => {
   const executeFlow = useExecuteFlow();
   const clearExecutionResult = useClearExecutionResult();
 
+  // React Flow instance for drag and drop
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const { project, screenToFlowPosition } = useReactFlow();
+
+  // Handle drag over
+  const onDragOver = useCallback((event: DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  // Handle drop
+  const onDrop = useCallback(
+    (event: DragEvent) => {
+      event.preventDefault();
+
+      const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
+      const type = event.dataTransfer.getData('application/reactflow');
+
+      // Check if the dropped element is valid
+      if (typeof type === 'undefined' || !type) {
+        return;
+      }
+
+      try {
+        const nodeData = JSON.parse(type);
+
+        const position = screenToFlowPosition({
+          x: event.clientX - (reactFlowBounds?.left || 0),
+          y: event.clientY - (reactFlowBounds?.top || 0),
+        });
+
+        const newNode = {
+          id: `${nodeData.type}-${Date.now()}`,
+          type: nodeData.type,
+          position,
+          data: nodeData.data || { label: `${nodeData.type} node` },
+        };
+
+        addNode(newNode);
+      } catch (e) {
+        console.error('Failed to parse dropped node data', e);
+      }
+    },
+    [addNode, screenToFlowPosition]
+  );
+
   // Handle adding new nodes
   const handleAddNode = useCallback(() => {
     const newNode = {
       id: `node-${Date.now()}`,
       type: 'default',
       data: { label: `New Node ${nodes.length + 1}` },
-      position: { 
-        x: Math.random() * 400, 
-        y: Math.random() * 400 
+      position: {
+        x: Math.random() * 400,
+        y: Math.random() * 400
       },
     };
     addNode(newNode);
@@ -124,13 +162,15 @@ const Flow: React.FC = () => {
   }, [clearExecutionResult]);
 
   return (
-    <div style={{ width: '100%', height: '100vh' }}>
+    <div style={{ width: '100%', height: '100vh' }} ref={reactFlowWrapper}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultViewport={defaultViewport}
@@ -146,9 +186,9 @@ const Flow: React.FC = () => {
 
         {/* Navigation controls */}
         <Controls />
-        
+
         {/* Mini map for navigation */}
-        <MiniMap 
+        <MiniMap
           zoomable
           pannable
           nodeStrokeWidth={3}
@@ -163,22 +203,29 @@ const Flow: React.FC = () => {
             }
           }}
         />
-        
+
         {/* Control panel */}
         <Panel position="top-right">
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
             gap: '8px',
             background: 'white',
             padding: '12px',
             borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
           }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '14px' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold' }}>
               Flow Controls
             </h3>
-            <button 
+
+            {/* Node counter */}
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              Nodes: {nodes.length} | Edges: {edges.length}
+            </div>
+
+            {/* Action buttons */}
+            <button
               onClick={handleAddNode}
               style={{
                 padding: '6px 12px',
@@ -190,7 +237,8 @@ const Flow: React.FC = () => {
             >
               Add Node
             </button>
-            <button 
+
+            <button
               onClick={clearFlow}
               style={{
                 padding: '6px 12px',
@@ -200,9 +248,10 @@ const Flow: React.FC = () => {
                 cursor: 'pointer'
               }}
             >
-              Clear All
+              Clear Flow
             </button>
-            <button 
+
+            <button
               onClick={resetFlow}
               style={{
                 padding: '6px 12px',
@@ -214,9 +263,9 @@ const Flow: React.FC = () => {
             >
               Reset Flow
             </button>
-            
+
             {/* Run Flow Button */}
-            <button 
+            <button
               onClick={handleExecuteFlow}
               disabled={isExecuting || nodes.length === 0}
               style={{
@@ -232,165 +281,110 @@ const Flow: React.FC = () => {
             >
               {isExecuting ? '🔄 Running...' : '🚀 Run Flow'}
             </button>
-            
+
             {/* Clear Result Button */}
-            {(executionResult || executionError) && (
-              <button 
+            {executionResult && (
+              <button
                 onClick={handleClearResult}
                 style={{
-                  padding: '4px 8px',
-                  border: '1px solid #f59e0b',
+                  padding: '6px 12px',
+                  border: '1px solid #f97316',
                   borderRadius: '4px',
-                  background: '#fef3c7',
-                  color: '#92400e',
-                  cursor: 'pointer',
-                  fontSize: '12px'
+                  background: '#fff',
+                  color: '#f97316',
+                  cursor: 'pointer'
                 }}
               >
                 Clear Result
               </button>
             )}
-            
-            <div style={{ 
-              fontSize: '12px', 
-              color: '#666',
-              marginTop: '8px',
-              padding: '8px',
-              background: '#f9f9f9',
-              borderRadius: '4px'
-            }}>
-              <div>Nodes: {nodes.length}</div>
-              <div>Edges: {edges.length}</div>
-              <div style={{ marginTop: '4px', fontWeight: 'bold' }}>
-                ✅ Zustand Optimized
-              </div>
-              <div style={{ fontSize: '10px', marginTop: '2px' }}>
-                No full re-renders on changes
-              </div>
-            </div>
           </div>
         </Panel>
-        
+
+        {/* Orchestrator Panel */}
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '280px',
+          width: '300px',
+          maxHeight: '400px',
+          overflowY: 'auto'
+        }}>
+          <OrchestratorPanel />
+        </div>
+
         {/* Execution Result Panel */}
-        {(executionResult || executionError || isExecuting) && (
+        {(executionResult || executionError) && (
           <Panel position="bottom-right">
-            <div style={{ 
-              width: '400px',
-              maxHeight: '300px',
-              background: 'white',
-              padding: '16px',
+            <div style={{
+              background: executionError ? '#fef2f2' : '#f0fdf4',
+              border: executionError ? '1px solid #fecaca' : '1px solid #bbf7d0',
               borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              border: '1px solid #e5e7eb'
+              padding: '12px',
+              maxWidth: '400px',
+              maxHeight: '300px',
+              overflow: 'auto'
             }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '12px'
+              <h4 style={{
+                margin: '0 0 8px 0',
+                color: executionError ? '#dc2626' : '#15803d',
+                fontSize: '14px',
+                fontWeight: 'bold'
               }}>
-                <h3 style={{ 
-                  margin: 0, 
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  color: '#1f2937'
+                {executionError ? '❌ Execution Error' : '✅ Execution Result'}
+              </h4>
+
+              {executionError ? (
+                <pre style={{
+                  margin: 0,
+                  fontSize: '12px',
+                  whiteSpace: 'pre-wrap',
+                  color: '#991b1b'
                 }}>
-                  🤖 Gemini Response
-                </h3>
-                <button
-                  onClick={handleClearResult}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '18px',
-                    cursor: 'pointer',
-                    color: '#6b7280'
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-              
-              {isExecuting && (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '12px',
-                  background: '#f3f4f6',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  color: '#374151'
-                }}>
-                  <div style={{ animation: 'spin 1s linear infinite' }}>🔄</div>
-                  Processing your flow...
-                </div>
-              )}
-              
-              {executionError && (
-                <div style={{
-                  padding: '12px',
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  color: '#dc2626'
-                }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>❌ Error:</div>
                   {executionError}
-                </div>
-              )}
-              
-              {executionResult && (
-                <div style={{
-                  padding: '12px',
-                  background: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  color: '#166534',
-                  maxHeight: '200px',
-                  overflowY: 'auto'
-                }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>✅ Result:</div>
-                  <div style={{ whiteSpace: 'pre-wrap' }}>{executionResult}</div>
-                  
+                </pre>
+              ) : (
+                <>
+                  <pre style={{
+                    margin: 0,
+                    fontSize: '12px',
+                    whiteSpace: 'pre-wrap',
+                    color: '#14532d'
+                  }}>
+                    {executionResult}
+                  </pre>
+
                   {executionMetadata && (
                     <div style={{
-                      marginTop: '12px',
+                      marginTop: '8px',
                       paddingTop: '8px',
-                      borderTop: '1px solid #bbf7d0',
-                      fontSize: '12px',
-                      color: '#059669'
+                      borderTop: '1px solid #d1fae5',
+                      fontSize: '11px',
+                      color: '#166534'
                     }}>
-                      <div>Nodes processed: {executionMetadata.nodesProcessed}</div>
-                      <div>Edges processed: {executionMetadata.edgesProcessed}</div>
-                      <div>Generated at: {new Date(executionMetadata.timestamp).toLocaleTimeString()}</div>
+                      <strong>Metadata:</strong>
+                      <div>Nodes: {executionMetadata.nodesProcessed}</div>
+                      <div>Edges: {executionMetadata.edgesProcessed}</div>
+                      <div>Prompt Length: {executionMetadata.promptLength}</div>
                     </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           </Panel>
         )}
       </ReactFlow>
-      
-      {/* Add keyframe animation for spinner */}
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 };
 
-// Wrap with ReactFlowProvider for context
-const FlowWithProvider: React.FC = () => (
-  <ReactFlowProvider>
-    <Flow />
-  </ReactFlowProvider>
-);
+// Wrap with ReactFlowProvider to enable drag and drop
+const FlowWithDrop: React.FC = () => {
+  return (
+    <ReactFlowProvider>
+      <FlowInner />
+    </ReactFlowProvider>
+  );
+};
 
-export default FlowWithProvider;
+export default FlowWithDrop;

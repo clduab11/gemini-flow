@@ -1,0 +1,69 @@
+# The Factory - Git Ignore
+
+# Standalone library (contains copies from THE_ORCHESTRATOR)
+lib/
+
+# Output directories
+outputs/
+output/
+project_root/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Config with secrets
+config.local.json
+secrets.json
+.env
+
+# Neural Overlay data
+neural_data/
+neural_memories/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Test outputs
+test_outputs/
+coverage/
+.coverage
+htmlcov/
+
+# Loader state (can be regenerated)
+loader_state.json
+
+# Standalone config (can be regenerated)
+standalone_config.json

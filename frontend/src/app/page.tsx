@@ -12,7 +12,7 @@
  */
 
 import React from 'react';
-import Flow from '../components/Flow';
+import FlowWithDrop from '../components/FlowWithDrop';
 import { useNodes, useEdges } from '../lib/store';
 
 const Page: React.FC = () => {
@@ -86,7 +86,7 @@ const Page: React.FC = () => {
         paddingTop: '80px', // Account for header
         height: '100vh'
       }}>
-        <Flow />
+        <FlowWithDrop />
       </div>
 
       {/* Footer with architecture info */}

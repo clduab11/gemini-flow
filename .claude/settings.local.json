@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(npm install)",
+      "Bash(npm start)",
+      "Bash(npm run dev:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(pip install:*)",
+      "Bash(git checkout:*)",
+      "Bash(mkdir:*)",
+      "Bash(chmod:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "gemini-flow",
+    "ruv-swarm",
+    "Redis",
+    "Git Tools",
+    "Puppeteer",
+    "Sequential Thinking",
+    "Filesystem",
+    "GitHub",
+    "Mem0",
+    "Supabase",
+    "mcp-omnisearch"
+  ]
+}
