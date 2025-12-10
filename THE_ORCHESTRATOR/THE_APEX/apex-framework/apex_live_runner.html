@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APEX Live Runner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #111827; }
+        .gradient-text {
+            background: linear-gradient(90deg, #60a5fa, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-100 p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold gradient-text">APEX Live Runner</h1>
+            <p class="text-gray-400 mt-2">Adaptive Precision Execution Architecture</p>
+        </div>
+
+        <!-- Preset Selection -->
+        <div class="bg-gray-800 rounded-lg p-4 mb-4">
+            <label class="block text-sm font-medium text-gray-300 mb-2">Preset</label>
+            <div class="flex gap-2 flex-wrap" id="preset-buttons"></div>
+        </div>
+
+        <!-- Task Input -->
+        <div class="bg-gray-800 rounded-lg p-4 mb-4">
+            <label class="block text-sm font-medium text-gray-300 mb-2">Task</label>
+            <textarea id="task-input" class="w-full bg-gray-700 rounded-lg p-3 text-white resize-none" rows="2" placeholder="Beskriv vad som ska genereras..."></textarea>
+        </div>
+
+        <!-- Context Input -->
+        <div class="bg-gray-800 rounded-lg p-4 mb-4">
+            <label class="block text-sm font-medium text-gray-300 mb-2">Context (JSON)</label>
+            <textarea id="context-input" class="w-full bg-gray-700 rounded-lg p-3 text-green-400 font-mono text-sm resize-none" rows="6"></textarea>
+        </div>
+
+        <!-- Schema & Criteria Preview -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-sm font-medium text-gray-300 mb-2">Output Schema</h3>
+                <pre id="schema-preview" class="text-xs text-gray-400 overflow-auto max-h-32"></pre>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="text-sm font-medium text-gray-300 mb-2">Quality Criteria</h3>
+                <ul id="criteria-preview" class="text-xs text-gray-400 space-y-1"></ul>
+            </div>
+        </div>
+
+        <!-- Run Button -->
+        <button id="run-btn" onclick="runAPEX()" class="w-full py-4 rounded-lg font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white transition-all">
+            🚀 Run APEX
+        </button>
+
+        <!-- Status Display -->
+        <div id="status-container" class="mt-4 hidden">
+            <div id="current-phase" class="p-4 bg-gray-800 rounded-lg text-lg"></div>
+        </div>
+
+        <!-- Progress Display -->
+        <div id="progress-container" class="mt-4 bg-gray-800 rounded-lg p-4 hidden">
+            <h3 class="text-sm font-medium text-gray-300 mb-3">Execution Progress</h3>
+            <div id="iterations-display" class="flex items-center gap-2 flex-wrap"></div>
+        </div>
+
+        <!-- Error Display -->
+        <div id="error-container" class="mt-4 p-4 bg-red-900/50 border border-red-500 rounded-lg hidden">
+            <p id="error-message" class="text-red-300"></p>
+        </div>
+
+        <!-- Results -->
+        <div id="results-container" class="mt-6 space-y-4 hidden">
+            <!-- Summary -->
+            <div id="results-summary" class="p-4 rounded-lg"></div>
+            
+            <!-- Critiques -->
+            <div id="critiques-container" class="bg-gray-800 rounded-lg p-4 hidden">
+                <h3 class="font-medium mb-3">Remaining Critiques</h3>
+                <div id="critiques-list" class="space-y-2"></div>
+            </div>
+
+            <!-- Output -->
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h3 class="font-medium mb-3">Generated Output</h3>
+                <pre id="output-display" class="bg-gray-900 rounded p-4 text-sm text-green-400 overflow-auto max-h-96"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PRESETS = {
+            seo_article: {
+                name: "SEO Article",
+                schema: {
+                    title: "string (30-70 chars)",
+                    meta_description: "string (120-160 chars)",
+                    content: "string (1500+ chars)",
+                    headings: "array of strings (min 3)",
+                    internal_links: "array of strings"
+                },
+                criteria: [
+                    "Primary keyword in title",
+                    "Keyword in first 100 words",
+                    "Keyword density 1-3%",
+                    "Unique, descriptive headings",
+                    "Logical flow between sections",
+                    "No placeholder text"
+                ],
+                defaultContext: {
+                    primary_keyword: "hållbar renovering",
+                    target_audience: "villaägare 35-55",
+                    word_count: 2000,
+                    tone: "professional"
+                },
+                defaultTask: "Skriv en SEO-optimerad artikel om hållbar renovering för villaägare"
+            },
+            code_module: {
+                name: "Python Module",
+                schema: {
+                    filename: "string",
+                    code: "string (valid Python)",
+                    docstring: "string",
+                    functions: "array of {name, purpose, params, returns}",
+                    usage_example: "string"
+                },
+                criteria: [
+                    "Valid Python 3.11+ syntax",
+                    "Type hints on all functions",
+                    "Google-style docstrings",
+                    "No hardcoded values",
+                    "Error handling included",
+                    "Working usage example"
+                ],
+                defaultContext: {
+                    purpose: "async web scraper utility",
+                    dependencies: ["aiohttp", "pydantic"],
+                    style: "functional with dataclasses"
+                },
+                defaultTask: "Skapa en Python-modul för asynkron web scraping med rate limiting"
+            },
+            backlink_content: {
+                name: "Backlink Article",
+                schema: {
+                    title: "string",
+                    hook: "string (compelling intro)",
+                    body: "string (main content)",
+                    anchor_text: "string (natural link text)",
+                    cta: "string",
+                    lsi_terms_used: "array"
+                },
+                criteria: [
+                    "Natural anchor text placement",
+                    "Value-first content structure",
+                    "LSI terms integrated naturally",
+                    "Trust signals included",
+                    "No over-optimization",
+                    "Compelling hook in first paragraph"
+                ],
+                defaultContext: {
+                    target_url: "https://example.com/tjanst",
+                    anchor_keyword: "professionell SEO-byrå",
+                    lsi_terms: ["sökmotoroptimering", "digital marknadsföring", "synlighet online"],
+                    tone: "authoritative but friendly"
+                },
+                defaultTask: "Skriv en backlink-artikel som naturligt länkar till en SEO-byrå"
+            }
+        };
+
+        let currentPreset = 'seo_article';
+        let isRunning = false;
+
+        // Initialize
+        function init() {
+            const buttonsContainer = document.getElementById('preset-buttons');
+            Object.entries(PRESETS).forEach(([key, preset]) => {
+                const btn = document.createElement('button');
+                btn.textContent = preset.name;
+                btn.className = `px-4 py-2 rounded-lg transition-all ${key === currentPreset ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
+                btn.onclick = () => selectPreset(key);
+                btn.id = `preset-${key}`;
+                buttonsContainer.appendChild(btn);
+            });
+            
+            selectPreset('seo_article');
+        }
+
+        function selectPreset(key) {
+            currentPreset = key;
+            const preset = PRESETS[key];
+            
+            // Update buttons
+            Object.keys(PRESETS).forEach(k => {
+                const btn = document.getElementById(`preset-${k}`);
+                btn.className = `px-4 py-2 rounded-lg transition-all ${k === key ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
+            });
+            
+            // Update inputs
+            document.getElementById('task-input').value = preset.defaultTask;
+            document.getElementById('context-input').value = JSON.stringify(preset.defaultContext, null, 2);
+            
+            // Update previews
+            document.getElementById('schema-preview').textContent = JSON.stringify(preset.schema, null, 2);
+            const criteriaList = document.getElementById('criteria-preview');
+            criteriaList.innerHTML = preset.criteria.map(c => `<li>• ${c}</li>`).join('');
+            
+            // Clear results
+            hideResults();
+        }
+
+        function hideResults() {
+            document.getElementById('status-container').classList.add('hidden');
+            document.getElementById('progress-container').classList.add('hidden');
+            document.getElementById('error-container').classList.add('hidden');
+            document.getElementById('results-container').classList.add('hidden');
+        }
+
+        function setPhase(text) {
+            const container = document.getElementById('status-container');
+            container.classList.remove('hidden');
+            document.getElementById('current-phase').textContent = text;
+        }
+
+        function addIteration(iter) {
+            const container = document.getElementById('progress-container');
+            container.classList.remove('hidden');
+            
+            const display = document.getElementById('iterations-display');
+            
+            const scoreColor = iter.score >= 0.85 ? 'bg-green-600' : iter.score >= 0.7 ? 'bg-yellow-600' : 'bg-red-600';
+            
+            const html = `
+                <div class="flex items-center">
+                    ${display.children.length > 0 ? '<div class="text-gray-500 mx-2">→</div>' : ''}
+                    <div class="px-3 py-2 rounded-lg ${scoreColor}">
+                        <div class="text-xs text-white/70">#${iter.iteration}</div>
+                        <div class="text-lg font-bold">${(iter.score * 100).toFixed(0)}%</div>
+                        ${iter.delta ? `<div class="text-xs ${iter.delta > 0 ? 'text-green-300' : 'text-red-300'}">${iter.delta > 0 ? '+' : ''}${(iter.delta * 100).toFixed(1)}%</div>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            const div = document.createElement('div');
+            div.className = 'flex items-center';
+            div.innerHTML = html;
+            display.appendChild(div);
+        }
+
+        function showError(message) {
+            const container = document.getElementById('error-container');
+            container.classList.remove('hidden');
+            document.getElementById('error-message').textContent = `❌ Error: ${message}`;
+        }
+
+        function showResults(results) {
+            const container = document.getElementById('results-container');
+            container.classList.remove('hidden');
+            
+            // Summary
+            const summary = document.getElementById('results-summary');
+            summary.className = `p-4 rounded-lg ${results.success ? 'bg-green-900/30 border border-green-500' : 'bg-yellow-900/30 border border-yellow-500'}`;
+            summary.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-2xl mr-2">${results.success ? '✅' : '⚠️'}</span>
+                        <span class="text-xl font-bold">${results.success ? 'SUCCESS' : 'PARTIAL'}</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold">${(results.score * 100).toFixed(1)}%</div>
+                        <div class="text-sm text-gray-400">${results.iterations} iterations</div>
+                    </div>
+                </div>
+                <div class="mt-2 text-sm text-gray-400">
+                    Trajectory: ${results.trajectory.map(s => `${(s*100).toFixed(0)}%`).join(' → ')}
+                </div>
+                <div class="text-sm text-gray-400">Termination: ${results.termination}</div>
+            `;
+            
+            // Critiques
+            if (results.critiques && results.critiques.length > 0) {
+                const critiquesContainer = document.getElementById('critiques-container');
+                critiquesContainer.classList.remove('hidden');
+                const list = document.getElementById('critiques-list');
+                list.innerHTML = results.critiques.slice(0, 5).map(c => `
+                    <div class="flex items-start gap-2 text-sm">
+                        <span class="mt-0.5 ${c.severity > 0.6 ? 'text-red-400' : c.severity > 0.3 ? 'text-yellow-400' : 'text-green-400'}">
+                            ${c.severity > 0.6 ? '🔴' : c.severity > 0.3 ? '🟡' : '🟢'}
+                        </span>
+                        <div>
+                            <span class="text-gray-400">[${c.dimension}]</span>
+                            <span class="text-gray-200">${c.issue}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Output
+            document.getElementById('output-display').textContent = JSON.stringify(results.output, null, 2);
+        }
+
+        async function runAPEX() {
+            if (isRunning) return;
+            isRunning = true;
+            
+            const btn = document.getElementById('run-btn');
+            btn.textContent = '⏳ Running APEX...';
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            hideResults();
+            document.getElementById('iterations-display').innerHTML = '';
+            
+            try {
+                const task = document.getElementById('task-input').value;
+                const context = JSON.parse(document.getElementById('context-input').value);
+                const preset = PRESETS[currentPreset];
+                
+                // PHASE 1: PROBE
+                setPhase('🔍 PROBE: Generating initial output...');
+                
+                const probeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 4000,
+                        messages: [{
+                            role: 'user',
+                            content: `Du är en expert-generator. Generera högkvalitativ output.
+
+UPPGIFT: ${task}
+
+KONTEXT: ${JSON.stringify(context, null, 2)}
+
+SCHEMA: ${JSON.stringify(preset.schema, null, 2)}
+
+KRITERIER:
+${preset.criteria.map(c => `- ${c}`).join('\n')}
+
+Returnera ENDAST valid JSON. Var specifik och konkret.`
+                        }]
+                    })
+                });
+                
+                const probeData = await probeResponse.json();
+                let probeOutput = parseJSON(probeData.content[0].text);
+                
+                // PHASE 2: EVALUATE
+                setPhase('📊 EVALUATE: Scoring output...');
+                
+                let evaluation = await evaluate(probeOutput, context, preset);
+                
+                addIteration({ iteration: 1, score: evaluation.score });
+                
+                let currentOutput = probeOutput;
+                let currentScore = evaluation.score;
+                let allCritiques = evaluation.critiques || [];
+                const trajectory = [currentScore];
+                
+                // Check if good enough
+                if (currentScore >= 0.88) {
+                    setPhase('✅ CONVERGED: High quality on first attempt!');
+                    showResults({
+                        success: true,
+                        output: currentOutput,
+                        score: currentScore,
+                        iterations: 1,
+                        trajectory,
+                        critiques: allCritiques,
+                        termination: 'converged_direct'
+                    });
+                    return;
+                }
+                
+                // PHASE 3: REFINE
+                for (let i = 2; i <= 3; i++) {
+                    setPhase(`🔄 REFINE: Iteration ${i}...`);
+                    
+                    const significantCritiques = allCritiques.filter(c => (c.severity || 0) > 0.3);
+                    if (significantCritiques.length === 0) {
+                        setPhase('✅ CONVERGED: No significant critiques!');
+                        break;
+                    }
+                    
+                    // Generate improved
+                    const refineResponse = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: 'claude-sonnet-4-20250514',
+                            max_tokens: 4000,
+                            messages: [{
+                                role: 'user',
+                                content: `Förbättra denna output:
+
+TIDIGARE: ${JSON.stringify(currentOutput, null, 2)}
+
+KRITIK:
+${significantCritiques.map(c => `- [${c.dimension}] ${c.issue}`).join('\n')}
+
+UPPGIFT: ${task}
+
+Returnera FÖRBÄTTRAD JSON.`
+                            }]
+                        })
+                    });
+                    
+                    const refineData = await refineResponse.json();
+                    let improved = parseJSON(refineData.content[0].text);
+                    
+                    // Re-evaluate
+                    let newEval = await evaluate(improved, context, preset);
+                    
+                    trajectory.push(newEval.score);
+                    addIteration({
+                        iteration: i,
+                        score: newEval.score,
+                        delta: newEval.score - currentScore
+                    });
+                    
+                    if (newEval.score <= currentScore + 0.02) {
+                        setPhase('⚠️ PLATEAU: No significant improvement');
+                        showResults({
+                            success: currentScore >= 0.8,
+                            output: currentOutput,
+                            score: currentScore,
+                            iterations: i,
+                            trajectory,
+                            critiques: allCritiques,
+                            termination: 'plateau'
+                        });
+                        return;
+                    }
+                    
+                    currentOutput = improved;
+                    currentScore = newEval.score;
+                    allCritiques = newEval.critiques || [];
+                    
+                    if (currentScore >= 0.85) {
+                        setPhase('✅ CONVERGED: Quality threshold reached!');
+                        break;
+                    }
+                }
+                
+                showResults({
+                    success: currentScore >= 0.8,
+                    output: currentOutput,
+                    score: currentScore,
+                    iterations: trajectory.length,
+                    trajectory,
+                    critiques: allCritiques,
+                    termination: currentScore >= 0.85 ? 'converged' : 'max_iterations'
+                });
+                
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                isRunning = false;
+                btn.textContent = '🚀 Run APEX';
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        function parseJSON(text) {
+            if (text.includes('```json')) {
+                text = text.split('```json')[1].split('```')[0];
+            } else if (text.includes('```')) {
+                text = text.split('```')[1].split('```')[0];
+            }
+            return JSON.parse(text.trim());
+        }
+        
+        async function evaluate(output, context, preset) {
+            const evalResponse = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-20250514',
+                    max_tokens: 1500,
+                    messages: [{
+                        role: 'user',
+                        content: `Evaluera strikt:
+
+OUTPUT: ${JSON.stringify(output, null, 2)}
+
+KRITERIER:
+${preset.criteria.map(c => `- ${c}`).join('\n')}
+
+Returnera JSON: {"score": 0.0-1.0, "critiques": [{"dimension": "...", "issue": "...", "severity": 0.0-1.0}]}`
+                    }]
+                })
+            });
+            
+            const evalData = await evalResponse.json();
+            return parseJSON(evalData.content[0].text);
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

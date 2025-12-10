@@ -1,0 +1,433 @@
+# Mega-File: Distributed Crawler System
+# Team: Beta (Crawler Infrastructure)
+# Expected output: 2000+ LOC across 20+ files
+
+id: "mega-beta-crawler-core"
+version: "1.0.0"
+team: "beta"
+description: "Core distributed crawler with JS rendering and smart scheduling"
+
+metadata:
+  estimated_files: 25
+  estimated_loc: 2000
+  dependencies: ["mega-alpha-database-core"]
+  performance_target:
+    pages_per_hour: 1000000
+    concurrent_workers: 100
+    js_rendering: true
+
+expansion_rules:
+  crawler_components:
+    - name: "UrlFrontier"
+      description: "URL queue management with priority"
+      
+    - name: "RobotsChecker"
+      description: "Robots.txt parser and respecter"
+      
+    - name: "DomainThrottler"
+      description: "Rate limiting per domain"
+      
+    - name: "ContentFetcher"
+      description: "HTTP client with retries"
+      
+    - name: "JsRenderer"
+      description: "Puppeteer pool for JS sites"
+      
+    - name: "ContentParser"
+      description: "HTML parsing and extraction"
+      
+    - name: "ChangeDetector"
+      description: "Detect page changes efficiently"
+
+generation_templates:
+  crawler_service:
+    output_path: "/src/crawler/services/{name}.service.ts"
+    template: |
+      import { Injectable, Logger } from '@nestjs/common';
+      import { InjectQueue } from '@nestjs/bull';
+      import { Queue } from 'bull';
+      import { InjectRepository } from '@nestjs/typeorm';
+      import { Repository } from 'typeorm';
+      
+      @Injectable()
+      export class {Name}Service {
+        private readonly logger = new Logger({Name}Service.name);
+        
+        constructor(
+          @InjectQueue('crawler') private crawlerQueue: Queue,
+          @InjectRepository(CrawlQueue) private crawlRepo: Repository<CrawlQueue>
+        ) {}
+        
+        async process(job: any): Promise<void> {
+          const startTime = Date.now();
+          
+          try {
+            // {description}
+            await this.execute(job.data);
+            
+            await this.crawlRepo.update(job.data.id, {
+              status: 'completed',
+              lastCrawledAt: new Date()
+            });
+            
+          } catch (error) {
+            this.logger.error(`Failed to process: ${error.message}`);
+            throw error;
+          } finally {
+            this.recordMetrics(Date.now() - startTime);
+          }
+        }
+        
+        private async execute(data: any): Promise<void> {
+          // Core logic here
+        }
+        
+        private recordMetrics(duration: number): void {
+          // Send to monitoring
+        }
+      }
+
+  worker_implementation:
+    output_path: "/src/crawler/workers/{name}.worker.ts"
+    template: |
+      import { Worker } from 'bullmq';
+      import { Logger } from '@nestjs/common';
+      
+      export class {Name}Worker {
+        private worker: Worker;
+        private logger = new Logger({Name}Worker.name);
+        
+        constructor(private readonly service: {Name}Service) {
+          this.initWorker();
+        }
+        
+        private initWorker(): void {
+          this.worker = new Worker(
+            '{name}-queue',
+            async (job) => {
+              return this.service.process(job);
+            },
+            {
+              concurrency: 10,
+              limiter: {
+                max: 100,
+                duration: 60000 // per minute
+              }
+            }
+          );
+          
+          this.worker.on('completed', (job) => {
+            this.logger.log(`Job ${job.id} completed`);
+          });
+          
+          this.worker.on('failed', (job, err) => {
+            this.logger.error(`Job ${job?.id} failed: ${err.message}`);
+          });
+        }
+      }
+
+  go_performance_module:
+    output_path: "/src/crawler/performance/{name}.go"
+    template: |
+      package crawler
+      
+      import (
+          "context"
+          "fmt"
+          "sync"
+          "time"
+      )
+      
+      type {Name} struct {
+          config     *Config
+          workerPool chan struct{}
+          wg         sync.WaitGroup
+      }
+      
+      func New{Name}(config *Config) *{Name} {
+          return &{Name}{
+              config:     config,
+              workerPool: make(chan struct{}, config.MaxWorkers),
+          }
+      }
+      
+      func (c *{Name}) Process(ctx context.Context, urls []string) error {
+          for _, url := range urls {
+              select {
+              case <-ctx.Done():
+                  return ctx.Err()
+              case c.workerPool <- struct{}{}:
+                  c.wg.Add(1)
+                  go c.processURL(ctx, url)
+              }
+          }
+          
+          c.wg.Wait()
+          return nil
+      }
+      
+      func (c *{Name}) processURL(ctx context.Context, url string) {
+          defer func() {
+              <-c.workerPool
+              c.wg.Done()
+          }()
+          
+          // High-performance processing
+          start := time.Now()
+          
+          // Process URL
+          
+          duration := time.Since(start)
+          c.recordMetrics(url, duration)
+      }
+
+special_components:
+  robots_parser:
+    output_path: "/src/crawler/robots/parser.ts"
+    template: |
+      export class RobotsParser {
+        private rules: Map<string, RobotRules> = new Map();
+        
+        async parse(robotsTxt: string, userAgent: string = '*'): Promise<RobotRules> {
+          const lines = robotsTxt.split('\n');
+          const rules = new RobotRules();
+          
+          let currentAgent = '';
+          
+          for (const line of lines) {
+            const trimmed = line.trim();
+            
+            if (trimmed.startsWith('User-agent:')) {
+              currentAgent = trimmed.substring(11).trim();
+            } else if (currentAgent === userAgent || currentAgent === '*') {
+              if (trimmed.startsWith('Disallow:')) {
+                rules.disallowed.push(trimmed.substring(9).trim());
+              } else if (trimmed.startsWith('Allow:')) {
+                rules.allowed.push(trimmed.substring(6).trim());
+              } else if (trimmed.startsWith('Crawl-delay:')) {
+                rules.crawlDelay = parseInt(trimmed.substring(12).trim());
+              } else if (trimmed.startsWith('Sitemap:')) {
+                rules.sitemaps.push(trimmed.substring(8).trim());
+              }
+            }
+          }
+          
+          return rules;
+        }
+        
+        canFetch(url: string, rules: RobotRules): boolean {
+          // Check if URL is allowed based on rules
+          const path = new URL(url).pathname;
+          
+          // Check explicit allows first
+          for (const allowed of rules.allowed) {
+            if (this.matchesPattern(path, allowed)) {
+              return true;
+            }
+          }
+          
+          // Then check disallows
+          for (const disallowed of rules.disallowed) {
+            if (this.matchesPattern(path, disallowed)) {
+              return false;
+            }
+          }
+          
+          return true;
+        }
+        
+        private matchesPattern(path: string, pattern: string): boolean {
+          // Convert robot pattern to regex
+          const regexPattern = pattern
+            .replace(/\*/g, '.*')
+            .replace(/\$/g, '\\$');
+          
+          return new RegExp(`^${regexPattern}`).test(path);
+        }
+      }
+
+  puppeteer_pool:
+    output_path: "/src/crawler/browser/pool.ts"
+    template: |
+      import puppeteer, { Browser, Page } from 'puppeteer';
+      
+      export class BrowserPool {
+        private browsers: Browser[] = [];
+        private pages: Map<string, Page> = new Map();
+        private maxBrowsers = 5;
+        private maxPagesPerBrowser = 10;
+        
+        async initialize(): Promise<void> {
+          for (let i = 0; i < this.maxBrowsers; i++) {
+            const browser = await this.createBrowser();
+            this.browsers.push(browser);
+          }
+        }
+        
+        private async createBrowser(): Promise<Browser> {
+          return await puppeteer.launch({
+            headless: 'new',
+            args: [
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--disable-accelerated-2d-canvas',
+              '--no-first-run',
+              '--no-zygote',
+              '--disable-gpu',
+              '--hide-scrollbars',
+              '--mute-audio',
+              '--disable-background-timer-throttling',
+              '--disable-backgrounding-occluded-windows',
+              '--disable-renderer-backgrounding'
+            ]
+          });
+        }
+        
+        async getPage(): Promise<Page> {
+          // Round-robin browser selection
+          const browser = this.browsers[Math.floor(Math.random() * this.browsers.length)];
+          const page = await browser.newPage();
+          
+          // Optimize page for crawling
+          await page.setRequestInterception(true);
+          
+          page.on('request', (req) => {
+            // Block unnecessary resources
+            const resourceType = req.resourceType();
+            if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+              req.abort();
+            } else {
+              req.continue();
+            }
+          });
+          
+          // Set viewport and user agent
+          await page.setViewport({ width: 1920, height: 1080 });
+          await page.setUserAgent('SEO-Bot/1.0 (+https://seo-platform.com/bot)');
+          
+          return page;
+        }
+        
+        async releasePage(page: Page): Promise<void> {
+          try {
+            await page.close();
+          } catch (error) {
+            // Page already closed
+          }
+        }
+        
+        async shutdown(): Promise<void> {
+          for (const browser of this.browsers) {
+            await browser.close();
+          }
+        }
+      }
+
+  distributed_coordinator:
+    output_path: "/src/crawler/distributed/coordinator.ts"
+    template: |
+      import { Injectable } from '@nestjs/common';
+      import { Kafka, Producer, Consumer } from 'kafkajs';
+      import * as Redis from 'ioredis';
+      
+      @Injectable()
+      export class CrawlerCoordinator {
+        private kafka: Kafka;
+        private producer: Producer;
+        private consumer: Consumer;
+        private redis: Redis.Redis;
+        
+        constructor() {
+          this.kafka = new Kafka({
+            clientId: 'seo-crawler',
+            brokers: process.env.KAFKA_BROKERS?.split(',') || ['localhost:9092']
+          });
+          
+          this.redis = new Redis({
+            host: process.env.REDIS_HOST,
+            port: parseInt(process.env.REDIS_PORT || '6379')
+          });
+        }
+        
+        async distributeWork(urls: string[]): Promise<void> {
+          const batches = this.createBatches(urls, 100);
+          
+          for (const batch of batches) {
+            await this.producer.send({
+              topic: 'crawl-jobs',
+              messages: batch.map(url => ({
+                key: new URL(url).hostname,
+                value: JSON.stringify({
+                  url,
+                  priority: this.calculatePriority(url),
+                  timestamp: Date.now()
+                })
+              }))
+            });
+          }
+        }
+        
+        private createBatches<T>(items: T[], batchSize: number): T[][] {
+          const batches: T[][] = [];
+          for (let i = 0; i < items.length; i += batchSize) {
+            batches.push(items.slice(i, i + batchSize));
+          }
+          return batches;
+        }
+        
+        private calculatePriority(url: string): number {
+          // Homepage gets highest priority
+          if (url.endsWith('/')) return 10;
+          
+          // Important pages
+          if (url.includes('/product') || url.includes('/category')) return 8;
+          
+          // Regular content
+          return 5;
+        }
+        
+        async registerWorker(workerId: string): Promise<void> {
+          await this.redis.sadd('crawler:workers', workerId);
+          await this.redis.setex(`crawler:worker:${workerId}:heartbeat`, 60, Date.now());
+        }
+        
+        async getActiveWorkers(): Promise<string[]> {
+          const workers = await this.redis.smembers('crawler:workers');
+          const activeWorkers = [];
+          
+          for (const worker of workers) {
+            const heartbeat = await this.redis.get(`crawler:worker:${worker}:heartbeat`);
+            if (heartbeat) {
+              activeWorkers.push(worker);
+            } else {
+              // Remove dead worker
+              await this.redis.srem('crawler:workers', worker);
+            }
+          }
+          
+          return activeWorkers;
+        }
+      }
+
+validation:
+  pre_generation:
+    - check: "verify_dependencies"
+      error: "Missing dependency on database module"
+    - check: "validate_performance_targets"
+      error: "Performance targets not achievable with current config"
+      
+  post_generation:
+    - check: "typescript_compilation"
+      command: "tsc --noEmit"
+    - check: "go_compilation"
+      command: "go build ./..."
+    - check: "unit_tests"
+      command: "npm test"
+
+performance_requirements:
+  crawl_rate: "1M pages/hour"
+  concurrent_domains: 10000
+  js_rendering_capacity: "1000 pages/hour"
+  response_time: "<500ms per page"
+  memory_usage: "<100MB per worker"

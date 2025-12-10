@@ -1,0 +1,154 @@
+import os
+import uuid
+from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from app.mcp_client import (
+    get_supabase, get_qdrant, get_gemini_model, 
+    parse_document_content, generate_embeddings,
+    get_context_from_query, generate_answer_from_context
+)
+
+load_dotenv()
+
+app = FastAPI(
+    title="{{PROJECT_NAME}} API",
+    description="{{PROJECT_DESCRIPTION}}",
+    version="1.0.0"
+)
+
+# --- Datamodeller ---
+
+class Project(BaseModel):
+    name: str
+
+class Query(BaseModel):
+    question: str
+
+# --- API Endpoints ---
+
+@app.on_event("startup")
+async def startup_event():
+    """Verifierar att alla anslutningar fungerar vid start"""
+    try:
+        get_supabase()
+        get_qdrant()
+        get_gemini_model("text") # Testar embedding-modellen
+        print(f"--- {{PROJECT_NAME}}: All Services Connected ---")
+        print(f"--- Embedding Dimension: {os.environ.get('EMBEDDING_DIMENSION', '{{EMBEDDING_DIMENSION}}')} ---")
+    except Exception as e:
+        print(f"!!! STARTUP FAILED: {e} !!!")
+
+@app.get("/")
+async def root():
+    """Health check endpoint"""
+    return {
+        "status": "online",
+        "project": "{{PROJECT_NAME}}",
+        "description": "{{PROJECT_DESCRIPTION}}"
+    }
+
+@app.post("/projects", status_code=201)
+async def create_project(project: Project):
+    """Skapar ett nytt projekt (och en ny Qdrant Collection)"""
+    # Här skulle vi hämta user_id från en JWT-token (via Supabase Auth)
+    user_id_placeholder = uuid.uuid4() # Platzhållare
+    
+    collection_name = f"proj_{uuid.uuid4().hex}"
+    
+    # Hämta embedding-dimension från miljövariabel
+    embedding_dim = int(os.environ.get("EMBEDDING_DIMENSION", "{{EMBEDDING_DIMENSION}}"))
+    
+    try:
+        # 1. Skapa Qdrant Collection
+        get_qdrant().recreate_collection(
+            collection_name=collection_name,
+            vectors_config={"size": embedding_dim, "distance": "Cosine"}
+        )
+        
+        # 2. Spara i Postgres (via Supabase)
+        data, error = get_supabase().table("projects").insert({
+            "user_id": str(user_id_placeholder),
+            "name": project.name,
+            "qdrant_collection_name": collection_name
+        }).execute()
+        
+        if error:
+            raise HTTPException(status_code=500, detail=str(error.message))
+        
+        return {"project_id": data.data[0]['id'], "collection_name": collection_name}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/projects/{project_id}/upload")
+async def upload_document_to_project(project_id: uuid.UUID, file: UploadFile = File(...)):
+    """Laddar upp ett dokument, parsar det, skapar embeddings och sparar i Qdrant."""
+    
+    # 1. Hämta projektinfo (för att få collection_name)
+    data, error = get_supabase().table("projects").select("qdrant_collection_name").eq("id", str(project_id)).single().execute()
+    if error:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    collection_name = data.data['qdrant_collection_name']
+    
+    # 2. Parsa innehållet (Spara fil till disk temporärt)
+    file_path = f"/tmp/{file.filename}"
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
+        
+    chunks = parse_document_content(file_path)
+    os.remove(file_path) # Städa
+    
+    if not chunks:
+        raise HTTPException(status_code=400, detail="Could not parse document or document is empty.")
+
+    # 3. Skapa embeddings
+    embeddings = generate_embeddings(chunks)
+    
+    # 4. Förbered och ladda upp till Qdrant
+    points = [
+        {
+            "id": str(uuid.uuid4()),
+            "vector": emb,
+            "payload": {"text": chunk, "source": file.filename}
+        }
+        for emb, chunk in zip(embeddings, chunks)
+    ]
+    
+    get_qdrant().upsert(
+        collection_name=collection_name,
+        points=points,
+        wait=True
+    )
+    
+    # 5. (Valfritt) Spara dokument-meta i Supabase DB
+    
+    return {"filename": file.filename, "chunks_added": len(points)}
+
+
+@app.post("/projects/{project_id}/query")
+async def query_project(project_id: uuid.UUID, query: Query):
+    """Ställ en fråga till RAG-plattformen för ett specifikt projekt."""
+    
+    # 1. Hämta projektinfo
+    data, error = get_supabase().table("projects").select("qdrant_collection_name").eq("id", str(project_id)).single().execute()
+    if error:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    collection_name = data.data['qdrant_collection_name']
+
+    # 2. Hämta relevant kontext från Qdrant
+    context_text, sources = get_context_from_query(query.question, collection_name)
+    
+    if not context_text:
+        return {
+            "answer": "Jag kunde inte hitta någon relevant information i dina dokument för att svara på den frågan.", 
+            "sources": [],
+            "note": f"Prova att sänka RELEVANCE_THRESHOLD (nu: {os.environ.get('RELEVANCE_THRESHOLD', '{{RELEVANCE_THRESHOLD}}')})"
+        }
+    
+    # 3. Generera ett svar med LLM (Gemini)
+    answer = generate_answer_from_context(context_text, query.question)
+    
+    return {"answer": answer, "sources": sources}

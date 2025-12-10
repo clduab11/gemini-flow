@@ -1,0 +1,460 @@
+# Example Mega-File: API Endpoints Generator
+# Team: Beta
+# This mega-file expands to ~1200 lines of code across 40 files
+
+id: "mega-api-endpoints-001"
+version: "1.0.0"
+team: "beta"
+checksum: "sha256:abc123..."
+
+metadata:
+  description: "Generates complete REST API endpoints with controllers, services, DTOs, and tests"
+  estimated_files: 40
+  estimated_loc: 1200
+  dependencies:
+    - "team-alpha/mega-core-entities-001"
+    - "team-alpha/mega-database-schema-001"
+
+expansion_rules:
+  entities:
+    - name: "User"
+      plural: "users"
+      attributes:
+        - { name: "id", type: "uuid", required: true }
+        - { name: "email", type: "string", required: true, unique: true }
+        - { name: "name", type: "string", required: true }
+        - { name: "role", type: "enum", values: ["admin", "user", "guest"] }
+        - { name: "createdAt", type: "timestamp", auto: true }
+        - { name: "updatedAt", type: "timestamp", auto: true }
+      
+    - name: "Product"
+      plural: "products"
+      attributes:
+        - { name: "id", type: "uuid", required: true }
+        - { name: "name", type: "string", required: true }
+        - { name: "description", type: "text", required: false }
+        - { name: "price", type: "decimal", required: true }
+        - { name: "stock", type: "integer", required: true, default: 0 }
+        
+    - name: "Order"
+      plural: "orders"
+      attributes:
+        - { name: "id", type: "uuid", required: true }
+        - { name: "userId", type: "uuid", required: true, ref: "User" }
+        - { name: "items", type: "array", itemType: "OrderItem" }
+        - { name: "total", type: "decimal", computed: true }
+        - { name: "status", type: "enum", values: ["pending", "processing", "shipped", "delivered"] }
+
+  endpoints_per_entity:
+    - method: "GET"
+      path: "/"
+      name: "findAll"
+      description: "List all {entities} with pagination"
+      
+    - method: "GET"
+      path: "/:id"
+      name: "findOne"
+      description: "Get single {entity} by ID"
+      
+    - method: "POST"
+      path: "/"
+      name: "create"
+      description: "Create new {entity}"
+      
+    - method: "PUT"
+      path: "/:id"
+      name: "update"
+      description: "Update existing {entity}"
+      
+    - method: "DELETE"
+      path: "/:id"
+      name: "remove"
+      description: "Delete {entity}"
+
+generation_templates:
+  controller:
+    output_path: "/src/api/controllers/{entity}.controller.ts"
+    template: |
+      import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+      import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+      import { {Entity}Service } from '../services/{entity}.service';
+      import { Create{Entity}Dto, Update{Entity}Dto, {Entity}ResponseDto } from '../dto/{entity}.dto';
+      import { PaginationDto } from '../dto/pagination.dto';
+      import { AuthGuard } from '../guards/auth.guard';
+      import { RateLimit } from '../decorators/rate-limit.decorator';
+      
+      @ApiTags('{entities}')
+      @Controller('api/v1/{entities}')
+      @AuthGuard()
+      @RateLimit({ points: 100, duration: 60 })
+      export class {Entity}Controller {
+        constructor(private readonly {entity}Service: {Entity}Service) {}
+        
+        @Get()
+        @ApiOperation({ summary: 'List all {entities} with pagination' })
+        @ApiResponse({ status: 200, type: [{Entity}ResponseDto] })
+        async findAll(@Query() pagination: PaginationDto) {
+          const { page = 1, limit = 20, sortBy = 'createdAt', order = 'DESC' } = pagination;
+          
+          const [items, total] = await this.{entity}Service.findAll({
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: { [sortBy]: order }
+          });
+          
+          return {
+            data: items,
+            meta: {
+              total,
+              page,
+              limit,
+              totalPages: Math.ceil(total / limit)
+            }
+          };
+        }
+        
+        @Get(':id')
+        @ApiOperation({ summary: 'Get single {entity} by ID' })
+        @ApiResponse({ status: 200, type: {Entity}ResponseDto })
+        @ApiResponse({ status: 404, description: '{Entity} not found' })
+        async findOne(@Param('id') id: string) {
+          const {entity} = await this.{entity}Service.findOne(id);
+          if (!{entity}) {
+            throw new NotFoundException('{Entity} not found');
+          }
+          return {entity};
+        }
+        
+        @Post()
+        @ApiOperation({ summary: 'Create new {entity}' })
+        @ApiResponse({ status: 201, type: {Entity}ResponseDto })
+        @ApiResponse({ status: 400, description: 'Validation error' })
+        async create(@Body() create{Entity}Dto: Create{Entity}Dto) {
+          const {entity} = await this.{entity}Service.create(create{Entity}Dto);
+          return {entity};
+        }
+        
+        @Put(':id')
+        @ApiOperation({ summary: 'Update existing {entity}' })
+        @ApiResponse({ status: 200, type: {Entity}ResponseDto })
+        @ApiResponse({ status: 404, description: '{Entity} not found' })
+        async update(
+          @Param('id') id: string,
+          @Body() update{Entity}Dto: Update{Entity}Dto
+        ) {
+          const {entity} = await this.{entity}Service.update(id, update{Entity}Dto);
+          return {entity};
+        }
+        
+        @Delete(':id')
+        @ApiOperation({ summary: 'Delete {entity}' })
+        @ApiResponse({ status: 204, description: '{Entity} deleted successfully' })
+        @ApiResponse({ status: 404, description: '{Entity} not found' })
+        async remove(@Param('id') id: string) {
+          await this.{entity}Service.remove(id);
+        }
+      }
+
+  service:
+    output_path: "/src/api/services/{entity}.service.ts"
+    template: |
+      import { Injectable, NotFoundException } from '@nestjs/common';
+      import { InjectRepository } from '@nestjs/typeorm';
+      import { Repository, FindManyOptions } from 'typeorm';
+      import { {Entity} } from '../../database/entities/{entity}.entity';
+      import { Create{Entity}Dto, Update{Entity}Dto } from '../dto/{entity}.dto';
+      import { CacheService } from '../../core/cache.service';
+      import { EventBus } from '../../core/event-bus';
+      import { {Entity}CreatedEvent, {Entity}UpdatedEvent, {Entity}DeletedEvent } from '../events/{entity}.events';
+      
+      @Injectable()
+      export class {Entity}Service {
+        private readonly cachePrefix = '{entity}:';
+        
+        constructor(
+          @InjectRepository({Entity})
+          private readonly repository: Repository<{Entity}>,
+          private readonly cache: CacheService,
+          private readonly eventBus: EventBus
+        ) {}
+        
+        async findAll(options?: FindManyOptions<{Entity}>): Promise<[{Entity}[], number]> {
+          const cacheKey = `${this.cachePrefix}list:${JSON.stringify(options)}`;
+          const cached = await this.cache.get(cacheKey);
+          
+          if (cached) {
+            return cached;
+          }
+          
+          const result = await this.repository.findAndCount(options);
+          await this.cache.set(cacheKey, result, 300); // 5 min cache
+          
+          return result;
+        }
+        
+        async findOne(id: string): Promise<{Entity} | null> {
+          const cacheKey = `${this.cachePrefix}${id}`;
+          const cached = await this.cache.get<{Entity}>(cacheKey);
+          
+          if (cached) {
+            return cached;
+          }
+          
+          const {entity} = await this.repository.findOne({ where: { id } });
+          
+          if ({entity}) {
+            await this.cache.set(cacheKey, {entity}, 600); // 10 min cache
+          }
+          
+          return {entity};
+        }
+        
+        async create(dto: Create{Entity}Dto): Promise<{Entity}> {
+          const {entity} = this.repository.create(dto);
+          const saved = await this.repository.save({entity});
+          
+          await this.eventBus.publish(new {Entity}CreatedEvent(saved));
+          await this.invalidateCache();
+          
+          return saved;
+        }
+        
+        async update(id: string, dto: Update{Entity}Dto): Promise<{Entity}> {
+          const {entity} = await this.findOne(id);
+          
+          if (!{entity}) {
+            throw new NotFoundException('{Entity} not found');
+          }
+          
+          Object.assign({entity}, dto);
+          const updated = await this.repository.save({entity});
+          
+          await this.eventBus.publish(new {Entity}UpdatedEvent(updated));
+          await this.invalidateCache(id);
+          
+          return updated;
+        }
+        
+        async remove(id: string): Promise<void> {
+          const {entity} = await this.findOne(id);
+          
+          if (!{entity}) {
+            throw new NotFoundException('{Entity} not found');
+          }
+          
+          await this.repository.remove({entity});
+          
+          await this.eventBus.publish(new {Entity}DeletedEvent(id));
+          await this.invalidateCache(id);
+        }
+        
+        private async invalidateCache(id?: string): Promise<void> {
+          if (id) {
+            await this.cache.del(`${this.cachePrefix}${id}`);
+          }
+          await this.cache.delByPattern(`${this.cachePrefix}list:*`);
+        }
+      }
+
+  dto:
+    output_path: "/src/api/dto/{entity}.dto.ts"
+    template: |
+      import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+      import { IsString, IsEmail, IsUUID, IsEnum, IsOptional, IsNumber, Min } from 'class-validator';
+      import { Type } from 'class-transformer';
+      
+      {% for attr in attributes %}
+      {% if attr.type == 'enum' %}
+      export enum {Entity}{attr.name|capitalize} {
+        {% for value in attr.values %}
+        {value|upper} = '{value}',
+        {% endfor %}
+      }
+      {% endif %}
+      {% endfor %}
+      
+      export class Create{Entity}Dto {
+        {% for attr in attributes %}
+        {% if not attr.auto and attr.name != 'id' %}
+        @ApiProperty{% if not attr.required %}Optional{% endif %}({
+          description: '{attr.name} of the {entity}',
+          {% if attr.type == 'enum' %}enum: {Entity}{attr.name|capitalize},{% endif %}
+          {% if attr.example %}example: '{attr.example}',{% endif %}
+        })
+        {% if attr.type == 'string' %}@IsString(){% endif %}
+        {% if attr.type == 'email' %}@IsEmail(){% endif %}
+        {% if attr.type == 'uuid' %}@IsUUID(){% endif %}
+        {% if attr.type == 'number' or attr.type == 'decimal' %}@IsNumber(){% endif %}
+        {% if attr.type == 'integer' %}@IsNumber() @Min(0){% endif %}
+        {% if attr.type == 'enum' %}@IsEnum({Entity}{attr.name|capitalize}){% endif %}
+        {% if not attr.required %}@IsOptional(){% endif %}
+        {attr.name}{% if not attr.required %}?{% endif %}: {% if attr.type == 'enum' %}{Entity}{attr.name|capitalize}{% else %}{attr.tsType|default:'string'}{% endif %};
+        
+        {% endif %}
+        {% endfor %}
+      }
+      
+      export class Update{Entity}Dto extends PartialType(Create{Entity}Dto) {}
+      
+      export class {Entity}ResponseDto {
+        @ApiProperty({ description: 'Unique identifier' })
+        id: string;
+        
+        {% for attr in attributes %}
+        {% if attr.name != 'id' %}
+        @ApiProperty{% if not attr.required %}Optional{% endif %}({
+          description: '{attr.name} of the {entity}',
+          {% if attr.type == 'enum' %}enum: {Entity}{attr.name|capitalize},{% endif %}
+        })
+        {attr.name}{% if not attr.required %}?{% endif %}: {% if attr.type == 'enum' %}{Entity}{attr.name|capitalize}{% else %}{attr.tsType|default:'string'}{% endif %};
+        
+        {% endif %}
+        {% endfor %}
+      }
+
+  test:
+    output_path: "/tests/api/{entity}.controller.spec.ts"
+    template: |
+      import { Test, TestingModule } from '@nestjs/testing';
+      import { {Entity}Controller } from '../../../src/api/controllers/{entity}.controller';
+      import { {Entity}Service } from '../../../src/api/services/{entity}.service';
+      import { Create{Entity}Dto, Update{Entity}Dto } from '../../../src/api/dto/{entity}.dto';
+      import { mock{Entity}, create{Entity}Dto } from '../../fixtures/{entity}.fixtures';
+      
+      describe('{Entity}Controller', () => {
+        let controller: {Entity}Controller;
+        let service: {Entity}Service;
+        
+        const mockService = {
+          findAll: jest.fn(),
+          findOne: jest.fn(),
+          create: jest.fn(),
+          update: jest.fn(),
+          remove: jest.fn(),
+        };
+        
+        beforeEach(async () => {
+          const module: TestingModule = await Test.createTestingModule({
+            controllers: [{Entity}Controller],
+            providers: [
+              {
+                provide: {Entity}Service,
+                useValue: mockService,
+              },
+            ],
+          }).compile();
+          
+          controller = module.get<{Entity}Controller>({Entity}Controller);
+          service = module.get<{Entity}Service>({Entity}Service);
+        });
+        
+        afterEach(() => {
+          jest.clearAllMocks();
+        });
+        
+        describe('findAll', () => {
+          it('should return paginated {entities}', async () => {
+            const mockData = [mock{Entity}(), mock{Entity}()];
+            const mockTotal = 2;
+            
+            mockService.findAll.mockResolvedValue([mockData, mockTotal]);
+            
+            const result = await controller.findAll({ page: 1, limit: 20 });
+            
+            expect(result).toEqual({
+              data: mockData,
+              meta: {
+                total: mockTotal,
+                page: 1,
+                limit: 20,
+                totalPages: 1,
+              },
+            });
+          });
+        });
+        
+        describe('findOne', () => {
+          it('should return single {entity}', async () => {
+            const mock = mock{Entity}();
+            mockService.findOne.mockResolvedValue(mock);
+            
+            const result = await controller.findOne(mock.id);
+            
+            expect(result).toEqual(mock);
+            expect(mockService.findOne).toHaveBeenCalledWith(mock.id);
+          });
+          
+          it('should throw NotFoundException when {entity} not found', async () => {
+            mockService.findOne.mockResolvedValue(null);
+            
+            await expect(controller.findOne('non-existent-id')).rejects.toThrow(
+              NotFoundException
+            );
+          });
+        });
+        
+        describe('create', () => {
+          it('should create new {entity}', async () => {
+            const dto = create{Entity}Dto();
+            const created = mock{Entity}();
+            
+            mockService.create.mockResolvedValue(created);
+            
+            const result = await controller.create(dto);
+            
+            expect(result).toEqual(created);
+            expect(mockService.create).toHaveBeenCalledWith(dto);
+          });
+        });
+        
+        describe('update', () => {
+          it('should update existing {entity}', async () => {
+            const id = 'test-id';
+            const dto: Update{Entity}Dto = { name: 'Updated Name' };
+            const updated = { ...mock{Entity}(), ...dto };
+            
+            mockService.update.mockResolvedValue(updated);
+            
+            const result = await controller.update(id, dto);
+            
+            expect(result).toEqual(updated);
+            expect(mockService.update).toHaveBeenCalledWith(id, dto);
+          });
+        });
+        
+        describe('remove', () => {
+          it('should delete {entity}', async () => {
+            const id = 'test-id';
+            
+            mockService.remove.mockResolvedValue(undefined);
+            
+            await controller.remove(id);
+            
+            expect(mockService.remove).toHaveBeenCalledWith(id);
+          });
+        });
+      });
+
+validation:
+  pre_generation:
+    - check: "entity_names_unique"
+      error: "Duplicate entity names found"
+    - check: "attributes_valid"
+      error: "Invalid attribute types"
+    - check: "references_exist"
+      error: "Referenced entities not found"
+      
+  post_generation:
+    - check: "files_compile"
+      command: "tsc --noEmit {file}"
+    - check: "tests_valid"
+      command: "jest --passWithNoTests {file}"
+    - check: "imports_resolve"
+      error: "Missing imports detected"
+
+expansion_stats:
+  estimated_time: "5 minutes"
+  parallelizable: true
+  resource_usage:
+    memory: "512MB"
+    cpu: "1 core"

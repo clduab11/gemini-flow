@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign Agents Dashboard</title>
+    
+    <!-- React -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        code, pre, .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #18181b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #52525b;
+        }
+        
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px #22d3ee, 0 0 10px #22d3ee; }
+            50% { box-shadow: 0 0 15px #22d3ee, 0 0 25px #22d3ee; }
+        }
+        
+        .glow-pulse {
+            animation: pulse-glow 2s infinite;
+        }
+        
+        @keyframes typing {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .typing-cursor::after {
+            content: '▋';
+            animation: typing 1s infinite;
+            color: #22d3ee;
+        }
+        
+        /* Message animations */
+        .message-enter {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        sovereign: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // STORAGE HELPERS
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        const storage = {
+            get(key, defaultValue = null) {
+                try {
+                    const item = localStorage.getItem(`sovereign_${key}`);
+                    return item ? JSON.parse(item) : defaultValue;
+                } catch {
+                    return defaultValue;
+                }
+            },
+            
+            set(key, value) {
+                try {
+                    localStorage.setItem(`sovereign_${key}`, JSON.stringify(value));
+                } catch (e) {
+                    console.warn('localStorage save failed:', e);
+                }
+            },
+            
+            remove(key) {
+                localStorage.removeItem(`sovereign_${key}`);
+            }
+        };
+        
+        // Generate or get session ID
+        const getSessionId = () => {
+            let sessionId = storage.get('session_id');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                storage.set('session_id', sessionId);
+            }
+            return sessionId;
+        };
+        
+        const SESSION_ID = getSessionId();
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // API CLIENT
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        const API_BASE = 'http://localhost:8000';
+        
+        const api = {
+            async chat(message, conversationId = null) {
+                const res = await fetch(`${API_BASE}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message,
+                        session_id: SESSION_ID,
+                        conversation_id: conversationId
+                    })
+                });
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            },
+            
+            async explore(seed = null) {
+                const res = await fetch(`${API_BASE}/api/explore`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ seed })
+                });
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            },
+            
+            async continueExplore() {
+                const res = await fetch(`${API_BASE}/api/explore/continue`, {
+                    method: 'POST'
+                });
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            },
+            
+            async task(description) {
+                const res = await fetch(`${API_BASE}/api/task`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description })
+                });
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            },
+            
+            async multiTask(description, agents = ['architect', 'executor', 'critic']) {
+                const res = await fetch(`${API_BASE}/api/task/multi`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description, agents })
+                });
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            },
+            
+            async getStatus() {
+                const res = await fetch(`${API_BASE}/api/status`);
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            },
+            
+            async getAgents() {
+                const res = await fetch(`${API_BASE}/api/agents`);
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            },
+            
+            async clearMemories() {
+                const res = await fetch(`${API_BASE}/api/agents/clear`, {
+                    method: 'POST'
+                });
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            },
+            
+            // Persistence API
+            async listConversations() {
+                const res = await fetch(`${API_BASE}/api/sessions/${SESSION_ID}/conversations`);
+                if (!res.ok) return { conversations: [] };
+                return res.json();
+            },
+            
+            async getConversation(conversationId) {
+                const res = await fetch(`${API_BASE}/api/conversations/${conversationId}`);
+                if (!res.ok) return null;
+                return res.json();
+            },
+            
+            async createConversation(title = 'New Conversation', mode = 'chat') {
+                const res = await fetch(`${API_BASE}/api/sessions/${SESSION_ID}/conversations?title=${encodeURIComponent(title)}&mode=${mode}`, {
+                    method: 'POST'
+                });
+                if (!res.ok) throw new Error(await res.text());
+                return res.json();
+            },
+            
+            async deleteConversation(conversationId) {
+                const res = await fetch(`${API_BASE}/api/sessions/${SESSION_ID}/conversations/${conversationId}`, {
+                    method: 'DELETE'
+                });
+                return res.ok;
+            }
+        };
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // COMPONENTS
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // Icon component using Lucide
+        function Icon({ name, size = 20, className = '' }) {
+            const ref = useRef(null);
+            
+            useEffect(() => {
+                if (ref.current && lucide[name]) {
+                    ref.current.innerHTML = '';
+                    const svg = lucide.createElement(lucide[name]);
+                    svg.setAttribute('width', size);
+                    svg.setAttribute('height', size);
+                    ref.current.appendChild(svg);
+                }
+            }, [name, size]);
+            
+            return <span ref={ref} className={`inline-flex ${className}`} />;
+        }
+        
+        // Status indicator
+        function StatusDot({ status }) {
+            const colors = {
+                online: 'bg-green-500',
+                offline: 'bg-red-500',
+                thinking: 'bg-yellow-500 animate-pulse',
+                idle: 'bg-zinc-500'
+            };
+            
+            return (
+                <span className={`w-2 h-2 rounded-full ${colors[status] || colors.idle}`} />
+            );
+        }
+        
+        // Chat message
+        function ChatMessage({ message, isUser, isThinking }) {
+            return (
+                <div className={`flex gap-3 message-enter ${isUser ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        isUser ? 'bg-zinc-700' : 'bg-sovereign-600'
+                    }`}>
+                        <Icon name={isUser ? 'User' : 'Brain'} size={16} />
+                    </div>
+                    <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                        isUser 
+                            ? 'bg-zinc-800 text-zinc-100' 
+                            : 'bg-zinc-900 border border-zinc-800'
+                    } ${isThinking ? 'typing-cursor' : ''}`}>
+                        {message.split('\n').map((line, i) => (
+                            <p key={i} className={i > 0 ? 'mt-2' : ''}>{line}</p>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+        
+        // Agent card
+        function AgentCard({ agent, onClick }) {
+            const roleColors = {
+                'Supreme Orchestrator': 'border-sovereign-500 bg-sovereign-950/50',
+                'Domain Expert & Planner': 'border-blue-500 bg-blue-950/50',
+                'Autonomous Discovery Agent': 'border-purple-500 bg-purple-950/50',
+                'Quality Controller & Devil\'s Advocate': 'border-red-500 bg-red-950/50',
+                'Integration & Emergence Specialist': 'border-green-500 bg-green-950/50',
+                'Action & Implementation Specialist': 'border-orange-500 bg-orange-950/50',
+            };
+            
+            const borderColor = roleColors[agent.persona?.role] || 'border-zinc-700 bg-zinc-900/50';
+            
+            return (
+                <div 
+                    className={`p-4 rounded-xl border ${borderColor} cursor-pointer hover:scale-[1.02] transition-transform`}
+                    onClick={onClick}
+                >
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center">
+                            <Icon name="Bot" size={20} />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-white">{agent.persona?.name || agent.agent_id}</h3>
+                            <p className="text-xs text-zinc-400">{agent.persona?.role}</p>
+                        </div>
+                        <StatusDot status={agent.is_active ? 'online' : 'idle'} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="text-zinc-400">Thoughts: <span className="text-zinc-200">{agent.thoughts}</span></div>
+                        <div className="text-zinc-400">Children: <span className="text-zinc-200">{agent.children}</span></div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // System stats
+        function SystemStats({ status }) {
+            if (!status) return null;
+            
+            const formatUptime = (seconds) => {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = Math.floor(seconds % 60);
+                return `${h}h ${m}m ${s}s`;
+            };
+            
+            return (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                        <div className="text-zinc-400 text-sm mb-1">Mode</div>
+                        <div className="text-xl font-semibold text-sovereign-400">{status.mode}</div>
+                    </div>
+                    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                        <div className="text-zinc-400 text-sm mb-1">Agents</div>
+                        <div className="text-xl font-semibold text-white">
+                            {Object.keys(status.agents || {}).length}
+                        </div>
+                    </div>
+                    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                        <div className="text-zinc-400 text-sm mb-1">API Cost</div>
+                        <div className="text-xl font-semibold text-green-400">
+                            ${status.llm_stats?.estimated_cost_usd?.toFixed(4) || '0.00'}
+                        </div>
+                    </div>
+                    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                        <div className="text-zinc-400 text-sm mb-1">Uptime</div>
+                        <div className="text-xl font-semibold text-white">
+                            {formatUptime(status.uptime_seconds || 0)}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Tab button
+        function TabButton({ active, onClick, icon, children }) {
+            return (
+                <button
+                    onClick={onClick}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                        active 
+                            ? 'bg-sovereign-600 text-white' 
+                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                    }`}
+                >
+                    <Icon name={icon} size={18} />
+                    {children}
+                </button>
+            );
+        }
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // PANELS
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        // Chat panel
+        function ChatPanel() {
+            const [messages, setMessages] = useState([]);
+            const [conversations, setConversations] = useState([]);
+            const [activeConversationId, setActiveConversationId] = useState(null);
+            const [input, setInput] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            const [showSidebar, setShowSidebar] = useState(true);
+            const messagesEndRef = useRef(null);
+            
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            };
+            
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages]);
+            
+            // Load conversations on mount
+            useEffect(() => {
+                loadConversations();
+            }, []);
+            
+            // Load active conversation from localStorage
+            useEffect(() => {
+                const savedActiveId = storage.get('active_conversation_id');
+                if (savedActiveId) {
+                    loadConversation(savedActiveId);
+                }
+            }, []);
+            
+            const loadConversations = async () => {
+                try {
+                    const data = await api.listConversations();
+                    setConversations(data.conversations || []);
+                } catch (e) {
+                    // If server not available, load from localStorage
+                    const cached = storage.get('conversations', []);
+                    setConversations(cached);
+                }
+            };
+            
+            const loadConversation = async (convId) => {
+                try {
+                    const conv = await api.getConversation(convId);
+                    if (conv) {
+                        setMessages(conv.messages || []);
+                        setActiveConversationId(convId);
+                        storage.set('active_conversation_id', convId);
+                    }
+                } catch (e) {
+                    // Load from localStorage cache
+                    const cached = storage.get(`conversation_${convId}`, { messages: [] });
+                    setMessages(cached.messages || []);
+                    setActiveConversationId(convId);
+                }
+            };
+            
+            const startNewConversation = async () => {
+                setMessages([]);
+                setActiveConversationId(null);
+                storage.remove('active_conversation_id');
+            };
+            
+            const deleteConversation = async (convId) => {
+                await api.deleteConversation(convId);
+                storage.remove(`conversation_${convId}`);
+                if (activeConversationId === convId) {
+                    startNewConversation();
+                }
+                loadConversations();
+            };
+            
+            const handleSend = async () => {
+                if (!input.trim() || isLoading) return;
+                
+                const userMessage = input.trim();
+                setInput('');
+                
+                // Optimistically add user message
+                const newUserMsg = { role: 'user', content: userMessage };
+                setMessages(prev => [...prev, newUserMsg]);
+                
+                setIsLoading(true);
+                
+                try {
+                    const response = await api.chat(userMessage, activeConversationId);
+                    
+                    // Update conversation ID if new
+                    if (response.conversation_id && response.conversation_id !== activeConversationId) {
+                        setActiveConversationId(response.conversation_id);
+                        storage.set('active_conversation_id', response.conversation_id);
+                        loadConversations(); // Refresh list
+                    }
+                    
+                    // Add assistant message
+                    const newAssistantMsg = { role: 'assistant', content: response.response };
+                    setMessages(prev => [...prev, newAssistantMsg]);
+                    
+                    // Cache locally
+                    const allMessages = [...messages, newUserMsg, newAssistantMsg];
+                    storage.set(`conversation_${response.conversation_id}`, { messages: allMessages });
+                    
+                } catch (error) {
+                    setMessages(prev => [...prev, { 
+                        role: 'assistant', 
+                        content: `Error: ${error.message}. Make sure the API server is running.` 
+                    }]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            
+            const handleKeyDown = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                }
+            };
+            
+            return (
+                <div className="flex h-[calc(100vh-280px)]">
+                    {/* Sidebar - Conversation List */}
+                    {showSidebar && (
+                        <div className="w-64 border-r border-zinc-800 flex flex-col">
+                            <div className="p-3 border-b border-zinc-800">
+                                <button
+                                    onClick={startNewConversation}
+                                    className="w-full px-4 py-2 bg-sovereign-600 hover:bg-sovereign-500 
+                                             rounded-lg flex items-center justify-center gap-2 transition-colors"
+                                >
+                                    <Icon name="Plus" size={16} />
+                                    New Chat
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto">
+                                {conversations.map(conv => (
+                                    <div
+                                        key={conv.id}
+                                        className={`p-3 cursor-pointer border-b border-zinc-800/50 hover:bg-zinc-800/50
+                                                  flex items-center justify-between group
+                                                  ${activeConversationId === conv.id ? 'bg-zinc-800' : ''}`}
+                                    >
+                                        <div 
+                                            className="flex-1 truncate"
+                                            onClick={() => loadConversation(conv.id)}
+                                        >
+                                            <div className="text-sm font-medium truncate">{conv.title}</div>
+                                            <div className="text-xs text-zinc-500">
+                                                {conv.message_count} messages
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => deleteConversation(conv.id)}
+                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-900/50 rounded"
+                                        >
+                                            <Icon name="Trash2" size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+                                {conversations.length === 0 && (
+                                    <div className="p-4 text-center text-zinc-500 text-sm">
+                                        No conversations yet
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Main Chat Area */}
+                    <div className="flex-1 flex flex-col">
+                        {/* Toggle sidebar button */}
+                        <button
+                            onClick={() => setShowSidebar(!showSidebar)}
+                            className="absolute left-2 top-2 p-2 hover:bg-zinc-800 rounded-lg z-10"
+                        >
+                            <Icon name={showSidebar ? "PanelLeftClose" : "PanelLeft"} size={18} />
+                        </button>
+                        
+                        {/* Messages */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {messages.length === 0 && (
+                                <div className="text-center text-zinc-500 py-12">
+                                    <Icon name="MessageSquare" size={48} className="mx-auto mb-4 opacity-50" />
+                                    <p>Start a new conversation</p>
+                                </div>
+                            )}
+                            {messages.map((msg, i) => (
+                                <ChatMessage 
+                                    key={i} 
+                                    message={msg.content} 
+                                    isUser={msg.role === 'user'}
+                                />
+                            ))}
+                            {isLoading && (
+                                <ChatMessage 
+                                    message="Thinking..." 
+                                    isUser={false}
+                                    isThinking={true}
+                                />
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+                        
+                        {/* Input */}
+                        <div className="p-4 border-t border-zinc-800">
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Type a message..."
+                                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 
+                                             focus:outline-none focus:border-sovereign-500 transition-colors"
+                                    disabled={isLoading}
+                                />
+                                <button
+                                    onClick={handleSend}
+                                    disabled={isLoading || !input.trim()}
+                                    className="px-6 py-3 bg-sovereign-600 hover:bg-sovereign-500 disabled:bg-zinc-700
+                                             rounded-xl transition-colors flex items-center gap-2"
+                                >
+                                    <Icon name="Send" size={18} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // Explore panel
+        function ExplorePanel() {
+            const [seed, setSeed] = useState('');
+            const [results, setResults] = useState([]);
+            const [isLoading, setIsLoading] = useState(false);
+            
+            const handleExplore = async (continueExploring = false) => {
+                setIsLoading(true);
+                try {
+                    const response = continueExploring 
+                        ? await api.continueExplore()
+                        : await api.explore(seed || null);
+                    
+                    setResults(prev => [...prev, {
+                        type: continueExploring ? 'continue' : 'start',
+                        seed: seed,
+                        result: response.result,
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                    
+                    if (!continueExploring) setSeed('');
+                } catch (error) {
+                    setResults(prev => [...prev, {
+                        type: 'error',
+                        result: { result: error.message },
+                        timestamp: new Date().toLocaleTimeString()
+                    }]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            
+            return (
+                <div className="p-4 space-y-4">
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={seed}
+                            onChange={(e) => setSeed(e.target.value)}
+                            placeholder="Exploration topic (optional)..."
+                            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 
+                                     focus:outline-none focus:border-purple-500 transition-colors"
+                        />
+                        <button
+                            onClick={() => handleExplore(false)}
+                            disabled={isLoading}
+                            className="px-6 py-3 bg-purple-600 hover:bg-purple-500 disabled:bg-zinc-700
+                                     rounded-xl transition-colors flex items-center gap-2"
+                        >
+                            <Icon name="Compass" size={18} />
+                            Explore
+                        </button>
+                        <button
+                            onClick={() => handleExplore(true)}
+                            disabled={isLoading || results.length === 0}
+                            className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900
+                                     rounded-xl transition-colors flex items-center gap-2"
+                        >
+                            <Icon name="ArrowRight" size={18} />
+                            Continue
+                        </button>
+                    </div>
+                    
+                    {/* Results */}
+                    <div className="space-y-4 max-h-[calc(100vh-400px)] overflow-y-auto">
+                        {results.map((item, i) => (
+                            <div key={i} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 message-enter">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Icon name={item.type === 'error' ? 'AlertCircle' : 'Sparkles'} size={16} />
+                                    <span className="text-sm text-zinc-400">{item.timestamp}</span>
+                                    {item.seed && <span className="text-xs bg-purple-900/50 text-purple-300 px-2 py-1 rounded">
+                                        {item.seed}
+                                    </span>}
+                                </div>
+                                <div className="text-zinc-200 whitespace-pre-wrap">
+                                    {item.result?.result || JSON.stringify(item.result, null, 2)}
+                                </div>
+                                {item.result?.next_steps?.length > 0 && (
+                                    <div className="mt-3 pt-3 border-t border-zinc-800">
+                                        <div className="text-sm text-zinc-400 mb-2">Next steps:</div>
+                                        <ul className="list-disc list-inside text-sm text-zinc-300">
+                                            {item.result.next_steps.map((step, j) => (
+                                                <li key={j}>{step}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+        
+        // Multi-agent task panel
+        function TaskPanel() {
+            const [description, setDescription] = useState('');
+            const [selectedAgents, setSelectedAgents] = useState(['architect', 'executor', 'critic']);
+            const [result, setResult] = useState(null);
+            const [isLoading, setIsLoading] = useState(false);
+            
+            const availableAgents = [
+                { id: 'architect', name: 'Architect', icon: 'PenTool' },
+                { id: 'executor', name: 'Executor', icon: 'Play' },
+                { id: 'critic', name: 'Critic', icon: 'Search' },
+                { id: 'explorer', name: 'Explorer', icon: 'Compass' },
+                { id: 'synthesizer', name: 'Synthesizer', icon: 'Merge' },
+            ];
+            
+            const toggleAgent = (id) => {
+                setSelectedAgents(prev => 
+                    prev.includes(id) 
+                        ? prev.filter(a => a !== id)
+                        : [...prev, id]
+                );
+            };
+            
+            const handleExecute = async () => {
+                if (!description.trim()) return;
+                
+                setIsLoading(true);
+                setResult(null);
+                
+                try {
+                    const response = await api.multiTask(description, selectedAgents);
+                    setResult(response);
+                } catch (error) {
+                    setResult({ error: error.message });
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            
+            return (
+                <div className="p-4 space-y-4">
+                    {/* Task input */}
+                    <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Describe your task..."
+                        rows={3}
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 
+                                 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                    />
+                    
+                    {/* Agent selection */}
+                    <div className="flex flex-wrap gap-2">
+                        {availableAgents.map(agent => (
+                            <button
+                                key={agent.id}
+                                onClick={() => toggleAgent(agent.id)}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                                    selectedAgents.includes(agent.id)
+                                        ? 'bg-orange-600 text-white'
+                                        : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                                }`}
+                            >
+                                <Icon name={agent.icon} size={16} />
+                                {agent.name}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    {/* Execute button */}
+                    <button
+                        onClick={handleExecute}
+                        disabled={isLoading || !description.trim() || selectedAgents.length === 0}
+                        className="w-full px-6 py-3 bg-orange-600 hover:bg-orange-500 disabled:bg-zinc-700
+                                 rounded-xl transition-colors flex items-center justify-center gap-2"
+                    >
+                        {isLoading ? (
+                            <>
+                                <Icon name="Loader2" size={18} className="animate-spin" />
+                                Agents working...
+                            </>
+                        ) : (
+                            <>
+                                <Icon name="Zap" size={18} />
+                                Execute with {selectedAgents.length} agents
+                            </>
+                        )}
+                    </button>
+                    
+                    {/* Result */}
+                    {result && (
+                        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 max-h-96 overflow-y-auto">
+                            {result.error ? (
+                                <div className="text-red-400">{result.error}</div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {/* Synthesis (main result) */}
+                                    {result.result?.synthesis && (
+                                        <div>
+                                            <div className="text-sm text-zinc-400 mb-2 flex items-center gap-2">
+                                                <Icon name="Sparkles" size={14} />
+                                                Final Synthesis
+                                            </div>
+                                            <div className="text-zinc-200 whitespace-pre-wrap">
+                                                {result.result.synthesis.result}
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Individual results */}
+                                    <details className="group">
+                                        <summary className="cursor-pointer text-sm text-zinc-400 hover:text-white">
+                                            Show individual agent outputs
+                                        </summary>
+                                        <div className="mt-3 space-y-3 pl-4 border-l border-zinc-700">
+                                            {result.result?.individual_results && 
+                                                Object.entries(result.result.individual_results).map(([agent, output]) => (
+                                                    <div key={agent}>
+                                                        <div className="text-sm font-medium text-zinc-300 capitalize">{agent}</div>
+                                                        <div className="text-sm text-zinc-400 mt-1">
+                                                            {output.result || JSON.stringify(output)}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    </details>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        
+        // Agents panel
+        function AgentsPanel({ agents }) {
+            return (
+                <div className="p-4">
+                    {agents && Object.keys(agents.agents || {}).length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {Object.entries(agents.agents).map(([name, agent]) => (
+                                <AgentCard key={name} agent={agent} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center text-zinc-500 py-12">
+                            <Icon name="Bot" size={48} className="mx-auto mb-4 opacity-50" />
+                            <p>No agents active yet.</p>
+                            <p className="text-sm">Start chatting or exploring to spawn agents.</p>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // MAIN APP
+        // ═══════════════════════════════════════════════════════════════════════
+        
+        function App() {
+            const [activeTab, setActiveTab] = useState('chat');
+            const [status, setStatus] = useState(null);
+            const [agents, setAgents] = useState(null);
+            const [isConnected, setIsConnected] = useState(false);
+            
+            // Fetch status periodically
+            useEffect(() => {
+                const fetchStatus = async () => {
+                    try {
+                        const [statusRes, agentsRes] = await Promise.all([
+                            api.getStatus(),
+                            api.getAgents()
+                        ]);
+                        setStatus(statusRes);
+                        setAgents(agentsRes);
+                        setIsConnected(true);
+                    } catch (error) {
+                        setIsConnected(false);
+                    }
+                };
+                
+                fetchStatus();
+                const interval = setInterval(fetchStatus, 5000);
+                return () => clearInterval(interval);
+            }, []);
+            
+            return (
+                <div className="min-h-screen bg-zinc-950">
+                    {/* Header */}
+                    <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-50">
+                        <div className="container mx-auto px-4 py-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-xl bg-sovereign-600 flex items-center justify-center ${isConnected ? 'glow-pulse' : ''}`}>
+                                        <Icon name="Brain" size={24} />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-bold text-white">Sovereign Agents</h1>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <StatusDot status={isConnected ? 'online' : 'offline'} />
+                                            <span className="text-zinc-400">
+                                                {isConnected ? 'Connected' : 'Disconnected'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Quick actions */}
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => api.clearMemories()}
+                                        className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                                        title="Clear memories"
+                                    >
+                                        <Icon name="Trash2" size={18} />
+                                    </button>
+                                    <a 
+                                        href="http://localhost:8000/docs"
+                                        target="_blank"
+                                        className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                                        title="API Docs"
+                                    >
+                                        <Icon name="FileCode" size={18} />
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    {/* Main content */}
+                    <main className="container mx-auto px-4 py-6">
+                        {/* Stats */}
+                        <div className="mb-6">
+                            <SystemStats status={status} />
+                        </div>
+                        
+                        {/* Tabs */}
+                        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                            <TabButton 
+                                active={activeTab === 'chat'} 
+                                onClick={() => setActiveTab('chat')}
+                                icon="MessageSquare"
+                            >
+                                Chat
+                            </TabButton>
+                            <TabButton 
+                                active={activeTab === 'explore'} 
+                                onClick={() => setActiveTab('explore')}
+                                icon="Compass"
+                            >
+                                Explore
+                            </TabButton>
+                            <TabButton 
+                                active={activeTab === 'task'} 
+                                onClick={() => setActiveTab('task')}
+                                icon="Zap"
+                            >
+                                Multi-Agent Task
+                            </TabButton>
+                            <TabButton 
+                                active={activeTab === 'agents'} 
+                                onClick={() => setActiveTab('agents')}
+                                icon="Bot"
+                            >
+                                Agents ({Object.keys(agents?.agents || {}).length})
+                            </TabButton>
+                        </div>
+                        
+                        {/* Tab content */}
+                        <div className="bg-zinc-900/50 rounded-2xl border border-zinc-800 overflow-hidden">
+                            {activeTab === 'chat' && <ChatPanel />}
+                            {activeTab === 'explore' && <ExplorePanel />}
+                            {activeTab === 'task' && <TaskPanel />}
+                            {activeTab === 'agents' && <AgentsPanel agents={agents} />}
+                        </div>
+                        
+                        {/* Connection warning */}
+                        {!isConnected && (
+                            <div className="fixed bottom-4 right-4 bg-red-900/90 text-white px-4 py-3 rounded-xl border border-red-700 flex items-center gap-3">
+                                <Icon name="AlertTriangle" size={20} />
+                                <div>
+                                    <div className="font-medium">Not connected</div>
+                                    <div className="text-sm text-red-200">Start the API server: python api_server.py</div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+        
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

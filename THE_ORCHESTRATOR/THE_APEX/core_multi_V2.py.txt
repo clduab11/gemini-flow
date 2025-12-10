@@ -1,0 +1,1007 @@
+"""
+APEX Framework - Core Implementation (v2)
+Adaptive Precision Execution Architecture
+
+Designad för att spawna domän-specifika agent-system med
+inbyggd konvergens mot excellence.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import time
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, Generic, Protocol, TypeVar
+
+from pydantic import BaseModel, ValidationError
+
+# ============================================================================
+# TYPE DEFINITIONS
+# ============================================================================
+
+T = TypeVar("T", bound=BaseModel)  # Output type
+C = TypeVar("C")  # Context type
+
+Context = dict[str, Any]
+QualityScore = float
+
+
+class QualityFunction(Protocol[T]):
+    """Protocol för domän-specifika quality functions."""
+
+    def __call__(self, output: T, context: Context) -> QualityScore:
+        """
+        Returnerar quality score 0.0-1.0
+
+        Krav:
+        - Deterministisk (samma input → samma output)
+        - Snabb (< 100ms)
+        - Granulär (inte bara pass/fail)
+        """
+        ...
+
+
+class TerminationReason(Enum):
+    """Anledningar till att execution avslutas."""
+
+    CONVERGED = "converged"
+    MAX_ITERATIONS = "max_iterations"
+    QUALITY_PLATEAU = "quality_plateau"
+    CONSTRAINT_CEILING = "constraint_ceiling"
+    VALIDATION_FAILURE = "validation_failure"
+    TOKEN_EXHAUSTION = "token_exhaustion"
+    NO_CANDIDATES = "no_candidates"
+    ROUTING_FAILURE = "routing_failure"
+    INTERNAL_ERROR = "internal_error"
+
+
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+
+
+@dataclass
+class APEXConfig:
+    """Konfiguration för en APEX-instans."""
+
+    # Quality thresholds
+    quality_threshold: float = 0.85
+    """Minsta acceptabla kvalitet för att betrakta som 'klar'."""
+    severity_threshold: float = 0.3
+    """Max tillåten kritisk severity för att betrakta som 'tillräckligt bra'."""
+    plateau_epsilon: float = 0.01
+    """Minsta förbättring som krävs för att inte betraktas som plateau."""
+
+    # Iteration limits
+    max_iterations: int = 5
+    max_validation_retries: int = 3
+
+    # Parallelism
+    parallel_generators: int = 3
+
+    # Token budgets (metadata – enforcement sker externt)
+    token_budget_architect: int = 2000
+    token_budget_generator: int = 4000
+    token_budget_critic: int = 1500
+    token_budget_integrator: int = 2000
+
+    # Model selection (metadata – används av domän-specifik implementation)
+    model_architect: str = "claude-sonnet-4-20250514"
+    model_generator: str = "claude-sonnet-4-20250514"
+    model_critic: str = "claude-haiku"
+
+    # Routing
+    routing_method: str = "semantic"  # "semantic" | "llm" | "rule_based"
+
+
+@dataclass
+class APEXMetrics:
+    """Metrics för observability och diagnostik."""
+
+    tokens_used: int = 0
+    api_calls: int = 0
+    wall_time_seconds: float = 0.0
+    cost_usd: float = 0.0
+
+    final_score: float = 0.0
+    score_trajectory: list[float] = field(default_factory=list)
+    invariant_violations: int = 0
+
+    iterations_used: int = 0
+    termination_reason: TerminationReason = TerminationReason.CONVERGED
+
+    pattern_selected: str = ""
+    route_confidence: float = 0.0
+
+    # Extra diagnos
+    generator_exceptions: int = 0
+    critic_exceptions: int = 0
+
+
+@dataclass
+class APEXResult(Generic[T]):
+    """Resultat från en APEX execution."""
+
+    output: T | None
+    score: float
+    iterations: int
+    termination_reason: TerminationReason
+    metrics: APEXMetrics
+    critiques: list[Critique] = field(default_factory=list)
+
+    @property
+    def success(self) -> bool:
+        return (
+            self.output is not None
+            and self.termination_reason == TerminationReason.CONVERGED
+        )
+
+
+# ============================================================================
+# CRITIQUE SYSTEM
+# ============================================================================
+
+
+@dataclass
+class Critique:
+    """En specifik kritik av genererad output."""
+
+    dimension: str  # t.ex. "logic", "style", "security"
+    issue: str
+    severity: float  # 0.0-1.0
+    suggestion: str | None = None
+    location: str | None = None  # t.ex. "line 47" eller "section 3"
+
+
+@dataclass
+class CritiqueResult:
+    """Aggregerat resultat från alla critics."""
+
+    critiques: list[Critique]
+
+    @property
+    def max_severity(self) -> float:
+        if not self.critiques:
+            return 0.0
+        return max(c.severity for c in self.critiques)
+
+    @property
+    def avg_severity(self) -> float:
+        if not self.critiques:
+            return 0.0
+        return sum(c.severity for c in self.critiques) / len(self.critiques)
+
+    def above_threshold(self, threshold: float) -> list[Critique]:
+        return [c for c in self.critiques if c.severity >= threshold]
+
+
+class Critic(ABC, Generic[T]):
+    """Bas-klass för domän-specifika critics."""
+
+    dimension: str
+    weight: float = 1.0
+
+    @abstractmethod
+    async def evaluate(self, output: T, context: Context) -> list[Critique]:
+        """Evaluera output och returnera kritik."""
+        ...
+
+
+# ============================================================================
+# GENERATORS
+# ============================================================================
+
+
+class Generator(ABC, Generic[T]):
+    """Bas-klass för output-generatorer."""
+
+    @abstractmethod
+    async def generate(
+        self,
+        task: str,
+        context: Context,
+        constraints: dict[str, Any] | None = None,
+    ) -> T:
+        """Generera output baserat på task och context."""
+        ...
+
+
+@dataclass
+class GenerationBatch(Generic[T]):
+    """Resultat från en batch generering."""
+
+    candidates: list[T]
+    exceptions: list[Exception] = field(default_factory=list)
+
+    @property
+    def has_candidates(self) -> bool:
+        return bool(self.candidates)
+
+
+class DiverseGeneratorPool(Generic[T]):
+    """Pool av generatorer med olika strategier/temperaturer."""
+
+    def __init__(self, generators: list[Generator[T]]):
+        if not generators:
+            raise ValueError("DiverseGeneratorPool kräver minst en generator")
+        self.generators = generators
+
+    async def generate_batch(
+        self,
+        task: str,
+        context: Context,
+        n: int | None = None,
+    ) -> GenerationBatch[T]:
+        """
+        Generera upp till n kandidater parallellt.
+
+        Exceptions fångas och samlas i batchen så att call-site kan
+        rapportera dem i metrics utan att krascha hela execution.
+        """
+        n = n or len(self.generators)
+        selected = self.generators[:n]
+
+        tasks = [g.generate(task, context) for g in selected]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        candidates: list[T] = []
+        exceptions: list[Exception] = []
+
+        for r in results:
+            if isinstance(r, Exception):
+                exceptions.append(r)
+            else:
+                candidates.append(r)
+
+        return GenerationBatch(candidates=candidates, exceptions=exceptions)
+
+
+# ============================================================================
+# CONVERGENCE STRATEGIES
+# ============================================================================
+
+
+class ConvergenceStrategy(ABC, Generic[T]):
+    """Strategi för att konvergera från kandidater till bästa output."""
+
+    @abstractmethod
+    async def converge(
+        self,
+        candidates: list[T],
+        context: Context,
+        score_fn: QualityFunction[T],
+    ) -> tuple[T, QualityScore]:
+        """
+        Välj eller syntetisera bästa output från kandidater.
+
+        Returns:
+            (bästa_output, score)
+        """
+        ...
+
+
+class VotingConvergence(ConvergenceStrategy[T]):
+    """
+    Enkel score-baserad "voting":
+    - Alla kandidater poängsätts
+    - Högsta score vinner
+    """
+
+    async def converge(
+        self,
+        candidates: list[T],
+        context: Context,
+        score_fn: QualityFunction[T],
+    ) -> tuple[T, QualityScore]:
+        if not candidates:
+            raise ValueError("VotingConvergence kräver minst en kandidat")
+
+        best: T = candidates[0]
+        best_score: float = score_fn(best, context)
+
+        for c in candidates[1:]:
+            s = score_fn(c, context)
+            if s > best_score:
+                best, best_score = c, s
+
+        return best, best_score
+
+
+class SynthesisConvergence(ConvergenceStrategy[T]):
+    """
+    Kombinerar bästa delar från varje kandidat via en extern
+    syntesmekanism (typiskt en LLM-baserad integrator).
+
+    Fallback: score-baserad selection om ingen explicit syntes finns.
+    """
+
+    def __init__(self, synthesizer: Generator[T] | None = None):
+        self.synthesizer = synthesizer
+
+    async def converge(
+        self,
+        candidates: list[T],
+        context: Context,
+        score_fn: QualityFunction[T],
+    ) -> tuple[T, QualityScore]:
+        if not candidates:
+            raise ValueError("SynthesisConvergence kräver minst en kandidat")
+
+        # Om vi inte har en synthesizer, fall tillbaka till enkel voting
+        if self.synthesizer is None or len(candidates) == 1:
+            voting = VotingConvergence[T]()
+            return await voting.converge(candidates, context, score_fn)
+
+        synthesis_context: Context = {
+            **context,
+            "candidates": candidates,
+        }
+
+        # En syntes ska typiskt använda alla kandidater och skapa en ny
+        synthesized = await self.synthesizer.generate(
+            task="Synthesize best aspects of provided candidates",
+            context=synthesis_context,
+        )
+        score = score_fn(synthesized, context)
+        return synthesized, score
+
+
+class DebateConvergence(ConvergenceStrategy[T]):
+    """Multi-agent debate för att nå konsensus (placeholder + score-baserat val)."""
+
+    def __init__(self, max_rounds: int = 3):
+        self.max_rounds = max_rounds
+
+    async def converge(
+        self,
+        candidates: list[T],
+        context: Context,
+        score_fn: QualityFunction[T],
+    ) -> tuple[T, QualityScore]:
+        if not candidates:
+            raise ValueError("DebateConvergence kräver minst en kandidat")
+
+        # Här kan man implementera MAD (Multi-Agent Debate).
+        # För nu använder vi score-baserat val men behåller hook för framtida debattlogik.
+        voting = VotingConvergence[T]()
+        return await voting.converge(candidates, context, score_fn)
+
+
+# ============================================================================
+# ROUTING
+# ============================================================================
+
+
+class PatternType(Enum):
+    """Tillgängliga APEX patterns."""
+
+    DIRECT = "direct"  # Ingen orkestrering
+    FRACTAL_DECOMPOSITION = "fractal_decomposition"  # Pattern A
+    ADVERSARIAL_REFINEMENT = "adversarial_refinement"  # Pattern B
+    CAPABILITY_CASCADE = "capability_cascade"  # Pattern C
+
+
+@dataclass
+class Route:
+    """En routing-regel."""
+
+    name: str
+    triggers: list[str]  # Keywords eller semantic descriptions
+    pattern: PatternType
+    confidence_threshold: float = 0.7
+
+
+class Router(ABC):
+    """Bas-klass för task routing."""
+
+    @abstractmethod
+    async def select_pattern(
+        self,
+        task: str,
+        context: Context,
+    ) -> tuple[PatternType, float]:
+        """Välj pattern och returnera confidence."""
+        ...
+
+
+class SemanticRouter(Router):
+    """Router baserad på enkel semantic/keyword matching (stub)."""
+
+    def __init__(self, routes: list[Route]):
+        self.routes = routes
+
+    async def select_pattern(
+        self,
+        task: str,
+        context: Context,
+    ) -> tuple[PatternType, float]:
+        lowered = task.lower()
+        best: PatternType | None = None
+        best_conf: float = 0.0
+
+        for route in self.routes:
+            hits = sum(1 for t in route.triggers if t.lower() in lowered)
+            if not hits:
+                continue
+            # Enkel confidence heuristik
+            conf = min(1.0, 0.4 + 0.2 * hits)
+            if conf > best_conf:
+                best_conf = conf
+                best = route.pattern
+
+        if best is None:
+            # Default fallback – capability cascade
+            return PatternType.CAPABILITY_CASCADE, 0.8
+
+        return best, best_conf
+
+
+class LLMRouter(Router):
+    """Router som använder LLM för komplexa beslut (stub)."""
+
+    async def select_pattern(
+        self,
+        task: str,
+        context: Context,
+    ) -> tuple[PatternType, float]:
+        # Här kan man plugga in en verklig LLM-baserad routing-policy.
+        # Default: capability cascade med hög confidence.
+        return PatternType.CAPABILITY_CASCADE, 0.9
+
+
+# ============================================================================
+# PATTERN IMPLEMENTATIONS
+# ============================================================================
+
+
+class Pattern(ABC, Generic[T]):
+    """Bas-klass för execution patterns."""
+
+    @abstractmethod
+    async def execute(
+        self,
+        task: str,
+        context: Context,
+        config: APEXConfig,
+        quality_fn: QualityFunction[T],
+        output_schema: type[T],
+    ) -> APEXResult[T]:
+        """Exekvera pattern och returnera resultat."""
+        ...
+
+
+class DirectPattern(Pattern[T]):
+    """Enkel single-shot generation utan orkestrering."""
+
+    def __init__(self, generator: Generator[T]):
+        self.generator = generator
+
+    async def execute(
+        self,
+        task: str,
+        context: Context,
+        config: APEXConfig,
+        quality_fn: QualityFunction[T],
+        output_schema: type[T],
+    ) -> APEXResult[T]:
+        metrics = APEXMetrics(pattern_selected="direct")
+        start = time.perf_counter()
+
+        try:
+            output = await self.generator.generate(task, context)
+            if not isinstance(output, output_schema):
+                # Säkerställ att vi alltid får rätt typ via pydantic-validering
+                output = output_schema.model_validate(output)  # type: ignore[arg-type]
+
+            score = quality_fn(output, context)
+            metrics.final_score = score
+            metrics.score_trajectory = [score]
+            metrics.iterations_used = 1
+
+            if score >= config.quality_threshold:
+                metrics.termination_reason = TerminationReason.CONVERGED
+            else:
+                metrics.termination_reason = TerminationReason.QUALITY_PLATEAU
+
+            return APEXResult(
+                output=output,
+                score=score,
+                iterations=1,
+                termination_reason=metrics.termination_reason,
+                metrics=metrics,
+            )
+
+        except ValidationError:
+            metrics.invariant_violations += 1
+            metrics.termination_reason = TerminationReason.VALIDATION_FAILURE
+            return APEXResult(
+                output=None,
+                score=0.0,
+                iterations=1,
+                termination_reason=TerminationReason.VALIDATION_FAILURE,
+                metrics=metrics,
+            )
+        except Exception:
+            metrics.termination_reason = TerminationReason.INTERNAL_ERROR
+            return APEXResult(
+                output=None,
+                score=0.0,
+                iterations=1,
+                termination_reason=TerminationReason.INTERNAL_ERROR,
+                metrics=metrics,
+            )
+        finally:
+            metrics.wall_time_seconds = time.perf_counter() - start
+
+
+class CapabilityCascadePattern(Pattern[T]):
+    """
+    Pattern C: Capability Cascade
+
+    Försöker lösa direkt först (probe), eskalerar vid behov.
+    """
+
+    def __init__(
+        self,
+        probe_generator: Generator[T],
+        refinement_pattern: Pattern[T],
+        decomposition_pattern: Pattern[T],
+    ):
+        self.probe = probe_generator
+        self.refinement = refinement_pattern
+        self.decomposition = decomposition_pattern
+
+    async def execute(
+        self,
+        task: str,
+        context: Context,
+        config: APEXConfig,
+        quality_fn: QualityFunction[T],
+        output_schema: type[T],
+    ) -> APEXResult[T]:
+        metrics = APEXMetrics(pattern_selected="capability_cascade")
+        start = time.perf_counter()
+
+        probe_score: float = 0.0
+        probe_result: T | None = None
+
+        # Steg 1: Probe - försök lösa direkt
+        try:
+            raw_probe = await self.probe.generate(task, context)
+            if isinstance(raw_probe, output_schema):
+                probe_result = raw_probe
+            else:
+                probe_result = output_schema.model_validate(raw_probe)  # type: ignore[arg-type]
+
+            probe_score = quality_fn(probe_result, context)
+            metrics.score_trajectory.append(probe_score)
+
+        except ValidationError:
+            metrics.invariant_violations += 1
+        except Exception:
+            # Probe misslyckades helt – behandla som score 0
+            pass
+
+        # Steg 2: Routing baserat på probe-score
+        try:
+            if probe_result is not None and probe_score >= 0.9:
+                # Tillräckligt bra direkt
+                metrics.final_score = probe_score
+                metrics.iterations_used = 1
+                metrics.termination_reason = TerminationReason.CONVERGED
+                return APEXResult(
+                    output=probe_result,
+                    score=probe_score,
+                    iterations=1,
+                    termination_reason=TerminationReason.CONVERGED,
+                    metrics=metrics,
+                )
+
+            # Berika context med probe-information för downstream patterns
+            cascade_context: Context = {
+                **context,
+                "probe_output": probe_result,
+                "probe_score": probe_score,
+            }
+
+            if probe_score >= 0.5:
+                # Behöver refinement
+                result = await self.refinement.execute(
+                    task=task,
+                    context=cascade_context,
+                    config=config,
+                    quality_fn=quality_fn,
+                    output_schema=output_schema,
+                )
+            else:
+                # Behöver full decomposition
+                result = await self.decomposition.execute(
+                    task=task,
+                    context=cascade_context,
+                    config=config,
+                    quality_fn=quality_fn,
+                    output_schema=output_schema,
+                )
+
+            # Slå ihop metrics
+            result.metrics.pattern_selected = "capability_cascade/" + result.metrics.pattern_selected
+            result.metrics.score_trajectory = metrics.score_trajectory + result.metrics.score_trajectory
+            return result
+
+        finally:
+            metrics.wall_time_seconds = time.perf_counter() - start
+
+
+class AdversarialRefinementPattern(Pattern[T]):
+    """
+    Pattern B: Adversarial Refinement
+
+    Iterativ förbättring genom critique-synthesis loop.
+    """
+
+    def __init__(
+        self,
+        generator_pool: DiverseGeneratorPool[T],
+        critics: list[Critic[T]],
+        convergence: ConvergenceStrategy[T],
+        synthesizer: Generator[T],
+    ):
+        self.generators = generator_pool
+        self.critics = critics
+        self.convergence = convergence
+        self.synthesizer = synthesizer
+
+    async def execute(
+        self,
+        task: str,
+        context: Context,
+        config: APEXConfig,
+        quality_fn: QualityFunction[T],
+        output_schema: type[T],
+    ) -> APEXResult[T]:
+        metrics = APEXMetrics(pattern_selected="adversarial_refinement")
+        start = time.perf_counter()
+        all_critiques: list[Critique] = []
+
+        try:
+            # Steg 1: Generera kandidater
+            batch = await self.generators.generate_batch(
+                task, context, n=config.parallel_generators
+            )
+            metrics.generator_exceptions += len(batch.exceptions)
+
+            if not batch.candidates:
+                metrics.termination_reason = TerminationReason.NO_CANDIDATES
+                return APEXResult(
+                    output=None,
+                    score=0.0,
+                    iterations=0,
+                    termination_reason=TerminationReason.NO_CANDIDATES,
+                    metrics=metrics,
+                )
+
+            # Säkerställ rätt typ
+            valid_candidates: list[T] = []
+            for c in batch.candidates:
+                if isinstance(c, output_schema):
+                    valid_candidates.append(c)
+                else:
+                    try:
+                        valid_candidates.append(
+                            output_schema.model_validate(c)  # type: ignore[arg-type]
+                        )
+                    except ValidationError:
+                        metrics.invariant_violations += 1
+
+            if not valid_candidates:
+                metrics.termination_reason = TerminationReason.VALIDATION_FAILURE
+                return APEXResult(
+                    output=None,
+                    score=0.0,
+                    iterations=0,
+                    termination_reason=TerminationReason.VALIDATION_FAILURE,
+                    metrics=metrics,
+                )
+
+            # Steg 2: Konvergera till startpunkt (current)
+            current, current_score = await self.convergence.converge(
+                valid_candidates, context, quality_fn
+            )
+            metrics.score_trajectory.append(current_score)
+
+            # Om vi redan är över quality-threshold och inga critics finns → klar
+            if not self.critics and current_score >= config.quality_threshold:
+                metrics.termination_reason = TerminationReason.CONVERGED
+                metrics.final_score = current_score
+                metrics.iterations_used = 1
+                return APEXResult(
+                    output=current,
+                    score=current_score,
+                    iterations=1,
+                    termination_reason=TerminationReason.CONVERGED,
+                    metrics=metrics,
+                )
+
+            # Steg 3: Refinement loop
+            for iteration in range(config.max_iterations):
+                metrics.iterations_used = iteration + 1
+
+                # Kör critics
+                critique_tasks = [
+                    critic.evaluate(current, context) for critic in self.critics
+                ]
+                try:
+                    critique_lists = await asyncio.gather(*critique_tasks)
+                except Exception:
+                    # Om någon critic kraschar, räkna upp och fortsätt med det som finns
+                    metrics.critic_exceptions += 1
+                    critique_lists = []
+
+                critiques = CritiqueResult(
+                    critiques=[c for sublist in critique_lists for c in sublist]
+                )
+                all_critiques.extend(critiques.critiques)
+
+                # Avslutningsvillkor:
+                # 1) Kritikens severity är låg
+                # 2) Kvaliteten är över quality_threshold
+                if (
+                    critiques.max_severity < config.severity_threshold
+                    and current_score >= config.quality_threshold
+                ):
+                    metrics.termination_reason = TerminationReason.CONVERGED
+                    metrics.final_score = current_score
+                    return APEXResult(
+                        output=current,
+                        score=current_score,
+                        iterations=iteration + 1,
+                        termination_reason=TerminationReason.CONVERGED,
+                        metrics=metrics,
+                        critiques=all_critiques,
+                    )
+
+                # Synthesize improvement
+                improvement_context: Context = {
+                    **context,
+                    "current_output": current,
+                    "critiques": critiques.above_threshold(0.2),
+                }
+
+                try:
+                    improved = await self.synthesizer.generate(
+                        task=f"Improve based on critiques: {task}",
+                        context=improvement_context,
+                    )
+
+                    if not isinstance(improved, output_schema):
+                        improved = output_schema.model_validate(improved)  # type: ignore[arg-type]
+
+                    new_score = quality_fn(improved, context)
+
+                except ValidationError:
+                    metrics.invariant_violations += 1
+                    # Synthesis gav ogiltig modell – hoppa denna iteration
+                    continue
+                except Exception:
+                    # Synthesis totalt misslyckad – hoppa
+                    continue
+
+                metrics.score_trajectory.append(new_score)
+
+                # Monotonic improvement check / plateau-detektion
+                if new_score <= current_score + config.plateau_epsilon:
+                    metrics.termination_reason = TerminationReason.QUALITY_PLATEAU
+                    metrics.final_score = current_score
+                    return APEXResult(
+                        output=current,
+                        score=current_score,
+                        iterations=iteration + 1,
+                        termination_reason=TerminationReason.QUALITY_PLATEAU,
+                        metrics=metrics,
+                        critiques=all_critiques,
+                    )
+
+                current = improved
+                current_score = new_score
+
+            # Max iterations reached
+            metrics.termination_reason = TerminationReason.MAX_ITERATIONS
+            metrics.final_score = current_score
+            return APEXResult(
+                output=current,
+                score=current_score,
+                iterations=config.max_iterations,
+                termination_reason=TerminationReason.MAX_ITERATIONS,
+                metrics=metrics,
+                critiques=all_critiques,
+            )
+
+        finally:
+            metrics.wall_time_seconds = time.perf_counter() - start
+
+
+# ============================================================================
+# MAIN EXECUTOR
+# ============================================================================
+
+
+class APEXExecutor(Generic[T]):
+    """
+    Huvudsaklig executor för APEX framework.
+
+    Koordinerar routing, pattern selection, och execution.
+    """
+
+    def __init__(
+        self,
+        router: Router,
+        patterns: dict[PatternType, Pattern[T]],
+        quality_fn: QualityFunction[T],
+        output_schema: type[T],
+        config: APEXConfig | None = None,
+        domain: str | None = None,
+    ):
+        self.router = router
+        self.patterns = patterns
+        self.quality_fn = quality_fn
+        self.output_schema = output_schema
+        self.config = config or APEXConfig()
+        self.domain = domain or "default"
+
+    async def execute(
+        self,
+        task: str,
+        context: Context | None = None,
+    ) -> APEXResult[T]:
+        """
+        Exekvera en task genom APEX framework.
+
+        Args:
+            task: Beskrivning av vad som ska genereras.
+            context: Domän-specifik kontext.
+
+        Returns:
+            APEXResult med output, score, och metrics.
+        """
+        ctx: Context = context or {}
+        metrics_base = APEXMetrics()
+        start = time.perf_counter()
+
+        try:
+            # Route till lämpligt pattern
+            try:
+                pattern_type, confidence = await self.router.select_pattern(task, ctx)
+            except Exception:
+                # Router felar – fallback till capability cascade
+                pattern_type, confidence = PatternType.CAPABILITY_CASCADE, 0.0
+
+            if pattern_type not in self.patterns:
+                # Fallback till capability cascade om pattern saknas
+                pattern_type = PatternType.CAPABILITY_CASCADE
+
+            pattern = self.patterns[pattern_type]
+
+            # Execute pattern
+            result = await pattern.execute(
+                task=task,
+                context=ctx,
+                config=self.config,
+                quality_fn=self.quality_fn,
+                output_schema=self.output_schema,
+            )
+
+            # Enricha metrics
+            result.metrics.route_confidence = confidence
+            result.metrics.pattern_selected = (
+                result.metrics.pattern_selected or pattern_type.value
+            )
+            result.metrics.wall_time_seconds = (
+                result.metrics.wall_time_seconds or time.perf_counter() - start
+            )
+            return result
+
+        except Exception:
+            metrics_base.termination_reason = TerminationReason.INTERNAL_ERROR
+            metrics_base.wall_time_seconds = time.perf_counter() - start
+            return APEXResult(
+                output=None,
+                score=0.0,
+                iterations=0,
+                termination_reason=TerminationReason.INTERNAL_ERROR,
+                metrics=metrics_base,
+            )
+
+
+# ============================================================================
+# FACTORY FUNCTION
+# ============================================================================
+
+
+def create_apex_instance(
+    domain: str,
+    output_schema: type[T],
+    quality_fn: QualityFunction[T],
+    generator_factory: Callable[[], Generator[T]],
+    critics: list[Critic[T]],
+    config: APEXConfig | None = None,
+) -> APEXExecutor[T]:
+    """
+    Factory function för att skapa en APEX-instans.
+
+    Args:
+        domain: Namn på domänen (för logging/metrics)
+        output_schema: Pydantic schema för output
+        quality_fn: Domän-specifik quality function
+        generator_factory: Factory för att skapa generatorer
+        critics: Lista av domän-specifika critics
+        config: Optional konfiguration
+
+    Returns:
+        Konfigurerad APEXExecutor
+    """
+    config = config or APEXConfig()
+
+    # Skapa generators
+    generators = [generator_factory() for _ in range(config.parallel_generators)]
+    generator_pool = DiverseGeneratorPool(generators)
+
+    # Convergence + patterns
+    synthesis_convergence = SynthesisConvergence(
+        synthesizer=generator_factory()
+    )
+
+    direct = DirectPattern(generators[0])
+
+    adversarial = AdversarialRefinementPattern(
+        generator_pool=generator_pool,
+        critics=critics,
+        convergence=synthesis_convergence,
+        synthesizer=generator_factory(),
+    )
+
+    cascade = CapabilityCascadePattern(
+        probe_generator=generators[0],
+        refinement_pattern=adversarial,
+        decomposition_pattern=adversarial,  # Kan bytas mot verklig decomposition-pattern
+    )
+
+    patterns: dict[PatternType, Pattern[T]] = {
+        PatternType.DIRECT: direct,
+        PatternType.ADVERSARIAL_REFINEMENT: adversarial,
+        PatternType.CAPABILITY_CASCADE: cascade,
+    }
+
+    # Enkel semantic router – kan konfigureras per domän
+    routes: list[Route] = [
+        Route(
+            name="simple_direct",
+            triggers=["quick", "trivial", "low risk"],
+            pattern=PatternType.DIRECT,
+        ),
+        Route(
+            name="complex_refinement",
+            triggers=["refactor", "optimize", "improve"],
+            pattern=PatternType.ADVERSARIAL_REFINEMENT,
+        ),
+    ]
+    router = SemanticRouter(routes=routes)
+
+    return APEXExecutor(
+        router=router,
+        patterns=patterns,
+        quality_fn=quality_fn,
+        output_schema=output_schema,
+        config=config,
+        domain=domain,
+    )
+
+
+# ============================================================================
+# USAGE EXAMPLE
+# ============================================================================
+
+if __name__ == "__main__":
+    # Se domän-specifika exempel (t.ex. APEX_EXAMPLE_SEO.py) för komplett användning.
+    print("APEX Framework v2 loaded. See domain examples for usage.")

@@ -1,0 +1,2623 @@
+SEO Intelligence Platform - Complete Project Structure
+================================================================================
+Total Files: 1874
+Generated: 2025-11-28T04:25:25.121Z
+================================================================================
+
+seo-intelligence-platform/
+├── "services
+│   └── bacowr
+│       ├── START_H
+│       │   └── 303
+│       │       └── 204R.md"
+│       └── utkast-till-api-l
+│           └── 303
+│               └── 266sning
+│                   ├── .env.example"
+│                   ├── README.md"
+│                   ├── app
+│                   │   ├── __init__.py"
+│                   │   ├── config.py"
+│                   │   ├── extract.py"
+│                   │   ├── intent_policy.py"
+│                   │   ├── models.py"
+│                   │   ├── policy.py"
+│                   │   ├── serp_providers.py"
+│                   │   ├── utils.py"
+│                   │   └── webhooks.py"
+│                   └── requirements.txt"
+├── .devcontainer
+│   ├── devcontainer.json
+│   ├── docker-compose.yml
+│   └── setup.sh
+├── .env.example
+├── .env.local
+├── .env.local.example
+├── .env.production.example
+├── .github
+│   └── workflows
+│       ├── azure-backend.yml
+│       ├── backend-ci.yml
+│       ├── crawler-ci.yml
+│       ├── deploy-production.yml
+│       ├── deploy-staging.yml
+│       ├── frontend-ci.yml
+│       ├── main_serpops.yml
+│       └── ml-service-ci.yml
+├── .gitignore
+├── .idea
+│   ├── .gitignore
+│   ├── aws.xml
+│   ├── copilot.data.migration.agent.xml
+│   ├── copilot.data.migration.ask.xml
+│   ├── copilot.data.migration.ask2agent.xml
+│   ├── copilot.data.migration.edit.xml
+│   ├── dbnavigator.xml
+│   ├── inspectionProfiles
+│   │   ├── Project_Default.xml
+│   │   └── profiles_settings.xml
+│   ├── misc.xml
+│   ├── modules.xml
+│   ├── seo-platform-clone.iml
+│   └── vcs.xml
+├── .testlab
+│   └── prompts
+│       ├── README.md
+│       ├── test_api_controllers_session4.md
+│       ├── test_frontend_api_client_session4.md
+│       ├── test_guards_middleware_utilities_session4.md
+│       ├── test_repository_layer_session4.md
+│       └── test_services_session4.md
+├── .validation
+│   ├── CHAT_B_INTRO_PROMPT.md
+│   ├── README.md
+│   ├── SNABBSTART.md
+│   ├── addressed
+│   │   └── .gitkeep
+│   ├── demos
+│   │   ├── README.md
+│   │   ├── index.html
+│   │   ├── start_demo.bat
+│   │   ├── start_demo.py
+│   │   └── start_demo.sh
+│   ├── in-progress
+│   │   └── .gitkeep
+│   ├── queue
+│   │   ├── QUEUE.md
+│   │   ├── keyword-research.md
+│   │   └── ranking-dashboard.md
+│   ├── reports
+│   │   └── .gitkeep
+│   └── templates
+│       ├── report-template.md
+│       └── validation-report-template.md
+├── CLAUDE.md
+├── COMMIT_MESSAGE_SESSION_6.txt
+├── DEVELOPMENT_STANDARDS.md
+├── ML_SERVICE_ANALYSIS_SUMMARY.txt
+├── Makefile
+├── PLATFORM_CONTEXT.md
+├── QUICKSTART.md
+├── README.md
+├── TEST_COVERAGE_REPORT.md
+├── backend
+│   ├── .env.example
+│   ├── .env.integrations.example
+│   ├── .env.production
+│   ├── .eslintrc.js
+│   ├── .gitignore
+│   ├── .prettierrc
+│   ├── ARCHITECTURE.md
+│   ├── Dockerfile
+│   ├── GA4_BACKEND_INTEGRATION_SUMMARY.md
+│   ├── PROJECT_SUMMARY.md
+│   ├── README.md
+│   ├── docs
+│   │   └── SEI-X_INTEGRATION.md
+│   ├── jest.config.js
+│   ├── migrations
+│   │   └── 00-init.sql
+│   ├── nest-cli.json
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── src
+│   │   ├── api
+│   │   │   ├── api.module.ts
+│   │   │   ├── controllers
+│   │   │   │   ├── analytics.controller.ts
+│   │   │   │   ├── backlinks.controller.ts
+│   │   │   │   ├── competitors.controller.ts
+│   │   │   │   ├── crawls.controller.ts
+│   │   │   │   ├── integrations.controller.ts
+│   │   │   │   ├── keywords.controller.ts
+│   │   │   │   ├── notifications.controller.ts
+│   │   │   │   ├── projects.controller.ts
+│   │   │   │   ├── rankings.controller.ts
+│   │   │   │   └── reports.controller.ts
+│   │   │   ├── decorators
+│   │   │   │   ├── current-user.decorator.ts
+│   │   │   │   ├── public.decorator.ts
+│   │   │   │   └── roles.decorator.ts
+│   │   │   ├── filters
+│   │   │   │   └── http-exception.filter.ts
+│   │   │   ├── guards
+│   │   │   │   ├── auth.guard.ts
+│   │   │   │   ├── roles.guard.ts
+│   │   │   │   └── tenant.guard.ts
+│   │   │   ├── interceptors
+│   │   │   │   ├── timeout.interceptor.ts
+│   │   │   │   └── transform.interceptor.ts
+│   │   │   ├── middleware
+│   │   │   │   ├── deprecation.middleware.ts
+│   │   │   │   ├── logger.middleware.ts
+│   │   │   │   ├── rate-limit.middleware.ts
+│   │   │   │   └── version.middleware.ts
+│   │   │   ├── pipes
+│   │   │   │   └── validation.pipe.ts
+│   │   │   ├── v1
+│   │   │   │   └── v1.controller.ts
+│   │   │   └── v2
+│   │   │       └── v2.controller.ts
+│   │   ├── app.module.ts
+│   │   ├── common
+│   │   │   ├── decorators
+│   │   │   │   ├── current-tenant.decorator.ts
+│   │   │   │   ├── current-user.decorator.ts
+│   │   │   │   ├── public.decorator.ts
+│   │   │   │   └── roles.decorator.ts
+│   │   │   ├── filters
+│   │   │   │   ├── global-exception.filter.ts
+│   │   │   │   ├── http-exception.filter.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   └── validation-exception.filter.ts
+│   │   │   ├── guards
+│   │   │   │   ├── admin.guard.ts
+│   │   │   │   ├── rate-limit.guard.ts
+│   │   │   │   └── roles.guard.ts
+│   │   │   ├── interceptors
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── logging.interceptor.ts
+│   │   │   │   └── transform.interceptor.ts
+│   │   │   ├── middleware
+│   │   │   │   ├── logging.middleware.ts
+│   │   │   │   └── tenant-context.middleware.ts
+│   │   │   └── pipes
+│   │   │       └── validation.pipe.ts
+│   │   ├── config
+│   │   │   ├── database.config.ts
+│   │   │   ├── jwt.config.ts
+│   │   │   ├── kafka.config.ts
+│   │   │   ├── neo4j.config.ts
+│   │   │   ├── redis.config.ts
+│   │   │   └── sei-x.config.ts
+│   │   ├── database
+│   │   │   ├── data-source.ts
+│   │   │   ├── entities
+│   │   │   │   ├── ApiKey.entity.ts
+│   │   │   │   ├── AuditLog.entity.ts
+│   │   │   │   ├── Backlink.entity.ts
+│   │   │   │   ├── Competitor.entity.ts
+│   │   │   │   ├── CrawlJob.entity.ts
+│   │   │   │   ├── CrawledPage.entity.ts
+│   │   │   │   ├── Integration.entity.ts
+│   │   │   │   ├── Keyword.entity.ts
+│   │   │   │   ├── KeywordRanking.entity.ts
+│   │   │   │   ├── Notification.entity.ts
+│   │   │   │   ├── Page.entity.ts
+│   │   │   │   ├── Project.entity.ts
+│   │   │   │   ├── Report.entity.ts
+│   │   │   │   ├── Tenant.entity.ts
+│   │   │   │   ├── User.entity.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── project.entity.ts
+│   │   │   │   ├── tenant.entity.ts
+│   │   │   │   ├── user-tenant.entity.ts
+│   │   │   │   └── user.entity.ts
+│   │   │   ├── migrations
+│   │   │   │   └── 1700000000000-InitialSchema.ts
+│   │   │   ├── seed.ts
+│   │   │   └── seeds
+│   │   │       ├── demo-data.seed.ts
+│   │   │       └── seed.ts
+│   │   ├── graphql
+│   │   │   ├── graphql.module.ts
+│   │   │   ├── resolvers
+│   │   │   │   ├── auth.resolver.ts
+│   │   │   │   ├── keyword.resolver.ts
+│   │   │   │   ├── project.resolver.ts
+│   │   │   │   ├── ranking.resolver.ts
+│   │   │   │   └── subscription.resolver.ts
+│   │   │   └── schema.graphql
+│   │   ├── jobs
+│   │   │   ├── api
+│   │   │   │   └── JobsController.ts
+│   │   │   ├── events
+│   │   │   │   └── JobEventsHandler.ts
+│   │   │   ├── health
+│   │   │   │   └── WorkerHealthCheck.ts
+│   │   │   ├── metrics
+│   │   │   │   └── JobMetricsAggregator.ts
+│   │   │   ├── monitoring
+│   │   │   │   └── JobMonitor.ts
+│   │   │   ├── queue
+│   │   │   │   └── QueueManager.ts
+│   │   │   ├── retry
+│   │   │   │   └── JobRetryStrategies.ts
+│   │   │   ├── scheduler
+│   │   │   │   └── JobScheduler.ts
+│   │   │   └── workers
+│   │   │       ├── BacklinkWorker.ts
+│   │   │       ├── EmailWorker.ts
+│   │   │       ├── MaintenanceWorker.ts
+│   │   │       ├── RankingWorker.ts
+│   │   │       ├── ReportWorker.ts
+│   │   │       └── SyncWorker.ts
+│   │   ├── main.ts
+│   │   ├── modules
+│   │   │   ├── admin
+│   │   │   │   ├── DELIVERY_SUMMARY.md
+│   │   │   │   ├── README.md
+│   │   │   │   ├── admin.controller.ts
+│   │   │   │   ├── admin.module.ts
+│   │   │   │   ├── admin.service.ts
+│   │   │   │   ├── controllers
+│   │   │   │   │   ├── admin-analytics.controller.ts
+│   │   │   │   │   ├── admin-audit.controller.ts
+│   │   │   │   │   ├── admin-tenant.controller.ts
+│   │   │   │   │   └── admin-user.controller.ts
+│   │   │   │   ├── decorators
+│   │   │   │   │   └── audit.decorator.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── analytics.dto.ts
+│   │   │   │   │   ├── audit-log.dto.ts
+│   │   │   │   │   ├── feature-flag.dto.ts
+│   │   │   │   │   ├── system-stats.dto.ts
+│   │   │   │   │   ├── tenant-management.dto.ts
+│   │   │   │   │   ├── tenant-query.dto.ts
+│   │   │   │   │   └── user-management.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── audit-log.entity.ts
+│   │   │   │   ├── interceptors
+│   │   │   │   │   └── audit.interceptor.ts
+│   │   │   │   └── services
+│   │   │   │       ├── admin-analytics.service.ts
+│   │   │   │       ├── admin-tenant-management.service.ts
+│   │   │   │       ├── admin-user-management.service.ts
+│   │   │   │       └── audit-log.service.ts
+│   │   │   ├── analytics
+│   │   │   │   ├── analytics.controller.ts
+│   │   │   │   ├── analytics.module.ts
+│   │   │   │   ├── analytics.service.spec.ts
+│   │   │   │   ├── analytics.service.ts
+│   │   │   │   └── dto
+│   │   │   │       ├── analytics-query.dto.ts
+│   │   │   │       └── revenue-analytics.dto.ts
+│   │   │   ├── api-gateway
+│   │   │   │   ├── api-gateway.controller.ts
+│   │   │   │   ├── api-gateway.module.ts
+│   │   │   │   ├── api-gateway.service.ts
+│   │   │   │   └── entities
+│   │   │   │       └── api-route.entity.ts
+│   │   │   ├── api-integrations
+│   │   │   │   ├── ahrefs-client.service.ts
+│   │   │   │   ├── api-integrations.module.ts
+│   │   │   │   ├── api-integrations.service.ts
+│   │   │   │   ├── dataforseo-client.service.ts
+│   │   │   │   └── semrush-client.service.ts
+│   │   │   ├── api-usage
+│   │   │   │   ├── api-usage.controller.ts
+│   │   │   │   ├── api-usage.interceptor.ts
+│   │   │   │   ├── api-usage.module.ts
+│   │   │   │   └── api-usage.service.ts
+│   │   │   ├── api-versioning
+│   │   │   │   ├── api-versioning.module.ts
+│   │   │   │   ├── api-versioning.service.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── api-version.entity.ts
+│   │   │   │   └── interceptors
+│   │   │   │       └── version.interceptor.ts
+│   │   │   ├── audit
+│   │   │   │   ├── audit.controller.ts
+│   │   │   │   ├── audit.module.ts
+│   │   │   │   ├── audit.service.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   └── create-audit.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── audit-issue.entity.ts
+│   │   │   │   │   └── audit.entity.ts
+│   │   │   │   ├── issue-detector.service.ts
+│   │   │   │   ├── page-speed.service.ts
+│   │   │   │   └── structured-data.validator.ts
+│   │   │   ├── auth
+│   │   │   │   ├── auth.controller.ts
+│   │   │   │   ├── auth.module.ts
+│   │   │   │   ├── auth.service.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── login.dto.ts
+│   │   │   │   │   ├── refresh-token.dto.ts
+│   │   │   │   │   └── register.dto.ts
+│   │   │   │   ├── guards
+│   │   │   │   │   ├── jwt-auth.guard.ts
+│   │   │   │   │   └── local-auth.guard.ts
+│   │   │   │   └── strategies
+│   │   │   │       ├── jwt.strategy.ts
+│   │   │   │       └── local.strategy.ts
+│   │   │   ├── backlink-analysis
+│   │   │   │   ├── backlink-analysis.controller.ts
+│   │   │   │   ├── backlink-analysis.module.ts
+│   │   │   │   ├── backlink-quality-analyzer.service.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   └── analyze-backlink.dto.ts
+│   │   │   │   └── entities
+│   │   │   │       └── backlink-analysis.entity.ts
+│   │   │   ├── backlinks
+│   │   │   │   ├── backlink.controller.ts
+│   │   │   │   ├── backlink.module.ts
+│   │   │   │   ├── backlink.service.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   └── create-backlink.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── backlink.entity.ts
+│   │   │   │   ├── link-quality.scorer.ts
+│   │   │   │   └── toxic-link.detector.ts
+│   │   │   ├── bacowr
+│   │   │   │   ├── bacowr.controller.ts
+│   │   │   │   ├── bacowr.module.ts
+│   │   │   │   ├── bacowr.service.ts
+│   │   │   │   └── dto
+│   │   │   │       ├── create-publisher-profile.dto.ts
+│   │   │   │       └── generate-content.dto.ts
+│   │   │   ├── billing
+│   │   │   │   ├── billing.controller.ts
+│   │   │   │   ├── billing.module.ts
+│   │   │   │   ├── billing.service.spec.ts
+│   │   │   │   ├── billing.service.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── create-payment-method.dto.ts
+│   │   │   │   │   └── stripe-webhook.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── invoice.entity.ts
+│   │   │   │   │   └── payment-method.entity.ts
+│   │   │   │   ├── listeners
+│   │   │   │   │   └── billing-event.listener.ts
+│   │   │   │   └── stripe-integration.service.ts
+│   │   │   ├── bulk
+│   │   │   │   ├── bulk.module.ts
+│   │   │   │   ├── controllers
+│   │   │   │   │   └── bulk.controller.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── import-request.dto.ts
+│   │   │   │   │   └── import-response.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── import-history.entity.ts
+│   │   │   │   └── services
+│   │   │   │       └── bulk.service.ts
+│   │   │   ├── business-logic
+│   │   │   │   ├── billing
+│   │   │   │   │   ├── DELIVERABLES.md
+│   │   │   │   │   ├── IMPLEMENTATION_SUMMARY.md
+│   │   │   │   │   ├── QUICK_START.md
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   ├── billing.module.ts
+│   │   │   │   │   ├── controllers
+│   │   │   │   │   │   └── billing.controller.ts
+│   │   │   │   │   ├── dto
+│   │   │   │   │   │   ├── billing-settings.dto.ts
+│   │   │   │   │   │   ├── billing-summary.dto.ts
+│   │   │   │   │   │   ├── cost-analytics.dto.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── invoice.dto.ts
+│   │   │   │   │   │   ├── payment-method.dto.ts
+│   │   │   │   │   │   └── transaction.dto.ts
+│   │   │   │   │   ├── entities
+│   │   │   │   │   │   ├── billing-settings.entity.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── invoice.entity.ts
+│   │   │   │   │   │   ├── payment-method.entity.ts
+│   │   │   │   │   │   └── transaction.entity.ts
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── migrations
+│   │   │   │   │   │   └── create-billing-tables.migration.ts
+│   │   │   │   │   └── services
+│   │   │   │   │       ├── cost-analytics.service.ts
+│   │   │   │   │       ├── index.ts
+│   │   │   │   │       ├── invoice.service.ts
+│   │   │   │   │       └── payment-processing.service.ts
+│   │   │   │   └── white-label
+│   │   │   │       ├── dto
+│   │   │   │       │   └── white-label.dto.ts
+│   │   │   │       ├── services
+│   │   │   │       │   ├── branding.service.ts
+│   │   │   │       │   ├── domain.service.ts
+│   │   │   │       │   ├── email-template.service.ts
+│   │   │   │       │   └── landing-page.service.ts
+│   │   │   │       ├── white-label.controller.ts
+│   │   │   │       └── white-label.module.ts
+│   │   │   ├── caching
+│   │   │   │   ├── cache-strategy.service.ts
+│   │   │   │   ├── caching.module.ts
+│   │   │   │   ├── decorators
+│   │   │   │   │   └── cacheable.decorator.ts
+│   │   │   │   └── interceptors
+│   │   │   │       └── cache.interceptor.ts
+│   │   │   ├── collaboration
+│   │   │   │   ├── README.md
+│   │   │   │   ├── collaboration.module.ts
+│   │   │   │   ├── controllers
+│   │   │   │   │   ├── activity.controller.ts
+│   │   │   │   │   ├── comment.controller.ts
+│   │   │   │   │   ├── invitation.controller.ts
+│   │   │   │   │   ├── permission.controller.ts
+│   │   │   │   │   └── team.controller.ts
+│   │   │   │   ├── decorators
+│   │   │   │   │   ├── current-user.decorator.ts
+│   │   │   │   │   ├── permissions.decorator.ts
+│   │   │   │   │   ├── roles.decorator.ts
+│   │   │   │   │   └── team-id.decorator.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── activity.dto.ts
+│   │   │   │   │   ├── comment.dto.ts
+│   │   │   │   │   ├── invitation.dto.ts
+│   │   │   │   │   └── team.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── activity.entity.ts
+│   │   │   │   │   ├── comment-attachment.entity.ts
+│   │   │   │   │   ├── comment-reaction.entity.ts
+│   │   │   │   │   ├── comment.entity.ts
+│   │   │   │   │   ├── permission.entity.ts
+│   │   │   │   │   ├── team-invitation.entity.ts
+│   │   │   │   │   ├── team-member.entity.ts
+│   │   │   │   │   └── team.entity.ts
+│   │   │   │   ├── guards
+│   │   │   │   │   ├── permission.guard.ts
+│   │   │   │   │   └── role.guard.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   └── services
+│   │   │   │       ├── activity.service.ts
+│   │   │   │       ├── comment.service.ts
+│   │   │   │       ├── invitation.service.ts
+│   │   │   │       ├── permission.service.ts
+│   │   │   │       └── team.service.ts
+│   │   │   ├── competitors
+│   │   │   │   ├── competitor.controller.ts
+│   │   │   │   ├── competitor.module.ts
+│   │   │   │   ├── competitor.service.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   └── create-competitor.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── competitor.entity.ts
+│   │   │   │   └── share-of-voice.calculator.ts
+│   │   │   ├── content-analysis
+│   │   │   │   ├── content-analysis.controller.ts
+│   │   │   │   ├── content-analysis.module.ts
+│   │   │   │   ├── content-quality.service.spec.ts
+│   │   │   │   ├── content-quality.service.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   └── analyze-content.dto.ts
+│   │   │   │   └── entities
+│   │   │   │       └── content-analysis.entity.ts
+│   │   │   ├── content-gap-analysis
+│   │   │   │   ├── content-gap-analysis.controller.ts
+│   │   │   │   ├── content-gap-analysis.module.ts
+│   │   │   │   ├── content-gap-analyzer.service.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   └── analyze-gaps.dto.ts
+│   │   │   │   └── entities
+│   │   │   │       └── content-gap.entity.ts
+│   │   │   ├── content
+│   │   │   │   ├── content-optimizer.service.ts
+│   │   │   │   ├── content.controller.ts
+│   │   │   │   ├── content.module.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   └── analyze-content.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── content-score.entity.ts
+│   │   │   │   ├── readability.analyzer.ts
+│   │   │   │   └── semantic-content.service.ts
+│   │   │   ├── crawler
+│   │   │   │   ├── CrawlerEngine.ts
+│   │   │   │   └── HTMLParser.ts
+│   │   │   ├── events
+│   │   │   │   ├── events.controller.ts
+│   │   │   │   ├── events.module.ts
+│   │   │   │   └── events.service.ts
+│   │   │   ├── export
+│   │   │   │   ├── excel-generator.ts
+│   │   │   │   ├── export.controller.ts
+│   │   │   │   ├── export.module.ts
+│   │   │   │   ├── export.service.ts
+│   │   │   │   └── pdf-generator.ts
+│   │   │   ├── graphql-api
+│   │   │   │   ├── dataloaders
+│   │   │   │   │   └── keyword.dataloader.ts
+│   │   │   │   ├── graphql-api.module.ts
+│   │   │   │   ├── guards
+│   │   │   │   │   └── gql-auth.guard.ts
+│   │   │   │   ├── resolvers
+│   │   │   │   │   ├── __tests__
+│   │   │   │   │   │   ├── content.resolver.spec.ts
+│   │   │   │   │   │   └── keyword.resolver.spec.ts
+│   │   │   │   │   ├── content.resolver.ts
+│   │   │   │   │   └── keyword.resolver.ts
+│   │   │   │   ├── schemas
+│   │   │   │   │   ├── content.schema.ts
+│   │   │   │   │   └── keyword.schema.ts
+│   │   │   │   └── subscriptions
+│   │   │   │       └── ranking.subscription.ts
+│   │   │   ├── integrations
+│   │   │   │   ├── IMPLEMENTATION_SUMMARY.md
+│   │   │   │   ├── README.md
+│   │   │   │   ├── google-ads
+│   │   │   │   │   ├── dto
+│   │   │   │   │   │   └── google-ads-query.dto.ts
+│   │   │   │   │   ├── entities
+│   │   │   │   │   │   └── google-ads-data.entity.ts
+│   │   │   │   │   ├── google-ads.controller.ts
+│   │   │   │   │   ├── google-ads.module.ts
+│   │   │   │   │   └── google-ads.service.ts
+│   │   │   │   ├── google-analytics
+│   │   │   │   │   ├── controllers
+│   │   │   │   │   │   ├── ga4-analytics.controller.ts
+│   │   │   │   │   │   ├── ga4-connection.controller.ts
+│   │   │   │   │   │   ├── ga4-oauth.controller.ts
+│   │   │   │   │   │   └── ga4-realtime.controller.ts
+│   │   │   │   │   ├── dto
+│   │   │   │   │   │   ├── ga-query.dto.ts
+│   │   │   │   │   │   ├── ga4-analytics.dto.ts
+│   │   │   │   │   │   ├── ga4-connection.dto.ts
+│   │   │   │   │   │   ├── ga4-ecommerce.dto.ts
+│   │   │   │   │   │   ├── ga4-funnel.dto.ts
+│   │   │   │   │   │   ├── ga4-oauth.dto.ts
+│   │   │   │   │   │   └── ga4-realtime.dto.ts
+│   │   │   │   │   ├── entities
+│   │   │   │   │   │   ├── ga-data.entity.ts
+│   │   │   │   │   │   ├── ga4-connection.entity.ts
+│   │   │   │   │   │   └── ga4-funnel.entity.ts
+│   │   │   │   │   ├── ga4-advanced.service.ts
+│   │   │   │   │   ├── gateways
+│   │   │   │   │   │   └── ga4-websocket.gateway.ts
+│   │   │   │   │   ├── google-analytics.controller.ts
+│   │   │   │   │   ├── google-analytics.module.ts
+│   │   │   │   │   ├── google-analytics.service.ts
+│   │   │   │   │   └── services
+│   │   │   │   │       ├── ga4-analytics.service.ts
+│   │   │   │   │       ├── ga4-connection.service.ts
+│   │   │   │   │       ├── ga4-ecommerce.service.ts
+│   │   │   │   │       ├── ga4-funnel.service.ts
+│   │   │   │   │       ├── ga4-oauth.service.ts
+│   │   │   │   │       └── ga4-realtime.service.ts
+│   │   │   │   ├── google-search-console
+│   │   │   │   │   ├── controllers
+│   │   │   │   │   │   ├── gsc-connection.controller.ts
+│   │   │   │   │   │   ├── gsc-oauth.controller.ts
+│   │   │   │   │   │   ├── gsc-performance.controller.ts
+│   │   │   │   │   │   └── gsc-sync-job.controller.ts
+│   │   │   │   │   ├── dto
+│   │   │   │   │   │   ├── gsc-connection.dto.ts
+│   │   │   │   │   │   ├── gsc-performance.dto.ts
+│   │   │   │   │   │   ├── gsc-query.dto.ts
+│   │   │   │   │   │   └── gsc-sync-job.dto.ts
+│   │   │   │   │   ├── entities
+│   │   │   │   │   │   ├── gsc-connection.entity.ts
+│   │   │   │   │   │   ├── gsc-data.entity.ts
+│   │   │   │   │   │   ├── gsc-sync-config.entity.ts
+│   │   │   │   │   │   └── gsc-sync-job.entity.ts
+│   │   │   │   │   ├── google-search-console.controller.ts
+│   │   │   │   │   ├── google-search-console.module.ts
+│   │   │   │   │   ├── google-search-console.service.ts
+│   │   │   │   │   ├── gsc-analytics.service.ts
+│   │   │   │   │   ├── gsc-sync.service.ts
+│   │   │   │   │   └── services
+│   │   │   │   │       ├── gsc-connection.service.ts
+│   │   │   │   │       ├── gsc-index.service.ts
+│   │   │   │   │       ├── gsc-oauth.service.ts
+│   │   │   │   │       └── gsc-performance.service.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── integrations.module.ts
+│   │   │   │   ├── oauth
+│   │   │   │   │   ├── dto
+│   │   │   │   │   │   └── oauth-callback.dto.ts
+│   │   │   │   │   ├── entities
+│   │   │   │   │   │   ├── oauth-connection.entity.ts
+│   │   │   │   │   │   └── oauth-health-check.entity.ts
+│   │   │   │   │   ├── oauth-manager.service.ts
+│   │   │   │   │   ├── oauth.controller.ts
+│   │   │   │   │   ├── oauth.module.ts
+│   │   │   │   │   └── oauth.service.ts
+│   │   │   │   ├── sync
+│   │   │   │   │   ├── entities
+│   │   │   │   │   │   ├── sync-job.entity.ts
+│   │   │   │   │   │   └── sync-schedule.entity.ts
+│   │   │   │   │   └── integration-sync.service.ts
+│   │   │   │   ├── third-party
+│   │   │   │   │   ├── ahrefs.client.ts
+│   │   │   │   │   ├── base-seo-client.interface.ts
+│   │   │   │   │   ├── entities
+│   │   │   │   │   │   ├── integration-cache.entity.ts
+│   │   │   │   │   │   └── integration-usage.entity.ts
+│   │   │   │   │   ├── moz.client.ts
+│   │   │   │   │   ├── semrush.client.ts
+│   │   │   │   │   ├── seo-tools-manager.service.ts
+│   │   │   │   │   └── third-party.module.ts
+│   │   │   │   ├── transform
+│   │   │   │   │   └── data-transformation.service.ts
+│   │   │   │   └── webhooks
+│   │   │   │       ├── WEBHOOKS_IMPLEMENTATION_SUMMARY.md
+│   │   │   │       ├── delivery.service.ts
+│   │   │   │       ├── dto
+│   │   │   │       │   └── webhook.dto.ts
+│   │   │   │       ├── entities
+│   │   │   │       │   ├── webhook-delivery-log.entity.ts
+│   │   │   │       │   ├── webhook-delivery.entity.ts
+│   │   │   │       │   └── webhook.entity.ts
+│   │   │   │       ├── services
+│   │   │   │       │   └── webhook-event.service.ts
+│   │   │   │       ├── webhook.controller.ts
+│   │   │   │       ├── webhook.module.ts
+│   │   │   │       └── webhook.service.ts
+│   │   │   ├── keyword-clustering
+│   │   │   │   ├── dto
+│   │   │   │   │   └── cluster-keywords.dto.ts
+│   │   │   │   ├── keyword-clustering.controller.ts
+│   │   │   │   ├── keyword-clustering.module.ts
+│   │   │   │   └── keyword-clustering.service.ts
+│   │   │   ├── keywords
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── create-keyword.dto.ts
+│   │   │   │   │   ├── keyword-query.dto.ts
+│   │   │   │   │   ├── keyword-research.dto.ts
+│   │   │   │   │   └── update-keyword.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── keyword.entity.ts
+│   │   │   │   ├── keyword-difficulty.calculator.ts
+│   │   │   │   ├── keyword.controller.ts
+│   │   │   │   ├── keyword.module.ts
+│   │   │   │   ├── keyword.service.ts
+│   │   │   │   ├── semantic-keyword.service.spec.ts
+│   │   │   │   ├── semantic-keyword.service.ts
+│   │   │   │   └── suggestion.service.ts
+│   │   │   ├── notifications
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── create-notification.dto.ts
+│   │   │   │   │   └── notification-query.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── notification.entity.ts
+│   │   │   │   ├── notification.controller.ts
+│   │   │   │   ├── notification.service.ts
+│   │   │   │   ├── notifications.controller.ts
+│   │   │   │   ├── notifications.gateway.ts
+│   │   │   │   ├── notifications.module.ts
+│   │   │   │   └── notifications.service.ts
+│   │   │   ├── project
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── create-project.dto.ts
+│   │   │   │   │   └── update-project.dto.ts
+│   │   │   │   ├── project.controller.ts
+│   │   │   │   ├── project.module.ts
+│   │   │   │   └── project.service.ts
+│   │   │   ├── rankings
+│   │   │   │   ├── alert.service.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── ranking-query.dto.ts
+│   │   │   │   │   └── track-ranking.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── rank-alert.entity.ts
+│   │   │   │   │   └── ranking.entity.ts
+│   │   │   │   ├── rank-tracker.service.ts
+│   │   │   │   ├── ranking.controller.ts
+│   │   │   │   ├── ranking.module.ts
+│   │   │   │   └── serp-analyzer.service.ts
+│   │   │   ├── rate-limiting
+│   │   │   │   ├── decorators
+│   │   │   │   │   └── rate-limit.decorator.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   └── create-rate-limit-rule.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── rate-limit-rule.entity.ts
+│   │   │   │   │   └── rate-limit-violation.entity.ts
+│   │   │   │   ├── guards
+│   │   │   │   │   └── rate-limit.guard.ts
+│   │   │   │   ├── rate-limiting.controller.ts
+│   │   │   │   ├── rate-limiting.module.ts
+│   │   │   │   └── rate-limiting.service.ts
+│   │   │   ├── realtime
+│   │   │   │   ├── IMPLEMENTATION_SUMMARY.md
+│   │   │   │   ├── INTEGRATION_EXAMPLE.ts
+│   │   │   │   ├── README.md
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── analytics.dto.ts
+│   │   │   │   │   ├── collaboration.dto.ts
+│   │   │   │   │   ├── connection.dto.ts
+│   │   │   │   │   ├── notification.dto.ts
+│   │   │   │   │   └── room.dto.ts
+│   │   │   │   ├── gateways
+│   │   │   │   │   ├── analytics.gateway.ts
+│   │   │   │   │   ├── collaboration.gateway.ts
+│   │   │   │   │   └── notifications.gateway.ts
+│   │   │   │   ├── guards
+│   │   │   │   │   └── ws-jwt-auth.guard.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── middleware
+│   │   │   │   │   └── ws-rate-limit.middleware.ts
+│   │   │   │   ├── realtime.module.ts
+│   │   │   │   ├── services
+│   │   │   │   │   ├── event-broadcaster.service.ts
+│   │   │   │   │   ├── presence.service.ts
+│   │   │   │   │   └── room.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── websocket.types.ts
+│   │   │   ├── search-intent
+│   │   │   │   ├── dto
+│   │   │   │   │   └── classify-intent.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── intent-classification.entity.ts
+│   │   │   │   ├── search-intent-classifier.service.ts
+│   │   │   │   ├── search-intent.controller.ts
+│   │   │   │   └── search-intent.module.ts
+│   │   │   ├── sei-x
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── extract-keywords.dto.ts
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── semantic-similarity.dto.ts
+│   │   │   │   ├── neo4j.service.ts
+│   │   │   │   ├── sei-x.controller.ts
+│   │   │   │   ├── sei-x.module.ts
+│   │   │   │   ├── sei-x.service.spec.ts
+│   │   │   │   └── sei-x.service.ts
+│   │   │   ├── seo-analysis
+│   │   │   │   └── services
+│   │   │   │       ├── KeywordDifficultyCalculator.ts
+│   │   │   │       ├── OnPageSEOAnalyzer.ts
+│   │   │   │       ├── SearchIntentAnalyzer.ts
+│   │   │   │       └── TechnicalSEOAnalyzer.ts
+│   │   │   ├── serp-features
+│   │   │   │   ├── dto
+│   │   │   │   │   └── analyze-feature.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   └── serp-feature-analysis.entity.ts
+│   │   │   │   ├── serp-feature-analyzer.service.ts
+│   │   │   │   ├── serp-features.controller.ts
+│   │   │   │   └── serp-features.module.ts
+│   │   │   ├── subscription
+│   │   │   │   ├── IMPLEMENTATION_SUMMARY.md
+│   │   │   │   ├── controllers
+│   │   │   │   │   └── subscription-enhanced.controller.ts
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── create-subscription.dto.ts
+│   │   │   │   │   ├── subscription-analytics.dto.ts
+│   │   │   │   │   ├── subscription-lifecycle.dto.ts
+│   │   │   │   │   ├── subscription-limits.dto.ts
+│   │   │   │   │   ├── update-subscription.dto.ts
+│   │   │   │   │   └── usage-tracking.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── subscription-history.entity.ts
+│   │   │   │   │   ├── subscription.entity.ts
+│   │   │   │   │   ├── usage-alert.entity.ts
+│   │   │   │   │   └── usage-tracking.entity.ts
+│   │   │   │   ├── services
+│   │   │   │   │   ├── subscription-analytics.service.ts
+│   │   │   │   │   ├── subscription-lifecycle.service.ts
+│   │   │   │   │   └── usage-tracking-enhanced.service.ts
+│   │   │   │   ├── subscription.controller.ts
+│   │   │   │   ├── subscription.module.ts
+│   │   │   │   └── subscription.service.ts
+│   │   │   ├── sync
+│   │   │   │   ├── dto
+│   │   │   │   │   └── sync-config.dto.ts
+│   │   │   │   ├── sync.controller.ts
+│   │   │   │   ├── sync.module.ts
+│   │   │   │   ├── sync.service.spec.ts
+│   │   │   │   └── sync.service.ts
+│   │   │   ├── tenant
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── create-tenant.dto.ts
+│   │   │   │   │   └── update-tenant.dto.ts
+│   │   │   │   ├── tenant.controller.ts
+│   │   │   │   ├── tenant.module.ts
+│   │   │   │   └── tenant.service.ts
+│   │   │   ├── transform
+│   │   │   │   ├── dto
+│   │   │   │   │   └── transform-data.dto.ts
+│   │   │   │   ├── transform.controller.ts
+│   │   │   │   ├── transform.module.ts
+│   │   │   │   ├── transform.service.spec.ts
+│   │   │   │   └── transform.service.ts
+│   │   │   ├── usage
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── record-usage.dto.ts
+│   │   │   │   │   ├── track-event.dto.ts
+│   │   │   │   │   └── usage-report.dto.ts
+│   │   │   │   ├── entities
+│   │   │   │   │   ├── usage-aggregate.entity.ts
+│   │   │   │   │   ├── usage-event.entity.ts
+│   │   │   │   │   └── usage-quota.entity.ts
+│   │   │   │   ├── usage-reporting.service.ts
+│   │   │   │   ├── usage-tracking.service.ts
+│   │   │   │   ├── usage.controller.ts
+│   │   │   │   ├── usage.module.ts
+│   │   │   │   └── usage.service.ts
+│   │   │   ├── user
+│   │   │   │   ├── dto
+│   │   │   │   │   ├── create-user.dto.ts
+│   │   │   │   │   └── update-user.dto.ts
+│   │   │   │   ├── user.controller.ts
+│   │   │   │   ├── user.module.ts
+│   │   │   │   └── user.service.ts
+│   │   │   ├── webhook-subscriptions
+│   │   │   │   ├── webhook-subscription.service.ts
+│   │   │   │   └── webhook-subscriptions.module.ts
+│   │   │   ├── webhooks
+│   │   │   │   └── webhook-handler.service.ts
+│   │   │   └── white-label
+│   │   │       ├── dto
+│   │   │       │   ├── create-white-label.dto.ts
+│   │   │       │   └── update-branding.dto.ts
+│   │   │       ├── entities
+│   │   │       │   ├── domain.entity.ts
+│   │   │       │   ├── email-template.entity.ts
+│   │   │       │   ├── landing-page.entity.ts
+│   │   │       │   ├── logo.entity.ts
+│   │   │       │   └── white-label-config.entity.ts
+│   │   │       ├── white-label.controller.ts
+│   │   │       ├── white-label.module.ts
+│   │   │       └── white-label.service.ts
+│   │   ├── repositories
+│   │   │   ├── analytics.repository.ts
+│   │   │   ├── backlink.repository.ts
+│   │   │   ├── competitor.repository.ts
+│   │   │   ├── integration.repository.ts
+│   │   │   ├── keyword.repository.ts
+│   │   │   ├── project.repository.ts
+│   │   │   ├── ranking.repository.ts
+│   │   │   ├── report.repository.ts
+│   │   │   └── user.repository.ts
+│   │   ├── services
+│   │   │   ├── auth.service.ts
+│   │   │   ├── backlink.service.ts
+│   │   │   ├── crawler.service.ts
+│   │   │   ├── integration.service.ts
+│   │   │   ├── keyword.service.ts
+│   │   │   ├── project.service.ts
+│   │   │   ├── ranking.service.ts
+│   │   │   └── report.service.ts
+│   │   ├── utils
+│   │   │   ├── crypto.utils.ts
+│   │   │   ├── date.utils.ts
+│   │   │   ├── seo.utils.ts
+│   │   │   ├── string.utils.ts
+│   │   │   ├── url.utils.ts
+│   │   │   └── validation.utils.ts
+│   │   └── websocket
+│   │       ├── realtime.gateway.ts
+│   │       └── websocket.module.ts
+│   ├── test
+│   │   ├── .env.test
+│   │   ├── INTEGRATION_TEST_SUMMARY.md
+│   │   ├── README.md
+│   │   ├── docker-compose.test.yml
+│   │   ├── e2e
+│   │   │   └── import-flow.e2e-spec.ts
+│   │   ├── helpers
+│   │   │   ├── factories.ts
+│   │   │   └── test-helpers.ts
+│   │   ├── integration
+│   │   │   ├── admin.spec.ts
+│   │   │   ├── auth.e2e.spec.ts
+│   │   │   ├── billing.spec.ts
+│   │   │   ├── bulk.controller.spec.ts
+│   │   │   ├── collaboration.spec.ts
+│   │   │   ├── e2e-flows.spec.ts
+│   │   │   ├── ga4-integration.spec.ts
+│   │   │   ├── gsc-integration.spec.ts
+│   │   │   ├── projects.e2e.spec.ts
+│   │   │   ├── realtime.spec.ts
+│   │   │   ├── sei-x.e2e.spec.ts
+│   │   │   ├── subscription.spec.ts
+│   │   │   ├── webhooks.spec.ts
+│   │   │   └── white-label.spec.ts
+│   │   ├── jest-e2e.json
+│   │   ├── performance
+│   │   │   ├── api-load.js
+│   │   │   ├── spike-test.js
+│   │   │   └── stress-test.js
+│   │   ├── security
+│   │   │   └── tenant-isolation.spec.ts
+│   │   ├── setup.ts
+│   │   ├── unit
+│   │   │   ├── auth.service.spec.ts
+│   │   │   ├── bulk.service.spec.ts
+│   │   │   ├── project.service.spec.ts
+│   │   │   ├── sei-x.service.spec.ts
+│   │   │   └── tenant.service.spec.ts
+│   │   └── utils
+│   │       ├── mock-services.ts
+│   │       └── test-fixtures.ts
+│   └── tsconfig.json
+├── crawler
+│   ├── .env.example
+│   ├── .gitignore
+│   ├── CRAWLER_ANALYSIS.md
+│   ├── CRAWLER_SUMMARY.md
+│   ├── DEPLOYMENT.md
+│   ├── Dockerfile.crawler
+│   ├── Dockerfile.renderer
+│   ├── Dockerfile.scheduler
+│   ├── Makefile
+│   ├── QUICK_START.md
+│   ├── README.md
+│   ├── cmd
+│   │   ├── crawler
+│   │   │   └── main.go
+│   │   └── scheduler
+│   │       └── main.go
+│   ├── docker-compose.yml
+│   ├── go.mod
+│   ├── go.sum
+│   ├── init-db.sql
+│   ├── internal
+│   │   ├── crawler
+│   │   │   ├── crawler.go
+│   │   │   ├── http_client.go
+│   │   │   ├── rate_limiter.go
+│   │   │   ├── robots.go
+│   │   │   └── sitemap.go
+│   │   ├── parser
+│   │   │   ├── html.go
+│   │   │   └── links.go
+│   │   ├── queue
+│   │   │   └── kafka.go
+│   │   └── storage
+│   │       ├── mongodb.go
+│   │       └── postgres.go
+│   ├── pkg
+│   │   └── bloom
+│   │       └── filter.go
+│   └── renderer
+│       ├── .env.example
+│       ├── package-lock.json
+│       ├── package.json
+│       ├── src
+│       │   ├── app.ts
+│       │   ├── cluster-manager.ts
+│       │   ├── logger.ts
+│       │   ├── renderer.ts
+│       │   └── types.ts
+│       └── tsconfig.json
+├── custom-transformers
+│   └── seo_transformer.py
+├── database
+│   └── 00-init-multi-tenant.sql
+├── demo.html
+├── demos
+│   ├── 01-dashboard.html
+│   ├── 02-bacowr.html
+│   ├── 03-seix.html
+│   ├── 04-keywords.html
+│   ├── 05-rankings.html
+│   ├── 06-backlinks.html
+│   ├── 07-quality-control.html
+│   ├── 08-link-planning.html
+│   ├── 09-csv-import.html
+│   ├── 10-settings.html
+│   ├── index.html
+│   ├── script.js
+│   └── styles.css
+├── docker-compose.dev.yml
+├── docker-compose.local.yml
+├── docker-compose.yml
+├── docs
+│   ├── API_GATEWAY_IMPLEMENTATION_GUIDE.md
+│   ├── PRODUCTION_GAPS.md
+│   ├── REPOSITORY_INTEGRATION_GUIDE.md
+│   ├── SESSION_6_ACCESSIBILITY_LOADING_STATES_REPORT.md
+│   ├── SESSION_6_VERIFICATION_GUIDE.md
+│   ├── SYSTEM_INVENTORY.md
+│   ├── TESTING_GUIDE.md
+│   ├── api
+│   │   ├── README.md
+│   │   ├── authentication.md
+│   │   └── webhooks.md
+│   ├── archive
+│   │   ├── ALTERNATIV_B_PLAN.md
+│   │   ├── BACKEND_FRONTEND_INTEGRATION_REPORT.md
+│   │   ├── BACKEND_TEAM_ETA_DELIVERY.md
+│   │   ├── BULK_OPERATIONS_SUMMARY.md
+│   │   ├── CODE_REVIEW_REPORT.md
+│   │   ├── COLLABORATION_SYSTEM_SUMMARY.md
+│   │   ├── CUSTOM_REPORTING_SYSTEM.md
+│   │   ├── DEVELOPER_PORTAL_SUMMARY.md
+│   │   ├── FILES_CREATED.md
+│   │   ├── FRONTEND_ARCHITECTURE.md
+│   │   ├── FRONTEND_BUILD_ORCHESTRATION.md
+│   │   ├── FRONTEND_BUILD_SUMMARY.md
+│   │   ├── FRONTEND_PROGRESS_REPORT.md
+│   │   ├── IMPLEMENTATION_PROGRESS.md
+│   │   ├── ML_SERVICE_ANALYSIS_INDEX.md
+│   │   ├── ML_SERVICE_ANALYSIS_REPORT.md
+│   │   ├── PLATFORM_OVERVIEW.md
+│   │   ├── PROJECT_COMPLETE.md
+│   │   ├── PROJECT_UPGRADE_CHECKLIST.md
+│   │   ├── PROJECT_UPGRADE_PLAN.md
+│   │   ├── PROJECT_UPGRADE_QUICK_START.md
+│   │   ├── SEI-X_UPGRADE_SUMMARY.md
+│   │   ├── SEO_PLATFORM_COMPLETE_GUIDE.md
+│   │   ├── SESSION_1_FILES_SUMMARY.md
+│   │   ├── SESSION_1_IMPLEMENTATION_REPORT.md
+│   │   ├── SESSION_2_INTEGRATION_FIXES_REPORT.md
+│   │   ├── SESSION_3_BILLING_ANALYTICS_REPORT.md
+│   │   ├── SESSION_5_ARCHITECTURE.md
+│   │   ├── SESSION_5_IMPLEMENTATION_REPORT.md
+│   │   ├── SESSION_5_QUICK_SUMMARY.md
+│   │   ├── SESSION_6_EXECUTIVE_SUMMARY.md
+│   │   ├── SESSION_HANDOFF.md
+│   │   ├── SIE-X_CHECKLIST.md
+│   │   ├── SIE-X_QUICK_START.md
+│   │   ├── SIE-X_UPGRADE.md
+│   │   ├── START_CHAT_B_HERE.md
+│   │   ├── TEAM_DELTA_DELIVERY.md
+│   │   ├── TEAM_IOTA_DELIVERABLES.md
+│   │   ├── TEAM_KAPPA_SUMMARY.md
+│   │   ├── TEAM_ZETA_SUMMARY.md
+│   │   ├── WEBHOOKS_DELIVERY_SUMMARY.md
+│   │   ├── WHITE_LABEL_ARCHITECTURE.md
+│   │   ├── WHITE_LABEL_BACKEND_SUMMARY.md
+│   │   ├── WHITE_LABEL_FILE_REFERENCE.md
+│   │   ├── WHITE_LABEL_SYSTEM_SUMMARY.md
+│   │   └── seo-platform-orchestration.md
+│   ├── current
+│   │   ├── BRANCH_CLEANUP_ANALYSIS.md
+│   │   ├── DEPLOYMENT_GUIDE.md
+│   │   ├── DOCUMENTATION_CLEANUP_PLAN.md
+│   │   ├── LOCAL_DEVELOPMENT_GUIDE.md
+│   │   ├── MASTER_PLAN_TO_PRODUCTION.md
+│   │   ├── PARALLEL_DEVELOPMENT_GUIDE.md
+│   │   ├── PRODUCTION_DEPLOYMENT_GUIDE.md
+│   │   ├── PRODUCTION_READY.md
+│   │   ├── QUICK_START_PRODUCTION.md
+│   │   ├── REPOSITORY_ANALYSIS_AND_INTEGRATION.md
+│   │   ├── SYSTEM_INVENTORY_COMPLETE.md
+│   │   └── TESTING_GUIDE.md
+│   ├── implementation-plans
+│   │   ├── PHASE_1_CRITICAL_BLOCKERS.md
+│   │   ├── PHASE_2_BACOWR_INTEGRATION.md
+│   │   ├── PHASE_3_SEIX_INTEGRATION.md
+│   │   ├── PHASE_4_QC_VALIDATION.md
+│   │   ├── PHASE_5_LINK_PLANNING.md
+│   │   ├── PHASE_6_CSV_IMPORT.md
+│   │   ├── PHASE_7_TESTING_COVERAGE.md
+│   │   └── README.md
+│   ├── innovation
+│   │   ├── BACOWR_SEIX_INNOVATION_DISCOVERY.md
+│   │   ├── PRIORITY_FEATURES_TECHNICAL_SPECS.md
+│   │   └── QUICK_START_IMPLEMENTATION_GUIDE.md
+│   ├── openapi.yaml
+│   └── parallel-projects
+│       ├── PROJECT_1_KEYWORD_RESEARCH_PRODUCTION.md
+│       ├── PROJECT_2_BACKLINK_ANALYSIS_PRODUCTION.md
+│       ├── PROJECT_3_SITE_AUDIT_PRODUCTION.md
+│       ├── PROJECT_4_RANK_TRACKING_PRODUCTION.md
+│       └── README.md
+├── frontend
+│   ├── .env.example
+│   ├── .env.production
+│   ├── .eslintrc.json
+│   ├── .gitignore
+│   ├── Dockerfile
+│   ├── FILE_MANIFEST.md
+│   ├── QUICK_START.md
+│   ├── README.md
+│   ├── __tests__
+│   │   └── accessibility.test.tsx
+│   ├── app
+│   │   ├── (auth)
+│   │   │   ├── forgot-password
+│   │   │   │   └── page.tsx
+│   │   │   ├── login
+│   │   │   │   └── page.tsx
+│   │   │   └── register
+│   │   │       └── page.tsx
+│   │   ├── (dashboard)
+│   │   │   ├── dashboard
+│   │   │   │   ├── audit
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── backlinks
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── keywords
+│   │   │   │   │   ├── research
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── tracking
+│   │   │   │   │       └── page.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── projects
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── settings
+│   │   │   │       └── page.tsx
+│   │   │   └── projects
+│   │   │       └── [id]
+│   │   │           ├── bacowr
+│   │   │           │   └── page.tsx
+│   │   │           └── semantic-analysis
+│   │   │               └── page.tsx
+│   │   ├── api
+│   │   │   └── health
+│   │   │       └── route.ts
+│   │   ├── error.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── loading.tsx
+│   │   ├── not-found.tsx
+│   │   └── page.tsx
+│   ├── components
+│   │   ├── ApiQuota
+│   │   │   └── QuotaWidget.tsx
+│   │   ├── CommandPalette
+│   │   │   ├── CommandPalette.tsx
+│   │   │   └── README.md
+│   │   ├── ErrorBoundary.tsx
+│   │   ├── ExportButton.README.md
+│   │   ├── ExportButton.tsx
+│   │   ├── FeatureErrorBoundary.tsx
+│   │   ├── NotificationCenter.README.md
+│   │   ├── NotificationCenter.tsx
+│   │   ├── __tests__
+│   │   │   ├── ErrorBoundary.test.tsx
+│   │   │   └── FeatureErrorBoundary.test.tsx
+│   │   ├── charts
+│   │   │   ├── bar-chart.tsx
+│   │   │   └── line-chart.tsx
+│   │   ├── layout
+│   │   │   ├── breadcrumbs.tsx
+│   │   │   ├── dashboard-layout.tsx
+│   │   │   ├── header.tsx
+│   │   │   └── sidebar.tsx
+│   │   ├── seo
+│   │   │   ├── audit-score.tsx
+│   │   │   ├── backlink-list.tsx
+│   │   │   ├── keyword-table.tsx
+│   │   │   ├── project-card.tsx
+│   │   │   └── ranking-chart.tsx
+│   │   └── ui
+│   │       ├── avatar.tsx
+│   │       ├── badge.tsx
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── dropdown-menu.tsx
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── select.tsx
+│   │       ├── separator.tsx
+│   │       ├── skeleton.tsx
+│   │       ├── switch.tsx
+│   │       ├── table.tsx
+│   │       ├── tabs.tsx
+│   │       ├── toast.tsx
+│   │       ├── toaster.tsx
+│   │       └── use-toast.tsx
+│   ├── features
+│   │   ├── admin
+│   │   │   ├── README.md
+│   │   │   ├── feature-flags
+│   │   │   │   ├── components
+│   │   │   │   │   └── FeatureFlagManager
+│   │   │   │   │       ├── CreateFlagModal.tsx
+│   │   │   │   │       ├── EditFlagModal.tsx
+│   │   │   │   │       ├── FlagDetailsModal.tsx
+│   │   │   │   │       └── index.tsx
+│   │   │   │   └── hooks
+│   │   │   │       └── use-feature-flags.ts
+│   │   │   ├── platform-analytics
+│   │   │   │   ├── components
+│   │   │   │   │   └── PlatformDashboard
+│   │   │   │   │       └── index.tsx
+│   │   │   │   └── hooks
+│   │   │   │       └── use-platform-metrics.ts
+│   │   │   ├── services
+│   │   │   │   └── admin-api.service.ts
+│   │   │   ├── system-health
+│   │   │   │   ├── components
+│   │   │   │   │   └── HealthMonitor
+│   │   │   │   │       └── index.tsx
+│   │   │   │   └── hooks
+│   │   │   │       └── use-system-health.ts
+│   │   │   ├── types
+│   │   │   │   └── index.ts
+│   │   │   └── user-management
+│   │   │       ├── components
+│   │   │       │   ├── TenantManager
+│   │   │       │   │   ├── TenantDetailsModal.tsx
+│   │   │       │   │   ├── TenantLimitsModal.tsx
+│   │   │       │   │   └── index.tsx
+│   │   │       │   └── UserAdminPanel
+│   │   │       │       ├── CreateUserModal.tsx
+│   │   │       │       ├── UserDetailsModal.tsx
+│   │   │       │       └── index.tsx
+│   │   │       └── hooks
+│   │   │           ├── use-admin-actions.ts
+│   │   │           ├── use-admin-tenants.ts
+│   │   │           └── use-admin-users.ts
+│   │   ├── advanced-tools
+│   │   │   ├── alert-system
+│   │   │   │   ├── components
+│   │   │   │   │   ├── AlertConfigurator
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── AlertDashboard
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── AlertHistory
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── AlertRules
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── NotificationChannels
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-alert-history.ts
+│   │   │   │   │   ├── use-alert-rules.ts
+│   │   │   │   │   └── use-alerts.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── alert-api.service.ts
+│   │   │   │   ├── types
+│   │   │   │   │   └── index.ts
+│   │   │   │   └── utils
+│   │   │   │       └── rules-engine.ts
+│   │   │   ├── bulk-operations
+│   │   │   │   ├── README.md
+│   │   │   │   ├── components
+│   │   │   │   │   ├── BulkExporter
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── BulkImporter
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── DataMapper
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── ImportHistory
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-bulk-export.ts
+│   │   │   │   │   └── use-bulk-import.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── bulk-api.service.ts
+│   │   │   │   ├── types
+│   │   │   │   │   └── index.ts
+│   │   │   │   └── utils
+│   │   │   │       ├── csv-parser.ts
+│   │   │   │       ├── data-mapper.ts
+│   │   │   │       └── validators.ts
+│   │   │   ├── custom-dashboards
+│   │   │   │   ├── README.md
+│   │   │   │   ├── components
+│   │   │   │   │   ├── DashboardBuilder
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── DashboardSharing
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── DashboardTemplates
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── DragDropEditor
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── WidgetConfigurator
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── WidgetLibrary
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-dashboard-builder.ts
+│   │   │   │   │   ├── use-dashboards.ts
+│   │   │   │   │   └── use-widgets.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── dashboard-api.service.ts
+│   │   │   │   ├── stores
+│   │   │   │   │   └── dashboard-store.ts
+│   │   │   │   ├── types
+│   │   │   │   │   └── index.ts
+│   │   │   │   └── widgets
+│   │   │   │       ├── ChartWidget.tsx
+│   │   │   │       ├── MetricWidget.tsx
+│   │   │   │       ├── TableWidget.tsx
+│   │   │   │       ├── TextWidget.tsx
+│   │   │   │       └── index.ts
+│   │   │   ├── data-visualization
+│   │   │   │   ├── IMPLEMENTATION_SUMMARY.md
+│   │   │   │   ├── README.md
+│   │   │   │   ├── components
+│   │   │   │   │   ├── CustomChartBuilder
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── FunnelChart
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── GaugeChart
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── GeoMap
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── HeatMap
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── NetworkGraph
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── RadarChart
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── SankeyDiagram
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── SparklineChart
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── TreeMap
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── WaterfallChart
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── types
+│   │   │   │   │   └── index.ts
+│   │   │   │   └── utils
+│   │   │   │       ├── chart-helpers.ts
+│   │   │   │       ├── color-utils.ts
+│   │   │   │       └── data-transforms.ts
+│   │   │   └── developer-tools
+│   │   │       ├── components
+│   │   │       │   ├── APIDocumentation
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── APIKeyManager
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── APIUsageDashboard
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── CodeSnippetGenerator
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── GraphQLPlayground
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── SDKDownloads
+│   │   │       │   │   └── index.tsx
+│   │   │       │   └── WebhookTester
+│   │   │       │       └── index.tsx
+│   │   │       ├── hooks
+│   │   │       │   ├── use-api-keys.ts
+│   │   │       │   └── use-api-usage.ts
+│   │   │       ├── services
+│   │   │       │   └── developer-api.service.ts
+│   │   │       └── types
+│   │   │           └── index.ts
+│   │   ├── analytics-reporting
+│   │   │   ├── custom-reports
+│   │   │   │   ├── components
+│   │   │   │   │   ├── ReportBuilder
+│   │   │   │   │   │   ├── ReportBuilder.tsx
+│   │   │   │   │   │   ├── ReportCanvas.tsx
+│   │   │   │   │   │   ├── ReportSettingsPanel.tsx
+│   │   │   │   │   │   ├── ReportWidget.tsx
+│   │   │   │   │   │   └── index.ts
+│   │   │   │   │   ├── WidgetConfigurator
+│   │   │   │   │   │   ├── WidgetConfigurator.tsx
+│   │   │   │   │   │   └── index.ts
+│   │   │   │   │   ├── WidgetLibrary
+│   │   │   │   │   │   ├── WidgetLibrary.tsx
+│   │   │   │   │   │   └── index.ts
+│   │   │   │   │   ├── WidgetRenderer
+│   │   │   │   │   │   ├── WidgetRenderer.tsx
+│   │   │   │   │   │   └── index.ts
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── use-report-builder.ts
+│   │   │   │   │   ├── use-report-data.ts
+│   │   │   │   │   ├── use-report-widgets.ts
+│   │   │   │   │   └── use-reports.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── report-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   ├── report-templates
+│   │   │   │   ├── components
+│   │   │   │   │   ├── TemplateEditor
+│   │   │   │   │   │   └── TemplateEditor.tsx
+│   │   │   │   │   ├── TemplateLibrary
+│   │   │   │   │   │   └── TemplateLibrary.tsx
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── use-templates.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── template-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   ├── report-viewer
+│   │   │   │   ├── components
+│   │   │   │   │   ├── ExportManager
+│   │   │   │   │   │   └── ExportManager.tsx
+│   │   │   │   │   ├── ReportViewer
+│   │   │   │   │   │   └── ReportViewer.tsx
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── use-viewer.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   └── scheduled-reports
+│   │   │       ├── components
+│   │   │       │   ├── ReportScheduler
+│   │   │       │   │   └── ReportScheduler.tsx
+│   │   │       │   ├── ScheduleHistory
+│   │   │       │   │   └── ScheduleHistory.tsx
+│   │   │       │   └── index.ts
+│   │   │       ├── hooks
+│   │   │       │   └── use-schedules.ts
+│   │   │       ├── services
+│   │   │       │   └── schedule-api.service.ts
+│   │   │       └── types
+│   │   │           └── index.ts
+│   │   ├── business-logic
+│   │   │   ├── billing
+│   │   │   │   ├── components
+│   │   │   │   │   ├── CostBreakdownDashboard
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── InvoiceHistory
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── PaymentMethodManager
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-billing-history.ts
+│   │   │   │   │   ├── use-invoices.ts
+│   │   │   │   │   └── use-payment-methods.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── billing-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   ├── subscription
+│   │   │   │   ├── components
+│   │   │   │   │   ├── PlanSelector
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── UpgradeDowngradeWizard
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── UsageLimitsMonitor
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-current-subscription.ts
+│   │   │   │   │   ├── use-subscription-management.ts
+│   │   │   │   │   ├── use-subscription-plans.ts
+│   │   │   │   │   └── use-usage-limits.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── subscription-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   └── white-label
+│   │   │       ├── README.md
+│   │   │       ├── components
+│   │   │       │   ├── BrandingCustomizer
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── DNSConfigGuide
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── DomainManager
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── EmailPreview
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── EmailTemplateBuilder
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── LandingPageBuilder
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── PagePreview
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── ThemePreview
+│   │   │       │   │   └── index.tsx
+│   │   │       │   └── index.ts
+│   │   │       ├── hooks
+│   │   │       │   ├── index.ts
+│   │   │       │   ├── use-branding.ts
+│   │   │       │   ├── use-domains.ts
+│   │   │       │   ├── use-email-templates.ts
+│   │   │       │   ├── use-landing-pages.ts
+│   │   │       │   ├── use-preview.ts
+│   │   │       │   └── use-white-label-config.ts
+│   │   │       ├── index.ts
+│   │   │       ├── services
+│   │   │       │   └── white-label-api.service.ts
+│   │   │       └── types
+│   │   │           └── index.ts
+│   │   ├── collaboration
+│   │   │   ├── QUICK_START.md
+│   │   │   ├── README.md
+│   │   │   ├── activity
+│   │   │   │   ├── components
+│   │   │   │   │   ├── ActivityFeed.tsx
+│   │   │   │   │   └── AuditLogViewer.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-activity-feed.ts
+│   │   │   │   │   ├── use-audit-logs.ts
+│   │   │   │   │   └── use-change-history.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── activity-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   ├── comments
+│   │   │   │   ├── components
+│   │   │   │   │   └── CommentSystem.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── use-comments.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── comment-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   ├── index.ts
+│   │   │   ├── real-time
+│   │   │   │   ├── components
+│   │   │   │   │   ├── CollaborativeEditor.tsx
+│   │   │   │   │   ├── LiveCursor.tsx
+│   │   │   │   │   └── PresenceIndicator.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-collaborative-state.ts
+│   │   │   │   │   └── use-presence.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── realtime-service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   └── team
+│   │   │       ├── components
+│   │   │       │   ├── InvitationSystem.tsx
+│   │   │       │   ├── PermissionManager.tsx
+│   │   │       │   └── TeamManager.tsx
+│   │   │       ├── hooks
+│   │   │       │   ├── use-role-management.ts
+│   │   │       │   ├── use-team-invitations.ts
+│   │   │       │   ├── use-team-members.ts
+│   │   │       │   └── use-team-permissions.ts
+│   │   │       ├── services
+│   │   │       │   └── team-api.service.ts
+│   │   │       └── types
+│   │   │           └── index.ts
+│   │   ├── integrations
+│   │   │   ├── google-ads
+│   │   │   │   ├── components
+│   │   │   │   │   ├── AdPerformanceDashboard
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── GoogleAdsConnect
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── PPCvsOrganicComparison
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-google-ads-campaigns.ts
+│   │   │   │   │   ├── use-google-ads-connection.ts
+│   │   │   │   │   └── use-ppc-organic-comparison.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── google-ads-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   ├── google-analytics
+│   │   │   │   ├── components
+│   │   │   │   │   ├── ConversionFunnelBuilder
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── GA4ConnectionWizard
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── GA4Dashboard
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── UserJourneyVisualizer
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-ga4-analytics.ts
+│   │   │   │   │   ├── use-ga4-connection.ts
+│   │   │   │   │   ├── use-ga4-events.ts
+│   │   │   │   │   ├── use-ga4-funnels.ts
+│   │   │   │   │   └── use-ga4-journeys.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── ga4-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   ├── google-search-console
+│   │   │   │   ├── components
+│   │   │   │   │   ├── GSCConnectionWizard
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── GSCIndexStatusMonitor
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── GSCPerformanceDashboard
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── GSCQueryAnalyzer
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-gsc-connection.ts
+│   │   │   │   │   └── use-gsc-performance.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── gsc-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   ├── third-party
+│   │   │   │   ├── components
+│   │   │   │   │   ├── AhrefsIntegration
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── CostTracker
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── MozIntegration
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   ├── SEMrushIntegration
+│   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   └── ThirdPartyHub
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── use-ahrefs.ts
+│   │   │   │   │   ├── use-moz.ts
+│   │   │   │   │   ├── use-semrush.ts
+│   │   │   │   │   └── use-third-party-integrations.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── third-party-api.service.ts
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   └── webhooks
+│   │   │       ├── components
+│   │   │       │   ├── WebhookDebugger
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── WebhookEventLog
+│   │   │       │   │   └── index.tsx
+│   │   │       │   └── WebhookManager
+│   │   │       │       └── index.tsx
+│   │   │       ├── hooks
+│   │   │       │   ├── use-webhook-logs.ts
+│   │   │       │   └── use-webhooks.ts
+│   │   │       ├── services
+│   │   │       │   └── webhook-api.service.ts
+│   │   │       └── types
+│   │   │           └── index.ts
+│   │   └── seo-core
+│   │       ├── content-optimizer
+│   │       │   ├── components
+│   │       │   │   ├── ContentQualityScorer.tsx
+│   │       │   │   ├── ReadabilityOptimizer.tsx
+│   │       │   │   └── index.ts
+│   │       │   ├── hooks
+│   │       │   │   ├── index.ts
+│   │       │   │   └── useContentOptimizer.ts
+│   │       │   ├── index.ts
+│   │       │   ├── services
+│   │       │   │   └── content-api.service.ts
+│   │       │   └── types
+│   │       │       └── index.ts
+│   │       ├── keyword-clustering
+│   │       │   ├── components
+│   │       │   │   ├── KeywordClusterVisualizer.tsx
+│   │       │   │   ├── TopicAnalyzer.tsx
+│   │       │   │   └── index.ts
+│   │       │   ├── hooks
+│   │       │   │   ├── index.ts
+│   │       │   │   └── useKeywordClustering.ts
+│   │       │   ├── index.ts
+│   │       │   ├── services
+│   │       │   │   └── clustering-api.service.ts
+│   │       │   └── types
+│   │       │       └── index.ts
+│   │       ├── search-intent
+│   │       │   ├── components
+│   │       │   │   ├── ContentGapAnalyzer.tsx
+│   │       │   │   ├── IntentAnalyzer.tsx
+│   │       │   │   └── index.ts
+│   │       │   ├── hooks
+│   │       │   │   ├── index.ts
+│   │       │   │   └── useSearchIntent.ts
+│   │       │   ├── index.ts
+│   │       │   ├── services
+│   │       │   │   └── intent-api.service.ts
+│   │       │   └── types
+│   │       │       └── index.ts
+│   │       └── serp-features
+│   │           ├── components
+│   │           │   ├── FeatureOptimizer.tsx
+│   │           │   ├── SERPFeatureTracker.tsx
+│   │           │   └── index.ts
+│   │           ├── hooks
+│   │           │   ├── index.ts
+│   │           │   └── useSERPFeatures.ts
+│   │           ├── index.ts
+│   │           ├── services
+│   │           │   └── serp-api.service.ts
+│   │           └── types
+│   │               └── index.ts
+│   ├── hooks
+│   │   ├── useApiQuota.ts
+│   │   ├── useCommandPalette.ts
+│   │   └── useNotifications.ts
+│   ├── lib
+│   │   ├── api
+│   │   │   ├── README.md
+│   │   │   ├── __tests__
+│   │   │   │   ├── circuit-breaker.test.ts
+│   │   │   │   ├── client.test.ts
+│   │   │   │   └── retry.test.ts
+│   │   │   ├── circuit-breaker.ts
+│   │   │   ├── client.ts
+│   │   │   ├── hooks.ts
+│   │   │   ├── index.ts
+│   │   │   └── retry.ts
+│   │   ├── commands.ts
+│   │   ├── providers.tsx
+│   │   ├── store
+│   │   │   ├── auth-store.ts
+│   │   │   └── ui-store.ts
+│   │   └── utils.ts
+│   ├── next.config.js
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── playwright.config.ts
+│   ├── postcss.config.js
+│   ├── public
+│   │   ├── favicon.ico
+│   │   └── robots.txt
+│   ├── src
+│   │   ├── components
+│   │   │   ├── ErrorBoundary.tsx
+│   │   │   ├── charts
+│   │   │   │   ├── D3Charts.tsx
+│   │   │   │   └── RechartsComponents.tsx
+│   │   │   ├── competitor
+│   │   │   │   └── CompetitorAnalysisDashboard.tsx
+│   │   │   ├── content
+│   │   │   │   └── ContentAnalysisInterface.tsx
+│   │   │   ├── dashboards
+│   │   │   │   └── RankingDashboard.tsx
+│   │   │   ├── keyword
+│   │   │   │   └── KeywordResearchInterface.tsx
+│   │   │   ├── layout
+│   │   │   │   ├── AppLayout.tsx
+│   │   │   │   ├── Breadcrumbs.tsx
+│   │   │   │   ├── Footer.tsx
+│   │   │   │   ├── Header.tsx
+│   │   │   │   ├── MobileMenu.tsx
+│   │   │   │   ├── Sidebar.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── notifications
+│   │   │   │   └── RealtimeNotifications.tsx
+│   │   │   ├── performance
+│   │   │   │   ├── OptimizedImage.tsx
+│   │   │   │   └── VirtualScroll.tsx
+│   │   │   └── ui
+│   │   │       ├── Alert.tsx
+│   │   │       ├── Badge.tsx
+│   │   │       ├── Button.tsx
+│   │   │       ├── Card.tsx
+│   │   │       ├── Checkbox.tsx
+│   │   │       ├── Divider.tsx
+│   │   │       ├── Dropdown.tsx
+│   │   │       ├── EmptyState.tsx
+│   │   │       ├── Input.tsx
+│   │   │       ├── Loading.tsx
+│   │   │       ├── Modal.tsx
+│   │   │       ├── Pagination.tsx
+│   │   │       ├── Radio.tsx
+│   │   │       ├── Select.tsx
+│   │   │       ├── Tabs.tsx
+│   │   │       ├── Textarea.tsx
+│   │   │       ├── Toast.tsx
+│   │   │       ├── Toggle.tsx
+│   │   │       ├── Tooltip.tsx
+│   │   │       └── index.ts
+│   │   ├── hooks
+│   │   │   ├── use-auth.ts
+│   │   │   ├── use-backlinks.ts
+│   │   │   ├── use-competitors.ts
+│   │   │   ├── use-keywords.ts
+│   │   │   ├── use-projects.ts
+│   │   │   ├── use-rankings.ts
+│   │   │   ├── use-reports.ts
+│   │   │   ├── usePerformance.ts
+│   │   │   ├── useQueries.ts
+│   │   │   └── useWebSocket.ts
+│   │   ├── lib
+│   │   │   ├── api-client.ts
+│   │   │   ├── api
+│   │   │   │   ├── auth.api.ts
+│   │   │   │   ├── backlinks.api.ts
+│   │   │   │   ├── competitors.api.ts
+│   │   │   │   ├── keywords.api.ts
+│   │   │   │   ├── projects.api.ts
+│   │   │   │   ├── rankings.api.ts
+│   │   │   │   └── reports.api.ts
+│   │   │   └── queryClient.ts
+│   │   ├── services
+│   │   │   └── websocket
+│   │   │       └── WebSocketService.ts
+│   │   ├── stores
+│   │   │   ├── authStore.ts
+│   │   │   ├── keywordStore.ts
+│   │   │   ├── notificationStore.ts
+│   │   │   ├── projectStore.ts
+│   │   │   └── uiStore.ts
+│   │   └── utils
+│   │       └── performance
+│   │           ├── index.ts
+│   │           ├── lazyLoad.tsx
+│   │           └── memoization.ts
+│   ├── tailwind.config.ts
+│   ├── tests
+│   │   ├── e2e
+│   │   │   ├── auth.spec.ts
+│   │   │   ├── import-workflow.spec.ts
+│   │   │   ├── keywords.spec.ts
+│   │   │   └── projects.spec.ts
+│   │   └── unit
+│   │       └── ImportWizard.test.tsx
+│   ├── tsconfig.json
+│   └── types
+│       └── index.ts
+├── infrastructure
+│   ├── INFRASTRUCTURE_SUMMARY.md
+│   ├── README.md
+│   ├── docker
+│   │   ├── .env.example
+│   │   ├── Dockerfile.backend
+│   │   ├── Dockerfile.frontend
+│   │   ├── Dockerfile.ml-service
+│   │   ├── docker-compose.prod.yml
+│   │   ├── docker-compose.yml
+│   │   └── nginx
+│   │       └── nginx.conf
+│   ├── helm
+│   │   └── seo-platform
+│   │       ├── Chart.yaml
+│   │       ├── templates
+│   │       │   ├── _helpers.tpl
+│   │       │   ├── backend-deployment.yaml
+│   │       │   ├── backend-service.yaml
+│   │       │   ├── ingress.yaml
+│   │       │   └── serviceaccount.yaml
+│   │       ├── values-prod.yaml
+│   │       └── values.yaml
+│   ├── k8s
+│   │   ├── base
+│   │   │   ├── configmaps
+│   │   │   │   └── app-config.yaml
+│   │   │   ├── deployments
+│   │   │   │   ├── backend-deployment.yaml
+│   │   │   │   ├── crawler-deployment.yaml
+│   │   │   │   ├── frontend-deployment.yaml
+│   │   │   │   └── ml-service-deployment.yaml
+│   │   │   ├── hpa.yaml
+│   │   │   ├── namespace.yaml
+│   │   │   ├── pvc.yaml
+│   │   │   ├── rbac.yaml
+│   │   │   ├── secrets
+│   │   │   │   ├── app-secret.yaml
+│   │   │   │   ├── mongodb-secret.yaml
+│   │   │   │   ├── postgres-secret.yaml
+│   │   │   │   └── redis-secret.yaml
+│   │   │   ├── services
+│   │   │   │   ├── backend-service.yaml
+│   │   │   │   ├── crawler-service.yaml
+│   │   │   │   ├── frontend-service.yaml
+│   │   │   │   └── ml-service-service.yaml
+│   │   │   └── statefulsets
+│   │   │       ├── kafka-statefulset.yaml
+│   │   │       ├── mongodb-statefulset.yaml
+│   │   │       ├── postgres-statefulset.yaml
+│   │   │       └── redis-statefulset.yaml
+│   │   └── overlays
+│   │       ├── production
+│   │       │   ├── ingress.yaml
+│   │       │   ├── kustomization.yaml
+│   │       │   ├── network-policy.yaml
+│   │       │   └── pod-disruption-budget.yaml
+│   │       └── staging
+│   │           └── kustomization.yaml
+│   ├── monitoring
+│   │   ├── alertmanager
+│   │   │   └── alertmanager.yml
+│   │   ├── grafana
+│   │   │   └── dashboards
+│   │   │       ├── application.json
+│   │   │       ├── business.json
+│   │   │       └── infrastructure.json
+│   │   ├── loki
+│   │   │   └── loki-config.yml
+│   │   └── prometheus
+│   │       ├── prometheus.yml
+│   │       └── rules
+│   │           └── alerts.yml
+│   ├── nginx
+│   │   ├── local.conf
+│   │   └── production.conf
+│   ├── scripts
+│   │   ├── backup.sh
+│   │   ├── deploy.sh
+│   │   ├── health-check.sh
+│   │   ├── rollback.sh
+│   │   └── scale.sh
+│   └── terraform
+│       ├── aws
+│       │   ├── main.tf
+│       │   ├── outputs.tf
+│       │   └── variables.tf
+│       └── modules
+│           └── vpc
+│               ├── main.tf
+│               ├── outputs.tf
+│               └── variables.tf
+├── mega-beta-crawler.yaml
+├── mega-gamma-analysis.yaml
+├── ml-service
+│   ├── .dockerignore
+│   ├── Dockerfile
+│   ├── ML_SERVICE_COMPLETE.md
+│   ├── QUICK_START.md
+│   ├── README.md
+│   ├── app
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   ├── config.cpython-311.pyc
+│   │   │   ├── logger.cpython-311.pyc
+│   │   │   └── main.cpython-311.pyc
+│   │   ├── config.py
+│   │   ├── logger.py
+│   │   ├── main.py
+│   │   ├── models
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── content_scorer.cpython-311.pyc
+│   │   │   │   ├── intent_classifier.cpython-311.pyc
+│   │   │   │   ├── keyword_clusterer.cpython-311.pyc
+│   │   │   │   ├── recommendation_engine.cpython-311.pyc
+│   │   │   │   ├── topic_extractor.cpython-311.pyc
+│   │   │   │   └── traffic_predictor.cpython-311.pyc
+│   │   │   ├── content_scorer.py
+│   │   │   ├── intent_classifier.py
+│   │   │   ├── keyword_clusterer.py
+│   │   │   ├── recommendation_engine.py
+│   │   │   ├── topic_extractor.py
+│   │   │   └── traffic_predictor.py
+│   │   ├── routers
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── classification.cpython-311.pyc
+│   │   │   │   ├── clustering.cpython-311.pyc
+│   │   │   │   ├── prediction.cpython-311.pyc
+│   │   │   │   ├── recommendations.cpython-311.pyc
+│   │   │   │   └── scoring.cpython-311.pyc
+│   │   │   ├── classification.py
+│   │   │   ├── clustering.py
+│   │   │   ├── prediction.py
+│   │   │   ├── recommendations.py
+│   │   │   └── scoring.py
+│   │   ├── training
+│   │   │   ├── __init__.py
+│   │   │   ├── prepare_datasets.py
+│   │   │   ├── train_content_scorer.py
+│   │   │   └── train_intent_model.py
+│   │   └── utils
+│   │       ├── __init__.py
+│   │       ├── feature_extraction.py
+│   │       ├── model_loader.py
+│   │       └── preprocessing.py
+│   ├── models
+│   │   └── README.md
+│   ├── pytest.ini
+│   ├── requirements.txt
+│   └── tests
+│       ├── __init__.py
+│       ├── __pycache__
+│       │   ├── __init__.cpython-311.pyc
+│       │   └── conftest.cpython-311-pytest-9.0.1.pyc
+│       ├── conftest.py
+│       ├── models
+│       │   ├── __init__.py
+│       │   ├── __pycache__
+│       │   │   ├── __init__.cpython-311.pyc
+│       │   │   └── test_recommendation_engine.cpython-311-pytest-9.0.1.pyc
+│       │   ├── test_keyword_clusterer.py
+│       │   └── test_recommendation_engine.py
+│       └── routers
+│           ├── __init__.py
+│           └── test_recommendations.py
+├── nginx
+│   └── nginx.conf
+├── package.json
+├── project-config.yaml
+├── scripts
+│   ├── deploy-production.sh
+│   ├── deploy.sh
+│   ├── health-check.sh
+│   ├── install.sh
+│   ├── manage-subtrees.sh
+│   ├── setup-frontend-structure.sh
+│   └── start-local.sh
+├── sdks
+│   ├── javascript
+│   │   ├── README.md
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── client.ts
+│   │   │   ├── index.ts
+│   │   │   └── resources
+│   │   │       ├── audits.ts
+│   │   │       ├── backlinks.ts
+│   │   │       ├── keywords.ts
+│   │   │       ├── projects.ts
+│   │   │       └── rankings.ts
+│   │   └── tsconfig.json
+│   └── python
+│       ├── README.md
+│       ├── seo_platform
+│       │   ├── __init__.py
+│       │   ├── client.py
+│       │   └── resources
+│       │       ├── __init__.py
+│       │       ├── audits.py
+│       │       ├── backlinks.py
+│       │       ├── keywords.py
+│       │       ├── projects.py
+│       │       └── rankings.py
+│       └── setup.py
+├── semantic-modularity
+│   └── backlink_preflight_bible.json
+├── seo-platform-database-complete.sql
+├── services
+│   ├── bacowr
+│   │   ├── .dockerignore
+│   │   ├── .env.example
+│   │   ├── .github
+│   │   │   ├── agents
+│   │   │   │   └── my-agent.agents.md
+│   │   │   └── workflows
+│   │   │       ├── deploy-backend.yml
+│   │   │       └── test.yml
+│   │   ├── .gitignore
+│   │   ├── .validation
+│   │   │   ├── README.md
+│   │   │   ├── SETUP_CHAT_B.md
+│   │   │   ├── queue
+│   │   │   │   └── notifications-ui.md
+│   │   │   └── templates
+│   │   │       ├── queue-item-template.md
+│   │   │       └── validation-report-template.md
+│   │   ├── API_BACKEND_COMPLETE.md
+│   │   ├── API_GUIDE.md
+│   │   ├── API_INTEGRATION_GUIDE.md
+│   │   ├── API_INTEGRATION_STATUS.md
+│   │   ├── BATCH_GUIDE.md
+│   │   ├── BUILDER_PROMPT.md
+│   │   ├── BUILD_FIXES_SUMMARY.md
+│   │   ├── CLAUDE.md
+│   │   ├── CLAUDE_CODE_PROMPT.md
+│   │   ├── COMPLETE_AUTH_SETUP.md
+│   │   ├── Dockerfile
+│   │   ├── EXTENSIBILITY.md
+│   │   ├── FRONTEND_OVERVIEW.md
+│   │   ├── GEMINI_CONFLICT_RESOLUTION.md
+│   │   ├── IMPLEMENTATION_SPEC.md
+│   │   ├── INTEGRATION_PLAN.md
+│   │   ├── MIGRATION_GUIDE.md
+│   │   ├── NEXT-A1-ENGINE-ADDENDUM.md
+│   │   ├── Orchestration_instructions
+│   │   │   ├── README.md
+│   │   │   ├── bulk-orchestration-framework.md
+│   │   │   ├── conflict_detector.py
+│   │   │   ├── example-mega-file.yaml
+│   │   │   ├── implementation-guide.md
+│   │   │   ├── mega_file_processor.py
+│   │   │   ├── next-a1-spec.json
+│   │   │   ├── orchestrator.sh
+│   │   │   └── team-coordination-manifest.yaml
+│   │   ├── PRODUCTION_GUIDE.md
+│   │   ├── PROJECT_STATUS.md
+│   │   ├── PR_SUMMARY.md
+│   │   ├── QUICKSTART.md
+│   │   ├── QUICKSTART_LOCAL.md
+│   │   ├── QUICK_START_TEST.md
+│   │   ├── README.md
+│   │   ├── RESOLUTION_SUMMARY.md
+│   │   ├── RUN_DEMO_FOR_BOSSES.py
+│   │   ├── RUN_LOCAL_DEMO.md
+│   │   ├── SETUP_LOCAL_DEMO.py
+│   │   ├── WINDOWS_SETUP.md
+│   │   ├── api
+│   │   │   ├── .env.example
+│   │   │   ├── DATABASE_MIGRATIONS.md
+│   │   │   ├── Dockerfile
+│   │   │   ├── README.md
+│   │   │   ├── alembic.ini
+│   │   │   ├── alembic
+│   │   │   │   ├── README
+│   │   │   │   ├── env.py
+│   │   │   │   ├── script.py.mako
+│   │   │   │   └── versions
+│   │   │   │       └── c8b4aef41ffc_initial_migration_all_models.py
+│   │   │   ├── app
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── auth.py
+│   │   │   │   ├── core
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── bacowr_wrapper.py
+│   │   │   │   ├── database.py
+│   │   │   │   ├── main.py
+│   │   │   │   ├── middleware
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── audit.py
+│   │   │   │   │   ├── prometheus.py
+│   │   │   │   │   ├── quota.py
+│   │   │   │   │   └── rate_limit.py
+│   │   │   │   ├── models
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── audit.py
+│   │   │   │   │   ├── database.py
+│   │   │   │   │   └── schemas.py
+│   │   │   │   ├── routes
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── analytics.py
+│   │   │   │   │   ├── audit.py
+│   │   │   │   │   ├── auth.py
+│   │   │   │   │   ├── backlinks.py
+│   │   │   │   │   ├── batches.py
+│   │   │   │   │   ├── export.py
+│   │   │   │   │   ├── jobs.py
+│   │   │   │   │   ├── user_management.py
+│   │   │   │   │   ├── users.py
+│   │   │   │   │   └── websocket.py
+│   │   │   │   └── services
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── audit_service.py
+│   │   │   │       ├── auth_service.py
+│   │   │   │       ├── batch_review.py
+│   │   │   │       ├── job_orchestrator.py
+│   │   │   │       ├── qc_validator.py
+│   │   │   │       ├── serp_api.py
+│   │   │   │       └── writer_engine.py
+│   │   │   ├── railway.json
+│   │   │   └── requirements.txt
+│   │   ├── bacowr_master_orchestration_checklist.json
+│   │   ├── batch_monitor.py
+│   │   ├── batch_runner.py
+│   │   ├── batch_scheduler.py
+│   │   ├── config
+│   │   │   ├── policies.yaml
+│   │   │   └── thresholds.yaml
+│   │   ├── cost_calculator.py
+│   │   ├── demo_for_management.py
+│   │   ├── desktop.ini
+│   │   ├── docker-compose.yml
+│   │   ├── docs
+│   │   │   ├── DEBUG_NOTES.md
+│   │   │   ├── PR18_FIX_CHECKLIST.md
+│   │   │   ├── PR18_GEMINI_FIXES.md
+│   │   │   ├── PR20_FIX_CHECKLIST.md
+│   │   │   ├── PR20_GEMINI_FIXES.md
+│   │   │   ├── SMOKE_TEST_WAVE1.md
+│   │   │   ├── api
+│   │   │   │   ├── openapi.json
+│   │   │   │   └── openapi.yaml
+│   │   │   ├── architecture
+│   │   │   │   ├── api_reference.md
+│   │   │   │   ├── overview.md
+│   │   │   │   └── system_architecture.md
+│   │   │   ├── bacowr_live_status.json
+│   │   │   ├── bacowr_master_orchestration_checklist.json
+│   │   │   ├── bacowr_vision_and_quality.md
+│   │   │   ├── deployment
+│   │   │   │   └── production.md
+│   │   │   ├── development
+│   │   │   │   └── setup.md
+│   │   │   ├── future.md
+│   │   │   ├── guides
+│   │   │   │   ├── gap_hunting_methodology.md
+│   │   │   │   └── how_to_read_bacowr.md
+│   │   │   ├── orchestration
+│   │   │   │   ├── framework.md
+│   │   │   │   └── team-manifest.yaml
+│   │   │   ├── playbooks
+│   │   │   │   └── llm_session_types.md
+│   │   │   └── templates
+│   │   │       ├── decision_log.md
+│   │   │       ├── iteration_retrospective.md
+│   │   │       └── quality_audit_checklist.md
+│   │   ├── examples
+│   │   │   ├── batch_jobs_example.csv
+│   │   │   ├── batch_jobs_example.json
+│   │   │   ├── example_job_package.json
+│   │   │   ├── export_integration_example.py
+│   │   │   └── monitoring_integration_example.py
+│   │   ├── frontend
+│   │   │   ├── .env.example
+│   │   │   ├── .gitignore
+│   │   │   ├── ARCHITECTURE.md
+│   │   │   ├── DESIGN.md
+│   │   │   ├── QUICKSTART.md
+│   │   │   ├── README.md
+│   │   │   ├── next.config.js
+│   │   │   ├── package-lock.json
+│   │   │   ├── package.json
+│   │   │   ├── postcss.config.js
+│   │   │   ├── src
+│   │   │   │   ├── app
+│   │   │   │   │   ├── backlinks
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── batches
+│   │   │   │   │   │   ├── [id]
+│   │   │   │   │   │   │   └── review
+│   │   │   │   │   │   │       └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── jobs
+│   │   │   │   │   │   ├── [id]
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── new
+│   │   │   │   │   │       └── page.tsx
+│   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   ├── login
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── page.tsx
+│   │   │   │   │   ├── providers.tsx
+│   │   │   │   │   ├── register
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── settings
+│   │   │   │   │       └── page.tsx
+│   │   │   │   ├── components
+│   │   │   │   │   ├── ErrorBoundary.tsx
+│   │   │   │   │   ├── ProtectedRoute.tsx
+│   │   │   │   │   ├── UserProfile.tsx
+│   │   │   │   │   ├── batch
+│   │   │   │   │   │   ├── ArticlePreviewModal.tsx
+│   │   │   │   │   │   ├── BatchFilters.tsx
+│   │   │   │   │   │   ├── BatchReviewTable.tsx
+│   │   │   │   │   │   └── BulkActions.tsx
+│   │   │   │   │   ├── dashboard
+│   │   │   │   │   │   ├── CostChart.tsx
+│   │   │   │   │   │   ├── LiveJobsMonitor.tsx
+│   │   │   │   │   │   ├── QuickStartWidget.tsx
+│   │   │   │   │   │   └── StatsCard.tsx
+│   │   │   │   │   ├── jobs
+│   │   │   │   │   │   ├── JobCard.tsx
+│   │   │   │   │   │   ├── JobProgressBar.tsx
+│   │   │   │   │   │   └── QCBadge.tsx
+│   │   │   │   │   ├── layout
+│   │   │   │   │   │   ├── Header.tsx
+│   │   │   │   │   │   └── Sidebar.tsx
+│   │   │   │   │   └── ui
+│   │   │   │   │       ├── badge.tsx
+│   │   │   │   │       ├── button.tsx
+│   │   │   │   │       ├── card.tsx
+│   │   │   │   │       ├── checkbox.tsx
+│   │   │   │   │       ├── dialog.tsx
+│   │   │   │   │       ├── input.tsx
+│   │   │   │   │       ├── label.tsx
+│   │   │   │   │       ├── progress.tsx
+│   │   │   │   │       ├── skeleton.tsx
+│   │   │   │   │       ├── tabs.tsx
+│   │   │   │   │       └── toast.tsx
+│   │   │   │   ├── contexts
+│   │   │   │   │   └── AuthContext.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── useDebounce.ts
+│   │   │   │   │   └── useLocalStorage.ts
+│   │   │   │   ├── lib
+│   │   │   │   │   ├── api
+│   │   │   │   │   │   ├── client.ts
+│   │   │   │   │   │   └── websocket.ts
+│   │   │   │   │   ├── store
+│   │   │   │   │   │   └── index.ts
+│   │   │   │   │   └── utils
+│   │   │   │   │       ├── cn.ts
+│   │   │   │   │       ├── format.ts
+│   │   │   │   │       └── index.ts
+│   │   │   │   ├── styles
+│   │   │   │   │   └── globals.css
+│   │   │   │   └── types
+│   │   │   │       └── index.ts
+│   │   │   ├── tailwind.config.ts
+│   │   │   └── tsconfig.json
+│   │   ├── hoppscotch
+│   │   │   ├── BACOWR_Analytics_Audit.json
+│   │   │   ├── BACOWR_Batches.json
+│   │   │   ├── BACOWR_Jobs.json
+│   │   │   └── README.md
+│   │   ├── integration_verification.md
+│   │   ├── interactive_demo.py
+│   │   ├── main.py
+│   │   ├── monitoring
+│   │   │   ├── README.md
+│   │   │   ├── alert_rules.yml
+│   │   │   ├── docker-compose.monitoring.yml
+│   │   │   ├── grafana
+│   │   │   │   ├── dashboards
+│   │   │   │   │   ├── bacowr-api.json
+│   │   │   │   │   ├── bacowr-business.json
+│   │   │   │   │   └── dashboards.yml
+│   │   │   │   └── datasources
+│   │   │   │       └── prometheus.yml
+│   │   │   └── prometheus.yml
+│   │   ├── production_main.py
+│   │   ├── quickstart.py
+│   │   ├── requirements.txt
+│   │   ├── run_bacowr.py
+│   │   ├── schemas
+│   │   │   ├── BacklinkJobPackage.json
+│   │   │   ├── backlink_engine_ideal_flow.md
+│   │   │   ├── backlink_job_package.schema.json
+│   │   │   └── next-a1-spec.json
+│   │   ├── src
+│   │   │   ├── __init__.py
+│   │   │   ├── analysis
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── intent_analyzer.py
+│   │   │   ├── core_api.py
+│   │   │   ├── engine
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── execution_logger.py
+│   │   │   │   └── state_machine.py
+│   │   │   ├── export
+│   │   │   │   ├── README.md
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── google_auth.py
+│   │   │   │   ├── google_docs_exporter.py
+│   │   │   │   └── google_sheets_exporter.py
+│   │   │   ├── modules
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── anchor_classifier.py
+│   │   │   │   ├── intent_modeler.py
+│   │   │   │   ├── page_profile.py
+│   │   │   │   ├── publisher_profiler.py
+│   │   │   │   ├── query_selector.py
+│   │   │   │   ├── serp_analyzer.py
+│   │   │   │   ├── serp_fetcher.py
+│   │   │   │   └── target_profiler.py
+│   │   │   ├── pipeline
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── job_assembler.py
+│   │   │   │   ├── state_machine.py
+│   │   │   │   └── writer_engine.py
+│   │   │   ├── production_api.py
+│   │   │   ├── profiling
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── llm_enhancer.py
+│   │   │   │   └── page_profiler.py
+│   │   │   ├── qc
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── models.py
+│   │   │   │   ├── quality_controller.py
+│   │   │   │   └── schema_validator.py
+│   │   │   ├── research
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── ahrefs_serp.py
+│   │   │   │   └── serp_researcher.py
+│   │   │   ├── utils
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── logger.py
+│   │   │   │   └── validation.py
+│   │   │   └── writer
+│   │   │       ├── __init__.py
+│   │   │       ├── production_writer.py
+│   │   │       ├── unified_writer.py
+│   │   │       └── writer_engine.py
+│   │   ├── start_bacowr.ps1
+│   │   ├── start_bacowr.sh
+│   │   ├── storage
+│   │   │   ├── batch_chunks
+│   │   │   │   └── .gitkeep
+│   │   │   ├── batch_output
+│   │   │   │   └── .gitkeep
+│   │   │   └── smoke_test_output
+│   │   │       ├── job_20251119_173921_d0c0b425_article.md
+│   │   │       ├── job_20251119_173921_d0c0b425_execution_log.json
+│   │   │       ├── job_20251119_173921_d0c0b425_job_package.json
+│   │   │       ├── job_20251119_173921_d0c0b425_metrics.json
+│   │   │       └── job_20251119_173921_d0c0b425_qc_report.json
+│   │   ├── test_integration.py
+│   │   ├── tests
+│   │   │   ├── __init__.py
+│   │   │   ├── e2e
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── test_critical_workflows.py
+│   │   │   ├── test_api.py
+│   │   │   ├── test_batch_processing.py
+│   │   │   ├── test_core_services.py
+│   │   │   ├── test_e2e_mock.py
+│   │   │   ├── test_intent_analyzer.py
+│   │   │   ├── test_live_validation.py
+│   │   │   ├── test_page_profiler.py
+│   │   │   ├── test_pipeline_smoke.py
+│   │   │   ├── test_qc_system.py
+│   │   │   ├── test_schema_validation.py
+│   │   │   ├── test_serp_researcher.py
+│   │   │   ├── test_state_machine.py
+│   │   │   ├── test_unified_writer.py
+│   │   │   └── test_writer_engine.py
+│   │   ├── tools
+│   │   │   ├── README.md
+│   │   │   ├── api_smoke_test.py
+│   │   │   ├── export_openapi.py
+│   │   │   ├── live_test.py
+│   │   │   └── smoke_test_wave1.py
+│   │   ├── verify_setup.sh
+│   │   └── verify_startup.py
+│   ├── link-planner
+│   │   ├── .env.example
+│   │   ├── Dockerfile
+│   │   ├── README.md
+│   │   ├── __init__.py
+│   │   ├── analytics
+│   │   │   └── __init__.py
+│   │   ├── api
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── config
+│   │   │   └── __init__.py
+│   │   ├── core
+│   │   │   └── __init__.py
+│   │   ├── planning
+│   │   │   └── __init__.py
+│   │   └── requirements.txt
+│   ├── qc-validator
+│   │   ├── .env.example
+│   │   ├── Dockerfile
+│   │   ├── README.md
+│   │   ├── __init__.py
+│   │   ├── api
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── config
+│   │   │   └── __init__.py
+│   │   ├── core
+│   │   │   └── __init__.py
+│   │   ├── publishers
+│   │   │   └── __init__.py
+│   │   ├── requirements.txt
+│   │   └── validation
+│   │       └── __init__.py
+│   └── sei-x
+│       ├── .gitattributes
+│       ├── .github
+│       │   └── workflows
+│       │       └── ci-cd.yml
+│       ├── .gitignore
+│       ├── COMMERCIAL_USE_CASES.md
+│       ├── DEBUG_AND_DEVELOP.md
+│       ├── DOCUMENTATION_TODO.md
+│       ├── Dockerfile
+│       ├── Dockerfile.minimal
+│       ├── GEMINI_REVIEW_STATUS.md
+│       ├── HANDOFF.md
+│       ├── PLATFORM_COMPLETENESS_ANALYSIS.md
+│       ├── PLATFORM_IMPLEMENTATION_PLAN.md
+│       ├── PRODUCTION_ROADMAP.md
+│       ├── PR_CHECKLIST.md
+│       ├── PR_DESCRIPTION.md
+│       ├── README.md
+│       ├── README_features.md
+│       ├── REFACTORING_AUDIT.md
+│       ├── UPGRADE_SUMMARY.md
+│       ├── USE_CASE_IMPLEMENTATION_ROADMAP.md
+│       ├── admin-dashboard
+│       │   ├── package.json
+│       │   └── src
+│       │       └── components
+│       │           ├── AuditViewer.tsx
+│       │           └── Dashboard.tsx
+│       ├── demo.py
+│       ├── demo
+│       │   ├── index.html
+│       │   └── quickstart.py
+│       ├── docker-compose.minimal.yml
+│       ├── docker-compose.yml
+│       ├── go.mod
+│       ├── install.ps1
+│       ├── install.sh
+│       ├── k8s
+│       │   └── deployment.yaml
+│       ├── package-lock.json
+│       ├── package.json
+│       ├── pyproject.toml
+│       ├── requirements.minimal.txt
+│       ├── requirements.txt
+│       ├── sdk
+│       │   ├── go
+│       │   │   └── siex.go
+│       │   └── nodejs
+│       │       └── src
+│       │           └── index.ts
+│       ├── setup.py
+│       ├── sie_x
+│       │   ├── __init__.py
+│       │   ├── agents
+│       │   │   ├── __init__.py
+│       │   │   └── autonomous.py
+│       │   ├── api
+│       │   │   ├── README.md
+│       │   │   ├── __init__.py
+│       │   │   ├── middleware.py
+│       │   │   ├── minimal_server.py
+│       │   │   ├── routes.py
+│       │   │   └── server.py
+│       │   ├── arcitechture.txt
+│       │   ├── audit
+│       │   │   ├── __init__.py
+│       │   │   └── lineage.py
+│       │   ├── auth
+│       │   │   ├── __init__.py
+│       │   │   └── enterprise.py
+│       │   ├── automl
+│       │   │   ├── __init__.py
+│       │   │   └── optimizer.py
+│       │   ├── cache
+│       │   │   ├── __init__.py
+│       │   │   └── redis_cache.py
+│       │   ├── chunking
+│       │   │   ├── __init__.py
+│       │   │   └── chunker.py
+│       │   ├── core
+│       │   │   ├── README.md
+│       │   │   ├── __init__.py
+│       │   │   ├── engine.py
+│       │   │   ├── extractors.py
+│       │   │   ├── interfaces.md
+│       │   │   ├── models.py
+│       │   │   ├── multilang.py
+│       │   │   ├── resilience.py
+│       │   │   ├── simple_engine.py
+│       │   │   ├── streaming.py
+│       │   │   ├── test_core.py
+│       │   │   └── utils.py
+│       │   ├── explainability
+│       │   │   ├── __init__.py
+│       │   │   └── xai.py
+│       │   ├── export
+│       │   │   ├── __init__.py
+│       │   │   └── formats.py
+│       │   ├── federated
+│       │   │   ├── __init__.py
+│       │   │   └── learning.py
+│       │   ├── integrations
+│       │   │   ├── __init__.py
+│       │   │   └── bacowr_adapter.py
+│       │   ├── monitoring
+│       │   │   ├── __init__.py
+│       │   │   ├── metrics.py
+│       │   │   └── observability.py
+│       │   ├── multilingual
+│       │   │   ├── __init__.py
+│       │   │   └── engine.py
+│       │   ├── orchestration
+│       │   │   ├── __init__.py
+│       │   │   └── langchain_integration.py
+│       │   ├── plugins
+│       │   │   ├── __init__.py
+│       │   │   └── system.py
+│       │   ├── project_builder.py
+│       │   ├── project_packager.py
+│       │   ├── sdk
+│       │   │   ├── README.md
+│       │   │   ├── __init__.py
+│       │   │   └── python
+│       │   │       ├── __init__.py
+│       │   │       ├── client.py
+│       │   │       └── sie_x_sdk.py
+│       │   ├── streaming
+│       │   │   ├── __init__.py
+│       │   │   └── pipeline.py
+│       │   ├── testing
+│       │   │   ├── __init__.py
+│       │   │   └── ab_framework.py
+│       │   ├── training
+│       │   │   ├── __init__.py
+│       │   │   └── active_learning.py
+│       │   ├── transformers
+│       │   │   ├── __init__.py
+│       │   │   ├── creative_transformer.py
+│       │   │   ├── financial_transformer.py
+│       │   │   ├── legal_transformer.py
+│       │   │   ├── loader.py
+│       │   │   ├── medical_transformer.py
+│       │   │   └── seo_transformer.py
+│       │   └── usecase.py
+│       ├── sie_x_complete_project_20251115_010428.zip
+│       ├── sonnet_plan.md
+│       ├── terraform
+│       │   ├── README_structure.md
+│       │   ├── environments
+│       │   │   └── production
+│       │   │       └── main.tf
+│       │   └── modules
+│       │       └── sie-x
+│       │           └── main.tf
+│       └── use_cases
+│           ├── 01_seo_content_optimization.md
+│           ├── 02_ai_content_generation.md
+│           └── 03_link_building_outreach.md
+├── setup-local.sh
+├── setup-seo-platform.sh
+├── update-orhesestrator
+│   ├── README.md
+│   ├── bulk-orchestration-framework.md
+│   ├── conflict_detector.py
+│   ├── example-mega-file.yaml
+│   ├── implementation-guide.md
+│   ├── mega_file_processor.py
+│   ├── orchestrator.sh
+│   └── team-coordination-manifest.yaml
+└── verify-platform.sh
+
+================================================================================
+End of Project Structure

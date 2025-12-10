@@ -1,0 +1,508 @@
+# Mega-File: SEO Analysis Engine Core
+# Team: Gamma (SEO Analysis)
+# Expected output: 2500+ LOC across 30+ files
+
+id: "mega-gamma-seo-analysis"
+version: "1.0.0"
+team: "gamma"
+description: "Core SEO analysis algorithms and intelligence"
+
+metadata:
+  estimated_files: 35
+  estimated_loc: 2500
+  dependencies: ["mega-alpha-database-core", "mega-beta-crawler-core"]
+  ml_models:
+    - "content_quality_scorer"
+    - "search_intent_classifier"
+    - "keyword_clustering"
+    - "serp_predictor"
+
+expansion_rules:
+  analysis_modules:
+    - name: "KeywordResearch"
+      components: ["suggestion", "difficulty", "opportunity", "clustering"]
+      
+    - name: "RankTracking" 
+      components: ["position", "serp_features", "competitors", "volatility"]
+      
+    - name: "ContentAnalysis"
+      components: ["quality", "relevance", "optimization", "gaps"]
+      
+    - name: "CompetitorIntelligence"
+      components: ["tracking", "gaps", "strategies", "alerts"]
+      
+    - name: "SERPAnalysis"
+      components: ["features", "intent", "difficulty", "trends"]
+
+generation_templates:
+  analysis_service:
+    output_path: "/src/analysis/{name}/{name}.service.ts"
+    template: |
+      import { Injectable, Logger } from '@nestjs/common';
+      import { InjectRepository } from '@nestjs/typeorm';
+      import { Repository } from 'typeorm';
+      import * as tf from '@tensorflow/tfjs-node';
+      import { OpenAI } from 'openai';
+      
+      @Injectable()
+      export class {Name}Service {
+        private readonly logger = new Logger({Name}Service.name);
+        private model: tf.LayersModel;
+        private openai: OpenAI;
+        
+        constructor(
+          @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
+          @InjectRepository(Page) private pageRepo: Repository<Page>,
+          @InjectRepository(Ranking) private rankingRepo: Repository<Ranking>
+        ) {
+          this.initializeModels();
+        }
+        
+        private async initializeModels(): Promise<void> {
+          // Load pre-trained models
+          this.model = await tf.loadLayersModel('file://models/{name}/model.json');
+          
+          this.openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+          });
+        }
+        
+        async analyze(input: {Name}Input): Promise<{Name}Result> {
+          const startTime = Date.now();
+          
+          try {
+            // Gather data
+            const data = await this.gatherData(input);
+            
+            // Run ML analysis
+            const mlResults = await this.runMLAnalysis(data);
+            
+            // Generate insights
+            const insights = await this.generateInsights(mlResults);
+            
+            // Store results
+            await this.storeResults(input, insights);
+            
+            this.logger.log(`Analysis completed in ${Date.now() - startTime}ms`);
+            
+            return {
+              success: true,
+              data: insights,
+              metadata: {
+                processingTime: Date.now() - startTime,
+                confidence: mlResults.confidence
+              }
+            };
+            
+          } catch (error) {
+            this.logger.error(`Analysis failed: ${error.message}`);
+            throw error;
+          }
+        }
+        
+        private async gatherData(input: {Name}Input): Promise<any> {
+          // Collect all necessary data for analysis
+          const [historical, current, competitors] = await Promise.all([
+            this.getHistoricalData(input),
+            this.getCurrentData(input),
+            this.getCompetitorData(input)
+          ]);
+          
+          return { historical, current, competitors };
+        }
+        
+        private async runMLAnalysis(data: any): Promise<any> {
+          // Prepare features
+          const features = this.extractFeatures(data);
+          const tensor = tf.tensor2d([features]);
+          
+          // Run prediction
+          const prediction = this.model.predict(tensor) as tf.Tensor;
+          const results = await prediction.data();
+          
+          // Clean up
+          tensor.dispose();
+          prediction.dispose();
+          
+          return {
+            scores: results,
+            confidence: this.calculateConfidence(results)
+          };
+        }
+        
+        private async generateInsights(mlResults: any): Promise<any> {
+          // Use GPT for natural language insights
+          const prompt = this.buildInsightPrompt(mlResults);
+          
+          const completion = await this.openai.chat.completions.create({
+            model: "gpt-4-turbo",
+            messages: [
+              {
+                role: "system",
+                content: "You are an expert SEO analyst. Generate actionable insights."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            temperature: 0.3,
+            max_tokens: 500
+          });
+          
+          return JSON.parse(completion.choices[0].message.content);
+        }
+      }
+
+  python_ml_module:
+    output_path: "/src/analysis/ml/{name}_model.py"
+    template: |
+      import numpy as np
+      import pandas as pd
+      from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
+      from sklearn.preprocessing import StandardScaler
+      from transformers import AutoTokenizer, AutoModel
+      import torch
+      import joblib
+      
+      class {Name}Model:
+          """ML model for {description}"""
+          
+          def __init__(self):
+              self.model = None
+              self.scaler = StandardScaler()
+              self.tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+              self.bert = AutoModel.from_pretrained('bert-base-uncased')
+              self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+              
+          def train(self, X_train, y_train):
+              """Train the model on historical data"""
+              # Feature engineering
+              X_processed = self.preprocess_features(X_train)
+              
+              # Scale features
+              X_scaled = self.scaler.fit_transform(X_processed)
+              
+              # Train ensemble
+              self.model = self._build_ensemble()
+              self.model.fit(X_scaled, y_train)
+              
+              # Save model
+              self.save_model()
+              
+              return self.evaluate(X_train, y_train)
+              
+          def predict(self, X):
+              """Make predictions on new data"""
+              X_processed = self.preprocess_features(X)
+              X_scaled = self.scaler.transform(X_processed)
+              
+              predictions = self.model.predict(X_scaled)
+              confidence = self._calculate_confidence(predictions)
+              
+              return {
+                  'predictions': predictions,
+                  'confidence': confidence,
+                  'feature_importance': self.get_feature_importance()
+              }
+              
+          def preprocess_features(self, X):
+              """Extract and engineer features"""
+              features = []
+              
+              for idx, row in X.iterrows():
+                  # Text features using BERT
+                  text_features = self.extract_text_features(row['content'])
+                  
+                  # Numerical features
+                  numerical_features = [
+                      row['word_count'],
+                      row['backlinks_count'],
+                      row['domain_authority'],
+                      row['page_speed_score'],
+                      row['time_on_page'],
+                      row['bounce_rate']
+                  ]
+                  
+                  # Combine features
+                  combined = np.concatenate([text_features, numerical_features])
+                  features.append(combined)
+                  
+              return np.array(features)
+              
+          def extract_text_features(self, text):
+              """Extract BERT embeddings from text"""
+              inputs = self.tokenizer(text, return_tensors='pt', 
+                                     max_length=512, truncation=True, 
+                                     padding=True)
+              
+              with torch.no_grad():
+                  outputs = self.bert(**inputs)
+                  
+              # Use CLS token embedding
+              embeddings = outputs.last_hidden_state[:, 0, :].numpy()
+              
+              return embeddings.flatten()
+              
+          def _build_ensemble(self):
+              """Build ensemble model"""
+              from sklearn.ensemble import VotingRegressor
+              
+              rf = RandomForestRegressor(n_estimators=100, random_state=42)
+              gb = GradientBoostingRegressor(n_estimators=100, random_state=42)
+              
+              ensemble = VotingRegressor([
+                  ('rf', rf),
+                  ('gb', gb)
+              ])
+              
+              return ensemble
+              
+          def save_model(self, path='models/{name}/'):
+              """Save trained model and scaler"""
+              joblib.dump(self.model, f'{path}model.pkl')
+              joblib.dump(self.scaler, f'{path}scaler.pkl')
+
+  algorithm_implementation:
+    output_path: "/src/analysis/algorithms/{name}.algorithm.ts"
+    template: |
+      export class {Name}Algorithm {
+        /**
+         * Core SEO algorithm implementation
+         */
+        
+        async calculateKeywordDifficulty(keyword: KeywordData): Promise<number> {
+          const factors = {
+            competitorAuthority: await this.analyzeCompetitorAuthority(keyword),
+            contentDepth: await this.analyzeContentDepth(keyword),
+            backlinksRequired: await this.estimateBacklinksNeeded(keyword),
+            serpFeatures: await this.analyzeSERPFeatures(keyword),
+            searchIntent: await this.classifySearchIntent(keyword)
+          };
+          
+          // Weighted calculation
+          const weights = {
+            competitorAuthority: 0.35,
+            contentDepth: 0.25,
+            backlinksRequired: 0.20,
+            serpFeatures: 0.10,
+            searchIntent: 0.10
+          };
+          
+          let difficulty = 0;
+          for (const [factor, value] of Object.entries(factors)) {
+            difficulty += value * weights[factor];
+          }
+          
+          return Math.round(difficulty);
+        }
+        
+        async calculateOpportunityScore(params: OpportunityParams): Promise<OpportunityScore> {
+          const {
+            searchVolume,
+            currentPosition,
+            competitorGap,
+            contentMatch,
+            commercialValue
+          } = params;
+          
+          // Multi-factor opportunity calculation
+          const volumeScore = Math.log10(searchVolume + 1) * 10;
+          const positionScore = currentPosition ? (100 - currentPosition) / 10 : 10;
+          const gapScore = competitorGap * 0.8;
+          const matchScore = contentMatch * 0.7;
+          const valueScore = commercialValue * 1.2;
+          
+          const totalScore = (volumeScore + positionScore + gapScore + matchScore + valueScore) / 5;
+          
+          return {
+            score: Math.round(totalScore * 10) / 10,
+            factors: {
+              volume: volumeScore,
+              position: positionScore,
+              gap: gapScore,
+              match: matchScore,
+              value: valueScore
+            },
+            recommendation: this.generateRecommendation(totalScore)
+          };
+        }
+        
+        async detectRankingChanges(historical: RankingData[]): Promise<ChangeAnalysis> {
+          // Statistical analysis of ranking volatility
+          const positions = historical.map(h => h.position);
+          
+          const mean = positions.reduce((a, b) => a + b) / positions.length;
+          const variance = positions.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / positions.length;
+          const stdDev = Math.sqrt(variance);
+          
+          // Detect trends
+          const trend = this.calculateTrend(positions);
+          const volatility = stdDev / mean;
+          
+          // Anomaly detection
+          const anomalies = this.detectAnomalies(positions, stdDev);
+          
+          return {
+            trend,
+            volatility,
+            anomalies,
+            prediction: this.predictNextPosition(positions, trend)
+          };
+        }
+        
+        private calculateTrend(positions: number[]): 'improving' | 'declining' | 'stable' {
+          const recentAvg = positions.slice(-7).reduce((a, b) => a + b) / 7;
+          const oldAvg = positions.slice(0, 7).reduce((a, b) => a + b) / 7;
+          
+          const change = oldAvg - recentAvg; // Lower position is better
+          
+          if (change > 3) return 'improving';
+          if (change < -3) return 'declining';
+          return 'stable';
+        }
+      }
+
+  real_time_processor:
+    output_path: "/src/analysis/realtime/{name}.processor.ts"
+    template: |
+      import { Processor, Process } from '@nestjs/bull';
+      import { Job } from 'bull';
+      import { Logger } from '@nestjs/common';
+      import * as WebSocket from 'ws';
+      
+      @Processor('{name}-realtime')
+      export class {Name}RealtimeProcessor {
+        private readonly logger = new Logger({Name}RealtimeProcessor.name);
+        private ws: WebSocket;
+        
+        constructor(private readonly analysisService: {Name}Service) {
+          this.initWebSocket();
+        }
+        
+        private initWebSocket(): void {
+          this.ws = new WebSocket(process.env.REALTIME_WS_URL);
+          
+          this.ws.on('open', () => {
+            this.logger.log('Connected to realtime feed');
+          });
+        }
+        
+        @Process()
+        async handleRealtimeData(job: Job): Promise<void> {
+          const { type, data } = job.data;
+          
+          switch (type) {
+            case 'ranking_update':
+              await this.processRankingUpdate(data);
+              break;
+              
+            case 'serp_change':
+              await this.processSERPChange(data);
+              break;
+              
+            case 'competitor_alert':
+              await this.processCompetitorAlert(data);
+              break;
+              
+            default:
+              this.logger.warn(`Unknown event type: ${type}`);
+          }
+          
+          // Broadcast to connected clients
+          this.broadcast({
+            type: 'analysis_complete',
+            data: job.data,
+            timestamp: Date.now()
+          });
+        }
+        
+        private broadcast(message: any): void {
+          if (this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify(message));
+          }
+        }
+      }
+
+special_algorithms:
+  content_scorer:
+    output_path: "/src/analysis/scoring/content.scorer.ts"
+    template: |
+      export class ContentScorer {
+        private readonly weights = {
+          relevance: 0.25,
+          depth: 0.20,
+          uniqueness: 0.15,
+          readability: 0.15,
+          structure: 0.10,
+          freshness: 0.10,
+          engagement: 0.05
+        };
+        
+        async scoreContent(content: ContentData, targetKeyword: string): Promise<ContentScore> {
+          const scores = await Promise.all([
+            this.scoreRelevance(content, targetKeyword),
+            this.scoreDepth(content),
+            this.scoreUniqueness(content),
+            this.scoreReadability(content),
+            this.scoreStructure(content),
+            this.scoreFreshness(content),
+            this.scoreEngagement(content)
+          ]);
+          
+          const [relevance, depth, uniqueness, readability, structure, freshness, engagement] = scores;
+          
+          const totalScore = 
+            relevance * this.weights.relevance +
+            depth * this.weights.depth +
+            uniqueness * this.weights.uniqueness +
+            readability * this.weights.readability +
+            structure * this.weights.structure +
+            freshness * this.weights.freshness +
+            engagement * this.weights.engagement;
+            
+          return {
+            total: Math.round(totalScore),
+            breakdown: {
+              relevance,
+              depth,
+              uniqueness,
+              readability,
+              structure,
+              freshness,
+              engagement
+            },
+            recommendations: this.generateRecommendations({ 
+              relevance, depth, uniqueness, readability, structure, freshness, engagement 
+            })
+          };
+        }
+        
+        private async scoreRelevance(content: ContentData, keyword: string): Promise<number> {
+          // TF-IDF analysis
+          const tfidf = this.calculateTFIDF(content.text, keyword);
+          
+          // Semantic similarity using embeddings
+          const semantic = await this.calculateSemanticSimilarity(content.text, keyword);
+          
+          // Keyword placement
+          const placement = this.scoreKeywordPlacement(content, keyword);
+          
+          return (tfidf * 0.4 + semantic * 0.4 + placement * 0.2) * 100;
+        }
+      }
+
+validation:
+  performance_benchmarks:
+    - metric: "keyword_analysis_speed"
+      target: "<100ms per keyword"
+    - metric: "ranking_update_latency"
+      target: "<500ms"
+    - metric: "ml_prediction_accuracy"
+      target: ">85%"
+      
+  quality_checks:
+    - check: "algorithm_accuracy"
+      threshold: 0.85
+    - check: "data_consistency"
+      threshold: 0.99

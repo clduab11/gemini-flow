@@ -1,0 +1,23 @@
+# Neural Overlay System Requirements
+
+# Core
+anthropic>=0.18.0
+numpy>=1.24.0
+asyncio-mqtt>=0.16.1
+
+# Already in parent requirements
+fastapi>=0.109.0
+uvicorn>=0.25.0
+pydantic>=2.0.0
+
+# Additional for Neural Overlay
+scikit-learn>=1.3.0  # For better embeddings and similarity
+redis>=5.0.0  # For distributed caching
+psutil>=5.9.0  # For system monitoring
+watchdog>=3.0.0  # For file system monitoring
+
+# Optional but recommended
+pandas>=2.0.0  # For data analysis
+matplotlib>=3.7.0  # For visualization
+pytest>=7.4.0  # For testing
+pytest-asyncio>=0.21.0  # For async testing

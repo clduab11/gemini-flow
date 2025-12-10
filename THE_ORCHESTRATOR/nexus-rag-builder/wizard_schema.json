@@ -1,0 +1,188 @@
+{
+  "wizard_metadata": {
+    "name": "RAG-as-a-Service Builder",
+    "version": "1.0.0",
+    "description": "Genererar en komplett RAG-plattform där användare kan ladda upp dokument och ställa frågor via API",
+    "estimated_setup_time": "5 minuter",
+    "difficulty": "intermediate"
+  },
+  "steps": [
+    {
+      "step_id": "project_info",
+      "title": "Projektinformation",
+      "questions": [
+        {
+          "var_name": "PROJECT_NAME",
+          "label": "Projektnamn (tekniskt, används i mappar och Docker-containrar)",
+          "type": "text",
+          "placeholder": "t.ex. min-rag-app",
+          "validation": "^[a-z0-9-]+$",
+          "required": true
+        },
+        {
+          "var_name": "PROJECT_DESCRIPTION",
+          "label": "Beskriv vad din RAG-plattform ska användas till",
+          "type": "textarea",
+          "placeholder": "t.ex. 'En intern kunskapsbas för vårt supportteam'",
+          "required": true
+        },
+        {
+          "var_name": "APP_PORT",
+          "label": "Vilken port ska API:et köra på?",
+          "type": "number",
+          "default": "8000",
+          "required": true
+        }
+      ]
+    },
+    {
+      "step_id": "llm_config",
+      "title": "LLM & Modell-inställningar",
+      "questions": [
+        {
+          "var_name": "GOOGLE_API_KEY",
+          "label": "Google AI Studio API-nyckel (för Gemini)",
+          "type": "password",
+          "placeholder": "Hämta från: https://aistudio.google.com/app/apikey",
+          "required": true,
+          "help_text": "Används för både embeddings och textgenerering"
+        },
+        {
+          "var_name": "GEMINI_EMBEDDING_MODEL",
+          "label": "Gemini Embedding-modell",
+          "type": "select",
+          "options": [
+            {"value": "models/text-embedding-004", "label": "text-embedding-004 (768 dim, rekommenderad)"},
+            {"value": "models/embedding-001", "label": "embedding-001 (768 dim, äldre)"}
+          ],
+          "default": "models/text-embedding-004",
+          "required": true
+        },
+        {
+          "var_name": "GEMINI_GENERATION_MODEL",
+          "label": "Gemini Generations-modell",
+          "type": "select",
+          "options": [
+            {"value": "gemini-1.5-pro-latest", "label": "Gemini 1.5 Pro (senaste, bäst)"},
+            {"value": "gemini-1.5-flash-latest", "label": "Gemini 1.5 Flash (snabbare, billigare)"}
+          ],
+          "default": "gemini-1.5-pro-latest",
+          "required": true
+        },
+        {
+          "var_name": "EMBEDDING_DIMENSION",
+          "label": "Embedding-dimension (måste matcha vald modell)",
+          "type": "number",
+          "default": "768",
+          "required": true,
+          "help_text": "768 för text-embedding-004, 768 för embedding-001"
+        }
+      ]
+    },
+    {
+      "step_id": "supabase_config",
+      "title": "Supabase (Databas & Auth)",
+      "questions": [
+        {
+          "var_name": "SUPABASE_URL",
+          "label": "Supabase Projekt URL",
+          "type": "text",
+          "placeholder": "https://dittprojekt.supabase.co",
+          "required": true,
+          "help_text": "Skapa ett projekt på supabase.com och hitta detta under Settings > API"
+        },
+        {
+          "var_name": "SUPABASE_SERVICE_ROLE_KEY",
+          "label": "Supabase Service Role Key",
+          "type": "password",
+          "placeholder": "eyJ...",
+          "required": true,
+          "help_text": "Finns under Settings > API > service_role (secret)"
+        }
+      ]
+    },
+    {
+      "step_id": "vector_config",
+      "title": "Vektor-databas & Sökinställningar",
+      "questions": [
+        {
+          "var_name": "QDRANT_HOST",
+          "label": "Qdrant Host (lämna som 'qdrant' för Docker)",
+          "type": "text",
+          "default": "qdrant",
+          "required": true
+        },
+        {
+          "var_name": "QDRANT_PORT",
+          "label": "Qdrant Port",
+          "type": "number",
+          "default": "6333",
+          "required": true
+        },
+        {
+          "var_name": "SEARCH_TOP_K",
+          "label": "Hur många dokument-chunks ska returneras per sökning?",
+          "type": "number",
+          "default": "5",
+          "required": true,
+          "help_text": "Högre värde = mer kontext, men långsammare och dyrare"
+        },
+        {
+          "var_name": "RELEVANCE_THRESHOLD",
+          "label": "Relevans-tröskel (0-1)",
+          "type": "number",
+          "default": "0.7",
+          "step": "0.1",
+          "min": "0",
+          "max": "1",
+          "required": true,
+          "help_text": "Endast chunks med likhetsscore över detta värde används. 0.7 är en bra start."
+        }
+      ]
+    },
+    {
+      "step_id": "redis_config",
+      "title": "Redis (Cache)",
+      "questions": [
+        {
+          "var_name": "REDIS_HOST",
+          "label": "Redis Host (lämna som 'redis' för Docker)",
+          "type": "text",
+          "default": "redis",
+          "required": true
+        },
+        {
+          "var_name": "REDIS_PASSWORD",
+          "label": "Redis Lösenord",
+          "type": "password",
+          "default": "supersecurepassword123",
+          "required": true,
+          "help_text": "Välj ett starkt lösenord för din Redis-instans"
+        }
+      ]
+    },
+    {
+      "step_id": "prompt_customization",
+      "title": "Prompt-anpassning (Avancerat, valfritt)",
+      "questions": [
+        {
+          "var_name": "RAG_SYSTEM_PROMPT",
+          "label": "Anpassa system-prompten för RAG-svaren",
+          "type": "textarea",
+          "default": "Du är en hjälpsam assistent. Svara på användarens fråga baserat ENDAST på följande kontext.\nOm svaret inte finns i kontexten, säg \"Jag kunde inte hitta information om detta i de angivna dokumenten.\"\nCitera inte kontexten direkt, utan formulera ett eget svar.",
+          "required": false,
+          "help_text": "Detta är prompten som styr hur Gemini svarar. Använd {{context_variable}} och {{query_variable}} som platshållare."
+        }
+      ]
+    }
+  ],
+  "post_generation_instructions": [
+    "1. Kör 'cd {{PROJECT_NAME}}' för att gå in i din nya projektmapp",
+    "2. Öppna '.env' och verifiera att alla nycklar är korrekt ifyllda",
+    "3. Gå till din Supabase-dashboard -> SQL Editor -> New Query",
+    "4. Klistra in innehållet från 'infra/supabase/migrations/01_init_schema.sql' och klicka RUN",
+    "5. Kör 'docker compose up -d' för att starta alla tjänster",
+    "6. Testa API:et på http://localhost:{{APP_PORT}}/docs",
+    "7. Skapa ett projekt, ladda upp en testfil och ställ en fråga!"
+  ]
+}

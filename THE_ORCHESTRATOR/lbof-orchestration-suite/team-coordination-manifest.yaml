@@ -1,0 +1,425 @@
+# Team Coordination Manifest v1.0
+# Detaljerad rollfördelning och gränser för 10-team orkestrering
+
+teams:
+  alpha:
+    name: "Foundation Layer Team"
+    id: "team-alpha"
+    priority: 1
+    dependencies: []
+    
+    capabilities:
+      languages: ["typescript", "python", "sql"]
+      frameworks: ["fastapi", "sqlalchemy", "alembic"]
+      specialties: ["database-design", "core-architecture", "utilities"]
+    
+    boundaries:
+      write_paths:
+        - "/src/core/**"
+        - "/src/database/**"
+        - "/src/shared/utils/**"
+        - "/infrastructure/base/**"
+      read_paths:
+        - "/contracts/**"
+        - "/schemas/**"
+      forbidden_paths:
+        - "/src/api/**"
+        - "/src/frontend/**"
+        - "/tests/**"
+    
+    deliverables:
+      mega_files:
+        - core_entities_generator.yaml
+        - database_schema_generator.yaml
+        - utility_library_generator.yaml
+        - base_classes_generator.yaml
+        - type_definitions_generator.yaml
+        - error_handling_generator.yaml
+        - logging_framework_generator.yaml
+        - config_management_generator.yaml
+        - event_bus_generator.yaml
+        - dependency_injection_generator.yaml
+      
+      expected_output:
+        total_files: 120-150
+        total_loc: 8000-10000
+        test_coverage: 90%
+
+  beta:
+    name: "API Layer Team"
+    id: "team-beta"
+    priority: 2
+    dependencies: ["team-alpha"]
+    
+    capabilities:
+      languages: ["typescript", "python"]
+      frameworks: ["fastapi", "express", "graphql"]
+      specialties: ["rest-api", "graphql", "websockets", "auth"]
+    
+    boundaries:
+      write_paths:
+        - "/src/api/**"
+        - "/src/middleware/**"
+        - "/src/auth/**"
+        - "/src/routes/**"
+      read_paths:
+        - "/src/core/entities/**"
+        - "/src/shared/utils/**"
+        - "/contracts/**"
+      forbidden_paths:
+        - "/src/database/migrations/**"
+        - "/src/frontend/**"
+        - "/infrastructure/**"
+    
+    deliverables:
+      mega_files:
+        - rest_endpoints_generator.yaml
+        - graphql_schema_generator.yaml
+        - auth_system_generator.yaml
+        - middleware_stack_generator.yaml
+        - rate_limiter_generator.yaml
+        - api_versioning_generator.yaml
+        - websocket_handlers_generator.yaml
+        - request_validation_generator.yaml
+        - response_serialization_generator.yaml
+        - api_documentation_generator.yaml
+
+  gamma:
+    name: "Business Logic Team"
+    id: "team-gamma"
+    priority: 2
+    dependencies: ["team-alpha", "team-beta"]
+    
+    capabilities:
+      languages: ["typescript", "python"]
+      frameworks: ["domain-driven-design"]
+      specialties: ["business-rules", "workflows", "state-machines"]
+    
+    boundaries:
+      write_paths:
+        - "/src/domain/**"
+        - "/src/services/**"
+        - "/src/workflows/**"
+        - "/src/rules/**"
+      read_paths:
+        - "/src/core/**"
+        - "/src/database/models/**"
+        - "/contracts/**"
+      forbidden_paths:
+        - "/src/api/controllers/**"
+        - "/infrastructure/**"
+    
+    deliverables:
+      mega_files:
+        - domain_services_generator.yaml
+        - business_rules_generator.yaml
+        - workflow_engine_generator.yaml
+        - state_machines_generator.yaml
+        - validators_generator.yaml
+        - calculators_generator.yaml
+        - aggregates_generator.yaml
+        - domain_events_generator.yaml
+        - saga_orchestration_generator.yaml
+        - policy_engine_generator.yaml
+
+  delta:
+    name: "Integration Layer Team"
+    id: "team-delta"
+    priority: 3
+    dependencies: ["team-alpha", "team-beta"]
+    
+    capabilities:
+      languages: ["typescript", "python"]
+      frameworks: ["webhooks", "message-queues", "event-streaming"]
+      specialties: ["external-apis", "adapters", "etl"]
+    
+    boundaries:
+      write_paths:
+        - "/src/integrations/**"
+        - "/src/adapters/**"
+        - "/src/webhooks/**"
+        - "/src/connectors/**"
+      read_paths:
+        - "/src/core/**"
+        - "/src/services/**"
+        - "/contracts/**"
+      forbidden_paths:
+        - "/src/domain/**"
+        - "/src/frontend/**"
+    
+    deliverables:
+      mega_files:
+        - external_api_clients_generator.yaml
+        - webhook_handlers_generator.yaml
+        - message_queue_generator.yaml
+        - event_streaming_generator.yaml
+        - data_transformers_generator.yaml
+        - retry_logic_generator.yaml
+        - circuit_breakers_generator.yaml
+        - adapter_factory_generator.yaml
+        - etl_pipelines_generator.yaml
+        - integration_tests_generator.yaml
+
+  epsilon:
+    name: "Frontend Core Team"
+    id: "team-epsilon"
+    priority: 3
+    dependencies: ["team-beta"]
+    
+    capabilities:
+      languages: ["typescript", "javascript", "css"]
+      frameworks: ["react", "nextjs", "vue", "tailwind"]
+      specialties: ["ui-components", "state-management", "routing"]
+    
+    boundaries:
+      write_paths:
+        - "/frontend/src/components/**"
+        - "/frontend/src/hooks/**"
+        - "/frontend/src/store/**"
+        - "/frontend/src/pages/**"
+        - "/frontend/src/styles/**"
+      read_paths:
+        - "/contracts/api/**"
+        - "/src/shared/types/**"
+      forbidden_paths:
+        - "/src/api/**"
+        - "/infrastructure/**"
+    
+    deliverables:
+      mega_files:
+        - component_library_generator.yaml
+        - page_layouts_generator.yaml
+        - state_management_generator.yaml
+        - routing_config_generator.yaml
+        - form_system_generator.yaml
+        - data_fetching_generator.yaml
+        - style_system_generator.yaml
+        - animation_library_generator.yaml
+        - accessibility_generator.yaml
+        - responsive_design_generator.yaml
+
+  zeta:
+    name: "Testing & QA Team"
+    id: "team-zeta"
+    priority: 4
+    dependencies: ["all"]
+    
+    capabilities:
+      languages: ["typescript", "python", "gherkin"]
+      frameworks: ["jest", "pytest", "playwright", "cypress"]
+      specialties: ["unit-testing", "integration-testing", "e2e-testing"]
+    
+    boundaries:
+      write_paths:
+        - "/tests/**"
+        - "/e2e/**"
+        - "/**/*.test.ts"
+        - "/**/*.spec.ts"
+        - "/test-utils/**"
+      read_paths:
+        - "/**" # Can read everything for testing
+      forbidden_paths:
+        - "/src/**/implementation/**" # Cannot modify implementation
+    
+    deliverables:
+      mega_files:
+        - unit_tests_generator.yaml
+        - integration_tests_generator.yaml
+        - e2e_scenarios_generator.yaml
+        - test_fixtures_generator.yaml
+        - mock_factory_generator.yaml
+        - test_utilities_generator.yaml
+        - performance_tests_generator.yaml
+        - load_tests_generator.yaml
+        - security_tests_generator.yaml
+        - coverage_config_generator.yaml
+
+  eta:
+    name: "DevOps & Infrastructure Team"
+    id: "team-eta"
+    priority: 2
+    dependencies: ["team-alpha"]
+    
+    capabilities:
+      languages: ["yaml", "bash", "terraform", "python"]
+      frameworks: ["kubernetes", "docker", "github-actions", "ansible"]
+      specialties: ["ci-cd", "infrastructure-as-code", "monitoring"]
+    
+    boundaries:
+      write_paths:
+        - "/.github/workflows/**"
+        - "/k8s/**"
+        - "/docker/**"
+        - "/terraform/**"
+        - "/ansible/**"
+        - "/scripts/**"
+      read_paths:
+        - "/src/**/package.json"
+        - "/src/**/requirements.txt"
+      forbidden_paths:
+        - "/src/**/*.ts"
+        - "/src/**/*.py"
+    
+    deliverables:
+      mega_files:
+        - ci_pipeline_generator.yaml
+        - docker_config_generator.yaml
+        - k8s_manifests_generator.yaml
+        - terraform_modules_generator.yaml
+        - monitoring_stack_generator.yaml
+        - logging_config_generator.yaml
+        - secrets_management_generator.yaml
+        - backup_strategy_generator.yaml
+        - deployment_scripts_generator.yaml
+        - infrastructure_tests_generator.yaml
+
+  theta:
+    name: "Documentation Team"
+    id: "team-theta"
+    priority: 5
+    dependencies: ["all"]
+    
+    capabilities:
+      languages: ["markdown", "typescript", "python"]
+      frameworks: ["docusaurus", "mkdocs", "swagger"]
+      specialties: ["technical-writing", "api-documentation", "tutorials"]
+    
+    boundaries:
+      write_paths:
+        - "/docs/**"
+        - "/README.md"
+        - "/**/*.md"
+        - "/examples/**"
+      read_paths:
+        - "/**" # Can read everything for documentation
+      forbidden_paths:
+        - "/src/**/implementation/**"
+    
+    deliverables:
+      mega_files:
+        - api_reference_generator.yaml
+        - architecture_docs_generator.yaml
+        - user_guides_generator.yaml
+        - developer_guides_generator.yaml
+        - deployment_docs_generator.yaml
+        - troubleshooting_generator.yaml
+        - changelog_generator.yaml
+        - examples_generator.yaml
+        - diagrams_generator.yaml
+        - glossary_generator.yaml
+
+  iota:
+    name: "Security & Compliance Team"
+    id: "team-iota"
+    priority: 3
+    dependencies: ["team-alpha", "team-beta"]
+    
+    capabilities:
+      languages: ["typescript", "python", "yaml"]
+      frameworks: ["oauth", "jwt", "encryption"]
+      specialties: ["security", "compliance", "gdpr", "audit"]
+    
+    boundaries:
+      write_paths:
+        - "/src/security/**"
+        - "/src/compliance/**"
+        - "/policies/**"
+        - "/audit/**"
+      read_paths:
+        - "/src/auth/**"
+        - "/src/api/**"
+        - "/contracts/**"
+      forbidden_paths:
+        - "/src/core/**/internal/**"
+    
+    deliverables:
+      mega_files:
+        - security_policies_generator.yaml
+        - encryption_layer_generator.yaml
+        - audit_system_generator.yaml
+        - gdpr_compliance_generator.yaml
+        - access_control_generator.yaml
+        - vulnerability_scanner_generator.yaml
+        - security_headers_generator.yaml
+        - data_masking_generator.yaml
+        - compliance_reports_generator.yaml
+        - incident_response_generator.yaml
+
+  kappa:
+    name: "Analytics & Monitoring Team"
+    id: "team-kappa"
+    priority: 4
+    dependencies: ["team-alpha", "team-beta"]
+    
+    capabilities:
+      languages: ["typescript", "python", "sql"]
+      frameworks: ["prometheus", "grafana", "elasticsearch"]
+      specialties: ["metrics", "logging", "dashboards", "alerts"]
+    
+    boundaries:
+      write_paths:
+        - "/src/analytics/**"
+        - "/src/monitoring/**"
+        - "/dashboards/**"
+        - "/alerts/**"
+      read_paths:
+        - "/src/api/**"
+        - "/src/services/**"
+        - "/contracts/**"
+      forbidden_paths:
+        - "/infrastructure/secrets/**"
+    
+    deliverables:
+      mega_files:
+        - metrics_collection_generator.yaml
+        - logging_pipeline_generator.yaml
+        - dashboard_templates_generator.yaml
+        - alert_rules_generator.yaml
+        - analytics_engine_generator.yaml
+        - report_generator_generator.yaml
+        - data_pipeline_generator.yaml
+        - visualization_generator.yaml
+        - anomaly_detection_generator.yaml
+        - performance_tracking_generator.yaml
+
+coordination_rules:
+  communication:
+    - type: "event_bus"
+      topics:
+        - "team.status.update"
+        - "integration.ready"
+        - "validation.required"
+        - "merge.conflict"
+        - "emergency.halt"
+    
+  integration_sequence:
+    - phase: "foundation"
+      teams: ["alpha"]
+      duration: "15min"
+      
+    - phase: "core_services"
+      teams: ["beta", "gamma", "eta"]
+      duration: "20min"
+      
+    - phase: "integrations"
+      teams: ["delta", "epsilon", "iota"]
+      duration: "20min"
+      
+    - phase: "quality_monitoring"
+      teams: ["zeta", "kappa"]
+      duration: "15min"
+      
+    - phase: "documentation"
+      teams: ["theta"]
+      duration: "10min"
+
+  conflict_resolution:
+    - priority: "by_dependency_order"
+    - tiebreaker: "team_priority"
+    - escalation: "orchestrator_decision"
+
+  validation_gates:
+    - after_mega_files: "validate_no_conflicts"
+    - after_generation: "validate_compilation"
+    - after_integration: "validate_tests"
+    - final: "validate_complete_system"

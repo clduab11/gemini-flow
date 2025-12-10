@@ -1,0 +1,87 @@
+version: '3.9'
+
+services:
+  # PostgreSQL with pgvector extension
+  neural-db:
+    image: pgvector/pgvector:pg16
+    container_name: neural-memory-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: neural
+      POSTGRES_PASSWORD: neural
+      POSTGRES_DB: neural_memory
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - "5432:5432"
+    volumes:
+      - neural_data:/var/lib/postgresql/data
+      - ./neural_db_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./init_extensions.sql:/docker-entrypoint-initdb.d/00-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neural -d neural_memory"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin for database management (optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: neural-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@neural.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      neural-db:
+        condition: service_healthy
+
+  # Redis for fast caching (optional but recommended)
+  neural-cache:
+    image: redis:7-alpine
+    container_name: neural-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  # Neural API Server (optional)
+  neural-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: neural-api
+    restart: unless-stopped
+    environment:
+      NEURAL_DB_URL: postgresql://neural:neural@neural-db:5432/neural_memory
+      REDIS_URL: redis://neural-cache:6379/0
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "8100:8000"
+    depends_on:
+      neural-db:
+        condition: service_healthy
+      neural-cache:
+        condition: service_started
+    volumes:
+      - .:/app
+      - ~/.neural:/root/.neural  # Share with host system
+
+volumes:
+  neural_data:
+    name: neural_memory_data
+  pgadmin_data:
+    name: neural_pgadmin_data
+  redis_data:
+    name: neural_redis_data
+
+networks:
+  default:
+    name: neural_network
+    driver: bridge
