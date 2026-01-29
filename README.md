@@ -1,6 +1,6 @@
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/clduab11-gemini-flow-badge.png)](https://mseep.ai/app/clduab11-gemini-flow)
 
-# 🌌 Gemini-Flow: Production-Ready AI Orchestration Platform
+# 🌌 [ARCHIVED] Gemini-Flow: Production-Ready AI Orchestration Platform
 
 <img width="2048" height="2048" alt="VeniceAI_AhmZBVE_@2x" src="https://github.com/user-attachments/assets/c28950cf-95d3-48b7-b462-b31299b282e0" />
 
@@ -18,6 +18,18 @@
 </div>
 
 ---
+
+## Dev Note (IMPORTANT!):
+
+Hi all! I wanted to write a short message thanking each and every one of you for supporting the repo and sharing it and I hope it was super useful for you!! As of January 29, 2026, this project will be archived/read-only.
+
+Generative AI writ large is moving too fast given the amount of repositories I'm not managing have **exploded**, and with some of Google's latest releases (Antigravity), it really discontinues the need for this type of project.
+
+I will keep it archived/read-only as a growing/learning experience! Thanks so much everyone; y'all have been awesome!!!
+
+-clduab11
+
+
 
 ## 🚀 Production-Ready AI Orchestration
 
