@@ -11,6 +11,14 @@
 *.sqlite
 *.sqlite3
 
+# Rate limiting data files
+.rate-limit-data.json
+*/.rate-limit-data.json
+
+# Backup files
+backups/
+*/backups/
+
 # Swarm and coordination files
 .gemini-flow/
 .swarm/
