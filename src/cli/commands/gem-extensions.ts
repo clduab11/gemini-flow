@@ -9,7 +9,7 @@ import { Command } from "commander";
 import chalk from "chalk";
 import ora from "ora";
 import { Logger } from "../../utils/logger.js";
-import { getExtensionManager, ExtensionMetadata } from "../../services/extension-manager.js";
+import { getExtensionManager } from "../../services/extension-manager.js";
 
 export class GemExtensionsCommand extends Command {
   private logger: Logger;

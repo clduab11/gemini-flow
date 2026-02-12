@@ -2,7 +2,8 @@
   "extends": "./tsconfig.json",
   "include": [
     "src",
-    "tests"
+    "tests",
+    "extensions/gemini-cli/**/*.js"
   ],
   "exclude": [
     "node_modules",

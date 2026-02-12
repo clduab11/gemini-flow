@@ -38,6 +38,16 @@
     },
     {
       "files": [
+        "src/cli/commands/**/*.ts",
+        "src/services/extension-manager.ts",
+        "extensions/gemini-cli/extension-loader.js"
+      ],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": [
         "src/integrations/mariner/**/*.ts",
         "src/monitoring/real-user-monitoring.ts",
         "src/streaming/**/*.ts",
